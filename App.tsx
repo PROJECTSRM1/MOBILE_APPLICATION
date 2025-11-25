@@ -6,11 +6,12 @@
  */
 
 import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
+import { StatusBar, StyleSheet, useColorScheme, View, Text, Button  } from 'react-native';
 import {
   SafeAreaProvider,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
+// import { Button } from 'react-native/types_generated/index';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -28,10 +29,9 @@ function AppContent() {
 
   return (
     <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      />
+      <Text style={{color:'red'}}>Hello rm1</Text>
+      <Text style={{color:'red', marginTop: safeAreaInsets.top}}>Hello rm2</Text>
+      <Button title="sign in" onPress={() => ('Button pressed!')} />
     </View>
   );
 }
