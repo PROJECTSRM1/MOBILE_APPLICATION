@@ -1,27 +1,47 @@
-import React, { useState } from 'react';
-import Splash from './src/screens/splashscreen';
-import Onboarding from './src/screens/onboardingscreen';
+import React, { useState } from "react";
 
+import Splash from "./src/screens/splashscreen";
+import Onboarding from "./src/screens/onboardingscreen";
+import Signup from "./src/screens/Signup";
+import Login from "./src/screens/Login";
+import Home from "./src/screens/Home";
 
 export default function App() {
-  const [showSplash, setShowSplash] = useState(true);
-  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [screen, setScreen] = useState("Splash");  // default screen
 
+  const handleSplashFinish = () => setScreen("Onboarding");
+  const handleOnboardingDone = () => setScreen("Signup");
+  const handleSignupDone = () => setScreen("Home");
+  const goToLogin = () => setScreen("Login");
+  const handleLoginDone = () => setScreen("Home");
 
-  const onSplashFinish = () => {
-    setShowSplash(false);
-    setShowOnboarding(true);
-  };
+  switch (screen) {
+    case "Splash":
+      return <Splash onFinish={handleSplashFinish} />;
 
+    case "Onboarding":
+      return <Onboarding onDone={handleOnboardingDone} />;
 
-  const onOnboardingDone = () => {
-    setShowOnboarding(false);
-  };
+    case "Signup":
+      return (
+        <Signup
+          onSignupDone={handleSignupDone}
+          onGoToLogin={goToLogin}
+        />
+      );
 
+    case "Login":
+      return (
+        <Login
+          onLoginDone={handleLoginDone}
+          onGoToSignup={() => setScreen("Signup")}
+        />
+      );
 
-  if (showSplash) return <Splash onFinish={onSplashFinish} />;
-  if (showOnboarding) return <Onboarding onDone={onOnboardingDone} />;
+    case "Home":
+      return <Home />;
 
-
-  return null;
+    default:
+      return null;
+  }
 }
