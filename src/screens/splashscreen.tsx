@@ -49,7 +49,10 @@ export default function Splash({ onFinish }: SplashProps) {
       <LinearGradient colors={['#0f62a5', '#4f92dd', '#04276e']} style={StyleSheet.absoluteFill} />
 
       <Animated.View style={[styles.logoWrapper, { opacity: fadeLogo, transform: [{ scale: scaleLogo }] }]}>
-        <Image source={require('./assets/swachlogo.png')} style={styles.logoImage} />
+       <Image 
+  source={require('../assets/swachlogo.png')} 
+  style={styles.logoImage} 
+/>
         <Animated.View style={[styles.shineOverlay, { transform: [{ translateX: shineTranslate }] }]} />
       </Animated.View>
 
@@ -82,7 +85,7 @@ const styles = StyleSheet.create({
     height: 170,
     transform: [{ rotate: '25deg' }],
     borderRadius: 30,
-    backgroundColor: 'rgba(255,255,255,0.3)',
+    // backgroundColor: 'rgba(255,255,255,0.3)',
   },
   textWrapper: { marginTop: 30, alignItems: 'center' },
   title: {
