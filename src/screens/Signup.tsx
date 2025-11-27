@@ -40,6 +40,7 @@ export default function Signup({ onSignupDone, onGoToLogin, onBack }: SignupProp
         <Text style={styles.icon}>📧</Text>
         <TextInput
           placeholder="Enter your email"
+          placeholderTextColor="#B5B5B5"
           style={styles.input}
           value={email}
           onChangeText={setEmail}
@@ -53,6 +54,7 @@ export default function Signup({ onSignupDone, onGoToLogin, onBack }: SignupProp
         <Text style={styles.icon}>📱</Text>
         <TextInput
           placeholder="Enter your phone no"
+          placeholderTextColor="#B5B5B5"
           style={styles.input}
           value={phone}
           onChangeText={setPhone}
@@ -65,6 +67,7 @@ export default function Signup({ onSignupDone, onGoToLogin, onBack }: SignupProp
         <Text style={styles.icon}>🔒</Text>
         <TextInput
           placeholder="Enter your password"
+          placeholderTextColor="#B5B5B5"
           style={styles.input}
           secureTextEntry={!showPass}
           value={password}
@@ -80,6 +83,7 @@ export default function Signup({ onSignupDone, onGoToLogin, onBack }: SignupProp
         <Text style={styles.icon}>🔒</Text>
         <TextInput
           placeholder="Confirm your password"
+          placeholderTextColor="#B5B5B5"
           style={styles.input}
           secureTextEntry={!showConfirmPass}
           value={confirmPassword}
@@ -117,7 +121,11 @@ export default function Signup({ onSignupDone, onGoToLogin, onBack }: SignupProp
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 30, backgroundColor: "#fff" },
+  container: { 
+    flex: 1, 
+    padding: 30, 
+    backgroundColor: "#ccc" 
+  },
 
   backBtn: { marginBottom: 25 },
   backIcon: { fontSize: 24, color: "#222" },
@@ -133,29 +141,30 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 20,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    marginBottom: 20,
-    backgroundColor: "#f9f9f9",
+    borderColor: "#E3E3E3",
+    borderRadius: 28,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    marginBottom: 18,
+    backgroundColor: "#FAFAFA",
   },
 
   icon: {
-    fontSize: 20,
-    marginRight: 12,
-    color: "#888",
+    fontSize: 18,
+    marginRight: 10,
+    color: "#A8A8A8",
   },
 
   input: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 15,
     color: "#000",
   },
 
   eye: {
-    fontSize: 22,
+    fontSize: 20,
     marginLeft: 10,
+    color: "#A8A8A8"
   },
 
   signupBtn: {
@@ -194,7 +203,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
 
-  googleIcon: { fontSize: 20, marginRight: 10, },
+  googleIcon: { fontSize: 20, marginRight: 10 },
   googleText: { fontSize: 16, color: "#000" },
 
   bottomText: {
@@ -202,6 +211,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: "#444",
   },
+
   loginLink: {
     fontWeight: "700",
     color: "#000",

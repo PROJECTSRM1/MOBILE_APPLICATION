@@ -49,7 +49,7 @@ export default function Auth({ onGoToLogin, onGoToSignup }: AuthProps) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", padding: 25, justifyContent: "center" },
+  container: { flex: 1, backgroundColor: "#536d89ff", padding: 25, justifyContent: "center" },
 
   // Rounded Image wrapper similar to onboarding
   imageWrapper: {
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
   },
 
   title: { fontSize: 30, fontWeight: "700", textAlign: "center", marginTop: 10 },
-  subtitle: { textAlign: "center", color: "#777", marginTop: 5, fontSize: 19 },
+  subtitle: { textAlign: "center", color: "#000", marginTop: 5, fontSize: 19 , fontWeight: "500"},
 
   buttonContainer: {
     flexDirection: "row",

@@ -28,6 +28,7 @@ export default function Login({ onLoginDone, onGoToSignup, onBack }: LoginProps)
         <Text style={styles.icon}>📧</Text>
         <TextInput
           placeholder="Enter your email"
+          placeholderTextColor="#B5B5B5"
           style={styles.input}
           value={email}
           onChangeText={setEmail}
@@ -41,6 +42,7 @@ export default function Login({ onLoginDone, onGoToSignup, onBack }: LoginProps)
         <Text style={styles.icon}>🔒</Text>
         <TextInput
           placeholder="Enter your password"
+          placeholderTextColor="#B5B5B5"
           secureTextEntry={!showPass}
           style={styles.input}
           value={password}
@@ -51,6 +53,7 @@ export default function Login({ onLoginDone, onGoToSignup, onBack }: LoginProps)
         </TouchableOpacity>
       </View>
 
+      {/* Forgot Password */}
       <TouchableOpacity style={styles.forgot}>
         <Text style={styles.forgotText}>Forgot Password?</Text>
       </TouchableOpacity>
@@ -60,6 +63,7 @@ export default function Login({ onLoginDone, onGoToSignup, onBack }: LoginProps)
         <Text style={styles.loginText}>Login</Text>
       </TouchableOpacity>
 
+      {/* Divider */}
       <Text style={styles.or}>or continue with</Text>
 
       {/* Google Button */}
@@ -68,6 +72,7 @@ export default function Login({ onLoginDone, onGoToSignup, onBack }: LoginProps)
         <Text style={styles.googleText}>Google</Text>
       </TouchableOpacity>
 
+      {/* Bottom Link */}
       <Text style={styles.bottomText}>
         Don't have an account?{" "}
         <Text style={styles.signupLink} onPress={onGoToSignup}>
@@ -80,33 +85,61 @@ export default function Login({ onLoginDone, onGoToSignup, onBack }: LoginProps)
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 30, backgroundColor: "#fff" },
+  container: { 
+    flex: 1, 
+    padding: 30, 
+    backgroundColor: "#ccc" 
+  },
 
   backBtn: { marginBottom: 25 },
   backIcon: { fontSize: 24, color: "#222" },
 
-  header: { fontSize: 30, fontWeight: "700", marginBottom: 35, color: "#000" },
+  header: { 
+    fontSize: 30, 
+    fontWeight: "700", 
+    marginBottom: 35, 
+    color: "#000" 
+  },
 
   inputBox: {
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: "#E3E3E3",
     borderRadius: 28,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    marginBottom: 15,
-    backgroundColor: "#f9f9f9",
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    marginBottom: 18,
+    backgroundColor: "#FAFAFA",
   },
 
-  icon: { fontSize: 20, marginRight: 12, color: "#888" },
+  icon: { 
+    fontSize: 18, 
+    marginRight: 10, 
+    color: "#A8A8A8" 
+  },
 
-  input: { flex: 1, fontSize: 16, color: "#000" },
+  input: { 
+    flex: 1, 
+    fontSize: 15, 
+    color: "#000" 
+  },
 
-  eye: { fontSize: 22, marginLeft: 10 },
+  eye: { 
+    fontSize: 20, 
+    marginLeft: 10, 
+    color: "#A8A8A8" 
+  },
 
-  forgot: { alignSelf: "flex-end", marginBottom: 25 },
-  forgotText: { color: "#444", fontSize: 14 },
+  forgot: { 
+    alignSelf: "flex-end", 
+    marginBottom: 25 
+  },
+
+  forgotText: { 
+    color: "#555", 
+    fontSize: 14 
+  },
 
   loginBtn: {
     backgroundColor: "#222",
@@ -114,9 +147,19 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     alignItems: "center",
   },
-  loginText: { color: "#fff", fontSize: 18, fontWeight: "700" },
 
-  or: { textAlign: "center", marginVertical: 22, color: "#666", fontSize: 15 },
+  loginText: { 
+    color: "#fff", 
+    fontSize: 18, 
+    fontWeight: "700" 
+  },
+
+  or: { 
+    textAlign: "center", 
+    marginVertical: 22, 
+    color: "#666", 
+    fontSize: 15 
+  },
 
   googleBtn: {
     borderWidth: 1,
@@ -129,9 +172,18 @@ const styles = StyleSheet.create({
     marginBottom: 25,
     backgroundColor: "#fff",
   },
+
   googleIcon: { fontSize: 20, marginRight: 10 },
   googleText: { fontSize: 16, color: "#000" },
 
-  bottomText: { textAlign: "center", fontSize: 15, color: "#444" },
-  signupLink: { fontWeight: "700", color: "#000" },
+  bottomText: { 
+    textAlign: "center", 
+    fontSize: 15, 
+    color: "#444" 
+  },
+
+  signupLink: { 
+    fontWeight: "700", 
+    color: "#000" 
+  },
 });
