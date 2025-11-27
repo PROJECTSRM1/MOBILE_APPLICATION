@@ -1,6 +1,5 @@
 
-
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,6 +12,7 @@ import {
   StatusBar,
   ImageSourcePropType,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
@@ -28,7 +28,8 @@ const PAGES = [
   { title: 'Sit back & relax', subtitle: 'We handle everything — premium results.', image: IMAGES[2] },
 ];
 
-export default function Onboarding({ onDone }: { onDone: () => void }): React.ReactElement {
+export default function Onboarding(): React.ReactElement {
+  const navigation = useNavigation<any>();
   const scrollRef = useRef<ScrollView | null>(null);
   const [index, setIndex] = useState(0);
   const scrollX = useRef(new Animated.Value(0)).current;
@@ -49,7 +50,8 @@ export default function Onboarding({ onDone }: { onDone: () => void }): React.Re
       setIndex(i);
       scrollX.setValue(i * SCREEN_W);
     } else {
-      onDone();
+      // finished onboarding -> navigate to WelcomeOne
+      navigation.replace('WelcomeOne');
     }
   };
 
@@ -103,7 +105,7 @@ export default function Onboarding({ onDone }: { onDone: () => void }): React.Re
     ...pageViews
   );
 
-  // YOUR EXACT DOT STYLE
+  // DOTS
   const dots = PAGES.map((_, i) =>
     React.createElement(View, {
       key: `dot-${i}`,
@@ -146,7 +148,7 @@ export default function Onboarding({ onDone }: { onDone: () => void }): React.Re
     // Center content
     React.createElement(View, { style: styles.contentCenter }, scrollView),
 
-    // YOUR DOT STYLE below content
+    // DOTS below content
     React.createElement(View, { style: styles.dotsWrap }, ...dots),
 
     // Buttons below dots
@@ -208,7 +210,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.25)',
     marginHorizontal: 6,
     marginBottom: 120,
-
   },
   dotActive: {
     backgroundColor: '#0ef0c7',
