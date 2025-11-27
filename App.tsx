@@ -1,54 +1,86 @@
-import React, { useState } from "react";
+// App.tsx
+import React from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
+// Import your screens
 import Splash from "./src/screens/splashscreen";
 import Onboarding from "./src/screens/onboardingscreen";
+
 import Auth from "./src/screens/Auth";
-import Login from "./src/screens/login";
 import Signup from "./src/screens/signup";
+import Login from "./src/screens/login";
 import Home from "./src/screens/home";
 
+const Stack = createNativeStackNavigator();
+
 export default function App() {
-  const [screen, setScreen] = useState("Splash");
+  return (
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName="Splash"
+        screenOptions={{
+          headerShown: false, // No headers in any screen
+        }}
+      >
+        {/* Splash Screen */}
+        <Stack.Screen name="Splash">
+          {(props) => (
+            <Splash
+              {...props}
+              onFinish={() => props.navigation.replace("Onboarding")}
+            />
+          )}
+        </Stack.Screen>
 
-  const navigateTo = (page: string) => setScreen(page);
+        {/* Onboarding Screen */}
+        <Stack.Screen name="Onboarding">
+          {(props) => (
+            <Onboarding
+              {...props}
+              onDone={() => props.navigation.replace("Auth")}
+            />
+          )}
+        </Stack.Screen>
 
-  switch (screen) {
-    case "Splash":
-      return <Splash onFinish={() => navigateTo("Onboarding")} />;
+        {/* Auth Screen */}
+        <Stack.Screen name="Auth">
+          {(props) => (
+            <Auth
+              {...props}
+              onGoToLogin={() => props.navigation.navigate("Login")}
+              onGoToSignup={() => props.navigation.navigate("Signup")}
+            />
+          )}
+        </Stack.Screen>
 
-    case "Onboarding":
-      return <Onboarding onDone={() => navigateTo("Auth")} />;
+        {/* Signup Screen */}
+        <Stack.Screen name="Signup">
+          {(props) => (
+            <Signup
+              {...props}
+              onSignupDone={() => props.navigation.replace("Home")}
+              onGoToLogin={() => props.navigation.navigate("Login")}
+              onBack={() => props.navigation.goBack()}
+            />
+          )}
+        </Stack.Screen>
 
-    case "Auth":
-      return (
-        <Auth
-          onGoToLogin={() => navigateTo("Login")}
-          onGoToSignup={() => navigateTo("Signup")}
-        />
-      );
+        {/* Login Screen */}
+        <Stack.Screen name="Login">
+          {(props) => (
+            <Login
+              {...props}
+              onLoginDone={() => props.navigation.replace("Home")}
+              onGoToSignup={() => props.navigation.navigate("Signup")}
+              onBack={() => props.navigation.goBack()}
+            />
+          )}
+        </Stack.Screen>
 
-    case "Login":
-      return (
-        <Login
-          onLoginDone={() => navigateTo("Home")}
-          onGoToSignup={() => navigateTo("Signup")}
-          onBack={() => navigateTo("Auth")}
-        />
-      );
-
-    case "Signup":
-      return (
-        <Signup
-          onSignupDone={() => navigateTo("Home")}
-          onGoToLogin={() => navigateTo("Login")}
-          onBack={() => navigateTo("Auth")}
-        />
-      );
-
-    case "Home":
-      return <Home />;
-
-    default:
-      return null;
-  }
+        {/* Home Screen */}
+        <Stack.Screen name="Home" component={Home} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
 }
