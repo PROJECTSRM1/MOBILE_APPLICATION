@@ -87,7 +87,7 @@ export default function Onboarding({ onDone }: OnboardingProps) {
 
   return (
     <LinearGradient
-      colors={['#0981f8ff', '#365f92ff', '#031c36ff']}
+      colors={['#0f62a5', '#678dbcff', '#04276eff']}
       style={styles.container}
     >
       <Animated.FlatList

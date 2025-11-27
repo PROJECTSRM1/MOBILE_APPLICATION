@@ -1,114 +1,209 @@
-// src/screens/Signup.tsx
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform
-} from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+import React, { useState } from "react";
+import { Alert, View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 
 interface SignupProps {
   onSignupDone: () => void;
   onGoToLogin: () => void;
+  onBack: () => void;
 }
 
-export default function Signup({ onSignupDone, onGoToLogin }: SignupProps) {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+export default function Signup({ onSignupDone, onGoToLogin, onBack }: SignupProps) {
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPass, setShowPass] = useState(false);
+  const [showConfirmPass, setShowConfirmPass] = useState(false);
 
-  const handleSignup = () => {
-    // You can add API/validation here
-    onSignupDone(); // After signup → triggers Home from App.tsx
+  const validateAndSignup = () => {
+    if (!email.includes("@")) return Alert.alert("Enter valid email");
+    if (!phone.trim()) return Alert.alert("Enter phone number");
+    if (password.length < 6) return Alert.alert("Password must be at least 6 characters");
+    if (password !== confirmPassword) return Alert.alert("Passwords do not match");
+
+    onSignupDone();
   };
 
   return (
-    <LinearGradient colors={['#0981f8ff', '#365f92ff', '#031c36ff']} style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.innerContainer}
-      >
-        <Text style={styles.title}>Create Account</Text>
+    <View style={styles.container}>
 
-        <TextInput
-          placeholder="Full Name"
-          placeholderTextColor="#ccc"
-          style={styles.input}
-          value={name}
-          onChangeText={setName}
-        />
+      {/* Back Button */}
+      <TouchableOpacity style={styles.backBtn} onPress={onBack}>
+        <Text style={styles.backIcon}>←</Text>
+      </TouchableOpacity>
 
+      {/* Heading */}
+      <Text style={styles.header}>Let's{"\n"}get started</Text>
+
+      {/* Email */}
+      <View style={styles.inputBox}>
+        <Text style={styles.icon}>📧</Text>
         <TextInput
-          placeholder="Email"
-          placeholderTextColor="#ccc"
+          placeholder="Enter your email"
           style={styles.input}
-          keyboardType="email-address"
           value={email}
           onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
         />
+      </View>
 
+      {/* Phone Number */}
+      <View style={styles.inputBox}>
+        <Text style={styles.icon}>📱</Text>
         <TextInput
-          placeholder="Password"
-          placeholderTextColor="#ccc"
+          placeholder="Enter your phone no"
           style={styles.input}
-          secureTextEntry
+          value={phone}
+          onChangeText={setPhone}
+          keyboardType="phone-pad"
+        />
+      </View>
+
+      {/* Password */}
+      <View style={styles.inputBox}>
+        <Text style={styles.icon}>🔒</Text>
+        <TextInput
+          placeholder="Enter your password"
+          style={styles.input}
+          secureTextEntry={!showPass}
           value={password}
           onChangeText={setPassword}
         />
-
-        <TouchableOpacity style={styles.button} onPress={handleSignup}>
-          <LinearGradient colors={['#1a4e9eff', '#0d3875ff']} style={styles.buttonInner}>
-            <Text style={styles.buttonText}>Sign Up</Text>
-          </LinearGradient>
+        <TouchableOpacity onPress={() => setShowPass(!showPass)}>
+          <Text style={styles.eye}>{showPass ? "🙈" : "👁️"}</Text>
         </TouchableOpacity>
+      </View>
 
-        <TouchableOpacity onPress={onGoToLogin} style={{ marginTop: 20 }}>
-          <Text style={styles.loginText}>Already have an account? Login</Text>
+      {/* Confirm Password */}
+      <View style={styles.inputBox}>
+        <Text style={styles.icon}>🔒</Text>
+        <TextInput
+          placeholder="Confirm your password"
+          style={styles.input}
+          secureTextEntry={!showConfirmPass}
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+        />
+        <TouchableOpacity onPress={() => setShowConfirmPass(!showConfirmPass)}>
+          <Text style={styles.eye}>{showConfirmPass ? "🙈" : "👁️"}</Text>
         </TouchableOpacity>
-      </KeyboardAvoidingView>
-    </LinearGradient>
+      </View>
+
+      {/* Signup Button */}
+      <TouchableOpacity style={styles.signupBtn} onPress={validateAndSignup}>
+        <Text style={styles.signupText}>Sign up</Text>
+      </TouchableOpacity>
+
+      {/* Divider */}
+      <Text style={styles.or}>or continue with</Text>
+
+      {/* Google */}
+      <TouchableOpacity style={styles.googleBtn}>
+        <Text style={styles.googleIcon}>🌐</Text>
+        <Text style={styles.googleText}>Google</Text>
+      </TouchableOpacity>
+
+      {/* Bottom Link */}
+      <Text style={styles.bottomText}>
+        Already have an account?{" "}
+        <Text style={styles.loginLink} onPress={onGoToLogin}>
+          Login
+        </Text>
+      </Text>
+
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  innerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20
+  container: { flex: 1, padding: 30, backgroundColor: "#fff" },
+
+  backBtn: { marginBottom: 25 },
+  backIcon: { fontSize: 24, color: "#222" },
+
+  header: {
+    fontSize: 30,
+    fontWeight: "700",
+    marginBottom: 35,
+    color: "#000",
   },
-  title: {
-    fontSize: 32,
-    color: '#fff',
-    fontWeight: '700',
-    marginBottom: 40
-  },
-  input: {
-    width: '100%',
-    padding: 15,
-    borderRadius: 25,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    marginBottom: 20,
-    color: '#fff'
-  },
-  button: { width: '100%' },
-  buttonInner: {
+
+  inputBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 20,
+    paddingHorizontal: 20,
     paddingVertical: 14,
-    borderRadius: 25,
-    alignItems: 'center'
+    marginBottom: 20,
+    backgroundColor: "#f9f9f9",
   },
-  buttonText: {
-    color: '#fff',
+
+  icon: {
+    fontSize: 20,
+    marginRight: 12,
+    color: "#888",
+  },
+
+  input: {
+    flex: 1,
+    fontSize: 16,
+    color: "#000",
+  },
+
+  eye: {
+    fontSize: 22,
+    marginLeft: 10,
+  },
+
+  signupBtn: {
+    backgroundColor: "#222",
+    paddingVertical: 16,
+    borderRadius: 28,
+    alignItems: "center",
+    marginTop: 15,
+  },
+
+  signupText: {
+    color: "#fff",
     fontSize: 18,
-    fontWeight: '700'
+    fontWeight: "700",
   },
-  loginText: {
-    color: '#ccc',
-    fontSize: 16
-  }
+
+  or: {
+    textAlign: "center",
+    marginVertical: 22,
+    color: "#666",
+    fontSize: 15,
+    marginTop: 30,
+    marginBottom:20, 
+  },
+
+  googleBtn: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 28,
+    paddingVertical: 14,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 25,
+    marginTop: 50,
+    backgroundColor: "#fff",
+  },
+
+  googleIcon: { fontSize: 20, marginRight: 10, },
+  googleText: { fontSize: 16, color: "#000" },
+
+  bottomText: {
+    textAlign: "center",
+    fontSize: 15,
+    color: "#444",
+  },
+  loginLink: {
+    fontWeight: "700",
+    color: "#000",
+  },
 });

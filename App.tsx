@@ -2,39 +2,46 @@ import React, { useState } from "react";
 
 import Splash from "./src/screens/splashscreen";
 import Onboarding from "./src/screens/onboardingscreen";
-import Signup from "./src/screens/Signup";
-import Login from "./src/screens/Login";
-import Home from "./src/screens/Home";
+import Auth from "./src/screens/Auth";
+import Login from "./src/screens/login";
+import Signup from "./src/screens/signup";
+import Home from "./src/screens/home";
 
 export default function App() {
-  const [screen, setScreen] = useState("Splash");  // default screen
+  const [screen, setScreen] = useState("Splash");
 
-  const handleSplashFinish = () => setScreen("Onboarding");
-  const handleOnboardingDone = () => setScreen("Signup");
-  const handleSignupDone = () => setScreen("Home");
-  const goToLogin = () => setScreen("Login");
-  const handleLoginDone = () => setScreen("Home");
+  const navigateTo = (page: string) => setScreen(page);
 
   switch (screen) {
     case "Splash":
-      return <Splash onFinish={handleSplashFinish} />;
+      return <Splash onFinish={() => navigateTo("Onboarding")} />;
 
     case "Onboarding":
-      return <Onboarding onDone={handleOnboardingDone} />;
+      return <Onboarding onDone={() => navigateTo("Auth")} />;
 
-    case "Signup":
+    case "Auth":
       return (
-        <Signup
-          onSignupDone={handleSignupDone}
-          onGoToLogin={goToLogin}
+        <Auth
+          onGoToLogin={() => navigateTo("Login")}
+          onGoToSignup={() => navigateTo("Signup")}
         />
       );
 
     case "Login":
       return (
         <Login
-          onLoginDone={handleLoginDone}
-          onGoToSignup={() => setScreen("Signup")}
+          onLoginDone={() => navigateTo("Home")}
+          onGoToSignup={() => navigateTo("Signup")}
+          onBack={() => navigateTo("Auth")}
+        />
+      );
+
+    case "Signup":
+      return (
+        <Signup
+          onSignupDone={() => navigateTo("Home")}
+          onGoToLogin={() => navigateTo("Login")}
+          onBack={() => navigateTo("Auth")}
         />
       );
 
