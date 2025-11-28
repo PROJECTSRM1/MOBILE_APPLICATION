@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { Image } from "react-native";
 
 interface LoginProps {
   onLoginDone: () => void;
@@ -48,9 +49,9 @@ export default function Login({ onLoginDone, onGoToSignup, onBack }: LoginProps)
           value={password}
           onChangeText={setPassword}
         />
-        <TouchableOpacity onPress={() => setShowPass(!showPass)}>
+        {/* <TouchableOpacity onPress={() => setShowPass(!showPass)}>
           <Text style={styles.eye}>{showPass ? "🙈" : "👁️"}</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       {/* Forgot Password */}
@@ -67,10 +68,13 @@ export default function Login({ onLoginDone, onGoToSignup, onBack }: LoginProps)
       <Text style={styles.or}>or continue with</Text>
 
       {/* Google Button */}
-      <TouchableOpacity style={styles.googleBtn}>
-        <Text style={styles.googleIcon}>🌐</Text>
-        <Text style={styles.googleText}>Google</Text>
-      </TouchableOpacity>
+     <TouchableOpacity style={styles.googleBtn}>
+  <Image
+    source={require("../assets/google.png")}  // <-- your added image
+    style={styles.googleImg}
+  />
+  <Text style={styles.googleText}>Google</Text>
+</TouchableOpacity>
 
       {/* Bottom Link */}
       <Text style={styles.bottomText}>
@@ -118,6 +122,11 @@ const styles = StyleSheet.create({
     marginRight: 10, 
     color: "#A8A8A8" 
   },
+googleImg: {
+  width: 22,
+  height: 22,
+  marginRight: 10,
+},
 
   input: { 
     flex: 1, 

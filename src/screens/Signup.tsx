@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Alert, View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
-
+import { Image } from "react-native";
 interface SignupProps {
   onSignupDone: () => void;
   onGoToLogin: () => void;
@@ -73,9 +73,9 @@ export default function Signup({ onSignupDone, onGoToLogin, onBack }: SignupProp
           value={password}
           onChangeText={setPassword}
         />
-        <TouchableOpacity onPress={() => setShowPass(!showPass)}>
+        {/* <TouchableOpacity onPress={() => setShowPass(!showPass)}>
           <Text style={styles.eye}>{showPass ? "🙈" : "👁️"}</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       {/* Confirm Password */}
@@ -89,9 +89,9 @@ export default function Signup({ onSignupDone, onGoToLogin, onBack }: SignupProp
           value={confirmPassword}
           onChangeText={setConfirmPassword}
         />
-        <TouchableOpacity onPress={() => setShowConfirmPass(!showConfirmPass)}>
+        {/* <TouchableOpacity onPress={() => setShowConfirmPass(!showConfirmPass)}>
           <Text style={styles.eye}>{showConfirmPass ? "🙈" : "👁️"}</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       {/* Signup Button */}
@@ -104,7 +104,10 @@ export default function Signup({ onSignupDone, onGoToLogin, onBack }: SignupProp
 
       {/* Google */}
       <TouchableOpacity style={styles.googleBtn}>
-        <Text style={styles.googleIcon}>🌐</Text>
+        <Image
+          source={require("../assets/google.png")}  // <-- your added image
+          style={styles.googleImg}
+        />
         <Text style={styles.googleText}>Google</Text>
       </TouchableOpacity>
 
@@ -148,6 +151,11 @@ const styles = StyleSheet.create({
     marginBottom: 18,
     backgroundColor: "#FAFAFA",
   },
+googleImg: {
+  width: 22,
+  height: 22,
+  marginRight: 10,
+},
 
   icon: {
     fontSize: 18,
