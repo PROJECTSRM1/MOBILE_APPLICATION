@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -7,10 +7,15 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
+// Using 'any' for StackScreenProps for brevity, but you should ideally define RootStackParamList
+import { StackScreenProps } from '@react-navigation/stack'; 
+import { View as RNView } from 'react-native'; 
+
+// --- TYPE DEFINITION for the styles object (To satisfy TypeScript) ---
+type Style = typeof styles extends { [key: string]: any } ? typeof styles : never;
 
 // Component for the Navigation Bar
-const NavBar = () => {
-  // 1. Use state to manage the visibility of the menu
+const NavBar = ({ navigation }: { navigation: any }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navItems = [
@@ -23,30 +28,44 @@ const NavBar = () => {
     "Construction Materials",
     "Freelancer",
   ];
+  
+  // Example handler for a menu item
+  const handleMenuItemPress = (item: string) => {
+      setIsMenuOpen(false); 
+      if (item === "Home") {
+          navigation.navigate("Home");
+      } else if (item === "Cleaning") {
+          // This ensures the menu item navigates to the Cleaning screen
+          navigation.navigate("Cleaning");
+      }
+      // Add logic for other items as needed
+  }
 
   return (
-    <View style={styles.navBarContainer}>
+    <View style={(styles as Style).navBarContainer}>
       {/* Top Bar with Logo/Title and Hamburger Icon */}
-      <View style={styles.topBar}>
-        <Text style={styles.logoText}>SWACHIFY INDIA</Text>
+      <View style={(styles as Style).topBar}>
+        <Text style={(styles as Style).logoText}>SWACHIFY INDIA</Text>
         
-        {/* 2. Hamburger Menu Button */}
+        {/* Hamburger Menu Button */}
         <TouchableOpacity 
           onPress={() => setIsMenuOpen(!isMenuOpen)} 
-          style={styles.hamburgerButton}
+          style={(styles as Style).hamburgerButton}
         >
-          {/* Use Unicode characters for the icon */}
-          <Text style={styles.hamburgerIcon}>{isMenuOpen ? "✕" : "☰"}</Text>
+          <Text style={(styles as Style).hamburgerIcon}>{isMenuOpen ? "✕" : "☰"}</Text>
         </TouchableOpacity>
       </View>
       
-      {/* 3. Dropdown Menu (Conditionally Rendered) */}
+      {/* Dropdown Menu (Conditionally Rendered) */}
       {isMenuOpen && (
-        <View style={styles.dropdownMenu}>
+        <View style={(styles as Style).dropdownMenu}>
           {navItems.map((item, index) => (
-            // Close menu when an item is pressed
-            <TouchableOpacity key={index} style={styles.menuItem} onPress={() => setIsMenuOpen(false)}>
-              <Text style={styles.menuText}>{item}</Text>
+            <TouchableOpacity 
+                key={index} 
+                style={(styles as Style).menuItem} 
+                onPress={() => handleMenuItemPress(item)}
+            >
+              <Text style={(styles as Style).menuText}>{item}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -55,245 +74,296 @@ const NavBar = () => {
   );
 };
 
-export default function Home() {
-  return (
-    <ScrollView style={{ flex: 1, backgroundColor: "#fff" }}>
-      {/* NAV BAR: Placed at the very top to float over the content */}
-      <NavBar /> 
+// Home component
+export default function Home({ navigation }: StackScreenProps<any>) { 
+    
+    const scrollViewRef = useRef<ScrollView>(null);
+    const servicesRef = useRef<RNView>(null); 
 
-      {/* HERO SECTION */}
-      <ImageBackground
-        source={require("../assets/hero.jpg")}
-        style={styles.hero}
-      >
-        <View style={styles.overlay} />
+    // Function to handle smooth scroll to the Services section
+    const handleScrollToServices = () => {
+        if (servicesRef.current && scrollViewRef.current) {
+            servicesRef.current.measureLayout(
+                scrollViewRef.current.getInnerViewNode(),
+                (x: number, y: number, width: number, height: number) => {
+                    scrollViewRef.current?.scrollTo({ y: y, animated: true });
+                },
+                () => {
+                    console.error("Scroll measurement failed");
+                }
+            );
+        }
+    };
+    
+    // Function to handle navigation to the Cleaning screen ("Learn More")
+    const handleNavigateToCleaning = () => {
+        navigation.navigate("Cleaning"); // Navigates to the Cleaning screen
+    };
 
-        <Text style={styles.heroTitle}>
-          Transform Your Home & Property Services
-        </Text>
+    return (
+        <ScrollView 
+            ref={scrollViewRef}
+            style={{ flex: 1, backgroundColor: "#fff" }}
+        >
+            <NavBar navigation={navigation} /> 
 
-        <Text style={styles.heroSubtitle}>
-          Your trusted solution for cleaning, moving, rentals, construction, and more.
-        </Text>
+            {/* HERO SECTION */}
+            <ImageBackground
+                // NOTE: You must have a local image named 'hero.jpg' in ../assets/
+                source={require("../assets/hero.jpg")} 
+                style={(styles as Style).hero}
+            >
+                <View style={(styles as Style).overlay} />
 
-        <TouchableOpacity style={styles.startBtn}>
-          <Text style={styles.startBtnText}>Get Started</Text>
-        </TouchableOpacity>
-      </ImageBackground>
-
-      {/* SERVICES SECTION */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Our Services</Text>
-
-        <View style={styles.serviceGrid}>
-          <View style={styles.serviceCard}>
-            <Text style={styles.serviceIcon}>🏠</Text>
-            <Text style={styles.serviceTitle}>Cleaning Service</Text>
-            <Text style={styles.serviceDesc}>
-              Professional cleaning solutions for your home and office.
-            </Text>
-            <Text style={styles.learnMore}>Learn More →</Text>
-          </View>
-
-          <View style={styles.serviceCard}>
-            <Text style={styles.serviceIcon}>🚚</Text>
-            <Text style={styles.serviceTitle}>Packers & Movers</Text>
-            <Text style={styles.serviceDesc}>
-              Safe and reliable relocation services.
-            </Text>
-            <Text style={styles.learnMore}>Learn More →</Text>
-          </View>
-
-          <View style={styles.serviceCard}>
-            <Text style={styles.serviceIcon}>🛠️</Text>
-            <Text style={styles.serviceTitle}>Home Services</Text>
-            <Text style={styles.serviceDesc}>
-              Plumbing, electrical, carpentry, and maintenance.
-            </Text>
-            <Text style={styles.learnMore}>Learn More →</Text>
-          </View>
-
-          <View style={styles.serviceCard}>
-            <Text style={styles.serviceIcon}>🏢</Text>
-            <Text style={styles.serviceTitle}>Home & Apartments Rental</Text>
-            <Text style={styles.serviceDesc}>
-              Find perfect homes from top rental listings.
-            </Text>
-            <Text style={styles.learnMore}>Learn More →</Text>
-          </View>
-
-          <View style={styles.serviceCard}>
-            <Text style={styles.serviceIcon}>🏬</Text>
-            <Text style={styles.serviceTitle}>Commercial Plots</Text>
-            <Text style={styles.serviceDesc}>
-              Premium plots in prime locations.
-            </Text>
-            <Text style={styles.learnMore}>Learn More →</Text>
-          </View>
-
-          <View style={styles.serviceCard}>
-            <Text style={styles.serviceIcon}>🧱</Text>
-            <Text style={styles.serviceTitle}>Construction Materials</Text>
-            <Text style={styles.serviceDesc}>
-              Cement, bricks, and building materials at best prices.
-            </Text>
-            <Text style={styles.learnMore}>Learn More →</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* ========================= */}
-      {/* WHY CHOOSE OUR SERVICE */}
-      {/* ========================= */}
-
-      <View style={styles.whySection}>
-        <Text style={styles.whyTitle}>Why Choose Our Service</Text>
-        <Text style={styles.whySubtitle}>
-          We focus on quality, trust and speed — built to make your life easier.
-        </Text>
-
-        <View style={styles.whyGrid}>
-          <View style={styles.whyCard}>
-            <Text style={[styles.whyIcon, { color: "#FF8C00" }]}>🛠️</Text>
-            <Text style={styles.whyHeading}>Skilled Professionals</Text>
-            <Text style={styles.whyText}>
-              Verified, trained technicians who deliver quality workmanship every time.
-            </Text>
-          </View>
-
-          <View style={styles.whyCard}>
-            <Text style={[styles.whyIcon, { color: "#1E90FF" }]}>🏡</Text>
-            <Text style={styles.whyHeading}>Trusted & Local</Text>
-            <Text style={styles.whyText}>
-              Local teams who know your area and provide timely service.
-            </Text>
-          </View>
-
-          <View style={styles.whyCard}>
-            <Text style={[styles.whyIcon, { color: "#32CD32" }]}>🚚</Text>
-            <Text style={styles.whyHeading}>Transparent Pricing</Text>
-            <Text style={styles.whyText}>
-              Clear quotes, no hidden fees — affordable for every need.
-            </Text>
-          </View>
-
-          <View style={styles.whyCard}>
-            <Text style={[styles.whyIcon, { color: "#FFB300" }]}>📜</Text>
-            <Text style={styles.whyHeading}>Licensed & Insured</Text>
-            <Text style={styles.whyText}>
-              Professional services backed by proper licensing and insurance.
-            </Text>
-          </View>
-
-          <View style={styles.whyCard}>
-            <Text style={[styles.whyIcon, { color: "#A020F0" }]}>📦</Text>
-            <Text style={styles.whyHeading}>Satisfaction Guarantee</Text>
-            <Text style={styles.whyText}>
-              If you're not happy, we'll make it right.
-            </Text>
-          </View>
-
-          <View style={styles.whyCard}>
-            <Text style={[styles.whyIcon, { color: "#FF0000" }]}>⏰</Text>
-            <Text style={styles.whyHeading}>24/7 Support</Text>
-            <Text style={styles.whyText}>
-              Emergency response and customer support anytime.
-            </Text>
-          </View>
-          {/* FOOTER SECTION */}
-          <View style={styles.footerContainer}>
-            <View style={styles.footerContent}>
-              {/* About Us */}
-              <View style={styles.footerColumn}>
-                <Text style={styles.footerTitle}>About Us</Text>
-                <Text style={styles.footerText}>
-                  Your trusted partner for all home and property-related services. Quality, reliability, and customer satisfaction guaranteed.
+                <Text style={(styles as Style).heroTitle}>
+                    Transform Your Home & Property Services
                 </Text>
-              </View>
 
-              {/* Services */}
-              <View style={styles.footerColumn}>
-                <Text style={styles.footerTitle}>Services</Text>
-                <Text style={styles.footerText}>• Cleaning Service</Text>
-                <Text style={styles.footerText}>• Packers & Movers</Text>
-                <Text style={styles.footerText}>• Home Services</Text>
-                <Text style={styles.footerText}>• Rentals</Text>
-                <Text style={styles.footerText}>• Commercial Plots</Text>
-                <Text style={styles.footerText}>• Construction Materials</Text>
-              </View>
+                <Text style={(styles as Style).heroSubtitle}>
+                    Your trusted solution for cleaning, moving, rentals, construction, and more.
+                </Text>
 
-              {/* Quick Links */}
-              <View style={styles.footerColumn}>
-                <Text style={styles.footerTitle}>Quick Links</Text>
-                <Text style={styles.footerText}>• Home</Text>
-                <Text style={styles.footerText}>• About</Text>
-                <Text style={styles.footerText}>• Contact</Text>
-                <Text style={styles.footerText}>• Careers</Text>
-              </View>
+                {/* ATTACH SCROLL HANDLER to "Get Started" */}
+                <TouchableOpacity style={(styles as Style).startBtn} onPress={handleScrollToServices}>
+                    <Text style={(styles as Style).startBtnText}>Get Started</Text>
+                </TouchableOpacity>
+            </ImageBackground>
 
-              {/* Contact Info */}
-              <View style={styles.footerColumn}>
-                <Text style={styles.footerTitle}>Contact Info</Text>
-                <Text style={styles.footerText}>📞 +1 (555) 123-4567</Text>
-                <Text style={styles.footerText}>📧 info@homeservices.com</Text>
-                <Text style={styles.footerText}>📍 123 Service Street, City, State</Text>
-              </View>
+            {/* SERVICES SECTION - ATTACH SERVICES REF */}
+            <View style={(styles as Style).section} ref={servicesRef}>
+                <Text style={(styles as Style).sectionTitle}>Our Services</Text>
+
+                <View style={(styles as Style).serviceGrid}>
+                    {/* CLEANING SERVICE CARD */}
+                    <View style={(styles as Style).serviceCard}>
+                        <Text style={(styles as Style).serviceIcon}>🏠</Text>
+                        <Text style={(styles as Style).serviceTitle}>Cleaning Service</Text>
+                        <Text style={(styles as Style).serviceDesc}>
+                            Professional cleaning solutions for your home and office.
+                        </Text>
+                        {/* ATTACH NAVIGATION HANDLER to "Learn More" */}
+                        <TouchableOpacity onPress={handleNavigateToCleaning}>
+                           <Text style={(styles as Style).learnMore}>Learn More →</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    {/* PACKERS & MOVERS */}
+                    <View style={(styles as Style).serviceCard}>
+                        <Text style={(styles as Style).serviceIcon}>🚚</Text>
+                        <Text style={(styles as Style).serviceTitle}>Packers & Movers</Text>
+                        <Text style={(styles as Style).serviceDesc}>
+                            Safe and reliable relocation services.
+                        </Text>
+                        <TouchableOpacity onPress={() => console.log("Navigate to Packers")}>
+                           <Text style={(styles as Style).learnMore}>Learn More →</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    {/* HOME SERVICES */}
+                    <View style={(styles as Style).serviceCard}>
+                        <Text style={(styles as Style).serviceIcon}>🛠️</Text>
+                        <Text style={(styles as Style).serviceTitle}>Home Services</Text>
+                        <Text style={(styles as Style).serviceDesc}>
+                            Plumbing, electrical, carpentry, and maintenance.
+                        </Text>
+                        <TouchableOpacity onPress={() => console.log("Navigate to Home Services")}>
+                           <Text style={(styles as Style).learnMore}>Learn More →</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    {/* RENTALS */}
+                    <View style={(styles as Style).serviceCard}>
+                        <Text style={(styles as Style).serviceIcon}>🏢</Text>
+                        <Text style={(styles as Style).serviceTitle}>Home & Apartments Rental</Text>
+                        <Text style={(styles as Style).serviceDesc}>
+                            Find perfect homes from top rental listings.
+                        </Text>
+                        <TouchableOpacity onPress={() => console.log("Navigate to Rentals")}>
+                           <Text style={(styles as Style).learnMore}>Learn More →</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    {/* COMMERCIAL PLOTS */}
+                    <View style={(styles as Style).serviceCard}>
+                        <Text style={(styles as Style).serviceIcon}>🏬</Text>
+                        <Text style={(styles as Style).serviceTitle}>Commercial Plots</Text>
+                        <Text style={(styles as Style).serviceDesc}>
+                            Premium plots in prime locations.
+                        </Text>
+                        <TouchableOpacity onPress={() => console.log("Navigate to Commercial Plots")}>
+                           <Text style={(styles as Style).learnMore}>Learn More →</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    {/* CONSTRUCTION MATERIALS */}
+                    <View style={(styles as Style).serviceCard}>
+                        <Text style={(styles as Style).serviceIcon}>🧱</Text>
+                        <Text style={(styles as Style).serviceTitle}>Construction Materials</Text>
+                        <Text style={(styles as Style).serviceDesc}>
+                            Cement, bricks, and building materials at best prices.
+                        </Text>
+                        <TouchableOpacity onPress={() => console.log("Navigate to Materials")}>
+                           <Text style={(styles as Style).learnMore}>Learn More →</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
             </View>
 
-            <View style={styles.footerBottom}>
-              <Text style={styles.footerBottomText}>
-                © 2025 Home Services. All rights reserved.
-              </Text>
-            </View>
-          </View>
+            {/* WHY CHOOSE OUR SERVICE */}
+            <View style={(styles as Style).whySection}>
+                <Text style={(styles as Style).whyTitle}>Why Choose Our Service</Text>
+                <Text style={(styles as Style).whySubtitle}>
+                    We focus on quality, trust and speed — built to make your life easier.
+                </Text>
 
-        </View>
-      </View>
-    </ScrollView>
-  );
+                <View style={(styles as Style).whyGrid}>
+                    <View style={(styles as Style).whyCard}>
+                        <Text style={[(styles as Style).whyIcon, { color: "#FF8C00" }]}>🛠️</Text>
+                        <Text style={(styles as Style).whyHeading}>Skilled Professionals</Text>
+                        <Text style={(styles as Style).whyText}>
+                            Verified, trained technicians who deliver quality workmanship every time.
+                        </Text>
+                    </View>
+
+                    <View style={(styles as Style).whyCard}>
+                        <Text style={[(styles as Style).whyIcon, { color: "#1E90FF" }]}>🏡</Text>
+                        <Text style={(styles as Style).whyHeading}>Trusted & Local</Text>
+                        <Text style={(styles as Style).whyText}>
+                            Local teams who know your area and provide timely service.
+                        </Text>
+                    </View>
+
+                    <View style={(styles as Style).whyCard}>
+                        <Text style={[(styles as Style).whyIcon, { color: "#32CD32" }]}>🚚</Text>
+                        <Text style={(styles as Style).whyHeading}>Transparent Pricing</Text>
+                        <Text style={(styles as Style).whyText}>
+                            Clear quotes, no hidden fees — affordable for every need.
+                        </Text>
+                    </View>
+
+                    <View style={(styles as Style).whyCard}>
+                        <Text style={[(styles as Style).whyIcon, { color: "#FFB300" }]}>📜</Text>
+                        <Text style={(styles as Style).whyHeading}>Licensed & Insured</Text>
+                        <Text style={(styles as Style).whyText}>
+                            Professional services backed by proper licensing and insurance.
+                        </Text>
+                    </View>
+
+                    <View style={(styles as Style).whyCard}>
+                        <Text style={[(styles as Style).whyIcon, { color: "#A020F0" }]}>📦</Text>
+                        <Text style={(styles as Style).whyHeading}>Satisfaction Guarantee</Text>
+                        <Text style={(styles as Style).whyText}>
+                            If you're not happy, we'll make it right.
+                        </Text>
+                    </View>
+
+                    <View style={(styles as Style).whyCard}>
+                        <Text style={[(styles as Style).whyIcon, { color: "#FF0000" }]}>⏰</Text>
+                        <Text style={(styles as Style).whyHeading}>24/7 Support</Text>
+                        <Text style={(styles as Style).whyText}>
+                            Emergency response and customer support anytime.
+                        </Text>
+                    </View>
+                    
+                    {/* FOOTER SECTION */}
+                    <View style={(styles as Style).footerContainer}>
+                        <View style={(styles as Style).footerContent}>
+                            {/* About Us */}
+                            <View style={(styles as Style).footerColumn}>
+                                <Text style={(styles as Style).footerTitle}>About Us</Text>
+                                <Text style={(styles as Style).footerText}>
+                                    Your trusted partner for all home and property-related services. Quality, reliability, and customer satisfaction guaranteed.
+                                </Text>
+                            </View>
+
+                            {/* Services */}
+                            <View style={(styles as Style).footerColumn}>
+                                <Text style={(styles as Style).footerTitle}>Services</Text>
+                                <Text style={(styles as Style).footerText}>• Cleaning Service</Text>
+                                <Text style={(styles as Style).footerText}>• Packers & Movers</Text>
+                                <Text style={(styles as Style).footerText}>• Home Services</Text>
+                                <Text style={(styles as Style).footerText}>• Rentals</Text>
+                                <Text style={(styles as Style).footerText}>• Commercial Plots</Text>
+                                <Text style={(styles as Style).footerText}>• Construction Materials</Text>
+                            </View>
+
+                            {/* Quick Links */}
+                            <View style={(styles as Style).footerColumn}>
+                                <Text style={(styles as Style).footerTitle}>Quick Links</Text>
+                                <Text style={(styles as Style).footerText}>• Home</Text>
+                                <Text style={(styles as Style).footerText}>• About</Text>
+                                <Text style={(styles as Style).footerText}>• Contact</Text>
+                                <Text style={(styles as Style).footerText}>• Careers</Text>
+                            </View>
+
+                            {/* Contact Info */}
+                            <View style={(styles as Style).footerColumn}>
+                                <Text style={(styles as Style).footerTitle}>Contact Info</Text>
+                                <Text style={(styles as Style).footerText}>📞 +1 (555) 123-4567</Text>
+                                <Text style={(styles as Style).footerText}>📧 info@homeservices.com</Text>
+                                <Text style={(styles as Style).footerText}>📍 123 Service Street, City, State</Text>
+                            </View>
+                        </View>
+
+                        <View style={(styles as Style).footerBottom}>
+                            <Text style={(styles as Style).footerBottomText}>
+                                © 2025 Home Services. All rights reserved.
+                            </Text>
+                        </View>
+                    </View>
+
+                </View>
+            </View>
+        </ScrollView>
+    );
 }
 
+// ===================================
+// STYLESHEET
+// ===================================
+
 const styles = StyleSheet.create({
-  // --- NEW/UPDATED NAVBAR STYLES FOR HAMBURGER ---
+  // --- NAVBAR STYLES ---
   navBarContainer: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     zIndex: 10,
-     // Ensure it's above other content
-    backgroundColor: "rgba(0, 0, 0, 0.8)", // Semi-transparent black for premium feel
+    backgroundColor: "rgba(0, 0, 0, 0.8)", 
   },
   topBar: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 15,
-    paddingVertical: 15, // Good vertical spacing for the top bar
+    paddingVertical: 15, 
   },
   logoText: {
     fontSize: 18,
     fontWeight: "bold",
     color: "#fff",
     letterSpacing: 1,
+    marginTop: 20,
   },
   hamburgerButton: {
     padding: 5,
+    marginTop: 20,
   },
   hamburgerIcon: {
-    fontSize: 28, // Larger icon size
+    fontSize: 28, 
     color: "#fff",
     fontWeight: "bold",
   },
   dropdownMenu: {
-    backgroundColor: "rgba(0, 0, 0, 0.95)", // Almost opaque black for menu
+    backgroundColor: "rgba(0, 0, 0, 0.95)", 
     paddingHorizontal: 15,
     paddingBottom: 10,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.2)', // Subtle separator
+    borderTopColor: 'rgba(255, 255, 255, 0.2)',
   },
   menuItem: {
-    paddingVertical: 15, // Good spacing for touch targets
+    paddingVertical: 15, 
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.1)',
   },
@@ -303,12 +373,12 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   
-  // --- EXISTING STYLES (Adjusted hero padding to account for navbar) ---
+  // --- HERO STYLES ---
   hero: {
     height: 450,
     justifyContent: "center",
     paddingHorizontal: 20,
-    paddingTop: 100, // Adjusted padding to move content below the floating navbar
+    paddingTop: 100, // Accounts for the floating navbar
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
@@ -339,6 +409,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
   },
+  
+  // --- SERVICES SECTION STYLES ---
   section: {
     padding: 20,
   },
@@ -393,27 +465,23 @@ const styles = StyleSheet.create({
     padding: 20,
     marginTop: 10,
   },
-
   whyTitle: {
     fontSize: 26,
     fontWeight: "800",
     textAlign: "center",
     marginBottom: 6,
   },
-
   whySubtitle: {
     textAlign: "center",
     color: "#555",
     fontSize: 14,
     marginBottom: 20,
   },
-
   whyGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
   },
-
   whyCard: {
     width: "48%",
     backgroundColor: "#fff",
@@ -422,26 +490,33 @@ const styles = StyleSheet.create({
     elevation: 3,
     marginBottom: 20,
   },
-
   whyIcon: {
     fontSize: 28,
     marginBottom: 10,
   },
-
   whyHeading: {
     fontSize: 16,
     fontWeight: "700",
     marginBottom: 5,
   },
-
   whyText: {
     fontSize: 13,
     color: "#555",
   },
+  
+  // --- FOOTER STYLES ---
   footerContainer: {
-    backgroundColor: "#02142b", // dark blue
-    paddingVertical: 30,
-    paddingHorizontal: 15,
+    backgroundColor: "#333",
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    marginTop: 20,
+    width: '100%',
+    marginLeft: 0,
+    marginRight: 0,
+    flexDirection: 'column', 
+    justifyContent: 'flex-start',
+    shadowColor: 'transparent',
+    elevation: 0,
   },
   footerContent: {
     flexDirection: "row",
@@ -450,13 +525,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   footerColumn: {
-    width: "48%",
-    marginBottom: 15,
+    width: "48%", 
+    marginBottom: 20,
   },
   footerTitle: {
-    color: "#fff",
-    fontWeight: "700",
     fontSize: 16,
+    fontWeight: "bold",
+    color: "#fff",
     marginBottom: 10,
   },
   footerText: {
@@ -466,8 +541,8 @@ const styles = StyleSheet.create({
   },
   footerBottom: {
     borderTopWidth: 1,
-    borderTopColor: "#333",
-    paddingTop: 10,
+    borderTopColor: "#444",
+    paddingVertical: 10,
     alignItems: "center",
   },
   footerBottomText: {

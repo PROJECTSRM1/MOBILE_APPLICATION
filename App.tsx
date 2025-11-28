@@ -11,6 +11,8 @@ import Auth from "./src/screens/Auth";
 import Signup from "./src/screens/signup";
 import Login from "./src/screens/login";
 import Home from "./src/screens/home";
+// 👈 IMPORT THE NEW SCREEN
+import Cleaning from "./src/screens/Cleaning"; 
 
 const Stack = createNativeStackNavigator();
 
@@ -80,6 +82,9 @@ export default function App() {
 
         {/* Home Screen */}
         <Stack.Screen name="Home" component={Home} />
+
+        {/* 🚀 CLEANING SERVICE SCREEN (NEW) */}
+        <Stack.Screen name="Cleaning" component={Cleaning} />
       </Stack.Navigator>
     </NavigationContainer>
   );
