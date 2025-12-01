@@ -1,40 +1,39 @@
 import React, { useState } from "react";
-import { Alert, View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from "react-native";
+import {
+  Alert,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+} from "react-native";
 
 interface SignupProps {
-  onSignupDone: (email: string) => void; // Pass email to login
+  onSignupDone: (email: string) => void; // pass email to login
   onGoToLogin: () => void;
   onBack: () => void;
 }
 
-export default function Signup({ onSignupDone, onGoToLogin, onBack }: SignupProps) {
+export default function Signup2({ onSignupDone, onGoToLogin, onBack }: SignupProps) {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [otp, setOtp] = useState("");
-  const [generatedOtp, setGeneratedOtp] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
+  const [govtId, setGovtId] = useState("");
 
-  // Generate 4-digit OTP
-  const sendOtp = () => {
+  const validateSignup = () => {
     if (!email.includes("@")) return Alert.alert("Enter valid email");
+    if (!phone.trim()) return Alert.alert("Enter phone number");
+    if (!govtId.trim()) return Alert.alert("Enter Government ID");
 
-    const randomOtp = Math.floor(1000 + Math.random() * 9000).toString();
-    setGeneratedOtp(randomOtp);
-    setOtpSent(true);
+    // Manual verification (no backend)
+    Alert.alert("Verification Complete", "Your Government ID is verified manually.");
 
-    Alert.alert("OTP Sent", `Your OTP is: ${randomOtp}`);
-  };
-
-  // OTP Verification
-  const verifyOtp = () => {
-    if (otp !== generatedOtp) return Alert.alert("Invalid OTP");
-    // Pass email to login after signup
+    // Pass email to login screen
     onSignupDone(email);
   };
 
   return (
     <View style={styles.container}>
-
       {/* Back Button */}
       <TouchableOpacity style={styles.backBtn} onPress={onBack}>
         <Text style={styles.backIcon}>←</Text>
@@ -61,7 +60,7 @@ export default function Signup({ onSignupDone, onGoToLogin, onBack }: SignupProp
       <View style={styles.inputBox}>
         <Text style={styles.icon}>📱</Text>
         <TextInput
-          placeholder="Enter your phone no"
+          placeholder="Enter your phone number"
           placeholderTextColor="#B5B5B5"
           style={styles.input}
           value={phone}
@@ -70,40 +69,27 @@ export default function Signup({ onSignupDone, onGoToLogin, onBack }: SignupProp
         />
       </View>
 
-      {/* OTP Button */}
-      {!otpSent && (
-        <TouchableOpacity style={styles.signupBtn} onPress={sendOtp}>
-          <Text style={styles.signupText}>Send OTP</Text>
-        </TouchableOpacity>
-      )}
+      {/* Government ID Field */}
+      <View style={styles.inputBox}>
+        <Text style={styles.icon}>🪪</Text>
+        <TextInput
+          placeholder="Enter your Govt ID (Aadhar / PAN / DL)"
+          placeholderTextColor="#B5B5B5"
+          style={styles.input}
+          value={govtId}
+          onChangeText={setGovtId}
+        />
+      </View>
 
-      {/* OTP Input */}
-      {otpSent && (
-        <>
-          <View style={styles.inputBox}>
-            <Text style={styles.icon}>🔢</Text>
-            <TextInput
-              placeholder="Enter OTP"
-              placeholderTextColor="#B5B5B5"
-              style={styles.input}
-              keyboardType="number-pad"
-              value={otp}
-              onChangeText={setOtp}
-              maxLength={4}
-            />
-          </View>
-
-          {/* Verify Button */}
-          <TouchableOpacity style={styles.signupBtn} onPress={verifyOtp}>
-            <Text style={styles.signupText}>Verify OTP</Text>
-          </TouchableOpacity>
-        </>
-      )}
+      {/* Manual Verify Button */}
+      <TouchableOpacity style={styles.signupBtn} onPress={validateSignup}>
+        <Text style={styles.signupText}>Verify & Sign Up</Text>
+      </TouchableOpacity>
 
       {/* Divider */}
       <Text style={styles.or}>or continue with</Text>
 
-      {/* Google Button */}
+      {/* Google */}
       <TouchableOpacity style={styles.googleBtn}>
         <Image
           source={require("../assets/google.png")}
@@ -112,12 +98,13 @@ export default function Signup({ onSignupDone, onGoToLogin, onBack }: SignupProp
         <Text style={styles.googleText}>Google</Text>
       </TouchableOpacity>
 
-      {/* Bottom Text */}
+      {/* Bottom Link */}
       <Text style={styles.bottomText}>
         Already have an account?{" "}
-        <Text style={styles.loginLink} onPress={onGoToLogin}>Login</Text>
+        <Text style={styles.loginLink} onPress={onGoToLogin}>
+          Login
+        </Text>
       </Text>
-
     </View>
   );
 }

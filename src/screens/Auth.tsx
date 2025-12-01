@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -12,10 +12,19 @@ const { width } = Dimensions.get('window');
 
 interface AuthProps {
   onGoToLogin: () => void;
-  onGoToSignup: () => void;
+  onGoToCustomerSignup: () => void;
+  onGoToUserSignup: () => void;
 }
 
-export default function Auth({ onGoToLogin, onGoToSignup }: AuthProps) {
+export default function Auth({
+  onGoToLogin,
+  onGoToCustomerSignup,
+  onGoToUserSignup,
+}: AuthProps) {
+
+  // Show customer/user options
+  const [showOptions, setShowOptions] = useState(false);
+
   return (
     <View style={styles.container}>
       
@@ -34,15 +43,47 @@ export default function Auth({ onGoToLogin, onGoToSignup }: AuthProps) {
         Your trusted solution for cleaning, moving, rentals, construction, and more.
       </Text>
 
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.leftButton} onPress={onGoToLogin}>
-          <Text style={styles.leftText}>Login</Text>
-        </TouchableOpacity>
+      {/* --- Normal Login / Signup Buttons (Visible Initially) --- */}
+      {!showOptions && (
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.leftButton} onPress={onGoToLogin}>
+            <Text style={styles.leftText}>Login</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.rightButton} onPress={onGoToSignup}>
-          <Text style={styles.rightText}>Sign-up</Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity
+            style={styles.rightButton}
+            onPress={() => setShowOptions(true)}
+          >
+            <Text style={styles.rightText}>Sign-up</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* --- Signup Options (Customer / User) --- */}
+      {showOptions && (
+        <View style={styles.optionContainer}>
+          
+          <TouchableOpacity
+            style={styles.optionButton}
+            onPress={onGoToCustomerSignup}
+          >
+            <Text style={styles.optionText}>Customer Signup</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.optionButton, styles.userBtn]}
+            onPress={onGoToUserSignup}
+          >
+            <Text style={[styles.optionText, { color: "#fff" }]}>User Signup</Text>
+          </TouchableOpacity>
+
+          {/* Back Button */}
+          <TouchableOpacity onPress={() => setShowOptions(false)}>
+            <Text style={styles.backText}>← Back</Text>
+          </TouchableOpacity>
+
+        </View>
+      )}
 
     </View>
   );
@@ -51,7 +92,6 @@ export default function Auth({ onGoToLogin, onGoToSignup }: AuthProps) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#536d89ff", padding: 25, justifyContent: "center" },
 
-  // Rounded Image wrapper similar to onboarding
   imageWrapper: {
     width: width * 0.55,
     height: width * 0.55,
@@ -61,14 +101,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'center',
     marginBottom: 25,
-
-    // Premium glow effect
     borderWidth: 2,
     borderColor: 'rgba(0, 200, 255, 0.2)',
-    // shadowColor: '#00c8ff',
     shadowOpacity: 0.5,
     shadowRadius: 30,
-    // elevation: 8,
     backgroundColor: 'rgba(255,255,255,0.05)',
   },
 
@@ -79,7 +115,7 @@ const styles = StyleSheet.create({
   },
 
   title: { fontSize: 30, fontWeight: "700", textAlign: "center", marginTop: 10 },
-  subtitle: { textAlign: "center", color: "#000", marginTop: 5, fontSize: 19 , fontWeight: "500"},
+  subtitle: { textAlign: "center", color: "#000", marginTop: 5, fontSize: 19, fontWeight: "500" },
 
   buttonContainer: {
     flexDirection: "row",
@@ -106,4 +142,39 @@ const styles = StyleSheet.create({
 
   leftText: { color: "#fff", fontSize: 16, fontWeight: "700" },
   rightText: { color: "#000", fontSize: 16, fontWeight: "700" },
+
+  /* -------- Signup Options Styling -------- */
+
+  optionContainer: {
+    marginTop: 250,
+    alignItems: "center",
+  },
+
+  optionButton: {
+    width: "90%",
+    paddingVertical: 14,
+    borderWidth: 1,
+    borderColor: "#000",
+    backgroundColor: "#fff",
+    borderRadius: 25,
+    alignItems: "center",
+    marginBottom: 15,
+  },
+
+  userBtn: {
+    backgroundColor: "#000",
+  },
+
+  optionText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#000",
+  },
+
+  backText: {
+    marginTop: 10,
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#000",
+  },
 });

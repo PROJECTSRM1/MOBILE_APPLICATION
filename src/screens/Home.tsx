@@ -38,6 +38,10 @@ const NavBar = ({ navigation }: { navigation: any }) => {
           // This ensures the menu item navigates to the Cleaning screen
           navigation.navigate("Cleaning");
       }
+      else if (item === "Packers And Movers") {
+      // The screen name defined in App.tsx is 'PackersAndMovers'
+      navigation.navigate("PackersAndMovers"); 
+    }
       // Add logic for other items as needed
   }
 
@@ -129,85 +133,103 @@ export default function Home({ navigation }: StackScreenProps<any>) {
                 </TouchableOpacity>
             </ImageBackground>
 
-            {/* SERVICES SECTION - ATTACH SERVICES REF */}
-            <View style={(styles as Style).section} ref={servicesRef}>
-                <Text style={(styles as Style).sectionTitle}>Our Services</Text>
+           
+<View ref={servicesRef} style={styles.servicesSection}>
 
-                <View style={(styles as Style).serviceGrid}>
-                    {/* CLEANING SERVICE CARD */}
-                    <View style={(styles as Style).serviceCard}>
-                        <Text style={(styles as Style).serviceIcon}>🏠</Text>
-                        <Text style={(styles as Style).serviceTitle}>Cleaning Service</Text>
-                        <Text style={(styles as Style).serviceDesc}>
-                            Professional cleaning solutions for your home and office.
-                        </Text>
-                        {/* ATTACH NAVIGATION HANDLER to "Learn More" */}
-                        <TouchableOpacity onPress={handleNavigateToCleaning}>
-                           <Text style={(styles as Style).learnMore}>Learn More →</Text>
-                        </TouchableOpacity>
-                    </View>
+  <Text style={styles.servicesHeader}>Our Services</Text>
 
-                    {/* PACKERS & MOVERS */}
-                    <View style={(styles as Style).serviceCard}>
-                        <Text style={(styles as Style).serviceIcon}>🚚</Text>
-                        <Text style={(styles as Style).serviceTitle}>Packers & Movers</Text>
-                        <Text style={(styles as Style).serviceDesc}>
-                            Safe and reliable relocation services.
-                        </Text>
-                        <TouchableOpacity onPress={() => console.log("Navigate to Packers")}>
-                           <Text style={(styles as Style).learnMore}>Learn More →</Text>
-                        </TouchableOpacity>
-                    </View>
+  <ScrollView
+    horizontal
+    showsHorizontalScrollIndicator={false}
+    // Added paddingLeft to make the first card visible
+    contentContainerStyle={{ paddingHorizontal: 15, paddingRight: 35 }}
+  >
+    {/* 1. Home Cleaning - NO "Learn More" */}
+    <TouchableOpacity 
+      style={styles.serviceCardHorizontal} 
+      onPress={handleNavigateToCleaning}
+    >
+      <ImageBackground
+        source={require("../assets/c1.jpg")}
+        style={styles.serviceImgHorizontal}
+        imageStyle={{ borderRadius: 12 }} 
+      />
+      <Text style={styles.serviceTitle}>Cleaning Service</Text>
+      {/* Removed "Learn More" here */}
+    </TouchableOpacity>
 
-                    {/* HOME SERVICES */}
-                    <View style={(styles as Style).serviceCard}>
-                        <Text style={(styles as Style).serviceIcon}>🛠️</Text>
-                        <Text style={(styles as Style).serviceTitle}>Home Services</Text>
-                        <Text style={(styles as Style).serviceDesc}>
-                            Plumbing, electrical, carpentry, and maintenance.
-                        </Text>
-                        <TouchableOpacity onPress={() => console.log("Navigate to Home Services")}>
-                           <Text style={(styles as Style).learnMore}>Learn More →</Text>
-                        </TouchableOpacity>
-                    </View>
+    {/* 2. Packers & Movers - NO "Learn More" */}
+    <TouchableOpacity 
+      style={styles.serviceCardHorizontal}
+      onPress={() => navigation.navigate("PackersAndMovers")} 
+    >
+      <ImageBackground
+        source={require("../assets/pm.jpg")}
+        style={styles.serviceImgHorizontal}
+        imageStyle={{ borderRadius: 12 }}
+      />
+      <Text style={styles.serviceTitle}>Packers & Movers</Text>
+      {/* Removed "Learn More" here */}
+    </TouchableOpacity>
 
-                    {/* RENTALS */}
-                    <View style={(styles as Style).serviceCard}>
-                        <Text style={(styles as Style).serviceIcon}>🏢</Text>
-                        <Text style={(styles as Style).serviceTitle}>Home & Apartments Rental</Text>
-                        <Text style={(styles as Style).serviceDesc}>
-                            Find perfect homes from top rental listings.
-                        </Text>
-                        <TouchableOpacity onPress={() => console.log("Navigate to Rentals")}>
-                           <Text style={(styles as Style).learnMore}>Learn More →</Text>
-                        </TouchableOpacity>
-                    </View>
+    {/* 3. Home Services - NO "Learn More" */}
+    <TouchableOpacity 
+      style={styles.serviceCardHorizontal}
+      onPress={() => navigation.navigate("HomeServices")}
+    >
+      <ImageBackground
+        source={require("../assets/hs.jpg")}
+        style={styles.serviceImgHorizontal}
+        imageStyle={{ borderRadius: 12 }}
+      />
+      <Text style={styles.serviceTitle}>Home Services</Text>
+      {/* Removed "Learn More" here */}
+    </TouchableOpacity>
 
-                    {/* COMMERCIAL PLOTS */}
-                    <View style={(styles as Style).serviceCard}>
-                        <Text style={(styles as Style).serviceIcon}>🏬</Text>
-                        <Text style={(styles as Style).serviceTitle}>Commercial Plots</Text>
-                        <Text style={(styles as Style).serviceDesc}>
-                            Premium plots in prime locations.
-                        </Text>
-                        <TouchableOpacity onPress={() => console.log("Navigate to Commercial Plots")}>
-                           <Text style={(styles as Style).learnMore}>Learn More →</Text>
-                        </TouchableOpacity>
-                    </View>
+    {/* 4. Home & Apartment Rentals - NO "Learn More" */}
+    <TouchableOpacity 
+      style={styles.serviceCardHorizontal}
+      onPress={() => navigation.navigate("Rentals")}
+    >
+      <ImageBackground
+        source={require("../assets/rental.jpg")}
+        style={styles.serviceImgHorizontal}
+        imageStyle={{ borderRadius: 12 }}
+      />
+      <Text style={styles.serviceTitle}>Apartment Rentals</Text>
+      {/* Removed "Learn More" here */}
+    </TouchableOpacity>
 
-                    {/* CONSTRUCTION MATERIALS */}
-                    <View style={(styles as Style).serviceCard}>
-                        <Text style={(styles as Style).serviceIcon}>🧱</Text>
-                        <Text style={(styles as Style).serviceTitle}>Construction Materials</Text>
-                        <Text style={(styles as Style).serviceDesc}>
-                            Cement, bricks, and building materials at best prices.
-                        </Text>
-                        <TouchableOpacity onPress={() => console.log("Navigate to Materials")}>
-                           <Text style={(styles as Style).learnMore}>Learn More →</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </View>
+    {/* 5. Commercial Plots - NO "Learn More" */}
+    <TouchableOpacity 
+      style={styles.serviceCardHorizontal}
+      onPress={() => navigation.navigate("CommercialPlots")}
+    >
+      <ImageBackground
+        source={require("../assets/cp.jpg")}
+        style={styles.serviceImgHorizontal}
+        imageStyle={{ borderRadius: 12 }}
+      />
+      <Text style={styles.serviceTitle}>Commercial Plots</Text>
+      {/* Removed "Learn More" here */}
+    </TouchableOpacity>
+
+    {/* 6. Construction Materials - NO "Learn More" */}
+    <TouchableOpacity 
+      style={styles.serviceCardHorizontal}
+      onPress={() => navigation.navigate("ConstructionMaterials")}
+    >
+      <ImageBackground
+        source={require("../assets/cma.jpg")}
+        style={styles.serviceImgHorizontal}
+        imageStyle={{ borderRadius: 12 }}
+      />
+      <Text style={styles.serviceTitle}>Construction Materials</Text>
+      {/* Removed "Learn More" here */}
+    </TouchableOpacity>
+  </ScrollView>
+</View>
+
 
             {/* WHY CHOOSE OUR SERVICE */}
             <View style={(styles as Style).whySection}>
@@ -375,7 +397,7 @@ const styles = StyleSheet.create({
   
   // --- HERO STYLES ---
   hero: {
-    height: 450,
+    height: 350,
     justifyContent: "center",
     paddingHorizontal: 20,
     paddingTop: 100, // Accounts for the floating navbar
@@ -400,8 +422,8 @@ const styles = StyleSheet.create({
   startBtn: {
     backgroundColor: "#FF0000",
     alignSelf: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 25,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
     borderRadius: 8,
   },
   startBtnText: {
@@ -421,89 +443,126 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 
-  /* SERVICE CARDS */
-  serviceGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
+  /* SERVICE CARDS - UPDATED FOR COMPACT, ROUNDED STYLE */
+ /* SERVICE CARDS - FINAL STYLES FOR COMPACT, BORDERED LOOK */
+  servicesSection: {
+    paddingVertical: 20, 
   },
 
-  serviceCard: {
-    width: "48%",
-    backgroundColor: "#fff",
-    padding: 15,
-    borderRadius: 12,
-    elevation: 4,
-    marginBottom: 20,
-  },
-  serviceIcon: {
-    fontSize: 35,
-    textAlign: "center",
+  serviceCardHorizontal: {
+   
+    width: 90, 
+    height: 115, // Adjusted slightly to fit the text better
+    marginRight: 15,
+    backgroundColor: "#ffffff", 
+    borderRadius: 10, // High border radius for the outer card
+    padding: 5, // Minimal padding inside the card
+    borderWidth: 1, 
+    borderColor: '#b19964ff',
+    // Soft outer shadow/glow (simulating the faint light border)
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 0 }, 
+    shadowOpacity: 2, // Subtle shadow
+    shadowRadius: 10, 
+    elevation: 3, 
+    
     marginBottom: 10,
-  },
-  serviceTitle: {
-    fontSize: 17,
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  serviceDesc: {
-    fontSize: 13,
-    textAlign: "center",
-    color: "#555",
-    marginBottom: 10,
-  },
-  learnMore: {
-    color: "#007bff",
-    textAlign: "center",
-    fontWeight: "600",
-    marginTop: 5,
+    alignItems: 'center', // Center content horizontally
+    justifyContent: 'flex-start', // Start content from the top
   },
 
-  /* WHY CHOOSE US */
-  whySection: {
-    padding: 20,
-    marginTop: 10,
-  },
-  whyTitle: {
-    fontSize: 26,
-    fontWeight: "800",
-    textAlign: "center",
-    marginBottom: 6,
-  },
-  whySubtitle: {
-    textAlign: "center",
-    color: "#555",
-    fontSize: 14,
-    marginBottom: 20,
-  },
-  whyGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-  },
-  whyCard: {
-    width: "48%",
-    backgroundColor: "#fff",
-    padding: 18,
-    borderRadius: 12,
-    elevation: 3,
-    marginBottom: 20,
-  },
-  whyIcon: {
-    fontSize: 28,
-    marginBottom: 10,
-  },
-  whyHeading: {
-    fontSize: 16,
-    fontWeight: "700",
+  serviceImgHorizontal: {
+    // Fixed size for the image area, making it a prominent rounded square
+    width: 80, 
+    height: 70, 
+    borderRadius: 10, // High border radius for the image itself
     marginBottom: 5,
-  },
-  whyText: {
-    fontSize: 13,
-    color: "#555",
+    backgroundColor: '#f0f0f0', 
+    overflow: 'hidden', // CRITICAL: Ensures the image respects the border-radius
+    alignSelf: 'center', 
   },
   
+  learnMore: { 
+    // This element isn't clearly visible in the small image, but keep the link style minimal
+    color: "#007bff", 
+    fontWeight: "600", 
+    fontSize: 9, // Smallest text size
+    marginTop: 2, 
+    textAlign: 'center',
+  },
+  servicesHeader: {
+    fontSize: 22,
+    fontWeight: "800",
+    textAlign: "center",
+    marginBottom: 20, 
+    color: "#111",
+  },
+  serviceTitle: {
+    fontSize: 11, // Small title text
+    fontWeight: "600", 
+    marginBottom: 2, 
+    color: "#333", 
+    textAlign: 'center', 
+    lineHeight: 14, // Helps control line spacing for multi-line titles
+  },
+  /* WHY CHOOSE US */
+ whySection: {
+    padding: 20,
+    marginTop: 10,
+    backgroundColor: '#f4f4f4', // Slight background to define the section
+  },
+  whyTitle: {
+    fontSize: 26,
+    fontWeight: "800",
+    textAlign: "center",
+    marginBottom: 6,
+    color: "#1a1a1a", // Darker text
+  },
+  whySubtitle: {
+    textAlign: "center",
+    color: "#666",
+    fontSize: 14,
+    marginBottom: 25, // Increased margin
+  },
+  whyGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+  },
+  whyCard: {
+    width: "48%",
+    backgroundColor: "#fff", // White background for the card
+    padding: 15,
+    borderRadius: 15, // More pronounced rounding
+    borderWidth: 1,
+    borderColor: '#eee', // Subtle light gray border
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05, // Very subtle shadow from bottom
+    shadowRadius: 4,
+    elevation: 2,
+    marginBottom: 15, // Reduced space to make the grid tighter
+  },
+  whyIcon: {
+    fontSize: 30, // Slightly larger icon
+    marginBottom: 10,
+    // PREMIUM ICON EFFECT: Use the color to define a line/indicator above the icon
+    paddingBottom: 5,
+    borderBottomWidth: 3, 
+    borderBottomColor: '#FFD700', // Gold/Premium accent color (this will be overridden by inline style, but sets a base)
+    alignSelf: 'flex-start', // Ensure the border is only under the icon text
+    width: 'auto',
+  },
+  whyHeading: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#333",
+    marginBottom: 5,
+  },
+  whyText: {
+    fontSize: 13,
+    color: "#777", // Lighter body text
+  },
   // --- FOOTER STYLES ---
   footerContainer: {
     backgroundColor: "#333",
