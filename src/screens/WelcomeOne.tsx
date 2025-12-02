@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
   btnActive: {
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#c2d4db',
+    borderColor: '#c2d4db',    
   },
 
   btnInactive: {

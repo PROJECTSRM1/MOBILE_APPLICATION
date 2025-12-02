@@ -1,5 +1,4 @@
-
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -32,6 +31,7 @@ export default function Onboarding(): React.ReactElement {
   const navigation = useNavigation<any>();
   const scrollRef = useRef<ScrollView | null>(null);
   const [index, setIndex] = useState(0);
+  const [showSignupOptions, setShowSignupOptions] = useState(false); // toggles Customer/User signup buttons
   const scrollX = useRef(new Animated.Value(0)).current;
 
   const onScroll = (e: any) => {
@@ -41,28 +41,30 @@ export default function Onboarding(): React.ReactElement {
   const onScrollEnd = (e: any) => {
     const page = Math.round(e.nativeEvent.contentOffset.x / SCREEN_W);
     setIndex(page);
+    // reset signup options when user manually scrolls away
+    if (page !== 1) setShowSignupOptions(false);
+  };
+
+  // move to next page (used by the Next button on first page)
+  const goToPage = (i: number) => {
+    scrollRef.current?.scrollTo({ x: i * SCREEN_W, animated: true });
+    setIndex(i);
+    scrollX.setValue(i * SCREEN_W);
+    // when landing on page 1 show the login/signup area (but not the extra signup options)
+    if (i === 1) {
+      setShowSignupOptions(false);
+    }
   };
 
   const next = () => {
     if (index < PAGES.length - 1) {
-      const i = index + 1;
-      scrollRef.current?.scrollTo({ x: i * SCREEN_W, animated: true });
-      setIndex(i);
-      scrollX.setValue(i * SCREEN_W);
+      goToPage(index + 1);
     } else {
-      // finished onboarding -> navigate to WelcomeOne
-      navigation.replace('WelcomeOne');
+      navigation.replace('Landing');
     }
   };
 
-  const skip = () => {
-    const last = PAGES.length - 1;
-    scrollRef.current?.scrollTo({ x: last * SCREEN_W, animated: true });
-    setIndex(last);
-    scrollX.setValue(last * SCREEN_W);
-  };
-
-  // Pages
+  // Page views (no JSX to avoid tsx issues)
   const pageViews = PAGES.map((p, i) => {
     const inputRange = [(i - 1) * SCREEN_W, i * SCREEN_W, (i + 1) * SCREEN_W];
 
@@ -91,6 +93,87 @@ export default function Onboarding(): React.ReactElement {
     );
   });
 
+  // Dots
+  const dots = PAGES.map((_, i) =>
+    React.createElement(View, {
+      key: `dot-${i}`,
+      style: [styles.dot, i === index && styles.dotActive],
+    })
+  );
+
+  const bottomArea = (() => {
+    if (index === 0) {
+      // Page 1: Next only (no Skip)
+      return React.createElement(
+        View,
+        { style: styles.buttonsCenter },
+        React.createElement(
+          TouchableOpacity as any,
+          { onPress: next, style: styles.nextPrimaryBtn, activeOpacity: 0.92 },
+          React.createElement(Text, { style: styles.nextPrimaryText }, 'Next')
+        )
+      );
+    } else {
+      if (showSignupOptions) {
+        // Show Customer Signup + User Signup (image 1)
+        return React.createElement(
+          View,
+          { style: styles.signupOptionsWrap },
+          React.createElement(
+            TouchableOpacity as any,
+            {
+              onPress: () => navigation.navigate('Signup', { role: 'customer' }),
+              style: styles.largeWhiteBtn,
+              activeOpacity: 0.9,
+            },
+            React.createElement(Text, { style: styles.largeWhiteText }, 'Customer Signup')
+          ),
+          React.createElement(
+            TouchableOpacity as any,
+            {
+              onPress: () => navigation.navigate('Signup', { role: 'user' }),
+              style: styles.largeBlackBtn,
+              activeOpacity: 0.9,
+            },
+            React.createElement(Text, { style: styles.largeBlackText }, 'User Signup')
+          ),
+          React.createElement(
+            TouchableOpacity as any,
+            { onPress: () => setShowSignupOptions(false), style: styles.backLink, activeOpacity: 0.8 },
+            React.createElement(Text, { style: styles.backLinkText }, '← Back')
+          )
+        );
+      }
+
+      // Default: show Login + Sign up (image 2)
+      return React.createElement(
+        View,
+        { style: styles.loginSignupRow },
+        React.createElement(
+          TouchableOpacity as any,
+          {
+            onPress: () => navigation.navigate('Login'),
+            style: styles.loginBtn,
+            activeOpacity: 0.9,
+            accessibilityRole: 'button',
+          },
+          React.createElement(Text, { style: styles.loginText }, 'Login')
+        ),
+        React.createElement(
+          TouchableOpacity as any,
+          {
+            onPress: () => setShowSignupOptions(true),
+            style: styles.signupBtn,
+            activeOpacity: 0.9,
+            accessibilityRole: 'button',
+          },
+          React.createElement(Text, { style: styles.signupText }, 'Sign-up')
+        )
+      );
+    }
+  })();
+
+  // The scroll view element
   const scrollView = React.createElement(
     ScrollView,
     {
@@ -105,54 +188,13 @@ export default function Onboarding(): React.ReactElement {
     ...pageViews
   );
 
-  // DOTS
-  const dots = PAGES.map((_, i) =>
-    React.createElement(View, {
-      key: `dot-${i}`,
-      style: [styles.dot, i === index && styles.dotActive],
-    })
-  );
-
-  // Buttons (side-by-side, last page centered)
-  let buttons;
-  if (index === PAGES.length - 1) {
-    // Centered Get Started
-    const gs = React.createElement(
-      TouchableOpacity as any,
-      { onPress: next, style: styles.getStartedBtn, activeOpacity: 0.92 },
-      React.createElement(Text, { style: styles.getStartedText }, 'Get Started')
-    );
-
-    buttons = React.createElement(View, { style: styles.buttonsCenter }, gs);
-  } else {
-    const skipBtn = React.createElement(
-      TouchableOpacity as any,
-      { onPress: skip, style: styles.sideBtnLeft, activeOpacity: 0.8 },
-      React.createElement(Text, { style: styles.skipText }, 'Skip')
-    );
-
-    const nextBtn = React.createElement(
-      TouchableOpacity as any,
-      { onPress: next, style: styles.sideBtnRight, activeOpacity: 0.92 },
-      React.createElement(Text, { style: styles.nextText }, 'Next')
-    );
-
-    buttons = React.createElement(View, { style: styles.buttonsRow }, skipBtn, nextBtn);
-  }
-
   return React.createElement(
     View,
     { style: styles.root },
     React.createElement(StatusBar, { translucent: true, barStyle: 'light-content', backgroundColor: 'transparent' }),
-
-    // Center content
     React.createElement(View, { style: styles.contentCenter }, scrollView),
-
-    // DOTS below content
     React.createElement(View, { style: styles.dotsWrap }, ...dots),
-
-    // Buttons below dots
-    buttons
+    bottomArea
   );
 }
 
@@ -162,7 +204,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#071026',
   },
 
-  // Centering main onboarding content
   contentCenter: {
     flex: 1,
     justifyContent: 'center',
@@ -195,7 +236,7 @@ const styles = StyleSheet.create({
 
   dotsWrap: {
     position: 'absolute',
-    bottom: 110,
+    bottom: 180,
     left: 0,
     right: 0,
     alignItems: 'center',
@@ -209,7 +250,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: 'rgba(255,255,255,0.25)',
     marginHorizontal: 6,
-    marginBottom: 120,
   },
   dotActive: {
     backgroundColor: '#0ef0c7',
@@ -217,35 +257,7 @@ const styles = StyleSheet.create({
     borderRadius: 9,
   },
 
-  // side buttons
-  buttonsRow: {
-    position: 'absolute',
-    bottom: 80,
-    left: 80,
-    right: 80,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  sideBtnLeft: {
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-  },
-  sideBtnRight: {
-    backgroundColor: '#0ef0c7',
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-    borderRadius: 999,
-  },
-  skipText: {
-    color: 'rgba(255,255,255,0.85)',
-    fontWeight: '700',
-  },
-  nextText: {
-    color: '#012a26',
-    fontWeight: '800',
-  },
-
-  // Only Get Started (center)
+  // Next button (for page 0)
   buttonsCenter: {
     position: 'absolute',
     bottom: 80,
@@ -253,14 +265,71 @@ const styles = StyleSheet.create({
     right: 0,
     alignItems: 'center',
   },
-  getStartedBtn: {
+  nextPrimaryBtn: {
     backgroundColor: '#0ef0c7',
     paddingHorizontal: 34,
     paddingVertical: 12,
     borderRadius: 999,
   },
-  getStartedText: {
+  nextPrimaryText: {
     color: '#012a26',
     fontWeight: '800',
   },
+
+  // Login / Sign-up row (image 2)
+  loginSignupRow: {
+    position: 'absolute',
+    bottom: 64,
+    left: 28,
+    right: 28,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  loginBtn: {
+    flex: 1,
+    backgroundColor: '#000',
+    paddingVertical: 14,
+    borderRadius: 30,
+    marginRight: 10,
+    alignItems: 'center',
+  },
+  loginText: { color: '#fff', fontWeight: '800', fontSize: 16 },
+  signupBtn: {
+    flex: 1,
+    backgroundColor: '#fff',
+    paddingVertical: 14,
+    borderRadius: 30,
+    marginLeft: 10,
+    alignItems: 'center',
+  },
+  signupText: { color: '#000', fontWeight: '800', fontSize: 16 },
+
+  // Signup options (image 1)
+  signupOptionsWrap: {
+    position: 'absolute',
+    bottom: 40,
+    left: 22,
+    right: 22,
+    alignItems: 'center',
+  },
+  largeWhiteBtn: {
+    width: '100%',
+    backgroundColor: '#fff',
+    paddingVertical: 16,
+    borderRadius: 999,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  largeWhiteText: { fontWeight: '800', color: '#000', fontSize: 16 },
+  largeBlackBtn: {
+    width: '100%',
+    backgroundColor: '#000',
+    paddingVertical: 16,
+    borderRadius: 999,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  largeBlackText: { fontWeight: '800', color: '#fff', fontSize: 16 },
+  backLink: { marginTop: 6 },
+  backLinkText: { color: 'rgba(255,255,255,0.9)', textDecorationLine: 'underline' },
 });
