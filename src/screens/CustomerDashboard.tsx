@@ -1,4 +1,3 @@
-// src/screens/CustomerDashboard.tsx
 import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
@@ -164,10 +163,7 @@ export default function CustomerDashboard(): React.ReactElement {
               <Text style={{ color: "#7c8a92" }}>No services available — ask provider to add services.</Text>
             </View>
           ) : (
-            // simple Picker; if you use RN Picker, import; fallback to custom buttons
             Platform.OS === "android" || Platform.OS === "ios" ? (
-              // using built-in Picker (deprecated import in some RN versions) — adapt if you use @react-native-picker/picker
-              // Fallback to manual selection list if Picker not available.
               <View style={{ backgroundColor: "#fff", borderRadius: 10, padding: 10 }}>
                 {services.map((s) => (
                   <TouchableOpacity
@@ -241,9 +237,9 @@ export default function CustomerDashboard(): React.ReactElement {
                 </View>
               ) : null}
 
-              <TouchableOpacity style={styles.primaryBtn} onPress={createRequest}>
+              {/* <TouchableOpacity style={styles.primaryBtn} onPress={createRequest}>
   <Text style={styles.primaryBtnText}>Create Request</Text>
-</TouchableOpacity>
+</TouchableOpacity> */}
 
 
               <View style={{ marginTop: 10 }}>{renderActions(row)}</View>
@@ -259,7 +255,7 @@ export default function CustomerDashboard(): React.ReactElement {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#f4fafc" },
-  wrap: { padding: 18 },
+  wrap: { padding: 18,paddingTop: 34 },
   header: { fontSize: 22, fontWeight: "900", marginBottom: 6 },
   sub: { color: "#556", marginBottom: 12 },
 

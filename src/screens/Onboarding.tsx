@@ -24,7 +24,7 @@ const IMAGES: ImageSourcePropType[] = [
 const PAGES = [
   { title: 'Keep it clean', subtitle: 'Expert cleaning tailored to your home.', image: IMAGES[0] },
   { title: 'Book in seconds', subtitle: 'Easy scheduling with trusted professionals.', image: IMAGES[1] },
-  { title: 'Sit back & relax', subtitle: 'We handle everything — premium results.', image: IMAGES[2] },
+  // { title: 'Sit back & relax', subtitle: 'We handle everything — premium results.', image: IMAGES[2] },
 ];
 
 export default function Onboarding(): React.ReactElement {

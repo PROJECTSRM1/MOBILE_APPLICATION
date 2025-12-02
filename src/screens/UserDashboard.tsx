@@ -10,8 +10,10 @@ import {
   FlatList,
   StyleSheet,
   Alert,
+  Image,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+// removed unused useNavigation import to avoid linter/TS warnings
+// import { useNavigation } from "@react-navigation/native";
 
 declare var global: any;
 
@@ -20,6 +22,7 @@ type Service = {
   title: string;
   description: string;
   price: string;
+  image?: string; // optional preview URI
 };
 
 function ensureServicesGlobal() {
@@ -27,7 +30,7 @@ function ensureServicesGlobal() {
 }
 
 export default function UserDashboard(): React.ReactElement {
-  const nav = useNavigation<any>();
+  // ensure global array exists
   ensureServicesGlobal();
 
   const [title, setTitle] = useState("");
@@ -37,12 +40,28 @@ export default function UserDashboard(): React.ReactElement {
     Array.isArray(global.__SW_SERVICES__) ? [...global.__SW_SERVICES__] : []
   );
 
+  // preview URI only (UI placeholder). Set this manually or hook up picker later.
+  const [pickedImage, setPickedImage] = useState<string | null>(null);
+
   useEffect(() => {
     const id = setInterval(() => {
       setServices(Array.isArray(global.__SW_SERVICES__) ? [...global.__SW_SERVICES__] : []);
     }, 400);
     return () => clearInterval(id);
   }, []);
+
+  // Stub functions — currently do nothing. Hook up react-native-image-picker or expo-image-picker later.
+  const pickImage = async () => {
+    // TODO: integrate image picker here.
+    // Quick test: uncomment to simulate a picked image:
+    // setPickedImage("https://via.placeholder.com/300x180.png");
+  };
+
+  const takePhoto = async () => {
+    // TODO: integrate camera capture here.
+    // Quick test: uncomment to simulate a taken photo:
+    // setPickedImage("https://via.placeholder.com/300x180.png");
+  };
 
   const addService = () => {
     if (!title.trim() || !description.trim() || !price.trim()) {
@@ -54,6 +73,7 @@ export default function UserDashboard(): React.ReactElement {
       title: title.trim(),
       description: description.trim(),
       price: price.trim(),
+      image: pickedImage ?? undefined,
     };
 
     global.__SW_SERVICES__ = [s, ...(global.__SW_SERVICES__ || [])];
@@ -61,6 +81,7 @@ export default function UserDashboard(): React.ReactElement {
     setTitle("");
     setDescription("");
     setPrice("");
+    setPickedImage(null); 
   };
 
   const removeService = (id: string) => {
@@ -71,9 +92,14 @@ export default function UserDashboard(): React.ReactElement {
   const renderItem = ({ item }: { item: Service }) => (
     <View style={styles.card}>
       <View style={styles.cardRow}>
-        <View style={styles.thumbPlaceholder}>
-          <Text style={{ color: "#fff" }}>IMG</Text>
-        </View>
+        {item.image ? (
+          <Image source={{ uri: item.image }} style={{ width: 72, height: 56, borderRadius: 8 }} />
+        ) : (
+          <View style={styles.thumbPlaceholder}>
+            <Text style={{ color: "#fff" }}>IMG</Text>
+          </View>
+        )}
+
         <View style={{ flex: 1, marginLeft: 12 }}>
           <Text style={{ fontWeight: "800" }}>{item.title}</Text>
           <Text style={{ color: "#58646a", marginTop: 6 }}>{item.description}</Text>
@@ -115,6 +141,31 @@ export default function UserDashboard(): React.ReactElement {
           keyboardType="numeric"
           style={styles.input}
         />
+
+        {/* --- Upload placeholder section (UI only) --- */}
+        <View style={{ marginTop: 12 }}>
+          <Text style={{ color: "#566", marginBottom: 8 }}>Service image (optional)</Text>
+
+          <View style={styles.uploadPlaceholder}>
+            {pickedImage ? (
+              <Image source={{ uri: pickedImage }} style={{ width: 92, height: 68, borderRadius: 8 }} />
+            ) : (
+              <View style={{ width: 92, height: 68, borderRadius: 8, backgroundColor: "#eaf2f2", alignItems: "center", justifyContent: "center" }}>
+                <Text style={{ color: "#7d8a8d" }}>No image</Text>
+              </View>
+            )}
+
+            <View style={{ marginLeft: 12, flex: 1 }}>
+              <TouchableOpacity onPress={pickImage} style={{ paddingVertical: 8 }}>
+                <Text style={{ color: "#0e8b7b", fontWeight: "700" }}>Pick image</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={takePhoto} style={{ paddingVertical: 6 }}>
+                <Text style={{ color: "#0e8b7b" }}>Take photo</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+        {/* --- end upload section --- */}
 
         <TouchableOpacity style={styles.addBtn} onPress={addService}>
           <Text style={{ color: "#fff", fontWeight: "800" }}>Add service</Text>
@@ -175,4 +226,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   deleteBtn: { marginTop: 14 },
+  uploadPlaceholder: {
+    marginTop: 6,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e6eef0",
+  },
 });

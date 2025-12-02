@@ -1,5 +1,5 @@
 // src/screens/Signup.tsx
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   SafeAreaView,
   View,
@@ -35,7 +35,8 @@ const SERVICE_OPTIONS = [
 const validateEmail = (email: string) =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
-export default function Signup({ navigation, route }: Props) {
+export default function Signup(props: any) {
+  const { navigation, route } = props as Props;
   const initialRole = (route?.params as any)?.role as Role | undefined;
   const [role, setRole] = useState<Role>(initialRole ?? null);
 
@@ -59,8 +60,63 @@ export default function Signup({ navigation, route }: Props) {
   // dropdown modal state
   const [dropOpen, setDropOpen] = useState(false);
 
+  // OTP helper states
+  const resendIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [otpSent, setOtpSent] = useState(false);
+  const [resendTimer, setResendTimer] = useState(0);
+
   const [loading, setLoading] = useState(false);
 
+  // cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (resendIntervalRef.current) {
+        clearInterval(resendIntervalRef.current);
+        resendIntervalRef.current = null;
+      }
+    };
+  }, []);
+
+  // send a dummy OTP (6 digits), set otp state and start 30s cooldown
+  const sendOtp = () => {
+    // basic phone validation before sending
+    if (!/^\d{7,15}$/.test(phone)) {
+      Alert.alert("Invalid phone", "Please enter a valid phone number before requesting OTP.");
+      return;
+    }
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit
+    setOtp(code);
+    setOtpSent(true);
+    setResendTimer(30);
+    console.log("Dummy OTP generated:", code);
+
+    Alert.alert("OTP", `Your OTP is ${code}`);
+
+    // clear previous interval if exists
+    if (resendIntervalRef.current) {
+      clearInterval(resendIntervalRef.current);
+      resendIntervalRef.current = null;
+    }
+
+    // start countdown
+    resendIntervalRef.current = setInterval(() => {
+      setResendTimer((prev) => {
+        if (prev <= 1) {
+          // clear interval and reset state
+          if (resendIntervalRef.current) {
+            clearInterval(resendIntervalRef.current);
+            resendIntervalRef.current = null;
+          }
+          setOtpSent(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  // === validateAndSubmit (made explicit to avoid role/dashboard swaps) ===
   const validateAndSubmit = () => {
     if (!role) {
       Alert.alert("Select role", "Please choose Customer or User to continue.");
@@ -78,10 +134,10 @@ export default function Signup({ navigation, route }: Props) {
       Alert.alert("Invalid email", "Please enter a valid email address.");
       return;
     }
-    if (password.length < 6) {
-      Alert.alert("Weak password", "Password should be at least 6 characters.");
-      return;
-    }
+    // if (password.length < 6) {
+    //   Alert.alert("Weak password", "Password should be at least 6 characters.");
+    //   return;
+    // }
 
     // role-specific checks
     if (role === "customer") {
@@ -93,6 +149,11 @@ export default function Signup({ navigation, route }: Props) {
         Alert.alert("Missing address", "Please add a service address.");
         return;
       }
+      // OTP is optional currently. If you want to require it uncomment the next lines:
+      // if (!otp.trim()) {
+      //   Alert.alert("Missing OTP", "Please request/enter the OTP.");
+      //   return;
+      // }
     } else if (role === "user") {
       if (!serviceTypes.trim()) {
         Alert.alert("Missing services", "Please choose at least one primary service in the dropdown.");
@@ -104,25 +165,34 @@ export default function Signup({ navigation, route }: Props) {
       }
     }
 
-    // Simulate API call
+    console.log("Submitting signup for role:", role);
+
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
 
-      if (role === "customer") {
-        Alert.alert("Success", "Customer account created — redirecting to dashboard.");
-        navigation.replace("CustomerDashboard");
-        return;
-      }
+     switch (role) {
+  case "customer":
+    Alert.alert("Success", "Account created — please login to continue.");
+    // send role and email to the Login screen so it can redirect after login
+    navigation.replace("Login", { role: "customer", prefilledEmail: email || "" });
+    return;
 
-      if (role === "user") {
-        Alert.alert("Success", "Service provider account created — redirecting to dashboard.");
-        navigation.replace("UserDashboard");
-        return;
+  case "user":
+    Alert.alert("Success", "Account created — please login to continue.");
+    navigation.replace("Login", { role: "user", prefilledEmail: email || "" });
+    return;
+
+
+        default:
+          // fallback (shouldn't happen)
+          Alert.alert("Success", "Account created — redirecting.");
+          navigation.replace("Login");
+          return;
       }
     }, 900);
-  }; // <-- needed
- 
+  };
+  // === end validateAndSubmit ===
 
   if (!role) {
     return (
@@ -134,7 +204,10 @@ export default function Signup({ navigation, route }: Props) {
           <TouchableOpacity
             style={[styles.roleBtn, { backgroundColor: "#fff" }]}
             activeOpacity={0.9}
-            onPress={() => setRole("customer")}
+            onPress={() => {
+              console.log("Role selected: customer");
+              setRole("customer");
+            }}
           >
             <Text style={styles.roleBtnTitle}>Customer Signup</Text>
             <Text style={styles.roleBtnSub}>Book services, request quotes, manage bookings</Text>
@@ -143,7 +216,10 @@ export default function Signup({ navigation, route }: Props) {
           <TouchableOpacity
             style={[styles.roleBtn, { marginTop: 12 }]}
             activeOpacity={0.9}
-            onPress={() => setRole("user")}
+            onPress={() => {
+              console.log("Role selected: user");
+              setRole("user");
+            }}
           >
             <Text style={styles.roleBtnTitle}>User / Service Provider Signup</Text>
             <Text style={styles.roleBtnSub}>Offer services, receive bookings, manage availability</Text>
@@ -172,17 +248,46 @@ export default function Signup({ navigation, route }: Props) {
             <TextInput value={name} onChangeText={setName} placeholder="Full name" placeholderTextColor="#9aa0a6" style={styles.input} autoCapitalize="words" />
             <TextInput value={phone} onChangeText={setPhone} placeholder="Phone number" placeholderTextColor="#9aa0a6" keyboardType="phone-pad" style={styles.input} />
             <TextInput value={email} onChangeText={setEmail} placeholder="Email address" placeholderTextColor="#9aa0a6" keyboardType="email-address" autoCapitalize="none" style={styles.input} />
-            <View style={styles.passwordRow}>
+            {/* <View style={styles.passwordRow}>
               <TextInput value={password} onChangeText={setPassword} placeholder="Create password" placeholderTextColor="#9aa0a6" secureTextEntry={!showPassword} style={[styles.input, { flex: 1 }]} />
               <TouchableOpacity onPress={() => setShowPassword((s) => !s)} style={styles.eyeBtn}>
                 <Text style={{ fontWeight: "700" }}>{showPassword ? "Hide" : "Show"}</Text>
               </TouchableOpacity>
-            </View>
+            </View> */}
 
             {/* Role-specific inputs */}
             {role === "customer" ? (
               <>
-                <TextInput value={otp} onChangeText={setOtp} placeholder="Verification OTP (optional)" placeholderTextColor="#9aa0a6" keyboardType="numeric" style={styles.input} />
+                {/* OTP row: input + Send OTP button */}
+                <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
+                  <TextInput
+                    value={otp}
+                    onChangeText={setOtp}
+                    placeholder="Verification OTP (optional)"
+                    placeholderTextColor="#9aa0a6"
+                    keyboardType="numeric"
+                    style={[styles.input, { flex: 1, marginBottom: 0 }]}
+                  />
+
+                  <TouchableOpacity
+                    onPress={sendOtp}
+                    style={[
+                      {
+                        marginLeft: 10,
+                        paddingVertical: 12,
+                        paddingHorizontal: 14,
+                        borderRadius: 10,
+                        backgroundColor: otpSent ? "#d0e9e6" : "#0e8b7b",
+                      },
+                    ]}
+                    disabled={otpSent}
+                  >
+                    <Text style={{ color: otpSent ? "#6b7b78" : "#fff", fontWeight: "700" }}>
+                      {otpSent ? `Resend (${resendTimer}s)` : "Send OTP"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
                 <TextInput value={workType} onChangeText={setWorkType} placeholder="Work required (eg. Deep cleaning / Carpet / Move out)" placeholderTextColor="#9aa0a6" style={styles.input} />
                 <TextInput value={expectedCost} onChangeText={setExpectedCost} placeholder="Expected budget (optional)" placeholderTextColor="#9aa0a6" keyboardType="numeric" style={styles.input} />
                 <TextInput value={address} onChangeText={setAddress} placeholder="Service address" placeholderTextColor="#9aa0a6" style={[styles.input, { height: 88 }]} multiline />
@@ -208,8 +313,6 @@ export default function Signup({ navigation, route }: Props) {
                             onPress={() => {
                               setServiceTypes(item);
                               setDropOpen(false);
-
-
                             }}
                           >
                             <Text style={{ fontSize: 15 }}>{item}</Text>
@@ -224,9 +327,9 @@ export default function Signup({ navigation, route }: Props) {
                 <TextInput value={govtId} onChangeText={setGovtId} placeholder="Govt ID / Registration No." placeholderTextColor="#9aa0a6" style={styles.input} />
                 <TextInput value={address} onChangeText={setAddress} placeholder="Base address / City" placeholderTextColor="#9aa0a6" style={styles.input} />
 
-                <View style={styles.uploadPlaceholder}>
+                {/* <View style={styles.uploadPlaceholder}>
                   <Text style={{ color: "#6c7680" }}>Upload ID / certificates — integrate image picker here</Text>
-                </View>
+                </View> */}
               </>
             )}
 
@@ -253,7 +356,7 @@ export default function Signup({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#EAF1F5" },
+  container: { flex: 1, backgroundColor: "#EAF1F5",paddingTop: 20},
   wrapperCentered: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24 },
   bigTitle: { fontSize: 28, fontWeight: "900", marginBottom: 20, color: "#24333a" },
   roleBtn: {

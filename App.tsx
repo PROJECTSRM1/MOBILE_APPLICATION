@@ -10,15 +10,17 @@ import Signup from "./src/screens/Signup";
 import Landing from "./src/screens/Landing";
 // import Cleaning from "./src/screens/Cleaning";
 // import Packers from "./src/screens/PackersAndMovers";
-import CustomerDashboard from "./src/screens/UserDashboard";
-import UserDashboard from "./src/screens/CustomerDashboard";
+
+import CustomerDashboard from "./src/screens/CustomerDashboard";
+import UserDashboard from "./src/screens/UserDashboard";
 
 export type RootStackParamList = {
   Splash: undefined;
   Onboarding: undefined;
   Landing: undefined;
   WelcomeOne: undefined;
-  Login: undefined;
+  // Login: undefined;
+    Login: { role?: "customer" | "user"; prefilledEmail?: string } | undefined;
   Signup: undefined;
   Cleaning: undefined;
   Packers: undefined;
