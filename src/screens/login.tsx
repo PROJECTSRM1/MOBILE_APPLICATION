@@ -14,6 +14,8 @@ interface LoginProps {
   onGoToSignup: () => void;
   onBack: () => void;
   prefillEmail?: string;
+  savedEmail?: string;
+  savedPassword?: string;
 }
 
 export default function Login({
@@ -21,34 +23,38 @@ export default function Login({
   onGoToSignup,
   onBack,
   prefillEmail,
+  savedEmail,
+  savedPassword,
 }: LoginProps) {
   const [email, setEmail] = useState(prefillEmail || "");
-  const [password, setPassword] = useState("");
+ const [password, setPassword] = useState(savedPassword || "");
+
   const [role, setRole] = useState<"user" | "customer">("user");
 
-  useEffect(() => {
-    if (prefillEmail) setEmail(prefillEmail);
-  }, [prefillEmail]);
+ useEffect(() => {
+  if (prefillEmail) setEmail(prefillEmail);
+  if (savedPassword) setPassword(savedPassword);
+}, [prefillEmail, savedPassword]);
 
   const handleLogin = () => {
     if (!email.includes("@")) return Alert.alert("Enter valid email");
-    if (!password.trim()) return Alert.alert("Enter valid password");
+    if (!password.trim()) return Alert.alert("Enter password");
 
-    // Role-based login
+   if (savedEmail && savedPassword) {
+  if (email !== savedEmail) return Alert.alert("Incorrect email");
+  if (password !== savedPassword) return Alert.alert("Incorrect password");
+}
     onLoginDone(role);
   };
 
   return (
     <View style={styles.container}>
-      {/* Back Button */}
       <TouchableOpacity style={styles.backBtn} onPress={onBack}>
         <Text style={styles.backIcon}>←</Text>
       </TouchableOpacity>
 
-      {/* Heading */}
       <Text style={styles.header}>Hey,{"\n"}Welcome Back</Text>
 
-      {/* Email Input */}
       <View style={styles.inputBox}>
         <Text style={styles.icon}>📧</Text>
         <TextInput
@@ -62,20 +68,18 @@ export default function Login({
         />
       </View>
 
-      {/* Password Input */}
       <View style={styles.inputBox}>
         <Text style={styles.icon}>🔒</Text>
         <TextInput
           placeholder="Enter your password"
           placeholderTextColor="#B5B5B5"
-          secureTextEntry={true}
+          secureTextEntry
           style={styles.input}
           value={password}
           onChangeText={setPassword}
         />
       </View>
 
-      {/* Select Login Role */}
       <Text style={styles.roleLabel}>Login as:</Text>
       <View style={styles.roleContainer}>
         <TouchableOpacity
@@ -92,34 +96,24 @@ export default function Login({
           onPress={() => setRole("customer")}
         >
           <Text
-            style={[
-              styles.roleText,
-              role === "customer" && styles.roleTextActive,
-            ]}
+            style={[styles.roleText, role === "customer" && styles.roleTextActive]}
           >
             Customer
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Login Button */}
       <TouchableOpacity style={styles.loginBtn} onPress={handleLogin}>
         <Text style={styles.loginText}>Login</Text>
       </TouchableOpacity>
 
-      {/* Divider */}
       <Text style={styles.or}>or continue with</Text>
 
-      {/* Google */}
       <TouchableOpacity style={styles.googleBtn}>
-        <Image
-          source={require("../assets/google.png")}
-          style={styles.googleImg}
-        />
+        <Image source={require("../assets/google.png")} style={styles.googleImg} />
         <Text style={styles.googleText}>Google</Text>
       </TouchableOpacity>
 
-      {/* Bottom */}
       <Text style={styles.bottomText}>
         Don’t have an account?{" "}
         <Text style={styles.signupLink} onPress={onGoToSignup}>
@@ -130,6 +124,7 @@ export default function Login({
   );
 }
 
+// styles same as your original Login styles
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 30, backgroundColor: "#ccc" },
   backBtn: { marginBottom: 25 },

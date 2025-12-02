@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Alert, View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from "react-native";
 
 interface SignupProps {
-  onSignupDone: (email: string) => void; // Pass email to login
+  onSignupDone: (email: string, password: string) => void; // Pass password too
   onGoToLogin: () => void;
   onBack: () => void;
 }
@@ -10,13 +10,15 @@ interface SignupProps {
 export default function Signup({ onSignupDone, onGoToLogin, onBack }: SignupProps) {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
   const [generatedOtp, setGeneratedOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
 
-  // Generate 4-digit OTP
   const sendOtp = () => {
     if (!email.includes("@")) return Alert.alert("Enter valid email");
+    if (!password.trim()) return Alert.alert("Enter a password");
+    if (!phone.trim()) return Alert.alert("Enter phone number");
 
     const randomOtp = Math.floor(1000 + Math.random() * 9000).toString();
     setGeneratedOtp(randomOtp);
@@ -25,16 +27,12 @@ export default function Signup({ onSignupDone, onGoToLogin, onBack }: SignupProp
     Alert.alert("OTP Sent", `Your OTP is: ${randomOtp}`);
   };
 
-  // OTP Verification
   const verifyOtp = () => {
-    if (otp !== generatedOtp) return Alert.alert("Invalid OTP");
-    // Pass email to login after signup
-    onSignupDone(email);
-  };
-
+  if (otp !== generatedOtp) return Alert.alert("Invalid OTP");
+  onSignupDone(email, password);  // <-- pass password here
+};
   return (
     <View style={styles.container}>
-
       {/* Back Button */}
       <TouchableOpacity style={styles.backBtn} onPress={onBack}>
         <Text style={styles.backIcon}>←</Text>
@@ -70,6 +68,20 @@ export default function Signup({ onSignupDone, onGoToLogin, onBack }: SignupProp
         />
       </View>
 
+      {/* Password */}
+      <View style={styles.inputBox}>
+        <Text style={styles.icon}>🔒</Text>
+        <TextInput
+          placeholder="Enter your password"
+          placeholderTextColor="#B5B5B5"
+          style={styles.input}
+          secureTextEntry={true}
+          autoCapitalize="none"
+          value={password}
+          onChangeText={setPassword}
+        />
+      </View>
+
       {/* OTP Button */}
       {!otpSent && (
         <TouchableOpacity style={styles.signupBtn} onPress={sendOtp}>
@@ -93,7 +105,6 @@ export default function Signup({ onSignupDone, onGoToLogin, onBack }: SignupProp
             />
           </View>
 
-          {/* Verify Button */}
           <TouchableOpacity style={styles.signupBtn} onPress={verifyOtp}>
             <Text style={styles.signupText}>Verify OTP</Text>
           </TouchableOpacity>
@@ -103,12 +114,9 @@ export default function Signup({ onSignupDone, onGoToLogin, onBack }: SignupProp
       {/* Divider */}
       <Text style={styles.or}>or continue with</Text>
 
-      {/* Google Button */}
+      {/* Google */}
       <TouchableOpacity style={styles.googleBtn}>
-        <Image
-          source={require("../assets/google.png")}
-          style={styles.googleImg}
-        />
+        <Image source={require("../assets/google.png")} style={styles.googleImg} />
         <Text style={styles.googleText}>Google</Text>
       </TouchableOpacity>
 
@@ -117,7 +125,6 @@ export default function Signup({ onSignupDone, onGoToLogin, onBack }: SignupProp
         Already have an account?{" "}
         <Text style={styles.loginLink} onPress={onGoToLogin}>Login</Text>
       </Text>
-
     </View>
   );
 }

@@ -1,126 +1,181 @@
-import React, { useState } from "react";
+// src/screens/UserDashboard.tsx
+import React, { useState, useEffect } from "react";
 import {
+  SafeAreaView,
+  ScrollView,
   View,
   Text,
   TextInput,
   TouchableOpacity,
   FlatList,
   StyleSheet,
+  Alert,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 
-// Define the interface for a single task object
-interface Task {
+declare var global: any;
+
+type Service = {
   id: string;
-  service: string;
-  timeSlot: string;
-  assignedTo: string;
+  title: string;
+  description: string;
+  price: string;
+};
+
+function ensureServicesGlobal() {
+  if (!global.__SW_SERVICES__) global.__SW_SERVICES__ = [];
 }
 
-export default function UserScreen() {
-  const [service, setService] = useState("");
-  const [timeSlot, setTimeSlot] = useState("");
+export default function UserDashboard(): React.ReactElement {
+  const nav = useNavigation<any>();
+  ensureServicesGlobal();
 
-  // Fix: Explicitly type the tasks state as an array of Task objects (Task[])
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [services, setServices] = useState<Service[]>(
+    Array.isArray(global.__SW_SERVICES__) ? [...global.__SW_SERVICES__] : []
+  );
 
-  const addTask = () => {
-    if (!service.trim() || !timeSlot.trim()) return;
+  useEffect(() => {
+    const id = setInterval(() => {
+      setServices(Array.isArray(global.__SW_SERVICES__) ? [...global.__SW_SERVICES__] : []);
+    }, 400);
+    return () => clearInterval(id);
+  }, []);
 
-    // The type is now correctly inferred or explicitly set as Task
-    const newTask: Task = {
+  const addService = () => {
+    if (!title.trim() || !description.trim() || !price.trim()) {
+      Alert.alert("Missing fields", "Please fill title, description and price.");
+      return;
+    }
+    const s: Service = {
       id: Date.now().toString(),
-      service,
-      timeSlot,
-      assignedTo: "",
+      title: title.trim(),
+      description: description.trim(),
+      price: price.trim(),
     };
 
-    setTasks([newTask, ...tasks]);
-    setService("");
-    setTimeSlot("");
+    global.__SW_SERVICES__ = [s, ...(global.__SW_SERVICES__ || [])];
+    setServices([...global.__SW_SERVICES__]);
+    setTitle("");
+    setDescription("");
+    setPrice("");
   };
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>Create New Task</Text>
+  const removeService = (id: string) => {
+    global.__SW_SERVICES__ = (global.__SW_SERVICES__ || []).filter((x: any) => x.id !== id);
+    setServices([...global.__SW_SERVICES__]);
+  };
 
-      <View style={styles.card}>
-        <TextInput
-          placeholder="Service Name (Ex: Cleaning)"
-          value={service}
-          onChangeText={setService}
-          style={styles.input}
-        />
-        <TextInput
-          placeholder="Time Slot (Ex: 10:00 AM - 11:00 AM)"
-          value={timeSlot}
-          onChangeText={setTimeSlot}
-          style={styles.input}
-        />
-
-        <TouchableOpacity style={styles.addBtn} onPress={addTask}>
-          <Text style={styles.btnText}>+ Add Task</Text>
-        </TouchableOpacity>
+  const renderItem = ({ item }: { item: Service }) => (
+    <View style={styles.card}>
+      <View style={styles.cardRow}>
+        <View style={styles.thumbPlaceholder}>
+          <Text style={{ color: "#fff" }}>IMG</Text>
+        </View>
+        <View style={{ flex: 1, marginLeft: 12 }}>
+          <Text style={{ fontWeight: "800" }}>{item.title}</Text>
+          <Text style={{ color: "#58646a", marginTop: 6 }}>{item.description}</Text>
+        </View>
+        <View style={{ alignItems: "flex-end" }}>
+          <Text style={{ fontWeight: "900", color: "#0b3f3a" }}>₹{item.price}</Text>
+          <TouchableOpacity style={styles.deleteBtn} onPress={() => removeService(item.id)}>
+            <Text style={{ color: "#c43a3a" }}>Delete</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-
-      <Text style={styles.subHeading}>Your Created Tasks</Text>
-
-      <FlatList
-        data={tasks}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.taskCard}>
-            {/* These properties (item.service, item.timeSlot, item.assignedTo) are now known to TypeScript */}
-            <Text style={styles.taskName}>{item.service}</Text>
-            <Text style={styles.time}>{item.timeSlot}</Text>
-            <Text style={styles.status}>
-              {item.assignedTo ? `Assigned to: ${item.assignedTo}` : "Available"}
-            </Text>
-          </View>
-        )}
-      />
     </View>
+  );
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#f5fbff" }}>
+      <ScrollView contentContainerStyle={{ padding: 20 }}>
+        <Text style={{ fontSize: 22, fontWeight: "900", marginBottom: 12 }}>Service Provider — Manage Services</Text>
+
+        <Text style={{ color: "#566" }}>Add new service (this will be available to customers)</Text>
+
+        <TextInput
+          placeholder="Service title (e.g. Deep Home Cleaning)"
+          placeholderTextColor="#1d1e1fff"
+          value={title}
+          onChangeText={setTitle}
+          style={styles.input}
+        />
+        <TextInput
+          placeholder="Short description"
+          placeholderTextColor="#1d1e1fff"
+          value={description}
+          onChangeText={setDescription}
+          style={[styles.input, { height: 86 }]}
+          multiline
+        />
+        <TextInput
+          placeholder="Price (number only)"
+          placeholderTextColor="#1d1e1fff"
+          value={price}
+          onChangeText={setPrice}
+          keyboardType="numeric"
+          style={styles.input}
+        />
+
+        <TouchableOpacity style={styles.addBtn} onPress={addService}>
+          <Text style={{ color: "#fff", fontWeight: "800" }}>Add service</Text>
+        </TouchableOpacity>
+
+        <View style={{ height: 18 }} />
+
+        <Text style={{ fontWeight: "800", marginBottom: 10 }}>Your services</Text>
+
+        {services.length === 0 ? (
+          <View style={{ padding: 20, borderRadius: 8, backgroundColor: "#fff", alignItems: "center" }}>
+            <Text style={{ color: "#7d8a8d" }}>No services yet — add your first service</Text>
+          </View>
+        ) : (
+          <FlatList data={services} keyExtractor={(i) => i.id} renderItem={renderItem} scrollEnabled={false} />
+        )}
+
+        <View style={{ height: 60 }} />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#F2F4F7" },
-  heading: { fontSize: 28, fontWeight: "700", marginBottom: 15 },
-  subHeading: { fontSize: 20, fontWeight: "600", marginTop: 20, marginBottom: 10 },
-
-  card: {
-    backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 18,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 3,
-  },
-
   input: {
-    borderWidth: 1,
-    borderColor: "#ddd",
+    height: 48,
     borderRadius: 12,
-    padding: 12,
-    marginBottom: 10,
+    backgroundColor: "#fff",
+    paddingHorizontal: 12,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: "#e6eef0",
   },
-
   addBtn: {
-    backgroundColor: "#1A73E8",
-    padding: 14,
+    backgroundColor: "#0e8b7b",
+    marginTop: 12,
+    paddingVertical: 12,
     borderRadius: 12,
     alignItems: "center",
   },
-  btnText: { color: "#fff", fontSize: 18, fontWeight: "600" },
-
-  taskCard: {
+  card: {
+    marginTop: 12,
     backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 12,
+    padding: 12,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
     elevation: 2,
   },
-  taskName: { fontSize: 18, fontWeight: "700" },
-  time: { color: "#555", marginTop: 4 },
-  status: { marginTop: 6, fontWeight: "600", color: "#1A73E8" },
+  cardRow: { flexDirection: "row", alignItems: "center" },
+  thumbPlaceholder: {
+    width: 72,
+    height: 56,
+    borderRadius: 8,
+    backgroundColor: "#2e6b63",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  deleteBtn: { marginTop: 14 },
 });
