@@ -1,3 +1,4 @@
+// src/screens/CustomerDashboard.tsx
 import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
@@ -8,8 +9,8 @@ import {
   TextInput,
   StyleSheet,
   Alert,
-  // Picker,
   Platform,
+  Image,
 } from "react-native";
 
 declare var global: any;
@@ -18,7 +19,6 @@ function ensureGlobals() {
   if (!global.__SW_ASSIGNMENTS__) global.__SW_ASSIGNMENTS__ = [];
   if (!global.__SW_SERVICES__) global.__SW_SERVICES__ = [];
 }
-
 
 export default function CustomerDashboard(): React.ReactElement {
   ensureGlobals();
@@ -52,6 +52,7 @@ export default function CustomerDashboard(): React.ReactElement {
     if ((!serviceId || !services.find((s) => s.id === serviceId)) && services.length > 0) {
       setServiceId(services[0].id);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [services]);
 
   const createRequest = () => {
@@ -65,10 +66,12 @@ export default function CustomerDashboard(): React.ReactElement {
     }
 
     const s = services.find((x) => x.id === serviceId);
+
     const assignment = {
       id: Date.now().toString(),
       serviceId,
       serviceTitle: s?.title ?? "Service",
+      serviceImage: s?.image ?? undefined, // <-- copy image into assignment
       customerName: customerName.trim(),
       customerPhone: customerPhone.trim(),
       address: address.trim(),
@@ -116,34 +119,46 @@ export default function CustomerDashboard(): React.ReactElement {
       case "pending":
         return (
           <View style={styles.actionRow}>
-            <TouchableOpacity style={[styles.btn, styles.accept]} onPress={() => confirmAndUpdate(row.id, "accepted", "Accept")}>
-              <Text style={styles.btnText}>Accept</Text>
+            <TouchableOpacity
+              style={[styles.actionBtn, styles.accept]}
+              onPress={() => confirmAndUpdate(row.id, "accepted", "Accept")}
+            >
+              <Text style={styles.actionBtnText}>Accept</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.btn, styles.reject]} onPress={() => confirmAndUpdate(row.id, "cancelled", "Reject")}>
-              <Text style={styles.btnText}>Reject</Text>
+            <TouchableOpacity
+              style={[styles.actionBtn, styles.reject]}
+              onPress={() => confirmAndUpdate(row.id, "cancelled", "Reject")}
+            >
+              <Text style={styles.actionBtnText}>Reject</Text>
             </TouchableOpacity>
           </View>
         );
       case "accepted":
         return (
           <View style={styles.actionRow}>
-            <TouchableOpacity style={[styles.btn, styles.progress]} onPress={() => confirmAndUpdate(row.id, "in_progress", "Start Work")}>
-              <Text style={styles.btnText}>Start Work</Text>
+            <TouchableOpacity
+              style={[styles.actionBtn, styles.progress]}
+              onPress={() => confirmAndUpdate(row.id, "in_progress", "Start Work")}
+            >
+              <Text style={styles.actionBtnText}>Start Work</Text>
             </TouchableOpacity>
           </View>
         );
       case "in_progress":
         return (
           <View style={styles.actionRow}>
-            <TouchableOpacity style={[styles.btn, styles.complete]} onPress={() => confirmAndUpdate(row.id, "completed", "Mark Completed")}>
-              <Text style={styles.btnText}>Complete</Text>
+            <TouchableOpacity
+              style={[styles.actionBtn, styles.complete]}
+              onPress={() => confirmAndUpdate(row.id, "completed", "Mark Completed")}
+            >
+              <Text style={styles.actionBtnText}>Complete</Text>
             </TouchableOpacity>
           </View>
         );
       case "completed":
-        return <Text style={styles.done}>Completed ✓</Text>;
+        return <Text style={styles.statusChipCompleted}>Completed ✓</Text>;
       case "cancelled":
-        return <Text style={styles.cancelled}>Cancelled ✕</Text>;
+        return <Text style={styles.statusChipCancelled}>Cancelled ✕</Text>;
       default:
         return null;
     }
@@ -152,57 +167,75 @@ export default function CustomerDashboard(): React.ReactElement {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.wrap}>
-        <Text style={styles.header}>Customer — Create Request</Text>
-        <Text style={styles.sub}>Choose a service below and create a request for providers to accept.</Text>
-
-        <View style={{ marginTop: 8 }}>
-          <Text style={{ fontWeight: "700", marginBottom: 6 }}>Select service</Text>
-
-          {services.length === 0 ? (
-            <View style={{ backgroundColor: "#fff", padding: 12, borderRadius: 10 }}>
-              <Text style={{ color: "#7c8a92" }}>No services available — ask provider to add services.</Text>
-            </View>
-          ) : (
-            Platform.OS === "android" || Platform.OS === "ios" ? (
-              <View style={{ backgroundColor: "#fff", borderRadius: 10, padding: 10 }}>
-                {services.map((s) => (
-                  <TouchableOpacity
-                    key={s.id}
-                    onPress={() => setServiceId(s.id)}
-                    style={{
-                      paddingVertical: 10,
-                      borderRadius: 8,
-                      backgroundColor: s.id === serviceId ? "#e6f6f2" : "transparent",
-                      marginBottom: 6,
-                      paddingHorizontal: 8,
-                    }}
-                  >
-                    <Text style={{ fontWeight: s.id === serviceId ? "900" : "700" }}>{s.title}</Text>
-                    <Text style={{ color: "#6b7b80", marginTop: 4 }}>₹{s.price}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            ) : null
-          )}
+        <View style={styles.headerRow}>
+          <Text style={styles.header}>Create Service Request</Text>
+          <Text style={styles.smallMuted}>Add request details — providers will see and accept</Text>
         </View>
 
-        <View style={{ height: 12 }} />
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Request details</Text>
 
-        <TextInput placeholder="Your name" value={customerName} onChangeText={setCustomerName} style={styles.input} />
-        <TextInput placeholder="Phone (7-15 digits)" value={customerPhone} onChangeText={setCustomerPhone} style={styles.input} keyboardType="phone-pad" />
-        <TextInput placeholder="Service address" value={address} onChangeText={setAddress} style={[styles.input, { height: 80 }]} multiline />
-        <TextInput placeholder="Preferred date (optional)" value={preferredDate} onChangeText={setPreferredDate} style={styles.input} />
-        <TextInput placeholder="Preferred time (optional)" value={preferredTime} onChangeText={setPreferredTime} style={styles.input} />
-        <TextInput placeholder="Notes (optional)" value={notes} onChangeText={setNotes} style={[styles.input, { height: 86 }]} multiline />
+          <Text style={styles.label}>Select service</Text>
+          {services.length === 0 ? (
+            <View style={styles.emptyCard}>
+              <Text style={styles.emptyText}>No services available — ask provider to add services.</Text>
+            </View>
+          ) : (
+            <View style={styles.serviceList}>
+              {services.map((s) => (
+                <TouchableOpacity
+                  key={s.id}
+                  onPress={() => setServiceId(s.id)}
+                  style={[
+                    styles.serviceRow,
+                    s.id === serviceId ? styles.serviceRowSelected : undefined,
+                  ]}
+                  activeOpacity={0.85}
+                >
+                  {s.image ? (
+                    <Image source={s.image} style={styles.serviceThumb} />
+                  ) : (
+                    <View style={styles.serviceThumbPlaceholder}>
+                      <Text style={{ color: "#fff", fontWeight: "700" }}>IMG</Text>
+                    </View>
+                  )}
 
-        <TouchableOpacity style={styles.primaryBtn} onPress={createRequest}>
-          <Text style={{ color: "#fff", fontWeight: "800" }}>Create Request</Text>
-        </TouchableOpacity>
+                  <View style={{ flex: 1, marginLeft: 10 }}>
+                    <Text style={[styles.serviceTitle, s.id === serviceId ? styles.serviceTitleSelected : undefined]}>
+                      {s.title}
+                    </Text>
+                    <Text style={styles.servicePrice}>₹{s.price}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
 
-        <View style={{ height: 18 }} />
+          <TextInput placeholder="Your name" value={customerName} onChangeText={setCustomerName} style={styles.input} />
+          <TextInput
+            placeholder="Phone (7-15 digits)"
+            value={customerPhone}
+            onChangeText={setCustomerPhone}
+            style={styles.input}
+            keyboardType="phone-pad"
+          />
+          <TextInput placeholder="Service address" value={address} onChangeText={setAddress} style={[styles.input, { height: 88 }]} multiline />
+          <View style={styles.row}>
+            <TextInput placeholder="Preferred date (optional)" value={preferredDate} onChangeText={setPreferredDate} style={[styles.input, { flex: 1 }]} />
+            <View style={{ width: 12 }} />
+            <TextInput placeholder="Preferred time (optional)" value={preferredTime} onChangeText={setPreferredTime} style={[styles.input, { flex: 1 }]} />
+          </View>
+          <TextInput placeholder="Notes (optional)" value={notes} onChangeText={setNotes} style={[styles.input, { height: 86 }]} multiline />
 
-        <Text style={{ fontSize: 18, fontWeight: "800", marginTop: 8 }}>All Requests</Text>
-        <Text style={{ color: "#556", marginBottom: 8 }}>Requests created by customers / visible for provider acceptance</Text>
+          <TouchableOpacity style={styles.primaryBtn} onPress={createRequest} activeOpacity={0.9}>
+            <Text style={styles.primaryBtnText}>Create Request</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={{ height: 8 }} />
+
+        <Text style={styles.sectionTitle}>All Requests</Text>
+        <Text style={styles.smallMuted}>Requests created by customers — providers can accept</Text>
 
         {items.length === 0 ? (
           <View style={styles.empty}>
@@ -211,53 +244,94 @@ export default function CustomerDashboard(): React.ReactElement {
         ) : (
           items.map((row) => (
             <View key={row.id} style={styles.card}>
-              <Text style={styles.title}>{row.serviceTitle || "Service Request"}</Text>
-
-              <View style={styles.metaRow}>
-                <Text style={styles.metaLabel}>Customer:</Text>
-                <Text style={styles.metaValue}>{row.customerName} ({row.customerPhone})</Text>
+              <View style={styles.metaHeader}>
+                <Text style={styles.title}>{row.serviceTitle || "Service Request"}</Text>
+                <Text style={[styles.statusText, (styles as any)[`status_${row.status}`]]}>
+                  {row.status.toUpperCase()}
+                </Text>
               </View>
 
-              <View style={styles.metaRow}>
-                <Text style={styles.metaLabel}>Address:</Text>
-                <Text style={styles.metaValue}>{row.address}</Text>
+              <View style={{ flexDirection: "row", marginTop: 10 }}>
+                {row.serviceImage ? (
+                  <Image source={row.serviceImage} style={styles.requestThumb} />
+                ) : (
+                  <View style={styles.requestThumbPlaceholder}>
+                    <Text style={{ color: "#fff", fontWeight: "700" }}>IMG</Text>
+                  </View>
+                )}
+
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <View style={styles.metaRow}>
+                    <Text style={styles.metaLabel}>Customer</Text>
+                    <Text style={styles.metaValue}>{row.customerName} ({row.customerPhone})</Text>
+                  </View>
+
+                  <View style={styles.metaRow}>
+                    <Text style={styles.metaLabel}>Address</Text>
+                    <Text style={styles.metaValue}>{row.address}</Text>
+                  </View>
+
+                  {row.preferredDate ? (
+                    <View style={styles.metaRow}>
+                      <Text style={styles.metaLabel}>Date</Text>
+                      <Text style={styles.metaValue}>{row.preferredDate} {row.preferredTime ? ` • ${row.preferredTime}` : ""}</Text>
+                    </View>
+                  ) : null}
+
+                  {row.notes ? (
+                    <View style={styles.metaRow}>
+                      <Text style={styles.metaLabel}>Notes</Text>
+                      <Text style={styles.metaValue}>{row.notes}</Text>
+                    </View>
+                  ) : null}
+                </View>
               </View>
-
-              {row.preferredDate ? (
-                <View style={styles.metaRow}>
-                  <Text style={styles.metaLabel}>Date:</Text>
-                  <Text style={styles.metaValue}>{row.preferredDate} {row.preferredTime ? ` • ${row.preferredTime}` : ""}</Text>
-                </View>
-              ) : null}
-
-              {row.notes ? (
-                <View style={styles.metaRow}>
-                  <Text style={styles.metaLabel}>Notes:</Text>
-                  <Text style={styles.metaValue}>{row.notes}</Text>
-                </View>
-              ) : null}
-
-              {/* <TouchableOpacity style={styles.primaryBtn} onPress={createRequest}>
-  <Text style={styles.primaryBtnText}>Create Request</Text>
-</TouchableOpacity> */}
-
 
               <View style={{ marginTop: 10 }}>{renderActions(row)}</View>
             </View>
           ))
         )}
 
-        <View style={{ height: 70 }} />
+        <View style={{ height: 90 }} />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
+const tint = "#0e8b7b";
+const neutral = "#4b5a5f";
+
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#f4fafc" },
-  wrap: { padding: 18,paddingTop: 34 },
-  header: { fontSize: 22, fontWeight: "900", marginBottom: 6 },
-  sub: { color: "#556", marginBottom: 12 },
+  safe: { flex: 1, backgroundColor: "#f6fbfb" },
+  wrap: { padding: 18, paddingTop: 36 },
+  headerRow: { marginBottom: 12 },
+  header: { fontSize: 22, fontWeight: "900", color: "#123b38" },
+  smallMuted: { color: "#556", marginTop: 4 },
+
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 14,
+    padding: 14,
+    marginTop: 12,
+    ...Platform.select({
+      ios: { shadowColor: "#000", shadowOpacity: 0.06, shadowOffset: { width: 0, height: 6 }, shadowRadius: 14 },
+      android: { elevation: 3 },
+    }),
+  },
+  cardTitle: { fontWeight: "800", marginBottom: 8, fontSize: 16, color: "#1f4543" },
+
+  label: { marginTop: 8, marginBottom: 8, color: "#4b5a5f", fontWeight: "700" },
+  emptyCard: { backgroundColor: "#fff8f6", padding: 12, borderRadius: 10 },
+  emptyText: { color: "#7c8a92" },
+
+  serviceList: { marginBottom: 6 },
+  serviceRow: { flexDirection: "row", alignItems: "center", paddingVertical: 8, paddingHorizontal: 8, borderRadius: 10, marginBottom: 6 },
+  serviceRowSelected: { backgroundColor: "#e6f6f2" },
+  serviceThumb: { width: 56, height: 42, borderRadius: 8, resizeMode: "cover" },
+  serviceThumbPlaceholder: { width: 56, height: 42, borderRadius: 8, backgroundColor: "#2e6b63", alignItems: "center", justifyContent: "center" },
+  serviceTitle: { fontWeight: "700", color: "#24333a" },
+  serviceTitleSelected: { fontWeight: "900", color: tint },
+  servicePrice: { color: "#6b7b80", marginTop: 3 },
 
   input: {
     height: 48,
@@ -268,55 +342,54 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#e6eef0",
   },
-  primaryBtn: {
-  backgroundColor: "#0e8b7b",
-  paddingVertical: 14,
-  borderRadius: 12,
-  alignItems: "center",
-  marginTop: 12,
-},
-primaryBtnText: {
-  color: "#fff",
-  fontWeight: "800",
-  fontSize: 16,
-},
 
+  row: { flexDirection: "row", alignItems: "center", marginTop: 8 },
+
+  primaryBtn: {
+    backgroundColor: tint,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    marginTop: 14,
+  },
+  primaryBtnText: { color: "#fff", fontWeight: "800", fontSize: 16 },
+
+  sectionTitle: { fontSize: 18, fontWeight: "800", marginTop: 18 },
 
   empty: {
     backgroundColor: "#fff",
     padding: 18,
     borderRadius: 12,
     alignItems: "center",
+    marginTop: 12,
   },
-  emptyText: { color: "#7c8a92" },
 
-  card: {
-    backgroundColor: "#fff",
-    padding: 14,
-    borderRadius: 12,
-    marginBottom: 12,
-    elevation: 2,
-  },
-  title: { fontSize: 17, fontWeight: "800" },
+  title: { fontSize: 16, fontWeight: "800", color: "#1b4240" },
+  metaHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+
+  // Request thumbnail and layout
+  requestThumb: { width: 84, height: 64, borderRadius: 8, resizeMode: "cover" },
+  requestThumbPlaceholder: { width: 84, height: 64, borderRadius: 8, backgroundColor: "#2e6b63", alignItems: "center", justifyContent: "center" },
+
   metaRow: { flexDirection: "row", marginTop: 8 },
-  metaLabel: { width: 90, color: "#5b6b70", fontWeight: "700" },
+  metaLabel: { width: 100, color: "#5b6b70", fontWeight: "700" },
   metaValue: { flex: 1, color: "#4b5a5f" },
 
-  status: { marginTop: 10, fontWeight: "900" },
-  status_pending: { color: "#b87f00" },
-  status_accepted: { color: "#0b84a5" },
-  status_in_progress: { color: "#6b3aa8" },
-  status_completed: { color: "#0d8a4a" },
-  status_cancelled: { color: "#c63939" },
+  statusText: { fontWeight: "900", fontSize: 12, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 999 },
+  status_pending: { color: "#b87f00", backgroundColor: "#fff4e6" },
+  status_accepted: { color: "#0b84a5", backgroundColor: "#eaf6fb" },
+  status_in_progress: { color: "#6b3aa8", backgroundColor: "#f3eaff" },
+  status_completed: { color: "#0d8a4a", backgroundColor: "#e9fbf0" },
+  status_cancelled: { color: "#c63939", backgroundColor: "#fff2f2" },
 
   actionRow: { flexDirection: "row", marginTop: 6 },
-  btn: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 10, marginRight: 10 },
-  btnText: { color: "#fff", fontWeight: "800" },
+  actionBtn: { paddingVertical: 10, paddingHorizontal: 14, borderRadius: 10, marginRight: 10, minWidth: 110, alignItems: "center" },
+  actionBtnText: { color: "#fff", fontWeight: "800" },
   accept: { backgroundColor: "#0b8f52" },
   reject: { backgroundColor: "#d33c3c" },
   progress: { backgroundColor: "#2f5ac8" },
   complete: { backgroundColor: "#008577" },
 
-  done: { color: "#2e7d32", marginTop: 8, fontWeight: "800" },
-  cancelled: { color: "#b71c1c", marginTop: 8, fontWeight: "800" },
+  statusChipCompleted: { marginTop: 8, color: "#2e7d32", fontWeight: "800" },
+  statusChipCancelled: { marginTop: 8, color: "#b71c1c", fontWeight: "800" },
 });

@@ -16,6 +16,7 @@ import {
   ScrollView,
   Modal,
   FlatList,
+  Pressable,
 } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../App";
@@ -44,7 +45,7 @@ export default function Signup(props: any) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [password, setPassword] = useState(""); // password enabled
   const [showPassword, setShowPassword] = useState(false);
 
   // customer-specific
@@ -79,7 +80,6 @@ export default function Signup(props: any) {
 
   // send a dummy OTP (6 digits), set otp state and start 30s cooldown
   const sendOtp = () => {
-    // basic phone validation before sending
     if (!/^\d{7,15}$/.test(phone)) {
       Alert.alert("Invalid phone", "Please enter a valid phone number before requesting OTP.");
       return;
@@ -93,17 +93,14 @@ export default function Signup(props: any) {
 
     Alert.alert("OTP", `Your OTP is ${code}`);
 
-    // clear previous interval if exists
     if (resendIntervalRef.current) {
       clearInterval(resendIntervalRef.current);
       resendIntervalRef.current = null;
     }
 
-    // start countdown
     resendIntervalRef.current = setInterval(() => {
       setResendTimer((prev) => {
         if (prev <= 1) {
-          // clear interval and reset state
           if (resendIntervalRef.current) {
             clearInterval(resendIntervalRef.current);
             resendIntervalRef.current = null;
@@ -134,10 +131,10 @@ export default function Signup(props: any) {
       Alert.alert("Invalid email", "Please enter a valid email address.");
       return;
     }
-    // if (password.length < 6) {
-    //   Alert.alert("Weak password", "Password should be at least 6 characters.");
-    //   return;
-    // }
+    if (!password || password.length < 4) {
+      Alert.alert("Weak password", "Password should be at least 4 characters.");
+      return;
+    }
 
     // role-specific checks
     if (role === "customer") {
@@ -149,11 +146,6 @@ export default function Signup(props: any) {
         Alert.alert("Missing address", "Please add a service address.");
         return;
       }
-      // OTP is optional currently. If you want to require it uncomment the next lines:
-      // if (!otp.trim()) {
-      //   Alert.alert("Missing OTP", "Please request/enter the OTP.");
-      //   return;
-      // }
     } else if (role === "user") {
       if (!serviceTypes.trim()) {
         Alert.alert("Missing services", "Please choose at least one primary service in the dropdown.");
@@ -171,18 +163,25 @@ export default function Signup(props: any) {
     setTimeout(() => {
       setLoading(false);
 
-     switch (role) {
-  case "customer":
-    Alert.alert("Success", "Account created — please login to continue.");
-    // send role and email to the Login screen so it can redirect after login
-    navigation.replace("Login", { role: "customer", prefilledEmail: email || "" });
-    return;
+      switch (role) {
+        case "customer":
+          Alert.alert("Success", "Account created — please login to continue.");
+          // send role, email and password to the Login screen so it can redirect after login
+          navigation.replace("Login", {
+            role: "customer",
+            prefilledEmail: email || "",
+            prefilledPassword: password || "",
+          });
+          return;
 
-  case "user":
-    Alert.alert("Success", "Account created — please login to continue.");
-    navigation.replace("Login", { role: "user", prefilledEmail: email || "" });
-    return;
-
+        case "user":
+          Alert.alert("Success", "Account created — please login to continue.");
+          navigation.replace("Login", {
+            role: "user",
+            prefilledEmail: email || "",
+            prefilledPassword: password || "",
+          });
+          return;
 
         default:
           // fallback (shouldn't happen)
@@ -194,6 +193,9 @@ export default function Signup(props: any) {
   };
   // === end validateAndSubmit ===
 
+  // ---------------------------------------------
+  // RENDER: role selector (when role not chosen)
+  // ---------------------------------------------
   if (!role) {
     return (
       <SafeAreaView style={styles.container}>
@@ -233,6 +235,9 @@ export default function Signup(props: any) {
     );
   }
 
+  // ---------------------------------------------
+  // RENDER: main signup form when role chosen
+  // ---------------------------------------------
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#EAF1F5" />
@@ -245,15 +250,47 @@ export default function Signup(props: any) {
             <Text style={styles.title}>{role === "customer" ? "Customer Signup" : "Service Provider Signup"}</Text>
 
             {/* Common fields */}
-            <TextInput value={name} onChangeText={setName} placeholder="Full name" placeholderTextColor="#9aa0a6" style={styles.input} autoCapitalize="words" />
-            <TextInput value={phone} onChangeText={setPhone} placeholder="Phone number" placeholderTextColor="#9aa0a6" keyboardType="phone-pad" style={styles.input} />
-            <TextInput value={email} onChangeText={setEmail} placeholder="Email address" placeholderTextColor="#9aa0a6" keyboardType="email-address" autoCapitalize="none" style={styles.input} />
-            {/* <View style={styles.passwordRow}>
-              <TextInput value={password} onChangeText={setPassword} placeholder="Create password" placeholderTextColor="#9aa0a6" secureTextEntry={!showPassword} style={[styles.input, { flex: 1 }]} />
+            <TextInput
+              value={name}
+              onChangeText={setName}
+              placeholder="Full name"
+              placeholderTextColor="#9aa0a6"
+              style={styles.input}
+              autoCapitalize="words"
+            />
+            <TextInput
+              value={phone}
+              onChangeText={setPhone}
+              placeholder="Phone number"
+              placeholderTextColor="#9aa0a6"
+              keyboardType="phone-pad"
+              style={styles.input}
+            />
+            <TextInput
+              value={email}
+              onChangeText={setEmail}
+              placeholder="Email address"
+              placeholderTextColor="#9aa0a6"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              style={styles.input}
+            />
+
+            {/* Password row (restored) */}
+            <View style={styles.passwordRow}>
+              <TextInput
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Create password"
+                placeholderTextColor="#9aa0a6"
+                secureTextEntry={!showPassword}
+                style={[styles.input, { flex: 1 }]}
+                autoCapitalize="none"
+              />
               <TouchableOpacity onPress={() => setShowPassword((s) => !s)} style={styles.eyeBtn}>
                 <Text style={{ fontWeight: "700" }}>{showPassword ? "Hide" : "Show"}</Text>
               </TouchableOpacity>
-            </View> */}
+            </View>
 
             {/* Role-specific inputs */}
             {role === "customer" ? (
@@ -288,9 +325,29 @@ export default function Signup(props: any) {
                   </TouchableOpacity>
                 </View>
 
-                <TextInput value={workType} onChangeText={setWorkType} placeholder="Work required (eg. Deep cleaning / Carpet / Move out)" placeholderTextColor="#9aa0a6" style={styles.input} />
-                <TextInput value={expectedCost} onChangeText={setExpectedCost} placeholder="Expected budget (optional)" placeholderTextColor="#9aa0a6" keyboardType="numeric" style={styles.input} />
-                <TextInput value={address} onChangeText={setAddress} placeholder="Service address" placeholderTextColor="#9aa0a6" style={[styles.input, { height: 88 }]} multiline />
+                <TextInput
+                  value={workType}
+                  onChangeText={setWorkType}
+                  placeholder="Work required (eg. Deep cleaning / Carpet / Move out)"
+                  placeholderTextColor="#9aa0a6"
+                  style={styles.input}
+                />
+                <TextInput
+                  value={expectedCost}
+                  onChangeText={setExpectedCost}
+                  placeholder="Expected budget (optional)"
+                  placeholderTextColor="#9aa0a6"
+                  keyboardType="numeric"
+                  style={styles.input}
+                />
+                <TextInput
+                  value={address}
+                  onChangeText={setAddress}
+                  placeholder="Service address"
+                  placeholderTextColor="#9aa0a6"
+                  style={[styles.input, { height: 88 }]}
+                  multiline
+                />
               </>
             ) : (
               <>
@@ -298,38 +355,14 @@ export default function Signup(props: any) {
                 <TouchableOpacity style={styles.dropdown} onPress={() => setDropOpen(true)}>
                   <Text style={styles.dropdownLabel}>{serviceTypes || "Select primary service (required)"}</Text>
                 </TouchableOpacity>
+              </>
+            )}
 
-                {/* The dropdown modal */}
-                <Modal visible={dropOpen} animationType="slide" transparent>
-                  <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPress={() => setDropOpen(false)}>
-                    <View style={styles.modalSheet}>
-                      <Text style={{ fontWeight: "800", marginBottom: 8 }}>Select primary service</Text>
-                      <FlatList
-                        data={SERVICE_OPTIONS}
-                        keyExtractor={(i) => i}
-                        renderItem={({ item }) => (
-                          <TouchableOpacity
-                            style={styles.modalItem}
-                            onPress={() => {
-                              setServiceTypes(item);
-                              setDropOpen(false);
-                            }}
-                          >
-                            <Text style={{ fontSize: 15 }}>{item}</Text>
-                          </TouchableOpacity>
-                        )}
-                        ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
-                      />
-                    </View>
-                  </TouchableOpacity>
-                </Modal>
-
-                <TextInput value={govtId} onChangeText={setGovtId} placeholder="Govt ID / Registration No." placeholderTextColor="#9aa0a6" style={styles.input} />
+            {/* Provider extra fields (kept below dropdown to avoid accidental blocking) */}
+            {role === "user" && (
+              <>
+                {/* <TextInput value={govtId} onChangeText={setGovtId} placeholder="Govt ID / Registration No." placeholderTextColor="#9aa0a6" style={styles.input} /> */}
                 <TextInput value={address} onChangeText={setAddress} placeholder="Base address / City" placeholderTextColor="#9aa0a6" style={styles.input} />
-
-                {/* <View style={styles.uploadPlaceholder}>
-                  <Text style={{ color: "#6c7680" }}>Upload ID / certificates — integrate image picker here</Text>
-                </View> */}
               </>
             )}
 
@@ -343,7 +376,14 @@ export default function Signup(props: any) {
               <Text style={styles.linkText}>Change role</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.link, { marginTop: 8 }]} onPress={() => navigation.navigate("Login")}>
+            {/* IMPORTANT: ensure this always navigates to Login and is reachable */}
+            <TouchableOpacity
+              style={[styles.link, { marginTop: 8 }]}
+              onPress={() => {
+                // intentionally replace to clear signup stack and go to Login
+                navigation.replace("Login");
+              }}
+            >
               <Text style={styles.linkText}>Already have an account? Login</Text>
             </TouchableOpacity>
 
@@ -351,12 +391,50 @@ export default function Signup(props: any) {
           </ScrollView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
+
+      {/* Dropdown modal placed outside ScrollView so it won't accidentally overlay content when closed */}
+      <Modal
+        visible={dropOpen}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setDropOpen(false)}
+      >
+        {/* Backdrop: only handles presses when modal open */}
+        <Pressable
+          style={styles.modalBackdrop}
+          onPress={() => setDropOpen(false)}
+          android_ripple={{ color: "rgba(0,0,0,0.05)" }}
+        >
+          {/* inner box — stop propagation so tapping inside doesn't close immediately */}
+          <TouchableWithoutFeedback>
+            <View style={styles.modalSheet}>
+              <Text style={{ fontWeight: "800", marginBottom: 8 }}>Select primary service</Text>
+              <FlatList
+                data={SERVICE_OPTIONS}
+                keyExtractor={(i) => i}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.modalItem}
+                    onPress={() => {
+                      setServiceTypes(item);
+                      setDropOpen(false);
+                    }}
+                  >
+                    <Text style={{ fontSize: 15 }}>{item}</Text>
+                  </TouchableOpacity>
+                )}
+                ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
+              />
+            </View>
+          </TouchableWithoutFeedback>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#EAF1F5",paddingTop: 20},
+  container: { flex: 1, backgroundColor: "#EAF1F5", paddingTop: 20 },
   wrapperCentered: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24 },
   bigTitle: { fontSize: 28, fontWeight: "900", marginBottom: 20, color: "#24333a" },
   roleBtn: {
@@ -419,6 +497,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   dropdownLabel: { color: "#24333a" },
+
+  // modal
   modalBackdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.35)", justifyContent: "flex-end" },
   modalSheet: { backgroundColor: "#fff", padding: 18, borderTopLeftRadius: 12, borderTopRightRadius: 12, maxHeight: "60%" },
   modalItem: { paddingVertical: 12 },

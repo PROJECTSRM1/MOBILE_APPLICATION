@@ -20,7 +20,8 @@ export type RootStackParamList = {
   Landing: undefined;
   WelcomeOne: undefined;
   // Login: undefined;
-    Login: { role?: "customer" | "user"; prefilledEmail?: string } | undefined;
+    Login: { role?: "customer" | "user"; prefilledEmail?: string;prefilledPassword?: string;
+ } | undefined;
   Signup: undefined;
   Cleaning: undefined;
   Packers: undefined;
