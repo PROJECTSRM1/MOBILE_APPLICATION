@@ -1,7 +1,6 @@
 // src/screens/CustomerDashboard.tsx
 import React, { useEffect, useState } from "react";
 import {
-  SafeAreaView,
   ScrollView,
   View,
   Text,
@@ -11,7 +10,9 @@ import {
   Alert,
   // Picker,
   Platform,
+  Image, // <--- 1. IMPORT IMAGE COMPONENT
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 declare var global: any;
 
@@ -66,10 +67,14 @@ export default function CustomerDashboard(): React.ReactElement {
     }
 
     const s = services.find((x) => x.id === serviceId);
+    
+    // --- 1. UPDATE: Include imageUri in the assignment object ---
     const assignment = {
       id: Date.now().toString(),
       serviceId,
       serviceTitle: s?.title ?? "Service",
+      // Include imageUri from the selected service
+      imageUri: s?.imageUri || null, 
       customerName: customerName.trim(),
       customerPhone: customerPhone.trim(),
       address: address.trim(),
@@ -79,6 +84,7 @@ export default function CustomerDashboard(): React.ReactElement {
       createdAt: Date.now(),
       status: "pending",
     };
+    // -----------------------------------------------------------
 
     global.__SW_ASSIGNMENTS__ = [assignment, ...(global.__SW_ASSIGNMENTS__ || [])];
     setItems([...global.__SW_ASSIGNMENTS__]);
@@ -179,10 +185,23 @@ export default function CustomerDashboard(): React.ReactElement {
                       backgroundColor: s.id === serviceId ? "#e6f6f2" : "transparent",
                       marginBottom: 6,
                       paddingHorizontal: 8,
+                      flexDirection: 'row', 
+                      alignItems: 'center', 
                     }}
                   >
-                    <Text style={{ fontWeight: s.id === serviceId ? "900" : "700" }}>{s.title}</Text>
-                    <Text style={{ color: "#6b7b80", marginTop: 4 }}>₹{s.price}</Text>
+                    {/* Display image in the service selection list (small) */}
+                    {s.imageUri ? (
+                      <Image
+                        source={{ uri: s.imageUri }}
+                        // Use a smaller size for the selection list
+                        style={[styles.serviceImage, { width: 40, height: 40, marginRight: 10 }]}
+                      />
+                    ) : null}
+                    
+                    <View style={{ flex: 1, marginLeft: s.imageUri ? 10 : 0 }}>
+                      <Text style={{ fontWeight: s.id === serviceId ? "900" : "700" }}>{s.title}</Text>
+                      <Text style={{ color: "#6b7b80", marginTop: 4 }}>₹{s.price}</Text>
+                    </View>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -192,9 +211,9 @@ export default function CustomerDashboard(): React.ReactElement {
 
         <View style={{ height: 12 }} />
 
-        <TextInput placeholder="Your name" value={customerName} onChangeText={setCustomerName} style={styles.input}  placeholderTextColor="#1d1e1fff"/>
+        <TextInput placeholder="Your name" value={customerName} onChangeText={setCustomerName} style={styles.input}  placeholderTextColor="#1d1e1fff"/>
         <TextInput placeholder="Phone (7-15 digits)" value={customerPhone} onChangeText={setCustomerPhone} style={styles.input} keyboardType="phone-pad" placeholderTextColor="#1d1e1fff" />
-        <TextInput placeholder="Service address" value={address} onChangeText={setAddress} style={[styles.input, { height: 80 }]} multiline  placeholderTextColor="#1d1e1fff"/>
+        <TextInput placeholder="Service address" value={address} onChangeText={setAddress} style={[styles.input, { height: 80 }]} multiline  placeholderTextColor="#1d1e1fff"/>
         <TextInput placeholder="Preferred date (optional)" value={preferredDate} onChangeText={setPreferredDate} style={styles.input} placeholderTextColor="#1d1e1fff"/>
         <TextInput placeholder="Preferred time (optional)" value={preferredTime} onChangeText={setPreferredTime} style={styles.input} placeholderTextColor="#1d1e1fff"/>
         <TextInput placeholder="Notes (optional)" value={notes} onChangeText={setNotes} style={[styles.input, { height: 86 }]} multiline placeholderTextColor="#1d1e1fff"/>
@@ -215,7 +234,20 @@ export default function CustomerDashboard(): React.ReactElement {
         ) : (
           items.map((row) => (
             <View key={row.id} style={styles.card}>
-              <Text style={styles.title}>{row.serviceTitle || "Service Request"}</Text>
+              
+              {/* --- UPDATE: Render image and then title on separate lines --- */}
+              {row.imageUri ? (
+                <Image
+                  source={{ uri: row.imageUri }}
+                  // Use the large style defined below
+                  style={styles.serviceImage} 
+                />
+              ) : null}
+
+              <Text style={[styles.title, { marginTop: row.imageUri ? 8 : 0, marginBottom: 8 }]}>
+                {row.serviceTitle || "Service Request"}
+              </Text>
+              {/* ------------------------------------------------------ */}
 
               <View style={styles.metaRow}>
                 <Text style={styles.metaLabel}>Customer:</Text>
@@ -240,11 +272,6 @@ export default function CustomerDashboard(): React.ReactElement {
                   <Text style={styles.metaValue}>{row.notes}</Text>
                 </View>
               ) : null}
-
-              <TouchableOpacity style={styles.primaryBtn} onPress={createRequest}>
-  <Text style={styles.primaryBtnText}>Create Request</Text>
-</TouchableOpacity>
-
 
               <View style={{ marginTop: 10 }}>{renderActions(row)}</View>
             </View>
@@ -273,17 +300,17 @@ const styles = StyleSheet.create({
     borderColor: "#e6eef0",
   },
   primaryBtn: {
-  backgroundColor: "#0e8b7b",
-  paddingVertical: 14,
-  borderRadius: 12,
-  alignItems: "center",
-  marginTop: 12,
-},
-primaryBtnText: {
-  color: "#fff",
-  fontWeight: "800",
-  fontSize: 16,
-},
+    backgroundColor: "#0e8b7b",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    marginTop: 12,
+  },
+  primaryBtnText: {
+    color: "#fff",
+    fontWeight: "800",
+    fontSize: 16,
+  },
 
 
   empty: {
@@ -305,6 +332,16 @@ primaryBtnText: {
   metaRow: { flexDirection: "row", marginTop: 8 },
   metaLabel: { width: 90, color: "#5b6b70", fontWeight: "700" },
   metaValue: { flex: 1, color: "#4b5a5f" },
+
+  // --- UPDATED IMAGE STYLE FOR LARGE DISPLAY IN CARD ---
+  serviceImage: {
+    // Adjusted width to 100% of the card/view and height for a typical large image display
+    width: '100%', 
+    height: 150,
+    borderRadius: 8,
+    marginBottom: 8, // Add space below the image before the title
+  },
+  // ----------------------------------------------------
 
   status: { marginTop: 10, fontWeight: "900" },
   status_pending: { color: "#b87f00" },
