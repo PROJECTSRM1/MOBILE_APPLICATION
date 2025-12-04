@@ -27,25 +27,36 @@ const NavBar = ({ navigation }: { navigation: any }) => {
 
   const navItems = [
     "Home",
-    "Cleaning",
-    "Packers & Movers",
-    "Home Services",
-    "Rentals",
-    "Buy&Safe Properties",
-    "Construction Materials",
+    "Cleaning and Home Services",
+    "Transport",
+    "Buy/Sales/Rentals",
+    "Raw Materials",
     "Freelancer",
+    "Settings",
   ];
-  
   // Handler for menu navigation
   const handleMenuItemPress = (item: string) => {
-      setIsMenuOpen(false); 
-      if (item === "Home") {
-          navigation.navigate("Home");
-      } else if (item === "Cleaning") {
-          navigation.navigate("Cleaning");
-      }
-      // Add logic for other items as needed
+  setIsMenuOpen(false);
+
+  switch (item) {
+    case "Home":
+      navigation.navigate("HomeScreen");
+      break;
+    case "Cleaning and Home Services":
+      navigation.navigate("Cleaning");
+      break;
+    case "Transport":
+      navigation.navigate("Packers");
+      break;
+    case "Settings":
+      navigation.navigate("SettingsScreen");
+      break;
+    // add other items if needed
+    default:
+      console.warn("No navigation defined for", item);
   }
+};
+
 
   return (
     <View style={(styles as Style).navBarContainer}>
@@ -88,6 +99,7 @@ export default function Cleaning({ navigation }: StackScreenProps<any>) {
         // NOTE: You must have a local image named 'hero.jpg' in ../assets/
         source={require("../assets/cleanhead.jpg")} 
         style={(styles as Style).cleaningHero}
+        
       >
         {/* Blue Overlay matching the image */}
         <View style={(styles as Style).cleaningOverlay} />

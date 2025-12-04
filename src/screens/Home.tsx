@@ -20,30 +20,36 @@ const NavBar = ({ navigation }: { navigation: any }) => {
 
   const navItems = [
     "Home",
-    "Cleaning",
-    "Packers & Movers",
-    "Home Services",
-    "Rentals",
-    "Buy&Safe Properties",
-    "Construction Materials",
+    "Cleaning and Home Services",
+    "Transport",
+    "Buy/Sales/Rentals",
+    "Raw Materials",
     "Freelancer",
+    "Settings",
   ];
-  
+
   // Example handler for a menu item
   const handleMenuItemPress = (item: string) => {
-      setIsMenuOpen(false); 
-      if (item === "Home") {
-          navigation.navigate("Home");
-      } else if (item === "Cleaning") {
-          // This ensures the menu item navigates to the Cleaning screen
-          navigation.navigate("Cleaning");
-      }
-      else if (item === "Packers And Movers") {
-      // The screen name defined in App.tsx is 'PackersAndMovers'
-      navigation.navigate("PackersAndMovers"); 
-    }
-      // Add logic for other items as needed
+  setIsMenuOpen(false);
+
+  switch (item) {
+    case "Home":
+      navigation.navigate("HomeScreen");
+      break;
+    case "Cleaning and Home Services":
+      navigation.navigate("Cleaning");
+      break;
+    case "Transport":
+      navigation.navigate("Packers");
+      break;
+    case "Settings":
+      navigation.navigate("SettingsScreen");
+      break;
+    // add other items if needed
+    default:
+      console.warn("No navigation defined for", item);
   }
+};
 
   return (
     <View style={(styles as Style).navBarContainer}>
@@ -154,7 +160,7 @@ export default function Home({ navigation }: StackScreenProps<any>) {
         style={styles.serviceImgHorizontal}
         imageStyle={{ borderRadius: 12 }} 
       />
-      <Text style={styles.serviceTitle}>Cleaning Service</Text>
+      <Text style={styles.serviceTitle}>Cleaning & Home Services</Text>
       {/* Removed "Learn More" here */}
     </TouchableOpacity>
 
@@ -168,12 +174,12 @@ export default function Home({ navigation }: StackScreenProps<any>) {
         style={styles.serviceImgHorizontal}
         imageStyle={{ borderRadius: 12 }}
       />
-      <Text style={styles.serviceTitle}>Packers & Movers</Text>
+      <Text style={styles.serviceTitle}>Transport</Text>
       {/* Removed "Learn More" here */}
     </TouchableOpacity>
 
     {/* 3. Home Services - NO "Learn More" */}
-    <TouchableOpacity 
+    {/* <TouchableOpacity 
       style={styles.serviceCardHorizontal}
       onPress={() => navigation.navigate("HomeServices")}
     >
@@ -183,8 +189,8 @@ export default function Home({ navigation }: StackScreenProps<any>) {
         imageStyle={{ borderRadius: 12 }}
       />
       <Text style={styles.serviceTitle}>Home Services</Text>
-      {/* Removed "Learn More" here */}
-    </TouchableOpacity>
+    
+    </TouchableOpacity> */}
 
     {/* 4. Home & Apartment Rentals - NO "Learn More" */}
     <TouchableOpacity 
@@ -196,37 +202,64 @@ export default function Home({ navigation }: StackScreenProps<any>) {
         style={styles.serviceImgHorizontal}
         imageStyle={{ borderRadius: 12 }}
       />
-      <Text style={styles.serviceTitle}>Apartment Rentals</Text>
+      <Text style={styles.serviceTitle}>Buy/Sales/Rentals</Text>
       {/* Removed "Learn More" here */}
     </TouchableOpacity>
 
     {/* 5. Commercial Plots - NO "Learn More" */}
     <TouchableOpacity 
       style={styles.serviceCardHorizontal}
-      onPress={() => navigation.navigate("CommercialPlots")}
-    >
-      <ImageBackground
-        source={require("../assets/cp.jpg")}
-        style={styles.serviceImgHorizontal}
-        imageStyle={{ borderRadius: 12 }}
-      />
-      <Text style={styles.serviceTitle}>Commercial Plots</Text>
-      {/* Removed "Learn More" here */}
-    </TouchableOpacity>
-
-    {/* 6. Construction Materials - NO "Learn More" */}
-    <TouchableOpacity 
-      style={styles.serviceCardHorizontal}
-      onPress={() => navigation.navigate("ConstructionMaterials")}
+      onPress={() => navigation.navigate("RawMaterials")}
     >
       <ImageBackground
         source={require("../assets/cma.jpg")}
         style={styles.serviceImgHorizontal}
         imageStyle={{ borderRadius: 12 }}
       />
-      <Text style={styles.serviceTitle}>Construction Materials</Text>
+      <Text style={styles.serviceTitle}>Raw Materials</Text>
       {/* Removed "Learn More" here */}
     </TouchableOpacity>
+
+    {/* 6. Construction Materials - NO "Learn More" */}
+    <TouchableOpacity 
+      style={styles.serviceCardHorizontal}
+      onPress={() => navigation.navigate("Education")}
+    >
+      <ImageBackground
+        source={require("../assets/c2.jpg")}
+        style={styles.serviceImgHorizontal}
+        imageStyle={{ borderRadius: 12 }}
+      />
+      <Text style={styles.serviceTitle}>Education</Text>
+      {/* Removed "Learn More" here */}
+    </TouchableOpacity>
+
+       <TouchableOpacity 
+      style={styles.serviceCardHorizontal}
+      onPress={() => navigation.navigate("SwachifyProducts")}
+    >
+      <ImageBackground
+        source={require("../assets/hs.jpg")}
+        style={styles.serviceImgHorizontal}
+        imageStyle={{ borderRadius: 12 }}
+      />
+      <Text style={styles.serviceTitle}>Swachify Products</Text>
+      {/* Removed "Learn More" here */}
+    </TouchableOpacity>
+       <TouchableOpacity 
+      style={styles.serviceCardHorizontal}
+      onPress={() => navigation.navigate("Freelancer")}
+    >
+      <ImageBackground
+        source={require("../assets/c4.jpg")}
+        style={styles.serviceImgHorizontal}
+        imageStyle={{ borderRadius: 12 }}
+      />
+      <Text style={styles.serviceTitle}>Freelancer</Text>
+      {/* Removed "Learn More" here */}
+    </TouchableOpacity>
+
+
   </ScrollView>
 </View>
 
