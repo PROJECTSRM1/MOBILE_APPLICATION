@@ -45,6 +45,9 @@ const NavBar = ({ navigation }: { navigation: any }) => {
     case "Settings":
       navigation.navigate("SettingsScreen");
       break;
+       case "Raw Materials":
+      navigation.navigate("ConstructionMaterial");
+      break;
     // add other items if needed
     default:
       console.warn("No navigation defined for", item);

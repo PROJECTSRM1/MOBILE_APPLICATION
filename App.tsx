@@ -17,7 +17,7 @@ import CleaningScreen from "./src/screens/Cleaning";
 import SettingsScreen from "./src/screens/SettingsScreen";
 // import PackersAndMoversScreen from "./src/screens/PackersAndMoversScreen";
 import PackersAndMoversScreen from "./src/screens/PackersAndMoversScreen";
-
+import ConstructionMaterialScreen from "./src/screens/ConstructionMaterialScreen";
 export type RootStackParamList = {
   Splash: undefined;
   Onboarding: undefined;
@@ -31,6 +31,7 @@ export type RootStackParamList = {
   Cleaning: undefined;
   Packers: undefined;
   SettingsScreen: undefined;
+  ConstructionMaterial: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -121,6 +122,11 @@ export default function App() {
         <Stack.Screen name="HomeScreen" component={HomeScreen} />
         <Stack.Screen name="Cleaning" component={CleaningScreen} />
         <Stack.Screen name="Packers" component={PackersAndMoversScreen} />
+        <Stack.Screen 
+  name="ConstructionMaterial" 
+  component={ConstructionMaterialScreen} 
+/>
+
 
         {/* <Stack.Screen name="Packers" component={PackersAndMoversScreen} /> */}
         <Stack.Screen name="SettingsScreen" component={SettingsScreen} />

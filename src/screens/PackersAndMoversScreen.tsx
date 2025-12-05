@@ -20,6 +20,7 @@ const CARD_SIZE = (width - CONTAINER_PADDING * 2 - CARD_MARGIN * 3) / 4;
 // Define the size for the 3-column grid cards within the modal
 const DETAIL_CARD_WIDTH = (width - CONTAINER_PADDING * 2 - CARD_MARGIN * 2 * 3) / 3;
 
+
 // Type for styles
 type Style = typeof styles extends { [key: string]: any } ? typeof styles : never;
 
@@ -137,20 +138,20 @@ const logisticsAndCargoDetails = [
     },
 ];
 const specializedTransportDetails = [
-    {
-        id: 'temp_truck',
-        title: 'Temperature Controlled Truck',
-        description: 'Refrigerated transport',
-        price: '$350',
-        image: require("../assets/Temperature controlled.jpg"), // Placeholder image (Update path)
-    },
-    {
-        id: 'hazardous_handling',
-        title: 'Hazardous Handling',
-        description: 'Certified hazardous goods handling',
-        price: '$500',
-        image: require("../assets/Hazardous handling.jpg"), // Placeholder image (Update path)
-    },
+{
+id: 'temp_truck',
+title: 'Temperature Controlled Truck',
+description: 'Refrigerated transport',
+ price: '$350',
+ image: require("../assets/Temperature controlled.jpg"), // Placeholder image (Update path)
+ },
+{
+ id: 'hazardous_handling',
+ title: 'Hazardous Handling',
+ description: 'Certified hazardous goods handling',
+ price: '$500',
+image: require("../assets/Hazardous handling.jpg"), // Placeholder image (Update path)
+ },
 ];
 // ---------------------------------------------------------------------------------
 
@@ -183,6 +184,9 @@ const NavBar = ({ navigation }: { navigation: any }) => {
             case "Settings":
                 navigation.navigate("SettingsScreen");
                 break;
+                 case "Raw Materials":
+      navigation.navigate("ConstructionMaterial");
+      break;
             default:
                 console.warn("No navigation defined for", item);
         }
@@ -338,47 +342,47 @@ const RentalServicesDetails: React.FC<{onBack: () => void}> = ({ onBack }) => {
 // ---------------------------------------------------------------------------------
 // --- 💡 NEW COMPONENT: Specialized Transport Details ---
 const SpecializedTransportDetails: React.FC<{onBack: () => void}> = ({ onBack }) => {
-    
-    // Calculate the width for two items with no horizontal margin/padding
-    const cardWidth = (width / 2); // 50% of screen width
+ 
+// Calculate the width for two items with no horizontal margin/padding
+const cardWidth = (width / 2); // 50% of screen width
 
-    return (
-        <View style={detailStyles.container}>
-            <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
-                <View style={detailStyles.header}>
-                    <TouchableOpacity onPress={onBack} style={detailStyles.backButton}>
-                        <Text style={detailStyles.backButtonText}>{"< Back"}</Text>
-                    </TouchableOpacity>
-                    <Text style={detailStyles.headerTitle}>Specialized Transport</Text>
-                </View>
-                
-                {/* 💡 INLINE STYLE MODIFICATION FOR 2-COLUMN, NO-GAP LAYOUT */}
-                <View style={[detailStyles.cardGrid, { justifyContent: 'flex-start', paddingHorizontal: 0 }]}>
-                    {specializedTransportDetails.map((item) => (
-                        <View 
-                            key={item.id} 
-                            style={[detailStyles.card, { 
-                                width: cardWidth, // Full width to remove gap
-                                marginLeft: 0, 
-                                marginRight: 0, 
-                                borderRadius: 0, // Remove rounded corners to be flush
-                            }]}
-                        >
-                            <Image source={item.image} style={detailStyles.cardImage} />
-                            <View style={detailStyles.cardContent}>
-                                <Text style={detailStyles.cardTitle}>{item.title}</Text>
-                                <Text style={detailStyles.cardDescription}>{item.description}</Text>
-                                <Text style={detailStyles.cardPrice}>{item.price}</Text>
-                                <TouchableOpacity style={detailStyles.bookButton}>
-                                    <Text style={detailStyles.bookButtonText}>Book Now</Text>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-                    ))}
-                </View>
-            </ScrollView>
-        </View>
-    );
+return (
+<View style={detailStyles.container}>
+ <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+<View style={detailStyles.header}>
+ <TouchableOpacity onPress={onBack} style={detailStyles.backButton}>
+<Text style={detailStyles.backButtonText}>{"< Back"}</Text>
+</TouchableOpacity>
+<Text style={detailStyles.headerTitle}>Specialized Transport</Text>
+</View>
+ 
+{/* 💡 INLINE STYLE MODIFICATION FOR 2-COLUMN, NO-GAP LAYOUT */}
+<View style={[detailStyles.cardGrid, { justifyContent: 'flex-start', paddingHorizontal: 0 }]}>
+ {specializedTransportDetails.map((item) => (
+<View 
+ key={item.id} 
+ style={[detailStyles.card, { 
+ width: cardWidth, // Full width to remove gap
+ marginLeft: 0, 
+ marginRight: 0, 
+ borderRadius: 0, // Remove rounded corners to be flush
+}]}
+ >
+<Image source={item.image} style={detailStyles.cardImage} />
+<View style={detailStyles.cardContent}>
+<Text style={detailStyles.cardTitle}>{item.title}</Text>
+<Text style={detailStyles.cardDescription}>{item.description}</Text>
+ <Text style={detailStyles.cardPrice}>{item.price}</Text>
+ <TouchableOpacity style={detailStyles.bookButton}>
+<Text style={detailStyles.bookButtonText}>Book Now</Text>
+ </TouchableOpacity>
+ </View>
+ </View>
+ ))}
+ </View>
+ </ScrollView>
+ </View>
+ );
 };
 // ---------------------------------------------------------------------------------
 
