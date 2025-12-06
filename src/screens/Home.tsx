@@ -40,7 +40,9 @@ const NavBar = ({ navigation }: { navigation: any }) => {
         navigation.navigate("HomeScreen");
         break;
       case "Cleaning and Home Services":
-        navigation.navigate("Cleaning");
+        // NOTE: This navigates to a placeholder 'Cleaning' screen, 
+        // which might open a detail page or the sheet again depending on your full navigation flow.
+        navigation.navigate("Cleaning"); 
         break;
       case "Transport":
         navigation.navigate("Packers");
@@ -102,6 +104,7 @@ export default function Home({ navigation }: StackScreenProps<any>) {
   // -----------------------------------------------------------
 
   // Data for cleaning sheet (Image-1)
+  // NOTE: Ensure your asset paths are correct: require("../assets/s1.jpg"), etc.
   const cleaningServices = [
     { name: "Cleaning Services", img: require("../assets/s1.jpg") },
     { name: "Electrical Services", img: require("../assets/s2.jpg") },
@@ -233,6 +236,21 @@ export default function Home({ navigation }: StackScreenProps<any>) {
       useNativeDriver: true,
     }).start(() => setShowRawMaterialSheet(false));
   };
+
+  // === NEW FUNCTION: Handle navigation from inside cleaning sheet ===
+  const handleCleaningServicePress = (serviceName: string) => {
+    closeCleaningSheet(); // Always close the sheet first
+    
+    if (serviceName === "Cleaning Services") {
+      // THIS IS THE TARGET BUTTON: navigate to the detailed cleaning screen
+      navigation.navigate("CleaningServiceScreen");
+    } else {
+      console.log(`Navigating to detail screen for: ${serviceName}`);
+      // For other services (Plumbing, Electrical, etc.) navigate to a different detail page
+      // navigation.navigate('ServiceDetail', { serviceName: serviceName });
+    }
+  };
+  // =================================================================
 
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -398,7 +416,12 @@ export default function Home({ navigation }: StackScreenProps<any>) {
             <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
               <View style={popupStyles.grid}>
                 {cleaningServices.map((item, idx) => (
-                  <TouchableOpacity key={idx} style={popupStyles.card}>
+                  <TouchableOpacity 
+                    key={idx} 
+                    style={popupStyles.card}
+                    // 👇 MODIFIED onPress TO HANDLE NAVIGATION TO CLEANING SERVICE SCREEN
+                    onPress={() => handleCleaningServicePress(item.name)} 
+                  >
                     <Image source={item.img} style={popupStyles.cardImg} />
                     <Text style={popupStyles.cardText}>{item.name}</Text>
                   </TouchableOpacity>
@@ -472,7 +495,7 @@ export default function Home({ navigation }: StackScreenProps<any>) {
         </View>
       )}
 
-      {/* 🛠️ FIX: Raw Materials bottom sheet */}
+      {/* 🛠️ Raw Materials bottom sheet */}
       {showRawMaterialSheet && (
         <View style={popupStyles.overlayContainer}>
           <Pressable style={popupStyles.backdrop} onPress={closeRawMaterialSheet} />

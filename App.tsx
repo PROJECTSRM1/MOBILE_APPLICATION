@@ -13,11 +13,14 @@ import UserScreen from "./src/screens/UserScreen";
 import CustomerScreen from "./src/screens/CustomerScreen";
 import HomeScreen from "./src/screens/home";
 import CleaningScreen from "./src/screens/Cleaning";
-// import PackersScreen from "./src/screens/PackersAndMoversScreen";
-import SettingsScreen from "./src/screens/SettingsScreen";
-// import PackersAndMoversScreen from "./src/screens/PackersAndMoversScreen";
 import PackersAndMoversScreen from "./src/screens/PackersAndMoversScreen";
+import SettingsScreen from "./src/screens/SettingsScreen";
 import ConstructionMaterialScreen from "./src/screens/ConstructionMaterialScreen";
+
+// 🚀 IMPORT THE NEW SCREEN
+import CleaningServiceScreen from "./src/screens/CleaningServiceScreen"; // Adjust path if necessary
+// ------------------------------------
+
 export type RootStackParamList = {
   Splash: undefined;
   Onboarding: undefined;
@@ -32,6 +35,9 @@ export type RootStackParamList = {
   Packers: undefined;
   SettingsScreen: undefined;
   ConstructionMaterial: undefined;
+  // 🚀 ADD THE NEW SCREEN TYPE
+  CleaningServiceScreen: undefined; 
+  // ------------------------------------
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -123,13 +129,15 @@ export default function App() {
         <Stack.Screen name="Cleaning" component={CleaningScreen} />
         <Stack.Screen name="Packers" component={PackersAndMoversScreen} />
         <Stack.Screen 
-  name="ConstructionMaterial" 
-  component={ConstructionMaterialScreen} 
-/>
-
-
-        {/* <Stack.Screen name="Packers" component={PackersAndMoversScreen} /> */}
+          name="ConstructionMaterial" 
+          component={ConstructionMaterialScreen} 
+        />
         <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
+        
+        {/* 🚀 REGISTER THE NEW SCREEN */}
+        <Stack.Screen name="CleaningServiceScreen" component={CleaningServiceScreen} /> 
+        {/* -------------------------------------- */}
+
       </Stack.Navigator>
     </NavigationContainer>
   );
