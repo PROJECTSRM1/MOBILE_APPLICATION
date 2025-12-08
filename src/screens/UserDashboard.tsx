@@ -1,5 +1,5 @@
-// src/screens/UserDashboard.tsx
-import React, { useState, useEffect } from "react";
+
+import React, { useState, useEffect, useRef } from "react";
 import {
   SafeAreaView,
   ScrollView,
@@ -14,7 +14,13 @@ import {
   Modal,
   TouchableWithoutFeedback,
   ImageSourcePropType,
+  Animated,
+  Pressable,
+  StatusBar,
+  Dimensions,
+  Platform,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 
 declare var global: any;
 
@@ -30,6 +36,20 @@ function ensureServicesGlobal() {
   if (!global.__SW_SERVICES__) global.__SW_SERVICES__ = [];
 }
 
+const SCREEN_W = Dimensions.get("window").width;
+const LOGO = require("../../assets/swachlogo.png");
+
+const MENU_ITEMS = [
+  { id: "home", label: "Home", route: "Landing" },
+  { id: 'Transport', label: 'Transport', route: 'Transport' },
+  { id: 'Construction', label: 'Raw Materials', route: 'Construction' },
+  {id: 'Cleaning', label: 'Cleaning & Home Service', route: 'Cleaning' },
+  { id: 'rentals', label: 'Buy/Sale/Rentals', route: 'Rentals' },
+  { id: 'freelancer', label: 'Freelancer', route: 'Freelancer' },
+  {id: 'Education', label: 'Education Services', route: 'Education' },
+  {id: 'Products', label: 'Swachify Products', route: 'Products' },
+  {id: 'Settings', label: 'Settings', route: 'Settings' },
+];
 
 const SERVICE_IMAGES: ImageSourcePropType[] = [
   require("../../assets/pack1.jpg"),
@@ -43,7 +63,49 @@ const SERVICE_IMAGES: ImageSourcePropType[] = [
 
 export default function UserDashboard(): React.ReactElement {
   ensureServicesGlobal();
+  const nav = useNavigation<any>();
 
+  // --- Header / Menu state + animation (copied/adapted from Landing) ---
+  const [isOpen, setIsOpen] = useState(false);
+  const anim = useRef(new Animated.Value(0)).current;
+
+  // PANEL WIDTH (78% of screen)
+  const panelWidth = Math.round(SCREEN_W * 0.78);
+
+  // OPEN MENU (slide in from the LEFT)
+  const openMenu = () => {
+    setIsOpen(true);
+    anim.setValue(0);
+    Animated.timing(anim, {
+      toValue: 1,
+      duration: 280,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  // CLOSE MENU (slide out to the LEFT)
+  const closeMenu = () => {
+    Animated.timing(anim, {
+      toValue: 0,
+      duration: 220,
+      useNativeDriver: true,
+    }).start(() => setIsOpen(false));
+  };
+
+  const panelTranslateX = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-panelWidth, 0],
+  });
+
+  const onPressMenu = (route?: string) => {
+    closeMenu();
+    if (route) {
+      // small delay so menu closing animation is visible
+      setTimeout(() => nav.navigate(route), 260);
+    }
+  };
+
+  // --- Existing UserDashboard state ---
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
@@ -79,7 +141,6 @@ export default function UserDashboard(): React.ReactElement {
     global.__SW_SERVICES__ = [s, ...(global.__SW_SERVICES__ || [])];
     setServices([...global.__SW_SERVICES__]);
 
-    // reset inputs
     setTitle("");
     setDescription("");
     setPrice("");
@@ -120,6 +181,77 @@ export default function UserDashboard(): React.ReactElement {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
+
+      {/* Header (inline) - keep layout similar to Landing header */}
+      <View style={styles.headerContainer}>
+        <View style={styles.headerInner}>
+          <TouchableOpacity onPress={openMenu} style={styles.hamburgerBtn}>
+            <Text style={styles.hamburgerIcon}>☰</Text>
+          </TouchableOpacity>
+
+          <View style={styles.brandWrap}>
+            <Image source={LOGO} style={styles.logo} resizeMode="contain" />
+            <Text style={styles.brand}>SWACHIFY INDIA</Text>
+          </View>
+
+          <TouchableOpacity style={styles.headerBtn} onPress={() => nav.navigate("Signup")}>
+            <Text style={styles.headerBtnText}>Sign Up</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Slide panel + overlay (render only when isOpen true) */}
+      {isOpen && (
+        <>
+          <Animated.View
+            style={[
+              styles.overlay,
+              { opacity: anim.interpolate({ inputRange: [0, 1], outputRange: [0, 0.55] }) },
+            ]}
+          />
+          <Pressable style={StyleSheet.absoluteFill} onPress={closeMenu} />
+
+          <Animated.View
+            style={[
+              styles.panelWrapLeft,
+              { width: panelWidth, transform: [{ translateX: panelTranslateX }] },
+            ]}
+          >
+            <View style={[styles.panelInner, { width: panelWidth }]}>
+              <View style={styles.panelHeader}>
+                <Text style={styles.panelTitle}>Menu</Text>
+                <TouchableOpacity onPress={closeMenu} style={styles.closeBtn}>
+                  <Text style={styles.closeText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.menuItems}>
+                {MENU_ITEMS.map((m) => (
+                  <TouchableOpacity
+                    key={m.id}
+                    style={styles.menuItem}
+                    onPress={() => onPressMenu(m.route)}
+                    activeOpacity={0.75}
+                  >
+                    <Text style={styles.menuItemText}>{m.label}</Text>
+                  </TouchableOpacity>
+                ))}
+
+                <TouchableOpacity style={styles.menuSignup} onPress={() => onPressMenu("Signup")}>
+                  <Text style={styles.menuSignupText}>Sign Up</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.panelFooter}>
+                <Text style={styles.smallMuted}>© {new Date().getFullYear()} Swachify</Text>
+              </View>
+            </View>
+          </Animated.View>
+        </>
+      )}
+
+      {/* Original ScrollView content */}
       <ScrollView contentContainerStyle={styles.wrap}>
         <Text style={styles.header}>Service Provider — Manage Services</Text>
         <Text style={styles.sub}>Add services your customers will see (images optional).</Text>
@@ -154,20 +286,33 @@ export default function UserDashboard(): React.ReactElement {
         <View style={{ marginTop: 12 }}>
           <Text style={{ color: "#566", marginBottom: 8 }}>Service image (optional)</Text>
 
-          <TouchableOpacity style={styles.uploadPlaceholder} onPress={() => setShowImagePicker(true)} activeOpacity={0.85}>
+          <TouchableOpacity
+            style={styles.uploadPlaceholder}
+            onPress={() => setShowImagePicker(true)}
+            activeOpacity={0.85}
+          >
             {pickedImage ? (
               <Image source={pickedImage} style={{ width: 92, height: 68, borderRadius: 8 }} />
             ) : (
-              <View style={{ width: 92, height: 68, borderRadius: 8, backgroundColor: "#eaf2f2", alignItems: "center", justifyContent: "center" }}>
+              <View
+                style={{
+                  width: 92,
+                  height: 68,
+                  borderRadius: 8,
+                  backgroundColor: "#eaf2f2",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
                 <Text style={{ color: "#7d8a8d" }}>No image</Text>
               </View>
             )}
 
             <View style={{ marginLeft: 12, flex: 1 }}>
-              <Text style={{ fontWeight: "700", color: "#0e8b7b" }}>{pickedImage ? "Selected image" : "Choose from assets"}</Text>
-              <Text style={{ color: "#7d8a8d", marginTop: 6, fontSize: 12 }}>
-                Tap to open gallery
+              <Text style={{ fontWeight: "700", color: "#0e8b7b" }}>
+                {pickedImage ? "Selected image" : "Choose from assets"}
               </Text>
+              <Text style={{ color: "#7d8a8d", marginTop: 6, fontSize: 12 }}>Tap to open gallery</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -230,8 +375,9 @@ export default function UserDashboard(): React.ReactElement {
 }
 
 const styles = StyleSheet.create({
+  // existing styles (kept intact)
   safe: { flex: 1, backgroundColor: "#f5fbff" },
-  wrap: { padding: 20 },
+  wrap: { padding: 20, paddingTop: 36 },
   header: { fontSize: 22, fontWeight: "900", marginBottom: 6 },
   sub: { color: "#556", marginBottom: 12 },
 
@@ -269,7 +415,10 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
-  cardRow: { flexDirection: "row", alignItems: "center" },
+  cardRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   thumbPlaceholder: {
     width: 72,
     height: 56,
@@ -296,7 +445,6 @@ const styles = StyleSheet.create({
     borderColor: "#e6eef0",
   },
 
-  // modal styles
   modalBackdrop: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.45)",
@@ -309,4 +457,83 @@ const styles = StyleSheet.create({
     padding: 12,
     maxHeight: "80%",
   },
+
+  // --- header & panel styles added ---
+headerContainer: {
+  backgroundColor: "transparent",
+  paddingHorizontal: 18,
+  paddingTop: 12 + (Platform.OS === "android" ? StatusBar.currentHeight ?? 0 : 0),
+  paddingBottom: 8,
+},
+
+  headerInner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  hamburgerBtn: {
+    width: 42,
+    height: 42,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  hamburgerIcon: { fontSize: 20, color: "#083" },
+  brandWrap: { flexDirection: "row", alignItems: "center", flex: 1, marginLeft: 6 },
+  logo: { width: 42, height: 42, marginRight: 8 },
+  brand: { fontWeight: "900", fontSize: 16, color: "#083" },
+  headerBtn: {
+    backgroundColor: "#0e8b7b",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  headerBtnText: { color: "#fff", fontWeight: "800" },
+
+  // overlay & panel
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "#000",
+  },
+  panelWrapLeft: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    bottom: 0,
+    zIndex: 40,
+  },
+  panelInner: {
+    flex: 1,
+    backgroundColor: "#fff",
+    paddingHorizontal: 14,
+    paddingTop: 18,
+    paddingBottom: 18,
+  },
+  panelHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  panelTitle: { fontWeight: "900", fontSize: 20 },
+  closeBtn: { padding: 6 },
+  closeText: { fontSize: 20, color: "#666" },
+
+  menuItems: { marginTop: 6 },
+  menuItem: {
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f1f1",
+  },
+  menuItemText: { fontWeight: "700" },
+  menuSignup: {
+    marginTop: 12,
+    backgroundColor: "#0e8b7b",
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  menuSignupText: { color: "#fff", fontWeight: "800" },
+  panelFooter: { marginTop: 12, alignItems: "center" },
+
+  smallMuted: { color: "#7a7a7a", fontSize: 12 },
 });

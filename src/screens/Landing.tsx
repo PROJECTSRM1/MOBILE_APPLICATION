@@ -43,14 +43,14 @@ const WHY = [
 ];
 
 const MENU_ITEMS = [
-  { id: 'home', label: 'Home', route: 'Landing' },
-  { id: 'cleaning', label: 'Cleaning', route: 'Cleaning' },
-  { id: 'packers', label: 'Packers & Movers', route: 'Landing' },
-  { id: 'homeServices', label: 'Home Services', route: 'Landing' },
-  { id: 'rentals', label: 'Rentals', route: 'Landing' },
-  { id: 'buySale', label: 'Buy&Sale Properties', route: 'Landing' },
-  { id: 'materials', label: 'Construction Materials', route: 'Landing' },
-  { id: 'freelancer', label: 'Freelancer', route: 'Landing' },
+  { id: "home", label: "Home", route: "Landing" },
+  { id: 'Transport', label: 'Transport', route: 'Transport' },
+  { id: 'Construction', label: 'Raw Materials', route: 'Construction' },
+  {id: 'Cleaning', label: 'Cleaning & Home Service', route: 'Cleaning' },
+  { id: 'rentals', label: 'Buy/Sale/Rentals', route: 'Rentals' },
+  { id: 'freelancer', label: 'Freelancer', route: 'Freelancer' },
+  {id: 'Education', label: 'Education Services', route: 'Education' },
+  {id: 'Products', label: 'Swachify Products', route: 'Products' },
 ];
 
 export default function Landing(): React.ReactElement {

@@ -151,10 +151,10 @@ export default function Signup(props: any) {
         Alert.alert("Missing services", "Please choose at least one primary service in the dropdown.");
         return;
       }
-      if (!govtId.trim()) {
-        Alert.alert("Missing ID", "Please enter your Govt ID or registration number.");
-        return;
-      }
+      // if (!govtId.trim()) {
+      //   Alert.alert("Missing ID", "Please enter your Govt ID or registration number.");
+      //   return;
+      // }
     }
 
     console.log("Submitting signup for role:", role);
@@ -166,7 +166,6 @@ export default function Signup(props: any) {
       switch (role) {
         case "customer":
           Alert.alert("Success", "Account created — please login to continue.");
-          // send role, email and password to the Login screen so it can redirect after login
           navigation.replace("Login", {
             role: "customer",
             prefilledEmail: email || "",
@@ -184,18 +183,13 @@ export default function Signup(props: any) {
           return;
 
         default:
-          // fallback (shouldn't happen)
           Alert.alert("Success", "Account created — redirecting.");
           navigation.replace("Login");
           return;
       }
     }, 900);
   };
-  // === end validateAndSubmit ===
 
-  // ---------------------------------------------
-  // RENDER: role selector (when role not chosen)
-  // ---------------------------------------------
   if (!role) {
     return (
       <SafeAreaView style={styles.container}>
@@ -235,9 +229,7 @@ export default function Signup(props: any) {
     );
   }
 
-  // ---------------------------------------------
-  // RENDER: main signup form when role chosen
-  // ---------------------------------------------
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#EAF1F5" />
@@ -351,14 +343,12 @@ export default function Signup(props: any) {
               </>
             ) : (
               <>
-                {/* Dropdown for selecting service categories */}
                 <TouchableOpacity style={styles.dropdown} onPress={() => setDropOpen(true)}>
                   <Text style={styles.dropdownLabel}>{serviceTypes || "Select primary service (required)"}</Text>
                 </TouchableOpacity>
               </>
             )}
 
-            {/* Provider extra fields (kept below dropdown to avoid accidental blocking) */}
             {role === "user" && (
               <>
                 {/* <TextInput value={govtId} onChangeText={setGovtId} placeholder="Govt ID / Registration No." placeholderTextColor="#9aa0a6" style={styles.input} /> */}
@@ -376,11 +366,9 @@ export default function Signup(props: any) {
               <Text style={styles.linkText}>Change role</Text>
             </TouchableOpacity>
 
-            {/* IMPORTANT: ensure this always navigates to Login and is reachable */}
             <TouchableOpacity
               style={[styles.link, { marginTop: 8 }]}
               onPress={() => {
-                // intentionally replace to clear signup stack and go to Login
                 navigation.replace("Login");
               }}
             >
@@ -399,13 +387,11 @@ export default function Signup(props: any) {
         transparent
         onRequestClose={() => setDropOpen(false)}
       >
-        {/* Backdrop: only handles presses when modal open */}
         <Pressable
           style={styles.modalBackdrop}
           onPress={() => setDropOpen(false)}
           android_ripple={{ color: "rgba(0,0,0,0.05)" }}
         >
-          {/* inner box — stop propagation so tapping inside doesn't close immediately */}
           <TouchableWithoutFeedback>
             <View style={styles.modalSheet}>
               <Text style={{ fontWeight: "800", marginBottom: 8 }}>Select primary service</Text>
