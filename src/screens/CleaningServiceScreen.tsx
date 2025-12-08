@@ -1,5 +1,20 @@
+// CleaningServicesScreen.tsx
+
 import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions, ImageBackground, Modal, Animated, PanResponder, PanResponderGestureState, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import {
+    View,
+    Text,
+    StyleSheet,
+    ScrollView,
+    TouchableOpacity,
+    Image,
+    Dimensions,
+    ImageBackground,
+    Modal,
+    Animated,
+    PanResponder,
+    PanResponderGestureState,
+} from 'react-native';
 import { StackScreenProps } from "@react-navigation/stack";
 
 const { width } = Dimensions.get('window');
@@ -27,13 +42,15 @@ interface ResidentialService {
     optionsCount: number;
 }
 
+// Props for main service card
 interface ServiceCardProps {
     service: ResidentialService;
     onViewDetails: (service: ResidentialService) => void;
 }
 
-// UPDATED: RoomService interface to match the new detailed horizontal card requirements
+// UPDATED: RoomService interface now includes id (for mapping) and is used for grid cards
 interface RoomService {
+    id: number;
     name: string;
     description: string;
     image: any; 
@@ -49,36 +66,40 @@ interface RoomService {
 // NOTE: Please ensure these image assets exist in your project path: '../assets/i1.png', etc.
 const roomServices: RoomService[] = [
     {
+        id: 1,
         name: "Living Room Cleaning",
         description: "Deep cleaning of living room including furniture and floors.",
-        image: require('../assets/i1.png'), // Replace with your image
+        image: require('../assets/i1.png'),
         rating: 4.8,
         regularPrice: 799,
         currentPrice: 699,
         duration: "1 hr",
     },
     {
+        id: 2,
         name: "Bedroom Deep Cleaning",
         description: "Thorough cleaning of bedrooms including mattress and wardrobes.",
-        image: require('../assets/i2.webp'), // Replace with your image
+        image: require('../assets/i2.webp'),
         rating: 4.9,
         regularPrice: 649,
         currentPrice: 549,
         duration: "1 hr 30 min",
     },
     {
+        id: 3,
         name: "Kitchen Deep Cleaning",
         description: "Complete kitchen cleaning with appliances and surfaces.",
-        image: require('../assets/i3.webp'), // Replace with your image
+        image: require('../assets/i3.webp'),
         rating: 4.7,
         regularPrice: 1099,
         currentPrice: 999,
         duration: "2 hr",
     },
     {
+        id: 4,
         name: "Bathroom Sanitization",
         description: "Sanitization and deep cleaning of bathrooms.",
-        image: require('../assets/i4.jpeg'), // Replace with your image
+        image: require('../assets/i4.jpeg'),
         rating: 4.9,
         regularPrice: 699,
         currentPrice: 599,
@@ -87,7 +108,6 @@ const roomServices: RoomService[] = [
 ];
 
 // Data for the cleaning subcategories (as provided)
-// NOTE: Please ensure these image assets exist in your project path: '../assets/img1.png', etc.
 const cleaningSubCategories: ServiceCategory[] = [
     { name: "Residential Cleaning", targetRef: 'residentialSection', description: "Complete cleaning service solutions for homes, apartments, and villas", img: require("../assets/img1.png") }, 
     { name: "Commercial Cleaning", targetRef: 'commercialSection', description: "Professional cleaning service for offices, schools, and commercial spaces", img: require("../assets/img2.png") },
@@ -97,7 +117,6 @@ const cleaningSubCategories: ServiceCategory[] = [
 ];
 
 // Data for the residential services (kept the original structure)
-// NOTE: Please ensure these image assets exist in your project path: '../assets/apartments.png', etc.
 const residentialServices: ResidentialService[] = [
     { 
         title: "Furnished Apartment Deep Clean", 
@@ -114,7 +133,6 @@ const residentialServices: ResidentialService[] = [
             "Balcony and utility area cleaning",
         ],
     },
-    
     { 
         title: "Unfurnished Home Deep Clean (Tap to customize)", 
         type: "Premium", 
@@ -147,45 +165,12 @@ const residentialServices: ResidentialService[] = [
 
 type CleaningServiceScreenProps = StackScreenProps<any, 'CleaningServiceScreen'>;
 
-
-// --- 3. Room Service Detail Card Component (for inside the Bottom Sheet) - NEW HORIZONTAL STYLE ---
-const RoomServiceCard: React.FC<{ service: RoomService }> = ({ service }) => (
-    <View style={detailedStyles.roomCardContainer}>
-        {/* Card Header Image and Rating */}
-        <ImageBackground 
-            source={service.image} 
-            style={detailedStyles.roomCardImage}
-            imageStyle={{ borderRadius: 8 }} // Apply border radius to the image itself
-        >
-            <View style={detailedStyles.ratingContainer}>
-                <Text style={detailedStyles.ratingText}>⭐ {service.rating}</Text>
-            </View>
-        </ImageBackground>
-
-        {/* Card Content */}
-        <View style={detailedStyles.roomCardContent}>
-            <Text style={detailedStyles.roomCardTitle}>{service.name}</Text>
-            <Text style={detailedStyles.roomCardDescription}>{service.description}</Text>
-            
-            <View style={detailedStyles.durationRow}>
-                <Text style={detailedStyles.durationText}>🕒 {service.duration}</Text>
-            </View>
-
-            {/* Price Row (Removed Add Button) */}
-            <View style={detailedStyles.priceAndButtonRow}>
-                <View style={detailedStyles.priceGroup}>
-                    <Text style={detailedStyles.roomCurrentPrice}>₹{service.currentPrice}</Text>
-                    <Text style={detailedStyles.roomRegularPrice}>₹{service.regularPrice}</Text>
-                </View>
-
-                {/* The ADD button is intentionally removed here */}
-            </View>
-        </View>
-    </View>
-);
-
-// --- 4. Bottom Sheet Component ---
-const BottomSheetModal: React.FC<{ isVisible: boolean, onClose: () => void }> = ({ isVisible, onClose }) => {
+// --- 3. Bottom Sheet Component (FIXED: Restored Section 1 content for scrolling) ---
+const BottomSheetModal: React.FC<{ 
+    isVisible: boolean, 
+    onClose: () => void,
+    selectedService: ResidentialService | null,
+}> = ({ isVisible, onClose, selectedService }) => {
     // Animation logic
     const panY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
@@ -201,7 +186,12 @@ const BottomSheetModal: React.FC<{ isVisible: boolean, onClose: () => void }> = 
                 toValue: SCREEN_HEIGHT,
                 duration: 300,
                 useNativeDriver: true,
-            }).start(onClose);
+            }).start(() => {
+                // Call onClose only after the animation completes
+                if (!isVisible) {
+                    onClose();
+                }
+            });
         }
     }, [isVisible]);
 
@@ -219,9 +209,11 @@ const BottomSheetModal: React.FC<{ isVisible: boolean, onClose: () => void }> = 
             },
             
             onPanResponderRelease: (e, gestureState) => {
+                // If dragged down far enough, close the modal
                 if (gestureState.dy > 100) {
                     onClose();
                 } else {
+                    // Snap back to open position
                     Animated.spring(panY, {
                         toValue: SCREEN_HEIGHT - BOTTOM_SHEET_HEIGHT,
                         useNativeDriver: true,
@@ -232,12 +224,17 @@ const BottomSheetModal: React.FC<{ isVisible: boolean, onClose: () => void }> = 
         })
     ).current;
 
+    if (!selectedService) {
+        return null;
+    }
 
+    // Modal is only fully visible and content is rendered if isVisible is true
     return (
         <Modal
             transparent={true}
             visible={isVisible}
             onRequestClose={onClose}
+            animationType="none"
         >
             <View style={detailedStyles.modalOverlay}>
                 <Animated.View
@@ -249,21 +246,88 @@ const BottomSheetModal: React.FC<{ isVisible: boolean, onClose: () => void }> = 
 
                     {/* Content */}
                     <ScrollView contentContainerStyle={detailedStyles.bottomSheetContent}>
-                        <Text style={detailedStyles.bottomSheetTitle}>Room Specific Deep Cleaning</Text>
-                        <Text style={detailedStyles.bottomSheetSubtitle}>Select specific areas to clean in your Unfurnished Home</Text>
+                        
+                        {/* ------------------- SECTION 1: MAIN SERVICE DETAILS (RESTORED) ------------------- */}
+                        <View style={detailedStyles.mainServiceSection}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                                {/* Using ImageBackground to match the visual if needed, but standard Image is simpler */}
+                                <Image source={selectedService.image} style={detailedStyles.mainServiceImage} />
+                                <View style={{ marginLeft: 15, flex: 1 }}>
+                                    <Text style={detailedStyles.mainServiceTitle}>{selectedService.title}</Text>
+                                    <Text style={detailedStyles.mainServiceRating}>⭐ {selectedService.rating} • {selectedService.type}</Text>
+                                </View>
+                            </View>
 
-                        {/* Renders the NEW style RoomServiceCard components */}
-                        <View style={detailedStyles.roomServiceGrid}>
-                            {roomServices.map((service, index) => (
-                                <RoomServiceCard key={index} service={service} />
+                            <View style={detailedStyles.priceRow}>
+                                <Text style={detailedStyles.currentPrice}>₹{selectedService.newUserPrice.toLocaleString('en-IN')}</Text>
+                                <Text style={detailedStyles.regularPrice}>₹{selectedService.regularPrice.toLocaleString('en-IN')}</Text>
+                                <Text style={detailedStyles.priceTag}>NEW USER PRICE</Text>
+                            </View>
+
+                            <Text style={detailedStyles.sectionHeading}>What's Included?</Text>
+                            {selectedService.benefits.map((benefit, index) => (
+                                <Text key={index} style={detailedStyles.bulletPoint}>• {benefit}</Text>
                             ))}
                         </View>
-                        
+
+                        {/* Divider */}
+                        <View style={detailedStyles.divider} />
+
+                        {/* ------------------- SECTION 2: ROOM SPECIFIC CLEANING ------------------- */}
+                        <Text style={detailedStyles.bottomSheetTitle}>Room Specific Deep Cleaning</Text>
+                        <Text style={detailedStyles.bottomSheetSubtitle}>
+                            Select specific areas to clean in your Unfurnished Home
+                        </Text>
+
+                        {/* List of room services */}
+                        <View style={detailedStyles.roomServiceList}>
+                            {roomServices.map((service) => (
+                                <View key={service.id} style={detailedStyles.roomCardContainerFull}>
+                                    <Image source={service.image} style={detailedStyles.roomCardImageFull} />
+                                    <View style={detailedStyles.roomCardContentFull}>
+                                        <View style={detailedStyles.roomCardHeaderRowFull}>
+                                            <View style={detailedStyles.roomCardTitleGroupFull}>
+                                                <Text style={detailedStyles.roomCardTitleFull}>{service.name}</Text>
+                                                <View style={detailedStyles.roomEssentialRowFull}>
+                                                    {/* Using duration as the secondary detail */}
+                                                    <Text style={detailedStyles.roomEssentialTextFull}>{service.duration}</Text>
+                                                    <Text style={detailedStyles.roomStarIconFull}>⭐ {service.rating}</Text>
+                                                </View>
+                                            </View>
+                                            {/* ADD Button or other action */}
+                                            <TouchableOpacity 
+                                                style={detailedStyles.roomAddButtonFull}
+                                                onPress={() => { console.log('ADD', service.name); }}
+                                            >
+                                                <Text style={detailedStyles.roomAddButtonTextFull}>ADD</Text>
+                                            </TouchableOpacity>
+                                        </View>
+
+                                        {/* Price and Details Row */}
+                                        <View style={detailedStyles.roomPriceRowFull}>
+                                            <Text style={detailedStyles.roomCurrentPriceFull}>₹{service.currentPrice.toLocaleString('en-IN')}</Text>
+                                            <Text style={detailedStyles.roomRegularPriceFull}>₹{service.regularPrice.toLocaleString('en-IN')}</Text>
+                                            <Text style={detailedStyles.roomPriceLabelFull}>SAVE ₹{service.regularPrice - service.currentPrice}</Text>
+                                        </View>
+
+                                        <Text style={detailedStyles.roomDescriptionTextFull}>
+                                            {service.description}
+                                        </Text>
+
+                                        {/* View Details Button (now a secondary button) */}
+                                        <TouchableOpacity style={detailedStyles.roomDetailsButtonFull} onPress={() => { console.log('Room detail', service.name); }}>
+                                            <Text style={detailedStyles.roomDetailsButtonTextFull}>View Details &gt;</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            ))}
+                        </View>
+                        {/* Bottom padding so sticky footer doesn't overlap */}
+                        <View style={{ height: 96 }} />
                     </ScrollView>
 
                     {/* Sticky Footer */}
                     <View style={detailedStyles.stickyFooter}>
-                        {/* Placeholder button for checkout, since Add is removed from cards */}
                         <TouchableOpacity style={detailedStyles.checkoutButton}>
                             <Text style={detailedStyles.checkoutButtonText}>Proceed to Checkout (4 Items)</Text>
                         </TouchableOpacity>
@@ -273,11 +337,10 @@ const BottomSheetModal: React.FC<{ isVisible: boolean, onClose: () => void }> = 
         </Modal>
     );
 };
+
 // ----------------------------------------
 
-
 const CleaningServiceScreen: React.FC<CleaningServiceScreenProps> = ({ navigation }) => {
-    
     // --- State for Modal ---
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedService, setSelectedService] = useState<ResidentialService | null>(null);
@@ -287,7 +350,6 @@ const CleaningServiceScreen: React.FC<CleaningServiceScreenProps> = ({ navigatio
     const residentialSectionRef = useRef<View>(null);
 
     const handleBackPress = () => {
-        // Mock function for navigation back
         console.log("Navigating back...");
         // navigation.goBack(); // Uncomment if using actual navigation
     };
@@ -311,17 +373,16 @@ const CleaningServiceScreen: React.FC<CleaningServiceScreenProps> = ({ navigatio
             setSelectedService(service);
             setIsModalVisible(true);
         } else {
-             // Handle navigation or other actions for other services here
-             console.log(`Viewing details for: ${service.title}`);
+            // Handle navigation or other actions for other services here
+            console.log(`Viewing details for: ${service.title}`);
         }
     };
 
-    // Component to render the residential service card (UPDATED TO SHOW VIEW DETAILS AS A BUTTON)
+    // Component to render the residential service card (keeps your existing layout)
     const ServiceCard: React.FC<ServiceCardProps> = ({ service, onViewDetails }) => (
         <View style={screenStyles.serviceCardContainer}>
             <Image source={service.image} style={screenStyles.serviceCardImage} />
             <View style={screenStyles.serviceCardContent}>
-                
                 <View style={screenStyles.cardHeaderRow}>
                     <View style={screenStyles.cardTitleGroup}>
                         <Text style={screenStyles.serviceCardTitle}>{service.title}</Text>
@@ -330,8 +391,6 @@ const CleaningServiceScreen: React.FC<CleaningServiceScreenProps> = ({ navigatio
                             <Text style={screenStyles.starIcon}>⭐ {service.rating}</Text>
                         </View>
                     </View>
-
-                    {/* The ADD button and options count are REMOVED here from the main screen card */}
                 </View>
 
                 <View style={screenStyles.priceRow}>
@@ -361,12 +420,9 @@ const CleaningServiceScreen: React.FC<CleaningServiceScreenProps> = ({ navigatio
         </View>
     );
 
-
     return (
         <View style={screenStyles.container}>
-            
             {/* Header Image Background with Nav Bar */}
-            {/* NOTE: Please ensure the image asset exists in your project path: '../assets/head1.jpg' */}
             <ImageBackground
                 source={require('../assets/head1.jpg')} 
                 style={screenStyles.headerImage}
@@ -374,7 +430,6 @@ const CleaningServiceScreen: React.FC<CleaningServiceScreenProps> = ({ navigatio
             >
                 <View style={screenStyles.headerOverlay} />
                 <View style={screenStyles.headerNavBar}>
-                    
                     {/* Back Button */}
                     <TouchableOpacity onPress={handleBackPress} style={screenStyles.navButton}>
                         <Text style={screenStyles.navIcon}>←</Text> 
@@ -394,7 +449,6 @@ const CleaningServiceScreen: React.FC<CleaningServiceScreenProps> = ({ navigatio
                     <Text style={screenStyles.searchIcon}>🔍</Text>
                     <Text style={screenStyles.searchBarPlaceholder}>Search Kitchen Cleaning</Text>
                 </View>
-
             </ImageBackground>
 
             {/* Main Content Scroll View */}
@@ -422,27 +476,28 @@ const CleaningServiceScreen: React.FC<CleaningServiceScreenProps> = ({ navigatio
                 {/* --- RESIDENTIAL SERVICE LIST SECTION --- */}
                 <View ref={residentialSectionRef} style={screenStyles.serviceListSection}>
                     <Text style={screenStyles.sectionTitle}>Residential Cleaning Services</Text>
-                    <Text style={{fontSize: 14, color: '#666', marginBottom: 15, paddingHorizontal: 5}}>Tap 'View details' on Unfurnished Home to see the customizable Room Cleaning section.</Text>
+                    <Text style={{fontSize: 14, color: '#666', marginBottom: 15, paddingHorizontal: 5}}>
+                        Tap 'View details' on Unfurnished Home to see the customizable Room Cleaning section.
+                    </Text>
 
                     {residentialServices.map((service, index) => (
                         <ServiceCard key={index} service={service} onViewDetails={handleViewDetails} />
                     ))}
                 </View>
                 {/* --- END RESIDENTIAL SERVICE LIST SECTION --- */}
-                
             </ScrollView>
 
             {/* --- BOTTOM SHEET MODAL --- */}
             <BottomSheetModal 
                 isVisible={isModalVisible} 
                 onClose={() => setIsModalVisible(false)} 
+                selectedService={selectedService}
             />
-            
         </View>
     );
 };
 
-// --- STYLES ---
+// --- STYLES (screenStyles and detailedStyles combined/extended) ---
 
 const screenStyles = StyleSheet.create({
     container: {
@@ -578,10 +633,9 @@ const screenStyles = StyleSheet.create({
     serviceCardContent: {
         padding: 15,
     },
-    // UPDATED: No longer justifying space-between, since the right element is removed.
     cardHeaderRow: {
         flexDirection: 'row',
-        justifyContent: 'flex-start', // Adjusted to start alignment
+        justifyContent: 'flex-start',
         alignItems: 'flex-start',
         marginBottom: 10,
     },
@@ -608,12 +662,11 @@ const screenStyles = StyleSheet.create({
         fontSize: 12,
         color: '#555',
     },
-    // REMOVED addButton, addButtonText, optionsCountText styles
     priceRow: {
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 10,
-        marginTop: 10, // Added margin top for better spacing after removing the button
+        marginTop: 10,
     },
     regularPriceText: {
         fontSize: 16,
@@ -665,7 +718,6 @@ const screenStyles = StyleSheet.create({
     // ---------------------------------
 });
 
-
 // --- NEW DETAILED MODAL STYLES (APPLIED TO BOTTOM SHEET CONTENT) ---
 const detailedStyles = StyleSheet.create({
     modalOverlay: {
@@ -694,116 +746,219 @@ const detailedStyles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingBottom: 100, // Space for the sticky footer
     },
+
+    /* === RESTORED MAIN SERVICE SECTION STYLES === */
+    mainServiceSection: {
+        paddingVertical: 8,
+    },
+    mainServiceImage: {
+        width: 84,
+        height: 84,
+        borderRadius: 8,
+        resizeMode: 'cover',
+    },
+    mainServiceTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#1a1a1a',
+    },
+    mainServiceRating: {
+        fontSize: 14,
+        color: '#666',
+    },
+    priceRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 10,
+        marginBottom: 8,
+    },
+    currentPrice: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#111',
+        marginRight: 10,
+    },
+    regularPrice: {
+        fontSize: 16,
+        color: '#888',
+        textDecorationLine: 'line-through',
+        marginRight: 10,
+    },
+    priceTag: {
+        fontSize: 12,
+        color: '#D60000',
+        backgroundColor: '#FFE9E9',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4,
+        fontWeight: '600',
+    },
+    descriptionText: {
+        fontSize: 14,
+        color: '#555',
+        marginBottom: 12,
+        lineHeight: 20,
+    },
+    sectionHeading: {
+        fontSize: 16,
+        fontWeight: '700',
+        marginTop: 6,
+        marginBottom: 6,
+        color: '#111',
+    },
+    bulletPoint: {
+        fontSize: 14,
+        color: '#555',
+        marginBottom: 6,
+    },
+    divider: {
+        height: 1,
+        backgroundColor: '#EEE',
+        marginVertical: 18,
+    },
+
     bottomSheetTitle: {
         fontSize: 20,
         fontWeight: 'bold',
         color: '#1a1a1a',
-        marginBottom: 5,
+        marginBottom: 6,
     },
     bottomSheetSubtitle: {
         fontSize: 14,
         color: '#666',
-        marginBottom: 20,
+        marginBottom: 14,
     },
-    roomServiceGrid: {
-        flexDirection: 'column', // Stack cards vertically
-        justifyContent: 'flex-start',
+
+    /* ROOM SPECIFIC FULL CARD STYLES */
+    roomServiceList: {
+        paddingHorizontal: 0,
     },
-    
-    // --- ROOM SERVICE CARD NEW STYLE (Horizontal Card inside Modal) ---
-    roomCardContainer: {
+    roomCardContainerFull: {
+        flexDirection: 'row', // Horizontal layout: Image | Content
         backgroundColor: '#fff',
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#ddd',
+        borderRadius: 10,
         marginBottom: 15,
         overflow: 'hidden',
-        width: '100%', 
-        flexDirection: 'row', 
-        height: 130, // Fixed height for a horizontal card
+        borderWidth: 1,
+        borderColor: '#eee',
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
+        elevation: 2,
     },
-    roomCardImage: {
-        width: '70%', 
+    roomCardImageFull: {
+        width: 100, // Fixed width for the image
         height: '100%',
+        minHeight: 140, // Minimum height to align with content
         resizeMode: 'cover',
-        justifyContent: 'flex-end',
-        padding: 8,
     },
-    ratingContainer: {
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        borderRadius: 5,
-        paddingHorizontal: 8,
-        paddingVertical: 3,
-        alignSelf: 'flex-start',
+    roomCardContentFull: {
+        flex: 1,
+        padding: 12,
     },
-    ratingText: {
-        color: '#fff',
-        fontSize: 12,
-        fontWeight: 'bold',
-    },
-    roomCardContent: {
-        width: '60%', 
-        padding: 10,
+    roomCardHeaderRowFull: {
+        flexDirection: 'row',
         justifyContent: 'space-between',
-        marginLeft:-97,
-    },
-    roomCardTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#1a1a1a',
-    },
-    roomCardDescription: {
-        fontSize: 11,
-        color: '#666',
+        alignItems: 'flex-start',
         marginBottom: 5,
     },
-    durationRow: {
-        flexDirection: 'row',
+    roomCardTitleGroupFull: {
+        flexShrink: 1,
     },
-    durationText: {
+    roomCardTitleFull: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#1a1a1a',
+    },
+    roomEssentialRowFull: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 2,
+    },
+    roomEssentialTextFull: {
         fontSize: 12,
-        color: '#000',
         fontWeight: '600',
-        paddingTop: 3,
+        color: '#666',
+        marginRight: 10,
     },
-    priceAndButtonRow: {
+    roomStarIconFull: {
+        fontSize: 12,
+        color: '#666',
+    },
+    roomAddButtonFull: {
+        backgroundColor: '#fff',
+        borderColor: '#FF0000',
+        borderWidth: 1,
+        paddingHorizontal: 15,
+        paddingVertical: 4,
+        borderRadius: 5,
+        marginLeft: 10,
+    },
+    roomAddButtonTextFull: {
+        color: '#FF0000',
+        fontSize: 13,
+        fontWeight: 'bold',
+    },
+    roomPriceRowFull: {
         flexDirection: 'row',
-        justifyContent: 'flex-start', // Already updated in the last iteration
         alignItems: 'center',
-        marginTop: 5,
+        marginBottom: 5,
     },
-    priceGroup: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    roomCurrentPrice: {
+    roomCurrentPriceFull: {
         fontSize: 18,
         fontWeight: 'bold',
         color: '#1a1a1a',
-        marginRight: 5,
+        marginRight: 8,
     },
-    roomRegularPrice: {
+    roomRegularPriceFull: {
         fontSize: 14,
         color: '#999',
         textDecorationLine: 'line-through',
+        marginRight: 8,
     },
-    // --- END ROOM SERVICE CARD NEW STYLE ---
+    roomPriceLabelFull: {
+        fontSize: 10,
+        fontWeight: 'bold',
+        color: '#28A745',
+        backgroundColor: '#E6F7EB',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4,
+    },
+    roomDescriptionTextFull: {
+        fontSize: 12,
+        color: '#555',
+        marginBottom: 10,
+    },
+    roomDetailsButtonFull: {
+        alignSelf: 'flex-start',
+        paddingHorizontal: 0,
+        paddingVertical: 5,
+    },
+    roomDetailsButtonTextFull: {
+        color: '#FF0000',
+        fontSize: 13,
+        fontWeight: '600',
+        textDecorationLine: 'underline',
+    },
 
+    /* sticky footer */
     stickyFooter: {
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
         backgroundColor: '#fff',
-        padding: 20,
+        padding: 16,
         borderTopWidth: 1,
         borderTopColor: '#eee',
         alignItems: 'center',
     },
     checkoutButton: {
-        backgroundColor: '#FF0000', 
+        backgroundColor: '#FF0000',  
         borderRadius: 8,
-        paddingVertical: 15,
+        paddingVertical: 14,
         width: '100%',
         alignItems: 'center',
     },
