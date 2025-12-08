@@ -14,6 +14,7 @@ import {
     Animated,
     PanResponder,
     PanResponderGestureState,
+    findNodeHandle,
 } from 'react-native';
 import { StackScreenProps } from "@react-navigation/stack";
 
@@ -33,7 +34,7 @@ interface ServiceCategory {
 // Keeping ResidentialService as the full service structure for the main screen
 interface ResidentialService {
     title: string;
-    type: 'Essential' | 'Premium';
+    type: 'Essential' | 'Premium' | 'Professional' | string;
     rating: number;
     image: any;
     benefits: string[];
@@ -53,63 +54,16 @@ interface RoomService {
     id: number;
     name: string;
     description: string;
-    image: any; 
+    image: any;
     rating: number; // For the star rating in the image corner
     regularPrice: number; // Strikethrough price
     currentPrice: number; // Main price
     duration: string; // Time duration
 }
 
-// ----------------------------------------
-
-// --- 2. Data for the Room-Specific Services (UPDATED) ---
-// NOTE: Please ensure these image assets exist in your project path: '../assets/i1.png', etc.
-const roomServices: RoomService[] = [
-    {
-        id: 1,
-        name: "Living Room Cleaning",
-        description: "Deep cleaning of living room including furniture and floors.",
-        image: require('../assets/i1.png'),
-        rating: 4.8,
-        regularPrice: 799,
-        currentPrice: 699,
-        duration: "1 hr",
-    },
-    {
-        id: 2,
-        name: "Bedroom Deep Cleaning",
-        description: "Thorough cleaning of bedrooms including mattress and wardrobes.",
-        image: require('../assets/i2.webp'),
-        rating: 4.9,
-        regularPrice: 649,
-        currentPrice: 549,
-        duration: "1 hr 30 min",
-    },
-    {
-        id: 3,
-        name: "Kitchen Deep Cleaning",
-        description: "Complete kitchen cleaning with appliances and surfaces.",
-        image: require('../assets/i3.webp'),
-        rating: 4.7,
-        regularPrice: 1099,
-        currentPrice: 999,
-        duration: "2 hr",
-    },
-    {
-        id: 4,
-        name: "Bathroom Sanitization",
-        description: "Sanitization and deep cleaning of bathrooms.",
-        image: require('../assets/i4.jpeg'),
-        rating: 4.9,
-        regularPrice: 699,
-        currentPrice: 599,
-        duration: "1 hr 15 min",
-    },
-];
-
 // Data for the cleaning subcategories (as provided)
 const cleaningSubCategories: ServiceCategory[] = [
-    { name: "Residential Cleaning", targetRef: 'residentialSection', description: "Complete cleaning service solutions for homes, apartments, and villas", img: require("../assets/img1.png") }, 
+    { name: "Residential Cleaning", targetRef: 'residentialSection', description: "Complete cleaning service solutions for homes, apartments, and villas", img: require("../assets/img1.png") },
     { name: "Commercial Cleaning", targetRef: 'commercialSection', description: "Professional cleaning service for offices, schools, and commercial spaces", img: require("../assets/img2.png") },
     { name: "Specialized Cleaning", targetRef: 'specializedSection', description: "Expert cleaning service for furniture, floors, windows, and sanitization", img: require("../assets/img3.png") },
     { name: "Industrial Cleaning", targetRef: 'industrialSection', description: "Heavy-duty cleaning for factories, warehouses, and industrial facilities", img: require("../assets/img4.jpg") },
@@ -118,11 +72,11 @@ const cleaningSubCategories: ServiceCategory[] = [
 
 // Data for the residential services (kept the original structure)
 const residentialServices: ResidentialService[] = [
-    { 
-        title: "Furnished Apartment Deep Clean", 
-        type: "Essential", 
-        rating: 4.8, 
-        image: require('../assets/apartments.png'), 
+    {
+        title: "Furnished Apartment Deep Clean",
+        type: "Essential",
+        rating: 4.8,
+        image: require('../assets/apartments.png'),
         regularPrice: 3149,
         newUserPrice: 2949,
         optionsCount: 5,
@@ -133,11 +87,11 @@ const residentialServices: ResidentialService[] = [
             "Balcony and utility area cleaning",
         ],
     },
-    { 
-        title: "Unfurnished Home Deep Clean (Tap to customize)", 
-        type: "Premium", 
-        rating: 4.9, 
-        image: require('../assets/homes.jpg'), 
+    {
+        title: "Unfurnished Home Deep Clean (Tap to customize)",
+        type: "Premium",
+        rating: 4.9,
+        image: require('../assets/homes.jpg'),
         regularPrice: 2700,
         newUserPrice: 2300,
         optionsCount: 5,
@@ -148,11 +102,11 @@ const residentialServices: ResidentialService[] = [
             "Steam sterilization of washrooms",
         ],
     },
-    { 
-        title: "Unfurnished Villa Deep Clean", 
-        type: "Premium", 
-        rating: 5.0, 
-        image: require('../assets/villas.jpg'), 
+    {
+        title: "Unfurnished Villa Deep Clean",
+        type: "Premium",
+        rating: 5.0,
+        image: require('../assets/villas.jpg'),
         regularPrice: 3800,
         newUserPrice: 3500,
         optionsCount: 5,
@@ -163,11 +117,73 @@ const residentialServices: ResidentialService[] = [
     },
 ];
 
+// ----------------------
+// NEW: Commercial Services (using same ResidentialService shape to reuse ServiceCard)
+const commercialServices: ResidentialService[] = [
+    {
+        title: "Offices",
+        type: "Professional",
+        rating: 4.8,
+        image: require('../assets/office.jpg'), // replace with your actual asset
+        regularPrice: 2499,
+        newUserPrice: 2199,
+        optionsCount: 3,
+        benefits: [
+            "Workstation cleaning",
+            "Washroom deep cleaning",
+            "Floor scrubbing and mopping",
+        ],
+    },
+    {
+        title: "Shops & Malls",
+        type: "Professional",
+        rating: 4.7,
+        image: require('../assets/shopmall.jpg'),
+        regularPrice: 2999,
+        newUserPrice: 2699,
+        optionsCount: 3,
+        benefits: [
+            "Escalator area cleaning",
+            "Glass & display cleaning",
+            "Floor polishing",
+        ],
+    },
+    {
+        title: "Clinics & Labs",
+        type: "Professional",
+        rating: 4.9,
+        image: require('../assets/clinic.png'),
+        regularPrice: 3599,
+        newUserPrice: 3299,
+        optionsCount: 3,
+        benefits: [
+            "Sanitization",
+            "Floor sterilization",
+            "Equipment surface cleaning",
+        ],
+    },
+    {
+        title: "Schools",
+        type: "Professional",
+        rating: 4.6,
+        image: require('../assets/schools.jpg'),
+        regularPrice: 2799,
+        newUserPrice: 2499,
+        optionsCount: 3,
+        benefits: [
+            "Classroom cleaning",
+            "Play area sanitization",
+            "Washroom deep cleaning",
+        ],
+    },
+];
+// ----------------------
+
 type CleaningServiceScreenProps = StackScreenProps<any, 'CleaningServiceScreen'>;
 
 // --- 3. Bottom Sheet Component (FIXED: Restored Section 1 content for scrolling) ---
-const BottomSheetModal: React.FC<{ 
-    isVisible: boolean, 
+const BottomSheetModal: React.FC<{
+    isVisible: boolean,
     onClose: () => void,
     selectedService: ResidentialService | null,
 }> = ({ isVisible, onClose, selectedService }) => {
@@ -200,14 +216,14 @@ const BottomSheetModal: React.FC<{
         PanResponder.create({
             onStartShouldSetPanResponder: () => true,
             onMoveShouldSetPanResponder: () => true,
-            
+
             onPanResponderMove: (e, gestureState: PanResponderGestureState) => {
                 const newY = SCREEN_HEIGHT - BOTTOM_SHEET_HEIGHT + gestureState.dy;
                 if (newY >= SCREEN_HEIGHT - BOTTOM_SHEET_HEIGHT) {
                     panY.setValue(newY);
                 }
             },
-            
+
             onPanResponderRelease: (e, gestureState) => {
                 // If dragged down far enough, close the modal
                 if (gestureState.dy > 100) {
@@ -246,11 +262,9 @@ const BottomSheetModal: React.FC<{
 
                     {/* Content */}
                     <ScrollView contentContainerStyle={detailedStyles.bottomSheetContent}>
-                        
-                        {/* ------------------- SECTION 1: MAIN SERVICE DETAILS (RESTORED) ------------------- */}
+
                         <View style={detailedStyles.mainServiceSection}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-                                {/* Using ImageBackground to match the visual if needed, but standard Image is simpler */}
                                 <Image source={selectedService.image} style={detailedStyles.mainServiceImage} />
                                 <View style={{ marginLeft: 15, flex: 1 }}>
                                     <Text style={detailedStyles.mainServiceTitle}>{selectedService.title}</Text>
@@ -270,58 +284,8 @@ const BottomSheetModal: React.FC<{
                             ))}
                         </View>
 
-                        {/* Divider */}
                         <View style={detailedStyles.divider} />
 
-                        {/* ------------------- SECTION 2: ROOM SPECIFIC CLEANING ------------------- */}
-                        <Text style={detailedStyles.bottomSheetTitle}>Room Specific Deep Cleaning</Text>
-                        <Text style={detailedStyles.bottomSheetSubtitle}>
-                            Select specific areas to clean in your Unfurnished Home
-                        </Text>
-
-                        {/* List of room services */}
-                        <View style={detailedStyles.roomServiceList}>
-                            {roomServices.map((service) => (
-                                <View key={service.id} style={detailedStyles.roomCardContainerFull}>
-                                    <Image source={service.image} style={detailedStyles.roomCardImageFull} />
-                                    <View style={detailedStyles.roomCardContentFull}>
-                                        <View style={detailedStyles.roomCardHeaderRowFull}>
-                                            <View style={detailedStyles.roomCardTitleGroupFull}>
-                                                <Text style={detailedStyles.roomCardTitleFull}>{service.name}</Text>
-                                                <View style={detailedStyles.roomEssentialRowFull}>
-                                                    {/* Using duration as the secondary detail */}
-                                                    <Text style={detailedStyles.roomEssentialTextFull}>{service.duration}</Text>
-                                                    <Text style={detailedStyles.roomStarIconFull}>⭐ {service.rating}</Text>
-                                                </View>
-                                            </View>
-                                            {/* ADD Button or other action */}
-                                            <TouchableOpacity 
-                                                style={detailedStyles.roomAddButtonFull}
-                                                onPress={() => { console.log('ADD', service.name); }}
-                                            >
-                                                <Text style={detailedStyles.roomAddButtonTextFull}>ADD</Text>
-                                            </TouchableOpacity>
-                                        </View>
-
-                                        {/* Price and Details Row */}
-                                        <View style={detailedStyles.roomPriceRowFull}>
-                                            <Text style={detailedStyles.roomCurrentPriceFull}>₹{service.currentPrice.toLocaleString('en-IN')}</Text>
-                                            <Text style={detailedStyles.roomRegularPriceFull}>₹{service.regularPrice.toLocaleString('en-IN')}</Text>
-                                            <Text style={detailedStyles.roomPriceLabelFull}>SAVE ₹{service.regularPrice - service.currentPrice}</Text>
-                                        </View>
-
-                                        <Text style={detailedStyles.roomDescriptionTextFull}>
-                                            {service.description}
-                                        </Text>
-
-                                        {/* View Details Button (now a secondary button) */}
-                                        <TouchableOpacity style={detailedStyles.roomDetailsButtonFull} onPress={() => { console.log('Room detail', service.name); }}>
-                                            <Text style={detailedStyles.roomDetailsButtonTextFull}>View Details &gt;</Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                </View>
-                            ))}
-                        </View>
                         {/* Bottom padding so sticky footer doesn't overlap */}
                         <View style={{ height: 96 }} />
                     </ScrollView>
@@ -346,8 +310,9 @@ const CleaningServiceScreen: React.FC<CleaningServiceScreenProps> = ({ navigatio
     const [selectedService, setSelectedService] = useState<ResidentialService | null>(null);
 
     // --- Refs for Scrolling ---
-    const scrollViewRef = useRef<ScrollView>(null);
-    const residentialSectionRef = useRef<View>(null);
+    const scrollViewRef = useRef<ScrollView | null>(null);
+    const residentialSectionRef = useRef<View | null>(null);
+    const commercialSectionRef = useRef<View | null>(null);
 
     const handleBackPress = () => {
         console.log("Navigating back...");
@@ -355,15 +320,33 @@ const CleaningServiceScreen: React.FC<CleaningServiceScreenProps> = ({ navigatio
     };
 
     const handleSubCategoryPress = (item: ServiceCategory) => {
-        if (item.targetRef === 'residentialSection' && residentialSectionRef.current && scrollViewRef.current) {
-            residentialSectionRef.current.measureLayout(
-                scrollViewRef.current as any,
-                (x, y) => {
-                    scrollViewRef.current?.scrollTo({ y: y - 10, animated: true }); 
+        // Use findNodeHandle to get native node of scrollView for measureLayout
+        const relativeNode = findNodeHandle(scrollViewRef.current);
+
+        if (item.targetRef === 'residentialSection' && residentialSectionRef.current && relativeNode) {
+            // measureLayout expects a native node number
+            (residentialSectionRef.current as any).measureLayout(
+                relativeNode,
+                (x: number, y: number) => {
+                    scrollViewRef.current?.scrollTo({ y: y - 10, animated: true });
                 },
                 () => console.log('Measure layout failed')
             );
+            return;
         }
+
+        if (item.targetRef === 'commercialSection' && commercialSectionRef.current && relativeNode) {
+            (commercialSectionRef.current as any).measureLayout(
+                relativeNode,
+                (x: number, y: number) => {
+                    scrollViewRef.current?.scrollTo({ y: y - 10, animated: true });
+                },
+                () => console.log('Measure layout failed')
+            );
+            return;
+        }
+
+        // You can add more sections here if needed (specializedSection, etc.)
     };
 
     // --- Handler for View Details Button ---
@@ -378,8 +361,8 @@ const CleaningServiceScreen: React.FC<CleaningServiceScreenProps> = ({ navigatio
         }
     };
 
-    // Component to render the residential service card (keeps your existing layout)
-    const ServiceCard: React.FC<ServiceCardProps> = ({ service, onViewDetails }) => (
+    // Component to render the residential/commercial service card (keeps your existing layout)
+    const ServiceCard: React.FC<ServiceCardProps> = ({ service, onViewDetails }: ServiceCardProps) => (
         <View style={screenStyles.serviceCardContainer}>
             <Image source={service.image} style={screenStyles.serviceCardImage} />
             <View style={screenStyles.serviceCardContent}>
@@ -398,7 +381,7 @@ const CleaningServiceScreen: React.FC<CleaningServiceScreenProps> = ({ navigatio
                     <Text style={screenStyles.regularPriceText}>₹{service.regularPrice.toLocaleString('en-IN')}</Text>
                     <Text style={screenStyles.newUserPriceLabel}>NEW USER PRICE</Text>
                 </View>
-                
+
                 <View style={screenStyles.benefitsContainer}>
                     {service.benefits.slice(0, 2).map((benefit: string, index: number) => (
                         <Text key={index} style={screenStyles.benefitText}>
@@ -409,9 +392,9 @@ const CleaningServiceScreen: React.FC<CleaningServiceScreenProps> = ({ navigatio
 
                 {/* VIEW DETAILS AS A BUTTON */}
                 <View style={screenStyles.viewDetailsButtonWrapper}>
-                    <TouchableOpacity 
-                        onPress={() => onViewDetails(service)} 
-                        style={screenStyles.viewDetailsButton} 
+                    <TouchableOpacity
+                        onPress={() => onViewDetails(service)}
+                        style={screenStyles.viewDetailsButton}
                     >
                         <Text style={screenStyles.viewDetailsButtonText}>View details &gt;</Text>
                     </TouchableOpacity>
@@ -424,7 +407,7 @@ const CleaningServiceScreen: React.FC<CleaningServiceScreenProps> = ({ navigatio
         <View style={screenStyles.container}>
             {/* Header Image Background with Nav Bar */}
             <ImageBackground
-                source={require('../assets/head1.jpg')} 
+                source={require('../assets/head1.jpg')}
                 style={screenStyles.headerImage}
                 resizeMode="cover"
             >
@@ -432,15 +415,15 @@ const CleaningServiceScreen: React.FC<CleaningServiceScreenProps> = ({ navigatio
                 <View style={screenStyles.headerNavBar}>
                     {/* Back Button */}
                     <TouchableOpacity onPress={handleBackPress} style={screenStyles.navButton}>
-                        <Text style={screenStyles.navIcon}>←</Text> 
+                        <Text style={screenStyles.navIcon}>←</Text>
                     </TouchableOpacity>
-                    
+
                     {/* Screen Title */}
                     <Text style={screenStyles.headerTitleText}>Cleaning Services</Text>
-                    
+
                     {/* Cart/Profile Button */}
                     <TouchableOpacity onPress={() => { console.log('Cart pressed') }} style={screenStyles.navButton}>
-                        <Text style={screenStyles.navIcon}>🛒</Text> 
+                        <Text style={screenStyles.navIcon}>🛒</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -455,42 +438,55 @@ const CleaningServiceScreen: React.FC<CleaningServiceScreenProps> = ({ navigatio
             <ScrollView style={{ flex: 1 }} ref={scrollViewRef}>
                 {/* Horizontal Category Row */}
                 <Text style={[screenStyles.sectionTitle, { paddingHorizontal: 20, paddingTop: 20 }]}>Explore Categories</Text>
-                
-                <ScrollView 
-                    horizontal 
-                    showsHorizontalScrollIndicator={false} 
+
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
                     contentContainerStyle={screenStyles.horizontalScrollContainer}
                 >
-                    {cleaningSubCategories.map((item, index) => (
+                    {cleaningSubCategories.map((item: ServiceCategory, index: number) => (
                         <TouchableOpacity
                             key={index}
                             style={screenStyles.horizontalCard}
-                            onPress={() => handleSubCategoryPress(item)} 
+                            onPress={() => handleSubCategoryPress(item)}
                         >
                             <Image source={item.img} style={screenStyles.horizontalCardImage} />
                             <Text style={screenStyles.horizontalCardTitle}>{item.name}</Text>
                         </TouchableOpacity>
                     ))}
                 </ScrollView>
-                
+
                 {/* --- RESIDENTIAL SERVICE LIST SECTION --- */}
                 <View ref={residentialSectionRef} style={screenStyles.serviceListSection}>
                     <Text style={screenStyles.sectionTitle}>Residential Cleaning Services</Text>
-                    <Text style={{fontSize: 14, color: '#666', marginBottom: 15, paddingHorizontal: 5}}>
+                    <Text style={{ fontSize: 14, color: '#666', marginBottom: 15, paddingHorizontal: 5 }}>
                         Tap 'View details' on Unfurnished Home to see the customizable Room Cleaning section.
                     </Text>
 
-                    {residentialServices.map((service, index) => (
+                    {residentialServices.map((service: ResidentialService, index: number) => (
                         <ServiceCard key={index} service={service} onViewDetails={handleViewDetails} />
                     ))}
                 </View>
                 {/* --- END RESIDENTIAL SERVICE LIST SECTION --- */}
+
+                {/* --- COMMERCIAL SERVICE LIST SECTION (NEW) --- */}
+                <View ref={commercialSectionRef} style={screenStyles.serviceListSection}>
+                    <Text style={screenStyles.sectionTitle}>Commercial Cleaning Services</Text>
+                    <Text style={{ fontSize: 14, color: '#666', marginBottom: 15, paddingHorizontal: 5 }}>
+                        Professional cleaning for offices, shops, clinics and schools.
+                    </Text>
+
+                    {commercialServices.map((service: ResidentialService, index: number) => (
+                        <ServiceCard key={`commercial-${index}`} service={service} onViewDetails={handleViewDetails} />
+                    ))}
+                </View>
+                {/* --- END COMMERCIAL SERVICE LIST SECTION --- */}
             </ScrollView>
 
             {/* --- BOTTOM SHEET MODAL --- */}
-            <BottomSheetModal 
-                isVisible={isModalVisible} 
-                onClose={() => setIsModalVisible(false)} 
+            <BottomSheetModal
+                isVisible={isModalVisible}
+                onClose={() => setIsModalVisible(false)}
                 selectedService={selectedService}
             />
         </View>
@@ -505,7 +501,7 @@ const screenStyles = StyleSheet.create({
         backgroundColor: '#f8f8f8',
     },
     headerImage: {
-        height: 250, 
+        height: 250,
         justifyContent: 'space-between',
         paddingBottom: 20,
     },
@@ -525,7 +521,7 @@ const screenStyles = StyleSheet.create({
         height: 40,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: 'rgba(255, 255, 255, 0.2)', 
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
         borderRadius: 20,
     },
     navIcon: {
@@ -571,17 +567,17 @@ const screenStyles = StyleSheet.create({
     // --- HORIZONTAL CATEGORY STYLES (MAIN SCREEN) ---
     horizontalScrollContainer: {
         paddingHorizontal: 20,
-        paddingBottom: 10, 
+        paddingBottom: 10,
     },
     horizontalCard: {
-        width: 90, 
+        width: 90,
         marginRight: 15,
         alignItems: 'center',
         justifyContent: 'flex-start',
         backgroundColor: '#fff',
         borderRadius: 12,
         padding: 5,
-        paddingBottom: 10, 
+        paddingBottom: 10,
         borderWidth: 1,
         borderColor: '#ddd',
         shadowColor: "#000",
@@ -591,8 +587,8 @@ const screenStyles = StyleSheet.create({
         elevation: 3,
     },
     horizontalCardImage: {
-        width: 70, 
-        height: 70, 
+        width: 70,
+        height: 70,
         borderRadius: 8,
         resizeMode: 'cover',
         marginBottom: 5,
@@ -608,7 +604,7 @@ const screenStyles = StyleSheet.create({
     // --- RESIDENTIAL SERVICE CARD STYLES (MAIN SCREEN) ---
     serviceListSection: {
         padding: 20,
-        paddingTop: 0, 
+        paddingTop: 0,
     },
     serviceCardContainer: {
         backgroundColor: '#fff',
@@ -625,7 +621,7 @@ const screenStyles = StyleSheet.create({
     },
     serviceCardImage: {
         width: '100%',
-        height: width * 0.5, 
+        height: width * 0.5,
         resizeMode: 'cover',
         borderTopLeftRadius: 10,
         borderTopRightRadius: 10,
@@ -699,7 +695,7 @@ const screenStyles = StyleSheet.create({
         lineHeight: 20,
     },
     viewDetailsButtonWrapper: {
-        alignItems: 'flex-start', 
+        alignItems: 'flex-start',
     },
     // --- VIEW DETAILS BUTTON STYLES (NEW) ---
     viewDetailsButton: {
@@ -956,7 +952,7 @@ const detailedStyles = StyleSheet.create({
         alignItems: 'center',
     },
     checkoutButton: {
-        backgroundColor: '#FF0000',  
+        backgroundColor: '#FF0000',
         borderRadius: 8,
         paddingVertical: 14,
         width: '100%',
