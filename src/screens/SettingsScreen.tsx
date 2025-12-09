@@ -1,650 +1,289 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  TouchableOpacity,
-  ScrollView,
   StyleSheet,
-  TextInput,
+  ScrollView,
   Switch,
+  TouchableOpacity,
+  LayoutAnimation,
+  TextInput,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function SettingsScreen() {
-  const [openSection, setOpenSection] = useState(""); 
-  const [openSub, setOpenSub] = useState(""); 
+/* --------------------- Setting Row Component ---------------------- */
+interface SettingRowProps {
+  title: string;
+  subtitle?: string;
+  withSwitch?: boolean;
+  switchValue?: boolean;
+  onSwitch?: (value: boolean) => void;
+  onPress?: () => void;
+}
 
-  // Preference States
-  const [selectedTheme, setSelectedTheme] = useState("Light");
-  const [selectedLanguage, setSelectedLanguage] = useState("English");
-  const [notificationEnabled, setNotificationEnabled] = useState(true);
+const SettingRow: React.FC<SettingRowProps> = ({
+  title,
+  subtitle,
+  withSwitch = false,
+  switchValue = false,
+  onSwitch,
+  onPress,
+}) => {
+  return (
+    <TouchableOpacity
+      activeOpacity={onPress ? 0.7 : 1}
+      onPress={onPress}
+      style={styles.settingRow}
+    >
+      <View style={{ flex: 1 }}>
+        <Text style={styles.settingTitle}>{title}</Text>
+        {subtitle && <Text style={styles.settingSubtitle}>{subtitle}</Text>}
+      </View>
+      {withSwitch && (
+        <Switch
+          value={switchValue}
+          onValueChange={onSwitch}
+          trackColor={{ false: "#777", true: "#6EC6FF" }}
+          thumbColor={switchValue ? "#fff" : "#eee"}
+        />
+      )}
+    </TouchableOpacity>
+  );
+};
 
-  // DARK THEME STATE
-  const isDark = selectedTheme === "Dark";
+/* ----------------- Expandable Section Component ------------------- */
+interface ExpandableProps {
+  title: string;
+  children?: React.ReactNode;
+}
+
+const ExpandableSettingRow: React.FC<ExpandableProps> = ({ title, children }) => {
+  const [open, setOpen] = useState(false);
+
+  const toggle = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setOpen(!open);
+  };
 
   return (
-    <SafeAreaView
-      style={{
-        flex: 1,
-        backgroundColor: isDark ? "#000" : "#f2f4f7",
-      }}
-    >
-      <ScrollView contentContainerStyle={{ padding: 20 }}>
-        
-        {/* HEADER */}
-        <Text style={[styles.header, { color: isDark ? "#fff" : "#1e1e1e" }]}>
-          Settings
-        </Text>
-        <Text style={[styles.subHeader, { color: isDark ? "#bbb" : "#6c757d" }]}>
-          Customize your preferences
-        </Text>
+    <View style={styles.expandBox}>
+      <TouchableOpacity onPress={toggle} style={styles.expandHeader}>
+        <Text style={styles.expandTitle}>{title}</Text>
+        <Text style={styles.expandArrow}>{open ? "▲" : "▼"}</Text>
+      </TouchableOpacity>
+      {open && <View style={styles.subBox}>{children}</View>}
+    </View>
+  );
+};
 
-        {/* ACCOUNT SECTION */}
-        <View
-          style={[
-            styles.section,
-            {
-              backgroundColor: isDark ? "#111" : "#fff",
-              borderColor: isDark ? "#333" : "#e8eaed",
-            },
-          ]}
-        >
-          <TouchableOpacity
-            onPress={() =>
-              setOpenSection(openSection === "Account" ? "" : "Account")
-            }
-          >
-            <Text
-              style={[
-                styles.sectionTitle,
-                { color: isDark ? "#fff" : "#1e1e1e" },
-              ]}
-            >
-              Account
-            </Text>
-          </TouchableOpacity>
+/* ---------------------- Main Screen ---------------------- */
+export default function SettingsScreen() {
+  const [notifications, setNotifications] = useState(true);
+  const [vibration, setVibration] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
 
-          {openSection === "Account" && (
-            <>
-              {/* Profile Information */}
-              <TouchableOpacity
-                style={styles.option}
-                onPress={() =>
-                  setOpenSub(openSub === "profile" ? "" : "profile")
-                }
-              >
-                <Text
-                  style={[
-                    styles.optionText,
-                    { color: isDark ? "#ddd" : "#444" },
-                  ]}
-                >
-                  Profile Information
-                </Text>
-              </TouchableOpacity>
+  const [location, setLocation] = useState(false);
+  const [preciseLocation, setPreciseLocation] = useState(false);
 
-              {openSub === "profile" && (
-                <View
-                  style={[
-                    styles.expandBox,
-                    {
-                      backgroundColor: isDark ? "#222" : "#f9fafb",
-                      borderColor: isDark ? "#444" : "#e2e3e4",
-                    },
-                  ]}
-                >
-                  <TextInput
-                    placeholder="Full Name"
-                    placeholderTextColor="#999"
-                    style={[
-                      styles.input,
-                      {
-                        backgroundColor: isDark ? "#333" : "#fff",
-                        color: isDark ? "#fff" : "#000",
-                        borderColor: isDark ? "#555" : "#ddd",
-                      },
-                    ]}
-                  />
-                  <TextInput
-                    placeholder="Username"
-                    placeholderTextColor="#999"
-                    style={[
-                      styles.input,
-                      {
-                        backgroundColor: isDark ? "#333" : "#fff",
-                        color: isDark ? "#fff" : "#000",
-                        borderColor: isDark ? "#555" : "#ddd",
-                      },
-                    ]}
-                  />
-                </View>
-              )}
+  /* Account – Controlled Inputs */
+  const [userName, setUserName] = useState("User Name");
+  const [email, setEmail] = useState("user@example.com");
+  const [phone, setPhone] = useState("9876543210");
 
-              {/* Email & Phone */}
-              <TouchableOpacity
-                style={styles.option}
-                onPress={() =>
-                  setOpenSub(openSub === "email" ? "" : "email")
-                }
-              >
-                <Text
-                  style={[
-                    styles.optionText,
-                    { color: isDark ? "#ddd" : "#444" },
-                  ]}
-                >
-                  Email & Phone
-                </Text>
-              </TouchableOpacity>
+  const [newPass, setNewPass] = useState("");
+  const [confirmPass, setConfirmPass] = useState("");
 
-              {openSub === "email" && (
-                <View
-                  style={[
-                    styles.expandBox,
-                    {
-                      backgroundColor: isDark ? "#222" : "#f9fafb",
-                      borderColor: isDark ? "#444" : "#e2e3e4",
-                    },
-                  ]}
-                >
-                  <TextInput
-                    placeholder="Email"
-                    placeholderTextColor="#999"
-                    style={[
-                      styles.input,
-                      {
-                        backgroundColor: isDark ? "#333" : "#fff",
-                        color: isDark ? "#fff" : "#000",
-                        borderColor: isDark ? "#555" : "#ddd",
-                      },
-                    ]}
-                  />
-                  <TextInput
-                    placeholder="Phone Number"
-                    placeholderTextColor="#999"
-                    style={[
-                      styles.input,
-                      {
-                        backgroundColor: isDark ? "#333" : "#fff",
-                        color: isDark ? "#fff" : "#000",
-                        borderColor: isDark ? "#555" : "#ddd",
-                      },
-                    ]}
-                  />
-                </View>
-              )}
+  /* Animate layout changes on theme toggle */
+  useEffect(() => {
+    if (Platform.OS === "android") LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+  }, [darkMode]);
 
-              {/* Change Password */}
-              <TouchableOpacity
-                style={styles.option}
-                onPress={() =>
-                  setOpenSub(openSub === "password" ? "" : "password")
-                }
-              >
-                <Text
-                  style={[
-                    styles.optionText,
-                    { color: isDark ? "#ddd" : "#444" },
-                  ]}
-                >
-                  Change Password
-                </Text>
-              </TouchableOpacity>
+  /* Dynamic styles */
+  const bgColor = darkMode ? "#121212" : "#faf8f8ff";
+  const cardColor = darkMode ? "rgba(50,50,50,0.3)" : "rgba(22,21,21,0.08)";
+  const textColor = darkMode ? "#fff" : "#181616ff";
+  const subTextColor = darkMode ? "#ccc" : "#131212ff";
+  const inputBgColor = darkMode ? "#333" : "#fff";
+  const inputBorderColor = darkMode ? "#555" : "#ccc";
+  const placeholderColor = darkMode ? "#aaa" : "#888";
 
-              {openSub === "password" && (
-                <View
-                  style={[
-                    styles.expandBox,
-                    {
-                      backgroundColor: isDark ? "#222" : "#f9fafb",
-                      borderColor: isDark ? "#444" : "#e2e3e4",
-                    },
-                  ]}
-                >
-                  <TextInput
-                    placeholder="Enter New Password"
-                    placeholderTextColor="#999"
-                    secureTextEntry
-                    style={[
-                      styles.input,
-                      {
-                        backgroundColor: isDark ? "#333" : "#fff",
-                        color: isDark ? "#fff" : "#000",
-                        borderColor: isDark ? "#555" : "#ddd",
-                      },
-                    ]}
-                  />
-                  <TextInput
-                    placeholder="Confirm New Password"
-                    placeholderTextColor="#999"
-                    secureTextEntry
-                    style={[
-                      styles.input,
-                      {
-                        backgroundColor: isDark ? "#333" : "#fff",
-                        color: isDark ? "#fff" : "#000",
-                        borderColor: isDark ? "#555" : "#ddd",
-                      },
-                    ]}
-                  />
-                  <TouchableOpacity style={styles.saveBtn}>
-                    <Text style={styles.saveText}>Update Password</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </>
-          )}
+  const switchTrackColor = { false: "#555", true: "#6EC6FF" };
+  const switchThumbColor = darkMode ? "#fff" : "#fff";
+
+  return (
+    <SafeAreaView style={[styles.safe, { backgroundColor: bgColor }]}>
+      <Text style={[styles.header, { color: textColor }]}>Settings</Text>
+
+      <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+        {/* Profile Card */}
+        <View style={[styles.glassCard, { backgroundColor: cardColor }]}>
+          <Text style={[styles.profileName, { color: textColor }]}>{userName}</Text>
+          <Text style={[styles.profileEmail, { color: subTextColor }]}>{email}</Text>
         </View>
 
-        {/* PREFERENCES SECTION */}
-        <View
-          style={[
-            styles.section,
-            {
-              backgroundColor: isDark ? "#111" : "#fff",
-              borderColor: isDark ? "#333" : "#e8eaed",
-            },
-          ]}
-        >
-          <TouchableOpacity
-            onPress={() =>
-              setOpenSection(openSection === "Preferences" ? "" : "Preferences")
-            }
-          >
-            <Text
-              style={[
-                styles.sectionTitle,
-                { color: isDark ? "#fff" : "#1e1e1e" },
-              ]}
-            >
-              Preferences
-            </Text>
-          </TouchableOpacity>
+        {/* Preferences */}
+        <View style={[styles.glassCard, { backgroundColor: cardColor }]}>
+          <Text style={[styles.sectionTitle, { color: textColor }]}>Preferences</Text>
 
-          {openSection === "Preferences" && (
-            <>
-              {/* Notifications */}
-              <TouchableOpacity
-                style={styles.option}
-                onPress={() => setOpenSub(openSub === "notif" ? "" : "notif")}
-              >
-                <Text
-                  style={[
-                    styles.optionText,
-                    { color: isDark ? "#ddd" : "#444" },
-                  ]}
-                >
-                  Notifications
-                </Text>
-              </TouchableOpacity>
+          <ExpandableSettingRow title="Notifications">
+            <SettingRow
+              title="Enable Notifications"
+              withSwitch
+              switchValue={notifications}
+              onSwitch={setNotifications}
+            />
+            <SettingRow
+              title="Vibration Alerts"
+              withSwitch
+              switchValue={vibration}
+              onSwitch={setVibration}
+            />
+          </ExpandableSettingRow>
 
-              {openSub === "notif" && (
-                <View
-                  style={[
-                    styles.expandBox,
-                    {
-                      backgroundColor: isDark ? "#222" : "#f9fafb",
-                      borderColor: isDark ? "#444" : "#e2e3e4",
-                    },
-                  ]}
-                >
-                  <View style={styles.rowBetween}>
-                    <Text style={[styles.label, { color: isDark ? "#eee" : "#444" }]}>
-                      Enable Notifications
-                    </Text>
-                    <Switch
-                      value={notificationEnabled}
-                      onValueChange={setNotificationEnabled}
-                    />
-                  </View>
-                </View>
-              )}
+          {/* Appearance */}
+          <ExpandableSettingRow title="Appearance">
+            <SettingRow
+              title="Dark Mode"
+              withSwitch
+              switchValue={darkMode}
+              onSwitch={setDarkMode}
+            />
+          </ExpandableSettingRow>
 
-              {/* Theme */}
-              <TouchableOpacity
-                style={styles.option}
-                onPress={() => setOpenSub(openSub === "theme" ? "" : "theme")}
-              >
-                <Text
-                  style={[
-                    styles.optionText,
-                    { color: isDark ? "#ddd" : "#444" },
-                  ]}
-                >
-                  Theme
-                </Text>
-              </TouchableOpacity>
-
-              {openSub === "theme" && (
-                <View
-                  style={[
-                    styles.expandBox,
-                    {
-                      backgroundColor: isDark ? "#222" : "#f9fafb",
-                      borderColor: isDark ? "#444" : "#e2e3e4",
-                    },
-                  ]}
-                >
-                  {["Light", "Dark", "System Default"].map((item) => (
-                    <TouchableOpacity
-                      key={item}
-                      style={styles.radioOption}
-                      onPress={() => setSelectedTheme(item)}
-                    >
-                      <View
-                        style={[
-                          styles.radioCircle,
-                          {
-                            borderColor: isDark ? "#aaa" : "#999",
-                            backgroundColor:
-                              selectedTheme === item
-                                ? isDark
-                                  ? "#fff"
-                                  : "#000"
-                                : "transparent",
-                          },
-                        ]}
-                      />
-                      <Text
-                        style={[
-                          styles.label,
-                          { color: isDark ? "#eee" : "#444" },
-                        ]}
-                      >
-                        {item}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-
-              {/* Language */}
-              <TouchableOpacity
-                style={styles.option}
-                onPress={() => setOpenSub(openSub === "lang" ? "" : "lang")}
-              >
-                <Text
-                  style={[
-                    styles.optionText,
-                    { color: isDark ? "#ddd" : "#444" },
-                  ]}
-                >
-                  Language
-                </Text>
-              </TouchableOpacity>
-
-              {openSub === "lang" && (
-                <View
-                  style={[
-                    styles.expandBox,
-                    {
-                      backgroundColor: isDark ? "#222" : "#f9fafb",
-                      borderColor: isDark ? "#444" : "#e2e3e4",
-                    },
-                  ]}
-                >
-                  {["English", "Hindi", "Telugu", "Tamil"].map((item) => (
-                    <TouchableOpacity
-                      key={item}
-                      style={styles.radioOption}
-                      onPress={() => setSelectedLanguage(item)}
-                    >
-                      <View
-                        style={[
-                          styles.radioCircle,
-                          {
-                            borderColor: isDark ? "#aaa" : "#999",
-                            backgroundColor:
-                              selectedLanguage === item
-                                ? isDark
-                                  ? "#fff"
-                                  : "#000"
-                                : "transparent",
-                          },
-                        ]}
-                      />
-                      <Text
-                        style={[
-                          styles.label,
-                          { color: isDark ? "#eee" : "#444" },
-                        ]}
-                      >
-                        {item}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-            </>
-          )}
+          <ExpandableSettingRow title="Location Services">
+            <SettingRow
+              title="Location Access"
+              subtitle="Allow the app to access your location"
+              withSwitch
+              switchValue={location}
+              onSwitch={setLocation}
+            />
+            <SettingRow
+              title="Precise Location"
+              withSwitch
+              switchValue={preciseLocation}
+              onSwitch={setPreciseLocation}
+            />
+          </ExpandableSettingRow>
         </View>
 
-        {/* SUPPORT SECTION */}
-        <View
-          style={[
-            styles.section,
-            {
-              backgroundColor: isDark ? "#111" : "#fff",
-              borderColor: isDark ? "#333" : "#e8eaed",
-            },
-          ]}
-        >
-          <TouchableOpacity
-            onPress={() =>
-              setOpenSection(openSection === "Support" ? "" : "Support")
-            }
-          >
-            <Text
-              style={[
-                styles.sectionTitle,
-                { color: isDark ? "#fff" : "#1e1e1e" },
-              ]}
-            >
-              Support
-            </Text>
-          </TouchableOpacity>
+        {/* Account Section */}
+        <View style={[styles.glassCard, { backgroundColor: cardColor }]}>
+          <Text style={[styles.sectionTitle, { color: textColor }]}>Account</Text>
 
-          {openSection === "Support" && (
-            <>
-              {/* Help */}
-              <TouchableOpacity
-                style={styles.option}
-                onPress={() => setOpenSub(openSub === "help" ? "" : "help")}
-              >
-                <Text
-                  style={[
-                    styles.optionText,
-                    { color: isDark ? "#ddd" : "#444" },
-                  ]}
-                >
-                  Help & FAQs
-                </Text>
-              </TouchableOpacity>
+          {/* Edit Profile */}
+          <ExpandableSettingRow title="Edit Profile">
+            <View style={styles.inputGroup}>
+              <Text style={[styles.inputLabel, { color: textColor }]}>User Name</Text>
+              <TextInput
+                style={[
+                  styles.inputBox,
+                  { backgroundColor: inputBgColor, color: textColor, borderColor: inputBorderColor },
+                ]}
+                value={userName}
+                onChangeText={setUserName}
+                placeholder="Enter name"
+                placeholderTextColor={placeholderColor}
+              />
 
-              {openSub === "help" && (
-                <View
-                  style={[
-                    styles.expandBox,
-                    {
-                      backgroundColor: isDark ? "#222" : "#f9fafb",
-                      borderColor: isDark ? "#444" : "#e2e3e4",
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.infoText,
-                      { color: isDark ? "#eee" : "#555" },
-                    ]}
-                  >
-                    Find answers to commonly asked questions here.
-                  </Text>
-                </View>
-              )}
+              <Text style={[styles.inputLabel, { color: textColor }]}>Email ID</Text>
+              <TextInput
+                style={[
+                  styles.inputBox,
+                  { backgroundColor: inputBgColor, color: textColor, borderColor: inputBorderColor },
+                ]}
+                value={email}
+                onChangeText={setEmail}
+                placeholder="Enter email"
+                keyboardType="email-address"
+                placeholderTextColor={placeholderColor}
+              />
 
-              {/* Contact */}
-              <TouchableOpacity
-                style={styles.option}
-                onPress={() =>
-                  setOpenSub(openSub === "contact" ? "" : "contact")
-                }
-              >
-                <Text
-                  style={[
-                    styles.optionText,
-                    { color: isDark ? "#ddd" : "#444" },
-                  ]}
-                >
-                  Contact Support
-                </Text>
-              </TouchableOpacity>
+              <Text style={[styles.inputLabel, { color: textColor }]}>Phone Number</Text>
+              <TextInput
+                style={[
+                  styles.inputBox,
+                  { backgroundColor: inputBgColor, color: textColor, borderColor: inputBorderColor },
+                ]}
+                value={phone}
+                onChangeText={setPhone}
+                keyboardType="phone-pad"
+                placeholder="Enter phone number"
+                placeholderTextColor={placeholderColor}
+              />
+            </View>
+          </ExpandableSettingRow>
 
-              {openSub === "contact" && (
-                <View
-                  style={[
-                    styles.expandBox,
-                    {
-                      backgroundColor: isDark ? "#222" : "#f9fafb",
-                      borderColor: isDark ? "#444" : "#e2e3e4",
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.infoText,
-                      { color: isDark ? "#eee" : "#555" },
-                    ]}
-                  >
-                    Email: support@yourapp.com
-                  </Text>
-                  <Text
-                    style={[
-                      styles.infoText,
-                      { color: isDark ? "#eee" : "#555" },
-                    ]}
-                  >
-                    Phone: +91 99887 66755
-                  </Text>
-                </View>
-              )}
-            </>
-          )}
+          {/* Change Password */}
+          <ExpandableSettingRow title="Change Password">
+            <View style={styles.inputGroup}>
+              <Text style={[styles.inputLabel, { color: textColor }]}>New Password</Text>
+              <TextInput
+                style={[
+                  styles.inputBox,
+                  { backgroundColor: inputBgColor, color: textColor, borderColor: inputBorderColor },
+                ]}
+                value={newPass}
+                onChangeText={setNewPass}
+                secureTextEntry
+                placeholder="Enter new password"
+                placeholderTextColor={placeholderColor}
+              />
+              
+              <Text style={[styles.inputLabel, { color: textColor }]}>Confirm Password</Text>
+              <TextInput
+                style={[
+                  styles.inputBox,
+                  { backgroundColor: inputBgColor, color: textColor, borderColor: inputBorderColor },
+                ]}
+                value={confirmPass}
+                onChangeText={setConfirmPass}
+                secureTextEntry
+                placeholder="Confirm password"
+                placeholderTextColor={placeholderColor}
+              />
+            </View>
+          </ExpandableSettingRow>
+
         </View>
 
-        {/* LOGOUT */}
-        <TouchableOpacity style={styles.logoutButton}>
-          <Text style={styles.logoutText}>Logout</Text>
-        </TouchableOpacity>
-
-        <View style={{ height: 40 }} />
+        {/* Support */}
+        <View style={[styles.glassCard, { backgroundColor: cardColor }]}>
+          <Text style={[styles.sectionTitle, { color: textColor }]}>Support</Text>
+          <SettingRow title="Help & Support" onPress={() => {}} />
+          <SettingRow title="About App" onPress={() => {}} />
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
+/* ---------------------- Styles ---------------------- */
 const styles = StyleSheet.create({
-  header: {
-    fontSize: 26,
-    fontWeight: "900",
-    marginBottom: 6,
-  },
-  subHeader: {
-    marginBottom: 16,
-  },
-
-  section: {
-    padding: 20,
-    borderRadius: 18,
-    marginBottom: 24,
+  safe: { flex: 1 },
+  header: { fontSize: 26, fontWeight: "700", paddingHorizontal: 20, paddingBottom: 12 },
+  glassCard: {
+    width: "90%",
+    padding: 18,
+    borderRadius: 20,
+    marginBottom: 20,
+    alignSelf: "center",
+    borderColor: "rgba(255, 255, 255, 0.2)",
     borderWidth: 1,
   },
-
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    marginBottom: 12,
-  },
-
-  option: {
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e8eaed",
-  },
-
-  optionText: {
-    fontSize: 16,
-    fontWeight: "500",
-  },
-
-  expandBox: {
-    borderRadius: 12,
-    padding: 15,
-    marginTop: 10,
-    marginBottom: 10,
-    borderWidth: 1,
-  },
-
-  input: {
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 12,
-  },
-
-  rowBetween: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-
-  radioOption: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-
-  radioCircle: {
-    height: 18,
-    width: 18,
-    borderRadius: 10,
-    borderWidth: 2,
-    marginRight: 10,
-  },
-
-  label: {
-    fontSize: 15,
-  },
-
-  infoText: {
-    fontSize: 15,
-    marginBottom: 6,
-  },
-
-  saveBtn: {
-    backgroundColor: "#007bff",
-    paddingVertical: 12,
-    borderRadius: 10,
-    marginTop: 5,
-  },
-
-  saveText: {
-    color: "#fff",
-    textAlign: "center",
-    fontWeight: "700",
-  },
-
-  logoutButton: {
-    backgroundColor: "#d9534f",
-    paddingVertical: 14,
-    borderRadius: 14,
-    marginTop: 10,
-    marginHorizontal: 40,
-    alignItems: "center",
-  },
-
-  logoutText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "700",
-  },
+  profileName: { fontSize: 20, fontWeight: "700" },
+  profileEmail: { marginTop: 4, fontSize: 14 },
+  sectionTitle: { fontSize: 16, fontWeight: "700", marginBottom: 10 },
+  settingRow: { width: "100%", flexDirection: "row", alignItems: "center", paddingVertical: 12 },
+  settingTitle: { fontSize: 15, fontWeight: "600" },
+  settingSubtitle: { fontSize: 12, marginTop: 2 },
+  expandBox: { marginBottom: 8 },
+  expandHeader: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 10 },
+  expandTitle: { fontSize: 15, fontWeight: "600" },
+  expandArrow: { fontSize: 16 },
+  subBox: { paddingLeft: 16, paddingTop: 6, borderLeftWidth: 2, borderLeftColor: "rgba(255, 255, 255, 0.3)" },
+  inputGroup: { paddingVertical: 6, gap: 10 },
+  inputLabel: { fontSize: 13, fontWeight: "600" },
+  inputBox: { width: "95%", borderWidth: 1, borderRadius: 10, padding: 10, fontSize: 14 },
 });
