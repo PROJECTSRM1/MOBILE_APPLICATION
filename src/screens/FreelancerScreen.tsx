@@ -474,8 +474,10 @@
 //     fontWeight: "600",
 //   },
 // });
-// src/screens/FreelancerScreen.tsx
 
+
+
+// src/screens/FreelancerScreen.tsx
 import React from "react";
 import {
   View,
@@ -552,6 +554,7 @@ const FreelancerScreen: React.FC = () => {
           <TouchableOpacity
             style={[styles.headerBtn, styles.headerBtnPrimary]}
             activeOpacity={0.8}
+            onPress={() => navigation.replace("Login")}
           >
             <Text style={[styles.headerBtnText, styles.headerBtnPrimaryText]}>
               Login / Register
@@ -578,8 +581,10 @@ const FreelancerScreen: React.FC = () => {
             </Text>
 
             <View style={styles.heroButtonsRow}>
-              <TouchableOpacity style={styles.heroBtnWhite} activeOpacity={0.9}
-              onPress={()=>navigation.navigate('ServiceRequests')}
+              <TouchableOpacity
+                style={styles.heroBtnWhite}
+                activeOpacity={0.9}
+                onPress={() => navigation.navigate("ServiceRequests")}
               >
                 <Text style={styles.heroBtnWhiteText}>View Live Requests</Text>
               </TouchableOpacity>
@@ -587,6 +592,7 @@ const FreelancerScreen: React.FC = () => {
               <TouchableOpacity
                 style={[styles.heroBtnWhite, styles.heroBtnWhiteRight]}
                 activeOpacity={0.9}
+                onPress={() => navigation.navigate("Login")}
               >
                 <Text style={styles.heroBtnWhiteText}>Become a Freelancer</Text>
               </TouchableOpacity>
@@ -647,8 +653,9 @@ const FreelancerScreen: React.FC = () => {
               </Text>
             </View>
 
-            <TouchableOpacity style={styles.viewAllBtn}
-            onPress={()=>navigation.navigate('ServiceRequests')}
+            <TouchableOpacity
+              style={styles.viewAllBtn}
+              onPress={() => navigation.navigate("ServiceRequests")}
             >
               <Text style={styles.viewAllText}>View All</Text>
             </TouchableOpacity>
@@ -673,12 +680,83 @@ const FreelancerScreen: React.FC = () => {
 
               <View style={styles.requestFooter}>
                 <Text style={styles.priceText}>{req.price}</Text>
-                <TouchableOpacity style={styles.acceptBtn}>
+                <TouchableOpacity style={styles.acceptBtn}
+                onPress={() => navigation.navigate("Login")}
+                >
                   <Text style={styles.acceptText}>Accept</Text>
                 </TouchableOpacity>
               </View>
             </View>
           ))}
+        </View>
+
+        {/*  NEW FOOTER (does not touch existing design) */}
+        <View style={styles.footer}>
+          <View style={styles.footerRow}>
+            {/* About Us */}
+            <View style={[styles.footerCol, styles.footerColWide]}>
+              <Text style={styles.footerHeading}>About Us</Text>
+              <Text style={styles.footerText}>
+                Your trusted partner for all home and property-related services.
+                Quality, reliability, and customer satisfaction guaranteed.
+              </Text>
+            </View>
+
+            {/* Services */}
+            <View style={styles.footerCol}>
+              <Text style={styles.footerHeading}>Services</Text>
+              <Text style={styles.footerLink}>Cleaning Service</Text>
+              <Text style={styles.footerLink}>Packers &amp; Movers</Text>
+              <Text style={styles.footerLink}>Home Services</Text>
+              <Text style={styles.footerLink}>Rentals</Text>
+              <Text style={styles.footerLink}>Commercial Plots</Text>
+              <Text style={styles.footerLink}>Construction Materials</Text>
+            </View>
+
+            {/* Quick Links */}
+            <View style={styles.footerCol}>
+              <Text style={styles.footerHeading}>Quick Links</Text>
+              <Text style={styles.footerLink}>Home</Text>
+              <Text style={styles.footerLink}>About</Text>
+              <Text style={styles.footerLink}>Contact</Text>
+              <Text style={styles.footerLink}>Careers</Text>
+            </View>
+
+            {/* Contact Info */}
+            <View style={[styles.footerCol, styles.footerColWide]}>
+              <Text style={styles.footerHeading}>Contact Info</Text>
+
+              <View style={styles.footerContactRow}>
+                <Text style={styles.footerContactIcon}>📞</Text>
+                <Text style={styles.footerContactText}>+1 (555) 123-4567</Text>
+              </View>
+
+              <View style={styles.footerContactRow}>
+                <Text style={styles.footerContactIcon}>✉️</Text>
+                <Text style={styles.footerContactText}>
+                  info@homeservices.com
+                </Text>
+              </View>
+
+              <View style={styles.footerContactRow}>
+                <Text style={styles.footerContactIcon}>📍</Text>
+                <Text style={styles.footerContactText}>
+                  123 Service Street, City, State
+                </Text>
+              </View>
+
+              <View style={styles.footerSocialRow}>
+                <Text style={styles.footerSocialIcon}>𝕗</Text>
+                <Text style={styles.footerSocialIcon}>𝕏</Text>
+                <Text style={styles.footerSocialIcon}>📸</Text>
+                <Text style={styles.footerSocialIcon}>in</Text>
+              </View>
+            </View>
+          </View>
+
+          <Text style={styles.footerCopy}>
+            © 2025 Home Services. All rights reserved.
+          </Text>
         </View>
       </ScrollView>
     </>
@@ -941,5 +1019,70 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 13,
     fontWeight: "600",
+  },
+
+  // FOOTER
+  footer: {
+    backgroundColor: "#020617",
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 16,
+  },
+  footerRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  footerCol: {
+    width: "48%",
+    marginBottom: 16,
+  },
+  footerColWide: {
+    // allows text blocks to wrap nicely
+  },
+  footerHeading: {
+    color: "#F9FAFB",
+    fontWeight: "700",
+    fontSize: 14,
+    marginBottom: 8,
+  },
+  footerText: {
+    color: "#D1D5DB",
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  footerLink: {
+    color: "#E5E7EB",
+    fontSize: 13,
+    marginBottom: 4,
+  },
+  footerContactRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  footerContactIcon: {
+    marginRight: 6,
+    fontSize: 13,
+  },
+  footerContactText: {
+    color: "#E5E7EB",
+    fontSize: 12,
+    flexShrink: 1,
+  },
+  footerSocialRow: {
+    flexDirection: "row",
+    marginTop: 8,
+  },
+  footerSocialIcon: {
+    color: "#E5E7EB",
+    fontSize: 14,
+    marginRight: 10,
+  },
+  footerCopy: {
+    color: "#6B7280",
+    fontSize: 11,
+    textAlign: "left",
   },
 });
