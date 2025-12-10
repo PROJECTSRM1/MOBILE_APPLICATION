@@ -56,7 +56,6 @@ export default function Login({ navigation, route }: Props) {
     } else if (userRole === 'user') {
       navigation.replace('UserDashboard');
     } else {
-      // fallback (shouldn't happen)
       navigation.replace('CustomerDashboard');
     }
   };
@@ -72,8 +71,7 @@ export default function Login({ navigation, route }: Props) {
           <View style={styles.wrap}>
             <Text style={styles.title}>Hey,{'\n'}Welcome{'\n'}Back</Text>
 
-            {/* Role selector */}
-            <View style={{ marginBottom: 12 }}>
+             <View style={{ marginBottom: 12 }}>
               <Text style={{ color: '#566', marginBottom: 8 }}>I am a</Text>
               <View style={styles.roleSelectRow}>
                 <TouchableOpacity

@@ -31,7 +31,6 @@ export default function Onboarding(): React.ReactElement {
   const navigation = useNavigation<any>();
   const scrollRef = useRef<ScrollView | null>(null);
   const [index, setIndex] = useState(0);
-  const [showSignupOptions, setShowSignupOptions] = useState(false); // toggles Customer/User signup buttons
   const scrollX = useRef(new Animated.Value(0)).current;
 
   const onScroll = (e: any) => {
@@ -41,8 +40,6 @@ export default function Onboarding(): React.ReactElement {
   const onScrollEnd = (e: any) => {
     const page = Math.round(e.nativeEvent.contentOffset.x / SCREEN_W);
     setIndex(page);
-    // reset signup options when user manually scrolls away
-    if (page !== 1) setShowSignupOptions(false);
   };
 
   // move to next page (used by the Next button on first page)
@@ -50,21 +47,17 @@ export default function Onboarding(): React.ReactElement {
     scrollRef.current?.scrollTo({ x: i * SCREEN_W, animated: true });
     setIndex(i);
     scrollX.setValue(i * SCREEN_W);
-    // when landing on page 1 show the login/signup area (but not the extra signup options)
-    if (i === 1) {
-      setShowSignupOptions(false);
-    }
   };
 
   const next = () => {
     if (index < PAGES.length - 1) {
       goToPage(index + 1);
     } else {
-      navigation.replace('Landing');
+      navigation.replace('Freelancer'); 
     }
   };
 
-  // Page views (no JSX to avoid tsx issues)
+  // Page views
   const pageViews = PAGES.map((p, i) => {
     const inputRange = [(i - 1) * SCREEN_W, i * SCREEN_W, (i + 1) * SCREEN_W];
 
@@ -101,9 +94,10 @@ export default function Onboarding(): React.ReactElement {
     })
   );
 
+  // Bottom area: page 0 -> Next, page 1 -> Get started
   const bottomArea = (() => {
     if (index === 0) {
-      // Page 1: Next only (no Skip)
+      // Page 1: Next only
       return React.createElement(
         View,
         { style: styles.buttonsCenter },
@@ -113,64 +107,22 @@ export default function Onboarding(): React.ReactElement {
           React.createElement(Text, { style: styles.nextPrimaryText }, 'Next')
         )
       );
-    } else {
-      if (showSignupOptions) {
-        // Show Customer Signup + User Signup (image 1)
-        return React.createElement(
-          View,
-          { style: styles.signupOptionsWrap },
-          React.createElement(
-            TouchableOpacity as any,
-            {
-              onPress: () => navigation.navigate('Signup', { role: 'customer' }),
-              style: styles.largeWhiteBtn,
-              activeOpacity: 0.9,
-            },
-            React.createElement(Text, { style: styles.largeWhiteText }, 'Customer Signup')
-          ),
-          React.createElement(
-            TouchableOpacity as any,
-            {
-              onPress: () => navigation.navigate('Signup', { role: 'user' }),
-              style: styles.largeBlackBtn,
-              activeOpacity: 0.9,
-            },
-            React.createElement(Text, { style: styles.largeBlackText }, 'User Signup')
-          ),
-          React.createElement(
-            TouchableOpacity as any,
-            { onPress: () => setShowSignupOptions(false), style: styles.backLink, activeOpacity: 0.8 },
-            React.createElement(Text, { style: styles.backLinkText }, '← Back')
-          )
-        );
-      }
-
-      // Default: show Login + Sign up (image 2)
-      return React.createElement(
-        View,
-        { style: styles.loginSignupRow },
-        React.createElement(
-          TouchableOpacity as any,
-          {
-            onPress: () => navigation.navigate('Login'),
-            style: styles.loginBtn,
-            activeOpacity: 0.9,
-            accessibilityRole: 'button',
-          },
-          React.createElement(Text, { style: styles.loginText }, 'Login')
-        ),
-        React.createElement(
-          TouchableOpacity as any,
-          {
-            onPress: () => setShowSignupOptions(true),
-            style: styles.signupBtn,
-            activeOpacity: 0.9,
-            accessibilityRole: 'button',
-          },
-          React.createElement(Text, { style: styles.signupText }, 'Sign-up')
-        )
-      );
     }
+
+    // Page 2: Get started -> FreelancerScreen
+    return React.createElement(
+      View,
+      { style: styles.buttonsCenter },
+      React.createElement(
+        TouchableOpacity as any,
+        {
+          onPress: () => navigation.replace('Freelancer'),
+          style: styles.getStartedBtn,
+          activeOpacity: 0.92,
+        },
+        React.createElement(Text, { style: styles.getStartedText }, 'Get started')
+      )
+    );
   })();
 
   // The scroll view element
@@ -191,7 +143,11 @@ export default function Onboarding(): React.ReactElement {
   return React.createElement(
     View,
     { style: styles.root },
-    React.createElement(StatusBar, { translucent: true, barStyle: 'light-content', backgroundColor: 'transparent' }),
+    React.createElement(StatusBar, {
+      translucent: true,
+      barStyle: 'light-content',
+      backgroundColor: 'transparent',
+    }),
     React.createElement(View, { style: styles.contentCenter }, scrollView),
     React.createElement(View, { style: styles.dotsWrap }, ...dots),
     bottomArea
@@ -257,7 +213,7 @@ const styles = StyleSheet.create({
     borderRadius: 9,
   },
 
-  // Next button (for page 0)
+  // Centered button area (Next / Get started)
   buttonsCenter: {
     position: 'absolute',
     bottom: 80,
@@ -276,60 +232,15 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
 
-  // Login / Sign-up row (image 2)
-  loginSignupRow: {
-    position: 'absolute',
-    bottom: 64,
-    left: 28,
-    right: 28,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  loginBtn: {
-    flex: 1,
-    backgroundColor: '#000',
+  getStartedBtn: {
+    backgroundColor: '#0ef0c7',
+    paddingHorizontal: 40,
     paddingVertical: 14,
-    borderRadius: 30,
-    marginRight: 10,
-    alignItems: 'center',
-  },
-  loginText: { color: '#fff', fontWeight: '800', fontSize: 16 },
-  signupBtn: {
-    flex: 1,
-    backgroundColor: '#fff',
-    paddingVertical: 14,
-    borderRadius: 30,
-    marginLeft: 10,
-    alignItems: 'center',
-  },
-  signupText: { color: '#000', fontWeight: '800', fontSize: 16 },
-
-  // Signup options (image 1)
-  signupOptionsWrap: {
-    position: 'absolute',
-    bottom: 40,
-    left: 22,
-    right: 22,
-    alignItems: 'center',
-  },
-  largeWhiteBtn: {
-    width: '100%',
-    backgroundColor: '#fff',
-    paddingVertical: 16,
     borderRadius: 999,
-    alignItems: 'center',
-    marginBottom: 12,
   },
-  largeWhiteText: { fontWeight: '800', color: '#000', fontSize: 16 },
-  largeBlackBtn: {
-    width: '100%',
-    backgroundColor: '#000',
-    paddingVertical: 16,
-    borderRadius: 999,
-    alignItems: 'center',
-    marginBottom: 12,
+  getStartedText: {
+    color: '#000',
+    fontWeight: '800',
+    fontSize: 16,
   },
-  largeBlackText: { fontWeight: '800', color: '#fff', fontSize: 16 },
-  backLink: { marginTop: 6 },
-  backLinkText: { color: 'rgba(255,255,255,0.9)', textDecorationLine: 'underline' },
 });

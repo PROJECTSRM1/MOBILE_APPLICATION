@@ -14,7 +14,9 @@ import Settings from "./src/screens/Settings";
 import Transport from "./src/screens/Transport";
 import Construction from "./src/screens/Construction";
 import Rentals from "./src/screens/Rentals";
-import Freelancer from "./src/screens/Freelancer";
+import FreelancerScreen from "./src/screens/FreelancerScreen";
+import ServiceRequestsScreen from "./src/screens/ServiceRequestsScreen";
+
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -32,6 +34,7 @@ export type RootStackParamList = {
   Rentals: undefined;
   Construction: undefined;
   Freelancer: undefined;
+  ServiceRequests: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -54,7 +57,9 @@ export default function App(): React.ReactElement {
         {/* <Stack.Screen name="Packers" component={Packers} /> */}
         <Stack.Screen name="Settings" component={Settings} />
         <Stack.Screen name="Rentals" component={Rentals} />
-        <Stack.Screen name="Freelancer" component={Freelancer} />
+        <Stack.Screen name="Freelancer" component={FreelancerScreen} />
+        <Stack.Screen name="ServiceRequests" component={ServiceRequestsScreen} />
+
 
       </Stack.Navigator>
     </NavigationContainer>

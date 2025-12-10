@@ -51,6 +51,7 @@ const MENU_ITEMS = [
   { id: 'freelancer', label: 'Freelancer', route: 'Freelancer' },
   {id: 'Education', label: 'Education Services', route: 'Education' },
   {id: 'Products', label: 'Swachify Products', route: 'Products' },
+  {id: 'Settings', label: 'Settings', route: 'Settings' },
 ];
 
 export default function Landing(): React.ReactElement {
@@ -307,22 +308,34 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#fff' },
   scroll: { alignItems: 'center', backgroundColor: '#fff' },
 
-  headerContainer: { width: '100%', backgroundColor: '#fff', zIndex: 50 },
+headerContainer: {
+  backgroundColor: "transparent",
+  paddingHorizontal: 18,
+  paddingTop: 12 + (Platform.OS === "android" ? StatusBar.currentHeight ?? 0 : 0),
+  paddingBottom: 8,
+},
+
   headerInner: {
-    height: 64,
-    paddingTop: Platform.OS === 'android' ? 18 : 22,
-    paddingHorizontal: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
-  hamburgerBtn: { width: 44, height: 44, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  hamburgerIcon: { fontSize: 22, color: '#111' },
+  hamburgerBtn: {
+    width: 42,
+    height: 42,
+    alignItems: "center",
+    justifyContent: "center",
+  },  hamburgerIcon: { fontSize: 20, color: "#083" },
   brandWrap: { flex: 1, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' },
   logo: { width: 36, height: 36, marginRight: 8 },
-  brand: { fontSize: 16, fontWeight: '700', color: '#111' },
-  headerBtn: { backgroundColor: '#d93025', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
-  headerBtnText: { color: '#fff', fontWeight: '700' },
+  brand: { fontWeight: "900", fontSize: 16, color: "#083" },
+    headerBtn: {
+    backgroundColor: "#0e8b7b",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  headerBtnText: { color: "#fff", fontWeight: "800" },
 
   overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: '#000', zIndex: 55 },
 
