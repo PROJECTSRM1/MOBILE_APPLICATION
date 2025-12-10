@@ -1,198 +1,362 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
-import { Image } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  Dimensions,
+  ScrollView,
+  Platform,
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+// The correct import for NativeStackNavigationProp should come from the library you use for your stack navigator (e.g., '@react-navigation/native-stack')
+import { NativeStackNavigationProp } from "@react-navigation/native-stack"; 
 
-interface LoginProps {
-  onLoginDone: () => void;
-  onGoToSignup: () => void;
-  onBack: () => void;
-}
+const { width } = Dimensions.get("window");
 
-export default function Login({ onLoginDone, onGoToSignup, onBack }: LoginProps) {
+// Define the Root Stack for type safety
+type RootStackParamList = {
+  Login: undefined;
+  Signup: undefined;
+  Freelancer: undefined; // Target screen after successful login
+  ServiceRequests: undefined; // Assuming this is part of your stack
+};
+
+// Define the navigation prop for this specific screen
+type LoginScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, "Login">;
+
+export default function Login() {
+  const navigation = useNavigation<LoginScreenNavigationProp>();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPass, setShowPass] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+
+  const handleLogin = () => {
+    // *** LOGIC CHECK: Correctly uses navigation.replace() to prevent going back to login screen ***
+    // This function will contain your actual authentication logic (API call, etc.)
+    
+    // For now, on button press, navigate to Freelancer screen
+    navigation.replace("Freelancer");
+  };
 
   return (
-    <View style={styles.container}>
+    <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+    >
+      <View style={styles.container}>
+        {/* Back Button */}
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          {/* Using text placeholder instead of icon */}
+          <Text style={styles.backArrow}>&lt;</Text>
+          <Text style={styles.backText}>Back</Text>
+        </TouchableOpacity>
 
-      {/* Back Button */}
-      <TouchableOpacity style={styles.backBtn} onPress={onBack}>
-        <Text style={styles.backIcon}>←</Text>
-      </TouchableOpacity>
+        {/* Main Card Container */}
+        <View style={styles.card}>
+          {/* Left Panel (Premium Gradient Background Placeholder) */}
+          <View style={styles.leftPanel}>
+            <Text style={styles.logoTitle}>Swachify Freelance</Text>
+            <Text style={styles.panelSubtitle}>
+              Empowering freelancers with real-time job opportunities nearby.
+            </Text>
+            
+            <View style={styles.featureList}>
+                {/* Replaced Icons with Text/Bullet Points */}
+                <Text style={styles.featureItem}>• Instant job requests</Text>
+                <Text style={styles.featureItem}>• Manage your projects</Text>
+                <Text style={styles.featureItem}>• Track your earnings</Text>
+                <Text style={styles.featureItem}>• Build professional reputation</Text>
+            </View>
+          </View>
 
-      {/* Heading */}
-      <Text style={styles.header}>Hey,{"\n"}Welcome Back</Text>
+          {/* Right Panel (Login Form) */}
+          <View style={styles.rightPanel}>
+            <Text style={styles.welcomeTitle}>Welcome Back</Text>
+            <Text style={styles.accessText}>
+              Login to access your freelancer dashboard
+            </Text>
 
-      {/* Email Input */}
-      <View style={styles.inputBox}>
-        <Text style={styles.icon}>📧</Text>
-        <TextInput
-          placeholder="Enter your email"
-          placeholderTextColor="#B5B5B5"
-          style={styles.input}
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-        />
+            {/* Email Input */}
+            <Text style={styles.label}>Email Address</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="you@example.com"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              placeholderTextColor="#999"
+            />
+
+            {/* Password Input */}
+            <Text style={styles.label}>Password</Text>
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="********"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                placeholderTextColor="#999"
+              />
+              {/* Replaced MaterialCommunityIcons with simple Text */}
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.eyeIcon}
+              >
+                <Text style={styles.passwordToggleText}>{showPassword ? 'Hide' : 'Show'}</Text>
+              </TouchableOpacity>
+            </View>
+            
+            {/* Remember Me and Forgot Password */}
+            <View style={styles.optionsRow}>
+                {/* Custom Checkbox implementation */}
+                <TouchableOpacity style={styles.checkboxContainer} onPress={() => setRememberMe(!rememberMe)}>
+                    <View style={[styles.customCheckbox, rememberMe && styles.customCheckboxActive]}>
+                        {rememberMe && <Text style={styles.checkboxCheck}>✓</Text>}
+                    </View>
+                    <Text style={styles.rememberMeText}>Remember me</Text> 
+                </TouchableOpacity>
+                <TouchableOpacity>
+                    <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+                </TouchableOpacity>
+            </View>
+
+            {/* Login Button */}
+            <TouchableOpacity 
+              style={styles.loginButton}
+              onPress={handleLogin}
+            >
+              <Text style={styles.loginButtonText}>Login</Text>
+            </TouchableOpacity>
+
+            {/* Signup Link */}
+            <View style={styles.signupTextContainer}>
+              <Text style={styles.dontHaveAccountText}>Don't have an account? </Text>
+              <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
+                <Text style={styles.signupLink}>Sign up free</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       </View>
-
-      {/* Password Input */}
-      <View style={styles.inputBox}>
-        <Text style={styles.icon}>🔒</Text>
-        <TextInput
-          placeholder="Enter your password"
-          placeholderTextColor="#B5B5B5"
-          secureTextEntry={!showPass}
-          style={styles.input}
-          value={password}
-          onChangeText={setPassword}
-        />
-        {/* <TouchableOpacity onPress={() => setShowPass(!showPass)}>
-          <Text style={styles.eye}>{showPass ? "🙈" : "👁️"}</Text>
-        </TouchableOpacity> */}
-      </View>
-
-      {/* Forgot Password */}
-      <TouchableOpacity style={styles.forgot}>
-        <Text style={styles.forgotText}>Forgot Password?</Text>
-      </TouchableOpacity>
-
-      {/* Login Button */}
-      <TouchableOpacity style={styles.loginBtn} onPress={onLoginDone}>
-        <Text style={styles.loginText}>Login</Text>
-      </TouchableOpacity>
-
-      {/* Divider */}
-      <Text style={styles.or}>or continue with</Text>
-
-      {/* Google Button */}
-     <TouchableOpacity style={styles.googleBtn}>
-  <Image
-    source={require("../assets/google.png")}  // <-- your added image
-    style={styles.googleImg}
-  />
-  <Text style={styles.googleText}>Google</Text>
-</TouchableOpacity>
-
-      {/* Bottom Link */}
-      <Text style={styles.bottomText}>
-        Don't have an account?{" "}
-        <Text style={styles.signupLink} onPress={onGoToSignup}>
-          Sign up
-        </Text>
-      </Text>
-
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    padding: 30, 
-    backgroundColor: "#ccc" 
+  scrollContent: {
+    flexGrow: 1,
   },
-
-  backBtn: { marginBottom: 25 },
-  backIcon: { fontSize: 24, color: "#222" },
-
-  header: { 
-    fontSize: 30, 
-    fontWeight: "700", 
-    marginBottom: 35, 
-    color: "#000" 
-  },
-
-  inputBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#E3E3E3",
-    borderRadius: 28,
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    marginBottom: 18,
-    backgroundColor: "#FAFAFA",
-  },
-
-  icon: { 
-    fontSize: 18, 
-    marginRight: 10, 
-    color: "#A8A8A8" 
-  },
-googleImg: {
-  width: 22,
-  height: 22,
-  marginRight: 10,
-},
-
-  input: { 
-    flex: 1, 
-    fontSize: 15, 
-    color: "#000" 
-  },
-
-  eye: { 
-    fontSize: 20, 
-    marginLeft: 10, 
-    color: "#A8A8A8" 
-  },
-
-  forgot: { 
-    alignSelf: "flex-end", 
-    marginBottom: 25 
-  },
-
-  forgotText: { 
-    color: "#555", 
-    fontSize: 14 
-  },
-
-  loginBtn: {
-    backgroundColor: "#222",
-    paddingVertical: 16,
-    borderRadius: 28,
-    alignItems: "center",
-  },
-
-  loginText: { 
-    color: "#fff", 
-    fontSize: 18, 
-    fontWeight: "700" 
-  },
-
-  or: { 
-    textAlign: "center", 
-    marginVertical: 22, 
-    color: "#666", 
-    fontSize: 15 
-  },
-
-  googleBtn: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 28,
-    paddingVertical: 14,
-    flexDirection: "row",
+  container: {
+    flex: 1,
+    backgroundColor: "#f0f2f5", 
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 25,
+    paddingVertical: 50,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 30,
+    left: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    zIndex: 10,
+  },
+  // Styling for the text-based back arrow
+  backArrow: { 
+    fontSize: 20, 
+    color: '#000', 
+    marginRight: 5,
+    fontWeight: 'bold',
+  },
+  backText: {
+    fontSize: 14,
+    color: '#000',
+    marginLeft: 5,
+  },
+  card: {
+    flexDirection: width > 768 ? "row" : "column", 
+    width: width > 768 ? 900 : width * 0.9, 
+    minHeight: width > 768 ? 550 : 'auto',
     backgroundColor: "#fff",
+    borderRadius: 20,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 5,
+    marginTop: 50,
+  },
+  
+  // --- Left Panel (Gradient Side) ---
+  leftPanel: {
+    width: width > 768 ? "40%" : "100%",
+    padding: 40,
+    justifyContent: "center",
+    backgroundColor: "#4c26a7", // Placeholder for the gradient background
+  },
+  logoTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#fff",
+    marginBottom: 20,
+  },
+  panelSubtitle: {
+    fontSize: 14,
+    color: "#e0e0e0",
+    marginBottom: 30,
+  },
+  featureList: {
+      gap: 15,
+      marginTop: 20,
+  },
+  featureItem: {
+    // Styling adjusted for text bullet point
+    fontSize: 15,
+    color: "#fff",
+    fontWeight: '600',
   },
 
-  googleIcon: { fontSize: 20, marginRight: 10 },
-  googleText: { fontSize: 16, color: "#000" },
-
-  bottomText: { 
-    textAlign: "center", 
-    fontSize: 15, 
-    color: "#444" 
+  // --- Right Panel (Form Side) ---
+  rightPanel: {
+    width: width > 768 ? "60%" : "100%",
+    padding: 40,
+    paddingTop: 50,
   },
-
-  signupLink: { 
-    fontWeight: "700", 
-    color: "#000" 
+  welcomeTitle: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#000",
+    marginBottom: 5,
+  },
+  accessText: {
+    fontSize: 16,
+    color: "#555",
+    marginBottom: 30,
+  },
+  label: {
+    fontSize: 14,
+    color: "#333",
+    fontWeight: '500',
+    marginBottom: 8,
+    marginTop: 15,
+  },
+  input: {
+    height: 48,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    fontSize: 15,
+    backgroundColor: '#fff',
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 48,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 8,
+    backgroundColor: '#fff',
+  },
+  passwordInput: {
+    flex: 1,
+    paddingHorizontal: 15,
+    fontSize: 15,
+  },
+  eyeIcon: {
+    padding: 10,
+  },
+  // Text for the password toggle
+  passwordToggleText: {
+    fontSize: 14,
+    color: '#888',
+    fontWeight: '600',
+  },
+  optionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 15,
+    marginBottom: 25,
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  // Custom Checkbox styles
+  customCheckbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: '#888',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  customCheckboxActive: {
+    backgroundColor: '#000',
+    borderColor: '#000',
+  },
+  checkboxCheck: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  rememberMeText: {
+    fontSize: 13,
+    color: '#555',
+    marginLeft: 10,
+  },
+  forgotPasswordText: {
+    fontSize: 13,
+    color: '#007bff', 
+    fontWeight: '500',
+  },
+  loginButton: {
+    backgroundColor: "#000", 
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    marginBottom: 20,
+    ...Platform.select({ 
+        ios: {
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.2,
+            shadowRadius: 5,
+        },
+        android: {
+            elevation: 8,
+        },
+    }),
+  },
+  loginButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  signupTextContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 10,
+  },
+  dontHaveAccountText: {
+    fontSize: 14,
+    color: "#555",
+  },
+  signupLink: {
+    fontSize: 14,
+    color: "#007bff",
+    fontWeight: "600",
   },
 });
