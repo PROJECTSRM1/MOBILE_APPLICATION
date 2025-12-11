@@ -1,6 +1,6 @@
 // src/screens/ServiceRequests.tsx
 
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -10,12 +10,12 @@ import {
   TextInput,
   Dimensions,
 } from "react-native";
-// The external library is REMOVED to satisfy the "no installing libraries" constraint.
-// import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+
+import { useNavigation } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
 
-// --- START: TypeScript Interface Definition ---
+// --- Types ---
 interface ServiceRequest {
   id: number;
   title: string;
@@ -25,17 +25,17 @@ interface ServiceRequest {
   rating: string;
   location: string;
   time: string;
+  category: string;
+  urgency: string;
 }
 
-// Define props for the RequestCard component
 interface RequestCardProps {
-    request: ServiceRequest;
+  request: ServiceRequest;
+  navigation: any;
 }
-// --- END: TypeScript Interface Definition ---
 
-
-// --- START: Mock Data (Based on image_f9ebc7.png) ---
-const serviceRequestsData: ServiceRequest[] = [ // Added type annotation here
+// --- Mock Data ---
+const serviceRequestsData: ServiceRequest[] = [
   {
     id: 1,
     title: "House Shifting - Packing",
@@ -45,6 +45,8 @@ const serviceRequestsData: ServiceRequest[] = [ // Added type annotation here
     rating: "4.8",
     location: "Gachibowli, Hyderabad",
     time: "10 min ago",
+    category: "Moving",
+    urgency: "High",
   },
   {
     id: 2,
@@ -55,6 +57,8 @@ const serviceRequestsData: ServiceRequest[] = [ // Added type annotation here
     rating: "4.9",
     location: "Banjara Hills, Hyderabad",
     time: "35 min ago",
+    category: "Cleaning",
+    urgency: "Medium",
   },
   {
     id: 3,
@@ -65,48 +69,46 @@ const serviceRequestsData: ServiceRequest[] = [ // Added type annotation here
     rating: "4.7",
     location: "Madhapur, Hyderabad",
     time: "1 hour ago",
+    category: "Repair",
+    urgency: "Low",
   },
 ];
-// --- END: Mock Data ---
 
-// --- START: Component Definitions ---
-
-// Reusable Request Card Component
-// FIX: Applied RequestCardProps type to resolve ts(7031) error
-const RequestCard = ({ request }: RequestCardProps) => { 
+// --- Request Card ---
+const RequestCard = ({ request, navigation }: RequestCardProps) => {
   return (
     <View style={styles.card}>
-      {/* Badge Row (Urgent & Distance) */}
       <View style={styles.cardHeader}>
-        <Text style={styles.badgeUrgent}>Urgent</Text>
+        <Text style={styles.badgeUrgent}>{request.urgency}</Text>
         <Text style={styles.badgeDistance}>{request.distance}</Text>
       </View>
 
-      {/* Title and Description */}
       <Text style={styles.cardTitle}>{request.title}</Text>
       <Text style={styles.cardDescription}>{request.desc}</Text>
 
-      {/* Location and Time */}
       <Text style={styles.cardInfo}>📍 {request.location}</Text>
       <Text style={styles.cardInfo}>⏱ {request.time}</Text>
 
-      {/* Rating - Replaced <Icon> with Text/Emoji */}
       <View style={styles.ratingContainer}>
         <Text style={styles.starIcon}>⭐</Text>
         <Text style={styles.ratingText}>{request.rating}</Text>
       </View>
 
-      {/* Action Row (Price & Buttons) */}
       <View style={styles.actionRow}>
         <Text style={styles.priceText}>
           <Text style={styles.currencySymbol}>$</Text>
           {request.price}
         </Text>
+
         <View style={styles.buttonGroup}>
           <TouchableOpacity style={styles.acceptButton}>
             <Text style={styles.acceptButtonText}>Accept</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.detailsButton}>
+
+          <TouchableOpacity
+            style={styles.detailsButton}
+            onPress={() => navigation.navigate("Login")}
+          >
             <Text style={styles.detailsButtonText}>Details</Text>
           </TouchableOpacity>
         </View>
@@ -115,24 +117,44 @@ const RequestCard = ({ request }: RequestCardProps) => {
   );
 };
 
+// --- Main Screen ---
 export default function ServiceRequests() {
-  // Use a navigation hook if needed later for 'Back' button or 'Details'
-  // const navigation = useNavigation();
+  const navigation = useNavigation();
+
+  const [showSmallFilter, setShowSmallFilter] = useState(false);
+
+  // filter states
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedUrgency, setSelectedUrgency] = useState("All");
+
+  // FILTERING LOGIC
+  const filteredRequests = serviceRequestsData.filter((item) => {
+    const categoryMatch =
+      selectedCategory === "All" || item.category === selectedCategory;
+
+    const urgencyMatch =
+      selectedUrgency === "All" || item.urgency === selectedUrgency;
+
+    return categoryMatch && urgencyMatch;
+  });
 
   return (
     <View style={styles.container}>
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity 
-            // onPress={() => navigation.goBack()}
+          // onPress={() => navigation.navigate("Freelancer")} 
+          onPress={() => navigation.goBack()}
+ // FIXED
         >
-          {/* Replaced <Icon> with Text/Emoji */}
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
+
         <Text style={styles.headerTitle}>Service Requests</Text>
       </View>
 
-      {/* Search and Filter Bar */}
+      {/* Search + Filters */}
       <View style={styles.searchBarContainer}>
         <View style={styles.searchBar}>
           <TextInput
@@ -140,243 +162,295 @@ export default function ServiceRequests() {
             placeholder="Search for services, locations..."
             placeholderTextColor="#777"
           />
-          {/* Replaced <Icon> with Text/Emoji */}
           <Text style={styles.searchIconText}>🔍</Text>
         </View>
-        <TouchableOpacity style={styles.filterButton}>
-          {/* Replaced <Icon> with Text/Emoji */}
+
+        <TouchableOpacity
+          style={styles.filterButton}
+          onPress={() => setShowSmallFilter(!showSmallFilter)}
+        >
           <Text style={styles.filterIcon}>⚙️</Text>
           <Text style={styles.filterButtonText}>Filters</Text>
         </TouchableOpacity>
       </View>
-      
-      {/* Results Count */}
+
+      {/* SMALL POPUP FILTER */}
+      {showSmallFilter && (
+        <View style={styles.smallFilterBox}>
+          <Text style={styles.sectionTitle}>Category</Text>
+
+          <View style={styles.chipContainer}>
+            {[
+              "All",
+              "Moving",
+              "Cleaning",
+              "Repair",
+              "Installation",
+              "Home Services",
+              "Electrical",
+              "Gardening",
+            ].map((item, i) => (
+              <TouchableOpacity
+                key={i}
+                style={[
+                  styles.chip,
+                  selectedCategory === item && {
+                    backgroundColor: "#28A745",
+                  },
+                ]}
+                onPress={() => setSelectedCategory(item)}
+              >
+                <Text
+                  style={[
+                    styles.chipText,
+                    selectedCategory === item && { color: "#fff" },
+                  ]}
+                >
+                  {item}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <Text style={styles.sectionTitle}>Urgency</Text>
+
+          <View style={styles.chipContainer}>
+            {["All", "High", "Medium", "Low"].map((item, i) => (
+              <TouchableOpacity
+                key={i}
+                style={[
+                  styles.chip,
+                  selectedUrgency === item && {
+                    backgroundColor: "#28A745",
+                  },
+                ]}
+                onPress={() => setSelectedUrgency(item)}
+              >
+                <Text
+                  style={[
+                    styles.chipText,
+                    selectedUrgency === item && { color: "#fff" },
+                  ]}
+                >
+                  {item}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      )}
+
       <Text style={styles.resultsCount}>
-        Found {serviceRequestsData.length} service requests
+        Found {filteredRequests.length} service requests
       </Text>
 
-      {/* Requests Grid */}
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.requestsGrid}>
-          {serviceRequestsData.map((req) => (
-            <RequestCard key={req.id} request={req} />
-          ))}
+          {filteredRequests.length === 0 ? (
+            <View style={styles.noDataContainer}>
+              <Text style={styles.noDataIcon}>📭</Text>
+              <Text style={styles.noDataTitle}>No requests found</Text>
+              <Text style={styles.noDataSubtitle}>
+                Try different filters or search
+              </Text>
+            </View>
+          ) : (
+            filteredRequests.map((req) => (
+              <RequestCard key={req.id} request={req} navigation={navigation} />
+            ))
+          )}
         </View>
       </ScrollView>
     </View>
   );
 }
 
-// --- START: Stylesheets ---
+// ---------------- STYLES ----------------
 
 const styles = StyleSheet.create({
-  // ... (Styles remain the same)
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
+  container: { flex: 1, backgroundColor: "#fff" },
+
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingTop: 50, // Standard padding for status bar/notch
+    paddingTop: 50,
     paddingHorizontal: 20,
     paddingBottom: 15,
-    backgroundColor: '#fff',
   },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginLeft: 15,
-    color: "#000",
-  },
-  // NEW STYLES FOR TEXT ICONS
-  backIcon: {
-      fontSize: 24,
-      color: "#000",
-      lineHeight: 24, // Helps center the character
-  },
-  
-  // Search Bar Styles
+  backIcon: { fontSize: 24, color: "#000" },
+  headerTitle: { fontSize: 20, fontWeight: "bold", marginLeft: 15 },
+
   searchBarContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingHorizontal: 20,
-    marginBottom: 15,
-    alignItems: 'center',
+    marginBottom: 10,
+    alignItems: "center",
   },
   searchBar: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f0f0f0',
-    borderRadius: 10,
-    paddingHorizontal: 10,
+    flexDirection: "row",
+    backgroundColor: "#f0f0f0",
+    borderRadius: 12,
+    paddingHorizontal: 12,
     height: 45,
     marginRight: 10,
+    alignItems: "center",
   },
-  searchInput: {
-    flex: 1,
-    fontSize: 14,
-    color: '#000',
-    height: '100%',
-  },
-  searchIconText: { // New style for the magnifying glass emoji
-      fontSize: 18,
-      paddingHorizontal: 5,
-  },
+  searchInput: { flex: 1, fontSize: 14 },
+  searchIconText: { fontSize: 18 },
+
   filterButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#28A745', // Green color
-    borderRadius: 10,
-    paddingHorizontal: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#28A745",
+    borderRadius: 12,
+    paddingHorizontal: 14,
     paddingVertical: 10,
   },
-  filterIcon: { // New style for the settings/filter emoji
-      fontSize: 14,
-      marginRight: 4,
+  filterIcon: { fontSize: 14 },
+  filterButtonText: { color: "#fff", marginLeft: 5, fontWeight: "600" },
+
+  smallFilterBox: {
+    backgroundColor: "#fff",
+    marginHorizontal: 20,
+    borderRadius: 12,
+    padding: 15,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+    elevation: 3,
+    marginBottom: 15,
   },
-  filterButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-    marginLeft: 5,
-    fontSize: 14,
+
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: "600",
+    marginBottom: 8,
+    marginTop: 8,
   },
+
+  chipContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginBottom: 5,
+  },
+
+  chip: {
+    backgroundColor: "#e7f9f5",
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 20,
+    marginRight: 10,
+    marginBottom: 8,
+  },
+
+  chipText: { fontSize: 13, color: "#007f5f", fontWeight: "600" },
 
   resultsCount: {
     fontSize: 14,
     color: "#555",
     paddingHorizontal: 20,
-    marginBottom: 15,
+    marginBottom: 10,
   },
 
-  // Requests Grid and Card Styles
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 30,
-  },
-  requestsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-  },
+  scrollContent: { paddingHorizontal: 20, paddingBottom: 40 },
+  requestsGrid: { flexDirection: "column" },
+
   card: {
-    width: "100%", // Changed from calculated width to full width
-backgroundColor: "#fff",
-borderRadius: 10,
-padding: 15,
-marginBottom: 15, // Adjusted spacing for better vertical flow
-shadowColor: "#000",
-shadowOpacity: 0.05,
-shadowRadius: 5,
-shadowOffset: { width: 0, height: 3 },
-elevation: 2,
-borderWidth: 1,
-borderColor: '#eee',
+    width: "100%",
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: "#eee",
+    elevation: 2,
   },
-  
-  // Card elements
+
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 10,
   },
+
   badgeUrgent: {
-    backgroundColor: "#FFDADA", // Light red
+    backgroundColor: "#FFDADA",
     color: "#CC0000",
-    fontSize: 10,
-    fontWeight: "bold",
     paddingHorizontal: 6,
     paddingVertical: 3,
+    fontSize: 10,
     borderRadius: 5,
+    fontWeight: "bold",
   },
+
   badgeDistance: {
-    backgroundColor: "#E0F7E0", // Light green
+    backgroundColor: "#E0F7E0",
     color: "#28A745",
-    fontSize: 10,
-    fontWeight: "bold",
     paddingHorizontal: 6,
     paddingVertical: 3,
+    fontSize: 10,
     borderRadius: 5,
-  },
-  cardTitle: {
-    fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 5,
-    color: "#000",
   },
-  cardDescription: {
-    fontSize: 11,
-    color: "#777",
-    marginBottom: 8,
-  },
-  cardInfo: {
-    fontSize: 11,
-    color: "#555",
-    marginBottom: 4,
-  },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 5,
-    marginBottom: 10,
-  },
-  starIcon: { // New style for the star emoji
-      fontSize: 14,
-  },
-  ratingText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#000',
-    marginLeft: 4,
-  },
-  
-  // Action Row
+
+  cardTitle: { fontSize: 16, fontWeight: "bold" },
+  cardDescription: { fontSize: 11, color: "#777", marginVertical: 5 },
+  cardInfo: { fontSize: 11, marginBottom: 4 },
+
+  ratingContainer: { flexDirection: "row", alignItems: "center", marginTop: 5 },
+  starIcon: { fontSize: 14 },
+  ratingText: { marginLeft: 5, fontWeight: "600" },
+
   actionRow: {
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
+    borderTopColor: "#eee",
     paddingTop: 10,
-    marginTop: 5,
+    marginTop: 10,
   },
-  priceText: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: "#000",
-    marginBottom: 10,
-  },
-  currencySymbol: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#555",
-    marginRight: 2,
-  },
-  buttonGroup: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
+
+  priceText: { fontSize: 18, fontWeight: "800", marginBottom: 10 },
+  currencySymbol: { fontSize: 14 },
+
+  buttonGroup: { flexDirection: "row" },
+
   acceptButton: {
     flex: 1,
-    backgroundColor: "#CC0000", // Red color
-    borderRadius: 8,
+    backgroundColor: "#CC0000",
     paddingVertical: 8,
+    borderRadius: 8,
     marginRight: 5,
   },
-  acceptButtonText: {
-    color: "#fff",
-    textAlign: "center",
-    fontWeight: "600",
-    fontSize: 13,
-  },
+  acceptButtonText: { color: "#fff", textAlign: "center", fontWeight: "700" },
+
   detailsButton: {
     flex: 1,
-    backgroundColor: "#28A745", // Green color
-    borderRadius: 8,
+    backgroundColor: "#28A745",
     paddingVertical: 8,
+    borderRadius: 8,
     marginLeft: 5,
   },
-  detailsButtonText: {
-    color: "#fff",
-    textAlign: "center",
+  detailsButtonText: { color: "#fff", textAlign: "center", fontWeight: "700" },
+
+  noDataContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 50,
+  },
+
+  noDataIcon: {
+    fontSize: 50,
+    marginBottom: 10,
+    opacity: 0.5,
+  },
+
+  noDataTitle: {
+    fontSize: 16,
     fontWeight: "600",
+    color: "#444",
+    marginBottom: 4,
+  },
+
+  noDataSubtitle: {
     fontSize: 13,
+    color: "#888",
   },
 });
