@@ -12,6 +12,7 @@ import Signup from "./src/screens/Signup";
 // import Login from "./src/screens/Login";
 import ServiceRequests from "./src/screens/ServiceRequests";
 import Login from "./src/screens/login";
+import FreelancerPremiumFlow from "./src/screens/FreelancerPremiumScreen";
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -46,6 +47,7 @@ export default function App() {
 
         {/* Signup Screen */}
         <Stack.Screen name="Login" component={Login} />
+        <Stack.Screen name="FreelancerPremiumFlow" component={FreelancerPremiumFlow} />
         <Stack.Screen name="Signup" component={Signup} />
 <Stack.Screen name="ServiceRequests" component={ServiceRequests} />
         {/* Login Screen */}
