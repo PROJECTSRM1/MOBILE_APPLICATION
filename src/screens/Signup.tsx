@@ -455,7 +455,7 @@ export default function Signup() {
                                 style={styles.paymentMethodCard}
                                 onPress={() => Alert.alert("Stripe Selected", "Stripe gateway not yet configured.")}
                             >
-                                <Text style={styles.paymentMethodLogo}>S</Text> {/* Placeholder for Stripe Logo */}
+                                <Text style={styles.paymentMethodLogo}>Stripe</Text> {/* Placeholder for Stripe Logo */}
                                 <Text style={styles.paymentMethodText}>Stripe</Text>
                             </TouchableOpacity>
                         </View>

@@ -440,7 +440,7 @@ const styles = StyleSheet.create({
     width: 65,
     height: 65,
     borderRadius: 32.5,
-    backgroundColor: "#56616eff",
+    backgroundColor: "#6c6966ff",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 5,
@@ -465,7 +465,7 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, fontSize: 14, color: "#000" },
   searchIconText: { fontSize: 18, paddingHorizontal: 8 },
 
-  liveRequestsSection: { marginTop: 0, paddingBottom: 0, backgroundColor: "#f9f9f9" },
+  liveRequestsSection: { marginTop: 0, paddingBottom: 0, backgroundColor: "#f9f9f9ff" },
   liveRequestsHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, paddingTop: 20 },
   liveRequestsTitle: { fontSize: 20, fontWeight: "700" },
   liveRequestsSubtitle: { fontSize: 13, color: "#555", marginTop: 2 },
@@ -473,7 +473,7 @@ const styles = StyleSheet.create({
   viewAllButtonText: { color: "#fff", fontWeight: "600", fontSize: 12 },
 
   requestListContainer: { paddingHorizontal: 20, marginTop: 15, paddingBottom: 20 },
-  requestCard: { width: "100%", backgroundColor: "#fff", borderRadius: 15, marginBottom: 15, shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, overflow: "hidden" },
+  requestCard: { width: "100%", backgroundColor: "#ffffffff", borderRadius: 15, marginBottom: 15, shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, overflow: "hidden" },
   imagePlaceholder: { width: "100%", height: 150, borderTopLeftRadius: 15, borderTopRightRadius: 15 },
   requestDetailsContainer: { padding: 15 },
   requestHeaderRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
