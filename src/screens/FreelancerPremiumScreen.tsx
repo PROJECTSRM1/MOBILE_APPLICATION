@@ -42,7 +42,14 @@ type RootStackParamList = {
 // Use the defined type with useNavigation
 type AvailableRequestsScreenNavigationProp = NavigationProp<RootStackParamList>;
 
-
+// Add this at the very top of AvailableRequestsScreen.js
+export const GlobalAppData: {
+  pendingCount: number;
+  pendingList: Request[]; // Uses the Request interface defined in your file
+} = {
+  pendingCount: 0,
+  pendingList: [],
+};
 export default function AvailableRequestsScreen() {
   const [showRequestDropdown, setShowRequestDropdown] = useState(false);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
@@ -268,27 +275,30 @@ const slideAnim = useState(new Animated.Value(-80))[0];
       estimate: "₹1,800",
     },
   ];
-const handleAcceptRequest = (ticketId: string) => {
-  setAcceptedTicketId(ticketId);
-  setShowAcceptPopup(true);
-
-  Animated.timing(slideAnim, {
-    toValue: 0,
-    duration: 300,
-    useNativeDriver: true,
-  }).start();
-
-  setTimeout(() => {
+  const handleAcceptRequest = (ticketId: string) => {
+    const acceptedJob = requests.find(req => req.id === ticketId);
+if (acceptedJob) {
+    // 2. Update Global Data
+    GlobalAppData.pendingCount += 1;
+    GlobalAppData.pendingList.push(acceptedJob);
+  }
     Animated.timing(slideAnim, {
-      toValue: -80,
+      toValue: 0,
       duration: 300,
       useNativeDriver: true,
-    }).start(() => {
-      setShowAcceptPopup(false);
-      setAcceptedTicketId(null);
-    });
-  }, 3000);
-};
+    }).start();
+
+    setTimeout(() => {
+      Animated.timing(slideAnim, {
+        toValue: -80,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        setShowAcceptPopup(false);
+        setAcceptedTicketId(null);
+      });
+    }, 3000);
+  };
 
 
   // Helper function to filter requests based on the selected category
