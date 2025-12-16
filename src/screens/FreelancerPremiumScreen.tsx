@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 // Import NativeStackNavigationProp for correct typing (assuming a Native Stack Navigator is used)
 import { useNavigation, NavigationProp } from "@react-navigation/native";
+import { Animated, Dimensions } from "react-native";
 
 // =======================================================
 // 1. DEFINE TYPESCRIPT INTERFACE/TYPE FOR REQUEST
@@ -55,6 +56,9 @@ export default function AvailableRequestsScreen() {
   const [selectedSort, setSelectedSort] = useState("Highest Price");
   // THE FIX IS APPLIED HERE:
   const navigation = useNavigation<AvailableRequestsScreenNavigationProp>();
+const [showAcceptPopup, setShowAcceptPopup] = useState(false);
+const [acceptedTicketId, setAcceptedTicketId] = useState<string | null>(null);
+const slideAnim = useState(new Animated.Value(-80))[0];
 
 
   // === MOCK DATA (Retained for static view) ===
@@ -264,6 +268,28 @@ export default function AvailableRequestsScreen() {
       estimate: "₹1,800",
     },
   ];
+const handleAcceptRequest = (ticketId: string) => {
+  setAcceptedTicketId(ticketId);
+  setShowAcceptPopup(true);
+
+  Animated.timing(slideAnim, {
+    toValue: 0,
+    duration: 300,
+    useNativeDriver: true,
+  }).start();
+
+  setTimeout(() => {
+    Animated.timing(slideAnim, {
+      toValue: -80,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setShowAcceptPopup(false);
+      setAcceptedTicketId(null);
+    });
+  }, 3000);
+};
+
 
   // Helper function to filter requests based on the selected category
   const getFilteredRequests = (): Request[] => {
@@ -490,9 +516,13 @@ export default function AvailableRequestsScreen() {
                 </View>
                 
                 {/* Accept Button */}
-                <TouchableOpacity style={styles.acceptBtn}>
-                  <Text style={styles.acceptText}>→ Accept Request</Text>
-                </TouchableOpacity>
+                <TouchableOpacity
+  style={styles.acceptBtn}
+  onPress={() => handleAcceptRequest(req.id)}
+>
+  <Text style={styles.acceptText}>→ Accept Request</Text>
+</TouchableOpacity>
+
               </View>
             </View>
           ))
@@ -504,6 +534,26 @@ export default function AvailableRequestsScreen() {
           </View>
         )}
       </ScrollView>
+      {showAcceptPopup && acceptedTicketId && (
+  <Animated.View
+    style={[
+      popupStyles.popupContainer,
+      { transform: [{ translateY: slideAnim }] },
+    ]}
+  >
+    <View style={popupStyles.popupCard}>
+      <Text style={popupStyles.checkIcon}>✅</Text>
+      <Text style={popupStyles.popupText}>
+        Request{" "}
+        <Text style={{ fontWeight: "800" }}>{acceptedTicketId}</Text>{" "}
+        accepted successfully.{"\n"}
+        Waiting for admin approval.
+      </Text>
+    </View>
+  </Animated.View>
+)}
+
+
     </SafeAreaView>
   );
 }
@@ -748,5 +798,42 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#777",
     textAlign: "center",
+  },
+});
+const { width } = Dimensions.get("window");
+
+const popupStyles = StyleSheet.create({
+  popupContainer: {
+    position: "absolute",
+    top: 50, // SAFE for notch & status bar
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    zIndex: 100,
+  },
+  popupCard: {
+    width: width - 32, // mobile-friendly width
+    backgroundColor: "#FFFFFF",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  checkIcon: {
+    fontSize: 22,
+    marginRight: 12,
+  },
+  popupText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#333",
+    flex: 1,
+    lineHeight: 20,
   },
 });
