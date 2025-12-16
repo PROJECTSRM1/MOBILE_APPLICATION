@@ -9,7 +9,8 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-// import { Entypo } from '@expo/vector-icons'; // Assuming you use Expo/vector-icons for cleaner icons, but not necessary here
+// Import NativeStackNavigationProp for correct typing (assuming a Native Stack Navigator is used)
+import { useNavigation, NavigationProp } from "@react-navigation/native";
 
 // =======================================================
 // 1. DEFINE TYPESCRIPT INTERFACE/TYPE FOR REQUEST
@@ -25,6 +26,22 @@ interface Request {
   estimate: string;
 }
 
+// =======================================================
+// 2. DEFINE TYPE FOR NAVIGATION PARAMETERS (THE FIX)
+//    This allows 'Dashboard' to be recognized as a valid screen name.
+// =======================================================
+// NOTE: In a real app, this type (e.g., RootStackParamList) would be
+// imported from a global types file. For a quick fix, we define it here.
+type RootStackParamList = {
+    Dashboard: undefined; // Assuming 'Dashboard' screen takes no params
+    // Add other screens here as needed, e.g., AvailableRequestsScreen: undefined;
+    [key: string]: object | undefined; // Fallback for other potential screens
+};
+
+// Use the defined type with useNavigation
+type AvailableRequestsScreenNavigationProp = NavigationProp<RootStackParamList>;
+
+
 export default function AvailableRequestsScreen() {
   const [showRequestDropdown, setShowRequestDropdown] = useState(false);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
@@ -36,6 +53,9 @@ export default function AvailableRequestsScreen() {
 
   // === Set default sort back to "Highest Price" ===
   const [selectedSort, setSelectedSort] = useState("Highest Price");
+  // THE FIX IS APPLIED HERE:
+  const navigation = useNavigation<AvailableRequestsScreenNavigationProp>();
+
 
   // === MOCK DATA (Retained for static view) ===
   const requests: Request[] = [
@@ -323,7 +343,10 @@ export default function AvailableRequestsScreen() {
         </View>
 
         <View style={styles.headerActions}>
-          <TouchableOpacity style={styles.dashboardBtn}>
+          <TouchableOpacity
+            style={styles.dashboardBtn}
+            onPress={() => navigation.navigate("Dashboard")}
+          >
             <Text style={styles.dashboardText}>Dashboard</Text>
           </TouchableOpacity>
 

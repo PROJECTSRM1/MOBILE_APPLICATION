@@ -13,6 +13,7 @@ import Signup from "./src/screens/Signup";
 import ServiceRequests from "./src/screens/ServiceRequests";
 import Login from "./src/screens/login";
 import FreelancerPremiumFlow from "./src/screens/FreelancerPremiumScreen";
+import DashboardScreen from "./src/screens/DashboardScreen";
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -44,6 +45,7 @@ export default function App() {
 
         {/* Freelancer Screen */}
         <Stack.Screen name="Freelancer" component={Freelancer} />
+        <Stack.Screen name="Dashboard" component={DashboardScreen} />
 
         {/* Signup Screen */}
         <Stack.Screen name="Login" component={Login} />
