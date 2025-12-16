@@ -37,9 +37,9 @@ export default function Freelancer() {
 
   // CATEGORY DATA
   const categoryData = [
-    { icon: "🏠", title: "Cleaning", key: "cleaning" },
+    { icon: "🏠", title: "Cleaning & Home Services", key: "cleaning" },
     { icon: "🚚", title: "Transport", key: "transport" },
-    { icon: "🏢", title: "Buy / Sell", key: "buysell" },
+    { icon: "🏢", title: "Buy / Sell", key: "buysell" }, 
     { icon: "🧱", title: "Raw Materials", key: "raw" },
     { icon: "📚", title: "Education", key: "education" },
     { icon: "🛍️", title: "Swachify Products", key: "products" },
