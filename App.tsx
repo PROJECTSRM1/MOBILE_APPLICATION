@@ -16,6 +16,8 @@ import Construction from "./src/screens/Construction";
 import Rentals from "./src/screens/Rentals";
 import FreelancerScreen from "./src/screens/FreelancerScreen";
 import ServiceRequestsScreen from "./src/screens/ServiceRequestsScreen";
+import FreelancerDashboard from "./src/screens/FreelancerDashboard";
+import FDOverview from "./src/screens/FDOverview";
 
 
 export type RootStackParamList = {
@@ -33,6 +35,8 @@ export type RootStackParamList = {
   Settings: undefined;
   Rentals: undefined;
   Construction: undefined;
+  FreelancerDashboard: undefined;
+  FDOverview: undefined;
   Freelancer: undefined;
   ServiceRequests: undefined;
 };
@@ -59,6 +63,8 @@ export default function App(): React.ReactElement {
         <Stack.Screen name="Rentals" component={Rentals} />
         <Stack.Screen name="Freelancer" component={FreelancerScreen} />
         <Stack.Screen name="ServiceRequests" component={ServiceRequestsScreen} />
+        <Stack.Screen name="FreelancerDashboard" component={FreelancerDashboard} />
+        <Stack.Screen name="FDOverview" component={FDOverview} />
 
 
       </Stack.Navigator>
