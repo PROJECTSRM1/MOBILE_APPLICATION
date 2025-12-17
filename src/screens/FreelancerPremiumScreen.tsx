@@ -48,7 +48,7 @@ export default function AvailableRequestsScreen() {
   const [showRequestDropdown, setShowRequestDropdown] = useState(false);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
-  const [selectedRequest, setSelectedRequest] = useState("Home Services");
+  const [selectedRequest, setSelectedRequest] = useState("All Requests");
   const [selectedSort, setSelectedSort] = useState("Highest Price");
   
   const navigation = useNavigation<AvailableRequestsScreenNavigationProp>();
@@ -59,7 +59,7 @@ export default function AvailableRequestsScreen() {
   const slideAnim = useState(new Animated.Value(-100))[0];
 
   // === MOCK DATA ===
-  const requests: Request[] = [
+  const [availableRequests, setAvailableRequests] = useState<Request[]>([
     {
       id: "TKT001",
       category: "Cleaning - Deep Cleaning",
@@ -163,96 +163,6 @@ export default function AvailableRequestsScreen() {
         estimate: "₹1,200",
       },
       {
-        id: "TKT014",
-        category: "Home Services - AC Gas Refill",
-        price: "₹1,800",
-        customer: "Karthik Menon",
-        description: "1.5-ton AC gas refill and cooling performance check.",
-        location: "Hebbal, Bangalore",
-        date: "2025-12-04 at 1:00 PM",
-        estimate: "₹1,800",
-      },
-      {
-        id: "TKT015",
-        category: "Home Services - Plumbing - Tap Replacement",
-        price: "₹450",
-        customer: "Anita Bose",
-        description: "Kitchen tap broken; requires full replacement.",
-        location: "Yelahanka, Bangalore",
-        date: "2025-12-04 at 3:30 PM",
-        estimate: "₹450",
-      },
-      {
-        id: "TKT016",
-        category: "Home Services - Electrical - Switchboard Replacement",
-        price: "₹700",
-        customer: "Harish Gowda",
-        description: "Replace damaged switchboard and fix loose wiring.",
-        location: "Basavanagudi, Bangalore",
-        date: "2025-12-05 at 11:00 AM",
-        estimate: "₹700",
-      },
-      {
-        id: "TKT017",
-        category: "Cleaning - Kitchen Deep Cleaning",
-        price: "₹2,000",
-        customer: "Meenakshi Prasad",
-        description: "Full kitchen deep cleaning including chimney and tiles.",
-        location: "Jeevan Bima Nagar, Bangalore",
-        date: "2025-12-05 at 2:00 PM",
-        estimate: "₹2,000",
-      },
-      {
-        id: "TKT018",
-        category: "Home Services - Door Lock Repair",
-        price: "₹650",
-        customer: "Divya Rao",
-        description: "Main door lock jammed, requires adjustment or replacement.",
-        location: "Ulsoor, Bangalore",
-        date: "2025-12-06 at 9:00 AM",
-        estimate: "₹650",
-      },
-      {
-        id: "TKT019",
-        category: "Home Services - Plumbing - Water Motor Issue",
-        price: "₹900",
-        customer: "Arun Shankar",
-        description: "Water motor not pulling water; needs inspection.",
-        location: "Banerghatta Road, Bangalore",
-        date: "2025-12-06 at 12:00 PM",
-        estimate: "₹900",
-      },
-      {
-        id: "TKT020",
-        category: "Home Services - Electrical - Tube Light Fitting",
-        price: "₹350",
-        customer: "Sameer Shaikh",
-        description: "Install new LED tube light in living room.",
-        location: "Richmond Town, Bangalore",
-        date: "2025-12-06 at 4:00 PM",
-        estimate: "₹350",
-      },
-      {
-        id: "TKT021",
-        category: "Cleaning - Balcony Cleaning",
-        price: "₹900",
-        customer: "Lokesh N",
-        description: "Balcony cleaning with moss removal and pressure wash.",
-        location: "Kengeri, Bangalore",
-        date: "2025-12-07 at 10:30 AM",
-        estimate: "₹900",
-      },
-      {
-        id: "TKT022",
-        category: "Home Services - Curtain Rod Installation",
-        price: "₹500",
-        customer: "Preeti Shetty",
-        description: "Install 2 curtain rods including drilling and fitting.",
-        location: "HSR Layout, Bangalore",
-        date: "2025-12-07 at 1:30 PM",
-        estimate: "₹500",
-      },
-      {
         id: "TKT023",
         category: "Cleaning - Sofa Shampooing",
         price: "₹1,800",
@@ -262,44 +172,47 @@ export default function AvailableRequestsScreen() {
         date: "2025-12-03 at 12:00 PM",
         estimate: "₹1,800",
       },
-  ];
+  ]);
 
   const handleAcceptRequest = (ticketId: string) => {
-    const acceptedJob = requests.find(req => req.id === ticketId);
+    const acceptedJob = availableRequests.find(req => req.id === ticketId);
     
     if (acceptedJob) {
-      // 1. Update Global Data
+      // 1. Update Global Data for Dashboard
       GlobalAppData.pendingCount += 1;
       GlobalAppData.pendingList.push(acceptedJob);
       
-      // 2. TRIGGER POPUP VISIBILITY (The Fix)
+      // 2. REMOVE FROM LOCAL LIST (Disables/Hides the card)
+      setAvailableRequests(prev => prev.filter(req => req.id !== ticketId));
+
+      // 3. TRIGGER POPUP
       setAcceptedTicketId(ticketId);
       setShowAcceptPopup(true);
-    }
 
-    // 3. START ANIMATION
-    Animated.timing(slideAnim, {
-      toValue: 20, // Slide down into view
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-
-    // 4. AUTO-HIDE POPUP
-    setTimeout(() => {
+      // 4. ANIMATION
       Animated.timing(slideAnim, {
-        toValue: -100, // Slide back up
+        toValue: 20, 
         duration: 300,
         useNativeDriver: true,
-      }).start(() => {
-        setShowAcceptPopup(false);
-        setAcceptedTicketId(null);
-      });
-    }, 3000);
+      }).start();
+
+      // 5. AUTO-HIDE POPUP
+      setTimeout(() => {
+        Animated.timing(slideAnim, {
+          toValue: -100,
+          duration: 300,
+          useNativeDriver: true,
+        }).start(() => {
+          setShowAcceptPopup(false);
+          setAcceptedTicketId(null);
+        });
+      }, 3000);
+    }
   };
 
   const getFilteredRequests = (): Request[] => {
-    if (selectedRequest === "All Requests") return requests;
-    return requests.filter((req: Request) =>
+    if (selectedRequest === "All Requests") return availableRequests;
+    return availableRequests.filter((req: Request) =>
       req.category.toLowerCase().includes(selectedRequest.toLowerCase())
     );
   };
@@ -325,18 +238,13 @@ export default function AvailableRequestsScreen() {
     setShowSortDropdown(false);
   };
 
-  const handleLogout = () => {
-    console.log("User logged out");
-    setShowProfileDropdown(false);
-  };
-
   const ProfileDropdown = () => (
     <View style={styles.profileDropdown}>
       <View style={styles.profileDropdownItem}>
         <Text style={styles.profileDropdownUserText}>User</Text>
       </View>
       <View style={styles.dropdownDivider} />
-      <TouchableOpacity style={styles.profileDropdownItem} onPress={handleLogout}>
+      <TouchableOpacity style={styles.profileDropdownItem} onPress={() => setShowProfileDropdown(false)}>
         <Text style={styles.logoutIcon}>⟲ </Text>
         <Text style={styles.logoutText}>Logout</Text>
       </TouchableOpacity>
@@ -382,7 +290,6 @@ export default function AvailableRequestsScreen() {
             onPress={() => {
               setShowRequestDropdown(!showRequestDropdown);
               setShowSortDropdown(false);
-              setShowProfileDropdown(false);
             }}
           >
             <Text style={selectedRequest === "All Requests" ? styles.filterText : styles.filterActiveText}>
@@ -414,7 +321,6 @@ export default function AvailableRequestsScreen() {
             onPress={() => {
               setShowSortDropdown(!showSortDropdown);
               setShowRequestDropdown(false);
-              setShowProfileDropdown(false);
             }}
           >
             <Text style={styles.filterText}>{selectedSort} ▼</Text>
@@ -474,7 +380,7 @@ export default function AvailableRequestsScreen() {
           ))
         ) : (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>No requests available for the selected filters.</Text>
+            <Text style={styles.emptyText}>No available requests found.</Text>
           </View>
         )}
       </ScrollView>
@@ -513,10 +419,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
   },
   brand: { fontSize: 19, fontWeight: "900", color: PRIMARY_BLUE },
   portal: { fontSize: 12, color: "#777", fontWeight: "400" }, 
@@ -547,9 +449,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     elevation: 8,
     zIndex: 20, 
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
   },
   profileDropdownItem: { padding: 12, flexDirection: 'row', alignItems: 'center' },
   profileDropdownUserText: { fontSize: 15, fontWeight: '700', color: '#333' },
@@ -565,7 +464,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 16,
-    elevation: 6,
   },
   filterActiveText: { color: "#FFF", fontWeight: "700", fontSize: 13 },
   filterChip: {
@@ -575,7 +473,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: "#DDD",
-    elevation: 2,
   },
   filterText: { fontSize: 13, color: "#444", fontWeight: "600" },
   dropdown: {
@@ -598,9 +495,6 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     marginBottom: 18,
     elevation: 8,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
   },
   greenStrip: {
     width: 8,
@@ -611,7 +505,7 @@ const styles = StyleSheet.create({
   cardContent: { flex: 1, padding: 18 }, 
   cardTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
   cardTitle: { fontSize: 18, fontWeight: "800", color: "#222", flex: 1, marginRight: 10, marginBottom: 4 },
-  cardPrice: { fontSize: 22, fontWeight: "900", color: "#1A4A9A", textAlign: "right", lineHeight: 25 },
+  cardPrice: { fontSize: 22, fontWeight: "900", color: "#1A4A9A", textAlign: "right" },
   metadataRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   ticket: { fontSize: 12, color: "#999", fontWeight: '500' }, 
   customer: { color: "#444", fontSize: 13 },
@@ -622,8 +516,8 @@ const styles = StyleSheet.create({
   metaEstimate: { marginTop: 4, color: PRIMARY_BLUE, fontSize: 14, fontWeight: '700' }, 
   acceptBtn: { marginTop: 20, backgroundColor: PRIMARY_GREEN, paddingVertical: 14, borderRadius: 14, alignItems: "center" },
   acceptText: { color: "#FFF", fontWeight: "800", fontSize: 16 },
-  emptyState: { flex: 1, alignItems: "center", justifyContent: "center", paddingTop: 50 },
-  emptyText: { fontSize: 16, color: "#777", textAlign: "center" },
+  emptyState: { padding: 40, alignItems: 'center' },
+  emptyText: { color: '#999' }
 });
 
 const { width } = Dimensions.get("window");
@@ -646,9 +540,6 @@ const popupStyles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 16,
     elevation: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
   },
   checkIcon: { fontSize: 22, marginRight: 12 },
   popupText: { fontSize: 14, fontWeight: "600", color: "#333", flex: 1, lineHeight: 20 },

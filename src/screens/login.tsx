@@ -8,18 +8,18 @@ import {
   Dimensions,
   ScrollView,
   Platform,
-  Alert, // ✅ Import Alert
+  Alert,
+  KeyboardAvoidingView, // ✅ Added
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 const { width } = Dimensions.get("window");
 
-// Define the Root Stack for type safety
 type RootStackParamList = {
   Login: undefined;
   Signup: undefined;
-   FreelancerPremiumFlow: undefined;// Target screen
+  FreelancerPremiumFlow: undefined;
 };
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, "Login">;
@@ -32,112 +32,123 @@ export default function Login() {
   const [rememberMe, setRememberMe] = useState(false);
 
   const handleLogin = () => {
-  if (!email || !password) {
-    Alert.alert("Validation Error", "Please enter email and password");
-    return;
-  }
+    if (!email || !password) {
+      Alert.alert("Validation Error", "Please enter email and password");
+      return;
+    }
+    navigation.replace("FreelancerPremiumFlow");
+  };
 
-  // Correct navigation
-  navigation.replace("FreelancerPremiumFlow");
-};
   return (
-    <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-      <View style={styles.container}>
-        {/* Back Button */}
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.backArrow}>&lt;</Text>
-          <Text style={styles.backText}>Back</Text>
-        </TouchableOpacity>
+    // ✅ KeyboardAvoidingView ensures the inputs lift up when the keyboard opens
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }} 
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent} 
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.container}>
+          {/* Back Button */}
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Text style={styles.backArrow}>&lt;</Text>
+            <Text style={styles.backText}>Back</Text>
+          </TouchableOpacity>
 
-        {/* Main Card */}
-        <View style={styles.card}>
-          {/* Left Panel */}
-          <View style={styles.leftPanel}>
-            <Text style={styles.logoTitle}>Swachify Freelance</Text>
-            <Text style={styles.panelSubtitle}>
-              Empowering freelancers with real-time job opportunities nearby.
-            </Text>
-            <View style={styles.featureList}>
-              <Text style={styles.featureItem}>• Instant job requests</Text>
-              <Text style={styles.featureItem}>• Manage your projects</Text>
-              <Text style={styles.featureItem}>• Track your earnings</Text>
-              <Text style={styles.featureItem}>• Build professional reputation</Text>
+          {/* Main Card */}
+          <View style={styles.card}>
+            {/* Left Panel */}
+            <View style={styles.leftPanel}>
+              <Text style={styles.logoTitle}>Swachify Freelance</Text>
+              <Text style={styles.panelSubtitle}>
+                Empowering freelancers with real-time job opportunities nearby.
+              </Text>
+              <View style={styles.featureList}>
+                <Text style={styles.featureItem}>• Instant job requests</Text>
+                <Text style={styles.featureItem}>• Manage your projects</Text>
+                <Text style={styles.featureItem}>• Track your earnings</Text>
+                <Text style={styles.featureItem}>• Build professional reputation</Text>
+              </View>
             </View>
-          </View>
 
-          {/* Right Panel */}
-          <View style={styles.rightPanel}>
-            <Text style={styles.welcomeTitle}>Welcome Back</Text>
-            <Text style={styles.accessText}>Login to access your freelancer dashboard</Text>
+            {/* Right Panel */}
+            <View style={styles.rightPanel}>
+              <Text style={styles.welcomeTitle}>Welcome Back</Text>
+              <Text style={styles.accessText}>Login to access your freelancer dashboard</Text>
 
-            {/* Email Input */}
-            <Text style={styles.label}>Email Address</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="you@example.com"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              placeholderTextColor="#999"
-            />
-
-            {/* Password Input */}
-            <Text style={styles.label}>Password</Text>
-            <View style={styles.passwordContainer}>
+              {/* Email Input */}
+              <Text style={styles.label}>Email Address</Text>
               <TextInput
-                style={styles.passwordInput}
-                placeholder="********"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
+                style={styles.input}
+                placeholder="you@example.com"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
                 placeholderTextColor="#999"
               />
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
-                <Text style={styles.passwordToggleText}>{showPassword ? "Hide" : "Show"}</Text>
-              </TouchableOpacity>
-            </View>
 
-            {/* Remember Me & Forgot Password */}
-            <View style={styles.optionsRow}>
-              <TouchableOpacity
-                style={styles.checkboxContainer}
-                onPress={() => setRememberMe(!rememberMe)}
-              >
-                <View style={[styles.customCheckbox, rememberMe && styles.customCheckboxActive]}>
-                  {rememberMe && <Text style={styles.checkboxCheck}>✓</Text>}
-                </View>
-                <Text style={styles.rememberMeText}>Remember me</Text>
-              </TouchableOpacity>
-              <TouchableOpacity>
-                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-              </TouchableOpacity>
-            </View>
+              {/* Password Input */}
+              <Text style={styles.label}>Password</Text>
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  style={styles.passwordInput}
+                  placeholder="********"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  placeholderTextColor="#999"
+                />
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+                  <Text style={styles.passwordToggleText}>{showPassword ? "Hide" : "Show"}</Text>
+                </TouchableOpacity>
+              </View>
 
-            {/* Login Button */}
-            <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-              <Text style={styles.loginButtonText}>Login</Text>
-            </TouchableOpacity>
+              {/* Remember Me & Forgot Password */}
+              <View style={styles.optionsRow}>
+                <TouchableOpacity
+                  style={styles.checkboxContainer}
+                  onPress={() => setRememberMe(!rememberMe)}
+                >
+                  <View style={[styles.customCheckbox, rememberMe && styles.customCheckboxActive]}>
+                    {rememberMe && <Text style={styles.checkboxCheck}>✓</Text>}
+                  </View>
+                  <Text style={styles.rememberMeText}>Remember me</Text>
+                </TouchableOpacity>
+                <TouchableOpacity>
+                  <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+                </TouchableOpacity>
+              </View>
 
-            {/* Signup Link */}
-            <View style={styles.signupTextContainer}>
-              <Text style={styles.dontHaveAccountText}>Don't have an account? </Text>
-              <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
-                <Text style={styles.signupLink}>Sign up free</Text>
+              {/* Login Button */}
+              <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+                <Text style={styles.loginButtonText}>Login</Text>
               </TouchableOpacity>
+
+              {/* Signup Link */}
+              <View style={styles.signupTextContainer}>
+                <Text style={styles.dontHaveAccountText}>Don't have an account? </Text>
+                <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
+                  <Text style={styles.signupLink}>Sign up free</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollContent: { flexGrow: 1 },
+  scrollContent: { 
+    flexGrow: 1, 
+    backgroundColor: "#f0f2f5" 
+  },
   container: {
     flex: 1,
-    backgroundColor: "#f0f2f5",
     justifyContent: "center",
     alignItems: "center",
     paddingVertical: 50,
@@ -157,7 +168,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 20,
     elevation: 5,
-    marginTop: 50,
+    marginTop: 30,
   },
   leftPanel: { width: width > 768 ? "40%" : "100%", padding: 40, justifyContent: "center", backgroundColor: "#4c26a7" },
   logoTitle: { fontSize: 24, fontWeight: "bold", color: "#fff", marginBottom: 20 },

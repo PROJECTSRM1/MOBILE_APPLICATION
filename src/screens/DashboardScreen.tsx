@@ -41,6 +41,28 @@ type RootStackParamList = {
 
 type DashboardScreenNavigationProp = NavigationProp<RootStackParamList>;
 
+/**
+ * FIXED: ProfileDropdown moved outside to fix the syntax error
+ */
+const ProfileDropdown = ({ onClose }: { onClose: () => void }) => (
+  <View style={styles.profileDropdown}>
+    <View style={styles.profileDropdownItem}>
+      <Text style={styles.profileDropdownUserText}>User</Text>
+    </View>
+    <View style={styles.dropdownDivider} />
+    <TouchableOpacity 
+      style={styles.profileDropdownItem} 
+      onPress={() => {
+        onClose();
+        Alert.alert("Logout", "You have been logged out.");
+      }}
+    >
+      <Text style={styles.logoutIcon}>⟲ </Text>
+      <Text style={styles.logoutText}>Logout</Text>
+    </TouchableOpacity>
+  </View>
+);
+
 const StatCard = ({
   title,
   value,
@@ -98,13 +120,15 @@ export default function DashboardScreen() {
   const [pendingList, setPendingList] = useState<JobRequest[]>(GlobalAppData.pendingList || []);
   const [activeJob, setActiveJob] = useState<JobRequest | null>(null);
   const [completedList, setCompletedList] = useState<JobRequest[]>([]);
+  
+  // State for toggling profile dropdown
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
   const isMobile = Dimensions.get("window").width < 768;
 
-  // UPDATED LOGIC: If a job is active, show the alert pop-up
   const handleStartJob = (job: JobRequest) => {
     if (activeJob) {
-      setShowAlert(true); // Triggers the modal shown in image_cd3643.png
+      setShowAlert(true); 
       return;
     }
     const jobWithContacts = {
@@ -113,7 +137,6 @@ export default function DashboardScreen() {
         email: "amit.singh@example.com"
     };
     setActiveJob(jobWithContacts);
-    // Remove only this job; others stay in pendingList
     const newList = pendingList.filter((item: JobRequest) => item.id !== job.id);
     setPendingList(newList);
     GlobalAppData.pendingCount = newList.length;
@@ -156,7 +179,7 @@ export default function DashboardScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Alert Modal - Matches image_cd3643.png logic */}
+      {/* Alert Modal */}
       <Modal transparent visible={showAlert} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.alertBox}>
@@ -197,30 +220,45 @@ export default function DashboardScreen() {
             
             <Text style={styles.otpHint}>OTP: 933547</Text>
 
-            <View style={styles.otpActionRow}>
+            <div style={styles.otpActionRow}>
               <TouchableOpacity style={styles.cancelBtn} onPress={() => setShowOtpModal(false)}>
                 <Text style={styles.cancelBtnText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.verifyBtn} onPress={verifyOtp}>
                 <Text style={styles.verifyBtnText}>Verify & Continue</Text>
               </TouchableOpacity>
-            </View>
+            </div>
           </View>
         </View>
       </Modal>
 
-      {/* Header */}
+      {/* Header Section */}
       <View style={styles.header}>
         <View>
           <Text style={styles.brand}>SWACHIFY INDIA</Text>
           <Text style={styles.portal}>Freelancer Portal</Text>
         </View>
-        <TouchableOpacity
-          style={styles.backBtn}
-          onPress={() => navigation.navigate("FreelancerPremiumFlow")}
-        >
-          <Text style={styles.backText}>← Back To Requests</Text>
-        </TouchableOpacity>
+
+        <View style={styles.headerRight}>
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => navigation.navigate("FreelancerPremiumFlow")}
+          >
+            <Text style={styles.backText}>← Back To Requests</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.profileCircle}
+            onPress={() => setShowProfileDropdown(!showProfileDropdown)}
+          >
+            <Text style={styles.profileIconText}>👤</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Dropdown Menu Overlay */}
+        {showProfileDropdown && (
+          <ProfileDropdown onClose={() => setShowProfileDropdown(false)} />
+        )}
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
@@ -381,11 +419,47 @@ export default function DashboardScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F4F5F9" },
-  header: { backgroundColor: "#FFF", padding: 16, flexDirection: "row", justifyContent: "space-between", elevation: 4 },
+  header: { 
+    backgroundColor: "#FFF", 
+    padding: 16, 
+    flexDirection: "row", 
+    justifyContent: "space-between", 
+    elevation: 4,
+    zIndex: 1000 // Ensuring dropdown is on top
+  },
   brand: { fontSize: 18, fontWeight: "900", color: PRIMARY_BLUE },
   portal: { fontSize: 12, color: "#777" },
+  headerRight: { flexDirection: "row", alignItems: "center" },
   backBtn: { backgroundColor: "#EEE", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
   backText: { fontWeight: "600" },
+  profileCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: PRIMARY_BLUE,
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 12,
+  },
+  profileIconText: { fontSize: 20, color: PRIMARY_BLUE },
+  profileDropdown: {
+    position: 'absolute',
+    top: 65,
+    right: 16,
+    width: 150,
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    elevation: 8,
+    zIndex: 2000,
+    borderWidth: 1,
+    borderColor: '#EEE'
+  },
+  profileDropdownItem: { padding: 12, flexDirection: 'row', alignItems: 'center' },
+  profileDropdownUserText: { fontSize: 15, fontWeight: '700', color: '#333' },
+  dropdownDivider: { height: 1, backgroundColor: '#EEE', marginHorizontal: 10 },
+  logoutText: { fontSize: 15, color: '#D9534F', fontWeight: '600', marginLeft: 4 },
+  logoutIcon: { color: '#D9534F', fontSize: 18 },
   content: { padding: 20 },
   title: { fontSize: 24, fontWeight: "800", color: "#222" },
   subtitle: { fontSize: 14, color: "#666", marginBottom: 20 },
