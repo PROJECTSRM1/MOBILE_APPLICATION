@@ -8,16 +8,14 @@ import {
   Modal,
   Alert,
   TextInput,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
-// IMPORT FIX: Use destructuring for direct access to the library method
-import { launchImageLibrary, ImageLibraryOptions } from 'react-native-image-picker';
 
 // Shared data import
 import { GlobalAppData } from "./FreelancerPremiumScreen";
 
-// 1. Explicit interface for Job objects
 interface JobRequest {
   id: string;
   category: string;
@@ -34,9 +32,6 @@ const PRIMARY_BLUE = "#1565C0";
 const PRIMARY_YELLOW = "#F4B400";
 const TEXT_COLOR_DARK = "#333";
 
-// =======================================================
-// 1. NAVIGATION TYPES
-// =======================================================
 type RootStackParamList = {
   AvailableRequestsScreen: undefined;
   DashboardScreen: undefined;
@@ -45,33 +40,6 @@ type RootStackParamList = {
 };
 
 type DashboardScreenNavigationProp = NavigationProp<RootStackParamList>;
-
-// =======================================================
-// 2. REUSABLE COMPONENTS
-// =======================================================
-
-const JobSection = ({
-  title,
-  subtitle,
-  emptyMessage,
-  icon,
-}: {
-  title: string;
-  subtitle: string;
-  emptyMessage: string;
-  icon: string;
-}) => (
-  <View style={styles.jobSection}>
-    <Text style={styles.jobTitle}>{title}</Text>
-    <Text style={styles.jobSubtitle}>{subtitle}</Text>
-    <View style={styles.emptyContainer}>
-      <View style={styles.emptyIconBox}>
-        <Text style={styles.emptyIcon}>{icon}</Text>
-      </View>
-      <Text style={styles.emptyText}>{emptyMessage}</Text>
-    </View>
-  </View>
-);
 
 const StatCard = ({
   title,
@@ -94,7 +62,19 @@ const StatCard = ({
   </View>
 );
 
-const TrackerStep = ({ number, title, desc, active, completed, action }: { number: string; title: string; desc: string; active?: boolean; completed?: boolean; action?: React.ReactNode }) => (
+const TrackerStep = ({ 
+  number, 
+  title, 
+  desc, 
+  active, 
+  completed 
+}: { 
+  number: string; 
+  title: string; 
+  desc: string; 
+  active?: boolean; 
+  completed?: boolean; 
+}) => (
   <View style={{ marginBottom: 12 }}>
     <View style={styles.stepRow}>
       <View style={[styles.stepIndicator, active && styles.stepIndicatorActive]}>
@@ -105,13 +85,9 @@ const TrackerStep = ({ number, title, desc, active, completed, action }: { numbe
         <Text style={styles.stepDesc}>{desc}</Text>
       </View>
     </View>
-    {active && !completed && action}
   </View>
 );
 
-// =======================================================
-// 3. MAIN SCREEN
-// =======================================================
 export default function DashboardScreen() {
   const navigation = useNavigation<DashboardScreenNavigationProp>();
 
@@ -121,11 +97,14 @@ export default function DashboardScreen() {
   const [currentStep, setCurrentStep] = useState<number>(1); 
   const [pendingList, setPendingList] = useState<JobRequest[]>(GlobalAppData.pendingList || []);
   const [activeJob, setActiveJob] = useState<JobRequest | null>(null);
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [completedList, setCompletedList] = useState<JobRequest[]>([]);
 
+  const isMobile = Dimensions.get("window").width < 768;
+
+  // UPDATED LOGIC: If a job is active, show the alert pop-up
   const handleStartJob = (job: JobRequest) => {
     if (activeJob) {
-      setShowAlert(true);
+      setShowAlert(true); // Triggers the modal shown in image_cd3643.png
       return;
     }
     const jobWithContacts = {
@@ -134,33 +113,10 @@ export default function DashboardScreen() {
         email: "amit.singh@example.com"
     };
     setActiveJob(jobWithContacts);
+    // Remove only this job; others stay in pendingList
     const newList = pendingList.filter((item: JobRequest) => item.id !== job.id);
     setPendingList(newList);
     GlobalAppData.pendingCount = newList.length;
-  };
-
-  // UPDATED: Robust gallery opening logic
-  const handleImageUpload = async () => {
-    const options: ImageLibraryOptions = {
-      mediaType: 'photo',
-      quality: 1,
-      selectionLimit: 1, // Only 1 for now based on your state
-    };
-
-    try {
-      launchImageLibrary(options, (response) => {
-        if (response.didCancel) {
-          console.log('User cancelled image picker');
-        } else if (response.errorCode) {
-          Alert.alert('Error', response.errorMessage || 'Failed to open gallery');
-        } else if (response.assets && response.assets.length > 0) {
-          setUploadedImage(response.assets[0].uri || null);
-          Alert.alert("Success", "Proof selected from gallery!");
-        }
-      });
-    } catch (error) {
-      Alert.alert("Error", "Could not open gallery. Ensure the app has permissions.");
-    }
   };
 
   const handleNextStep = () => {
@@ -174,7 +130,16 @@ export default function DashboardScreen() {
     } else {
       Alert.alert("Complete Job", "Has the work been finished?", [
         { text: "No" },
-        { text: "Yes", onPress: () => { setActiveJob(null); setCurrentStep(1); setUploadedImage(null); }}
+        { 
+          text: "Yes", 
+          onPress: () => { 
+            if (activeJob) {
+              setCompletedList(prev => [activeJob, ...prev]);
+            }
+            setActiveJob(null); 
+            setCurrentStep(1); 
+          } 
+        }
       ]);
     }
   };
@@ -191,11 +156,14 @@ export default function DashboardScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Alert Modal */}
+      {/* Alert Modal - Matches image_cd3643.png logic */}
       <Modal transparent visible={showAlert} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.alertBox}>
-            <Text style={styles.alertTitle}>Complete current active job</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+               <Text style={{ fontSize: 24, marginRight: 10 }}>⚠️</Text>
+               <Text style={styles.alertTitle}>Complete the current active job</Text>
+            </View>
             <Text style={styles.alertMessage}>
                 You already have an active booking in progress. Please complete or close the current job before starting a new one.
             </Text>
@@ -260,7 +228,7 @@ export default function DashboardScreen() {
         <Text style={styles.subtitle}>Track your performance at a glance</Text>
 
         <View style={styles.cardRow}>
-          <StatCard title="Total Earnings" value="₹0" desc="From 0 completed jobs" color={PRIMARY_BLUE} />
+          <StatCard title="Total Earnings" value={`₹${completedList.length * 1200}`} desc={`From ${completedList.length} completed jobs`} color={PRIMARY_BLUE} />
           <StatCard title="Approval Pending" value={pendingList.length.toString()} desc="Jobs in review" color={PRIMARY_YELLOW} />
         </View>
 
@@ -272,14 +240,15 @@ export default function DashboardScreen() {
         <View style={styles.jobSection}>
           <Text style={styles.jobTitle}>My Active Job</Text>
           <Text style={styles.jobSubtitle}>Live status of your current service</Text>
+          
           {activeJob ? (
-            <View style={styles.activeJobContainer}>
+            <View style={[styles.activeJobContainer, { flexDirection: isMobile ? "column" : "row" }]}>
               <View style={styles.activeInfoSide}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                   <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                    <View style={{flexDirection: 'row', alignItems: 'center'}}>
                       <Text style={styles.jobCardCategory}>{activeJob.category}</Text>
                       <View style={styles.inProgressBadge}><Text style={styles.inProgressText}>In Progress</Text></View>
-                   </View>
+                    </View>
                   <View style={{ alignItems: 'flex-end' }}>
                     <Text style={{ fontSize: 10, color: '#888' }}>Payout</Text>
                     <Text style={{ fontSize: 18, fontWeight: '900', color: '#2E7D32' }}>{activeJob.price}</Text>
@@ -293,52 +262,32 @@ export default function DashboardScreen() {
                 </View>
                 
                 <View style={styles.customerDetailsBox}>
-                   <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#999', marginBottom: 8, letterSpacing: 0.5 }}>CUSTOMER DETAILS</Text>
-                   <Text style={styles.customerName}>👤 {activeJob.customer}</Text>
-                   <Text style={styles.customerMetaLine}>📞 {activeJob.phone || "+91 00000 00000"}</Text>
-                   <Text style={styles.customerMetaLine}>✉️ {activeJob.email || "customer@example.com"}</Text>
-                   <Text style={styles.customerMetaLine}>📍 {activeJob.location}</Text>
+                    <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#999', marginBottom: 8, letterSpacing: 0.5 }}>CUSTOMER DETAILS</Text>
+                    <Text style={styles.customerName}>👤 {activeJob.customer}</Text>
+                    <Text style={styles.customerMetaLine}>📞 {activeJob.phone || "+91 00000 00000"}</Text>
+                    <Text style={styles.customerMetaLine}>✉️ {activeJob.email || "customer@example.com"}</Text>
+                    <Text style={styles.customerMetaLine}>📍 {activeJob.location}</Text>
                 </View>
 
                 <View style={styles.currentStageRow}>
-                   <Text style={styles.stageLabel}>Current stage <Text style={styles.stageBlue}>
-                    {currentStep === 1 ? "On the way" : currentStep === 2 ? "Reached location" : currentStep === 3 ? "Job Started" : "Completed"}
-                  </Text></Text>
+                    <Text style={styles.stageLabel}>Current stage <Text style={styles.stageBlue}>
+                      {currentStep === 1 ? "On the way" : currentStep === 2 ? "Reached location" : currentStep === 3 ? "Job Started" : "Completed"}
+                    </Text></Text>
                 </View>
                 
                 <TouchableOpacity style={styles.helpLink}>
-                   <Text style={{ color: PRIMARY_BLUE, fontSize: 12, fontWeight: '600' }}>❓ Get help with this job</Text>
+                    <Text style={{ color: PRIMARY_BLUE, fontSize: 12, fontWeight: '600' }}>❓ Get help with this job</Text>
                 </TouchableOpacity>
               </View>
 
-              <View style={styles.trackerSide}>
+              <View style={[styles.trackerSide, isMobile && { width: "100%" }]}>
                 <View style={styles.liveBadge}>
                   <Text style={styles.liveBadgeText}>Live job status</Text>
                 </View>
                 
-                <TrackerStep number="1" title="On the way" desc="Traveling" active={currentStep >= 1} completed={currentStep > 1} />
-                <TrackerStep number="2" title="Reached location" desc="At address" active={currentStep >= 2} completed={currentStep > 2} />
-                
-                <TrackerStep 
-                  number="3" 
-                  title="Job Started" 
-                  desc={uploadedImage ? "✅ Proof Selected" : "Mandatory multiple image proof required."} 
-                  active={currentStep >= 3} 
-                  completed={currentStep > 3}
-                  action={
-                    currentStep === 3 && (
-                      <TouchableOpacity 
-                        style={[styles.moveNextBtn, { backgroundColor: uploadedImage ? '#2E7D32' : '#A58114', marginTop: 8, paddingVertical: 8, width: '90%' }]}
-                        onPress={handleImageUpload}
-                      >
-                        <Text style={[styles.moveNextText, { fontSize: 10, color: '#FFF' }]}>
-                            {uploadedImage ? "Change Proof" : "📤 Capture / Upload proof"}
-                        </Text>
-                      </TouchableOpacity>
-                    )
-                  }
-                />
-                
+                <TrackerStep number="1" title="On the way" desc="Traveling to client" active={currentStep >= 1} completed={currentStep > 1} />
+                <TrackerStep number="2" title="Reached location" desc="At customer address" active={currentStep >= 2} completed={currentStep > 2} />
+                <TrackerStep number="3" title="Job Started" desc="Service in progress" active={currentStep >= 3} completed={currentStep > 3} />
                 <TrackerStep number="4" title="Job Completed" desc="Confirm finish" active={currentStep >= 4} />
                 
                 <TouchableOpacity style={styles.moveNextBtn} onPress={handleNextStep}>
@@ -395,12 +344,36 @@ export default function DashboardScreen() {
           )}
         </View>
 
-        <JobSection
-          title="Recently Completed"
-          subtitle="Jobs you have successfully finished"
-          emptyMessage="You haven't completed any jobs yet."
-          icon="✅"
-        />
+        <View style={styles.jobSection}>
+          <Text style={styles.jobTitle}>Recently Completed</Text>
+          <Text style={styles.jobSubtitle}>Jobs you have successfully finished</Text>
+          {completedList.length > 0 ? (
+            completedList.map((job) => (
+              <View key={job.id} style={[styles.premiumJobCard, { borderColor: '#A5D6A7' }]}>
+                <View style={styles.jobCardHeader}>
+                  <Text style={styles.jobCardCategory}>{job.category}</Text>
+                  <Text style={[styles.jobCardPrice, { color: '#2E7D32' }]}>{job.price}</Text>
+                </View>
+                <View style={[styles.statusTag, { backgroundColor: '#E8F5E9', borderColor: '#4CAF50' }]}>
+                  <Text style={[styles.statusTagText, { color: '#2E7D32' }]}>Job Completed ✅</Text>
+                </View>
+                <Text style={styles.jobCardId}>Ticket ID: {job.id}</Text>
+                <Text style={styles.jobCardCustomer}>Customer: <Text style={{fontWeight: 'bold'}}>{job.customer}</Text></Text>
+                <View style={styles.metaRow}>
+                  <Text style={styles.metaItem}>📍 {job.location}</Text>
+                  <Text style={styles.metaItem}>🕒 {job.date}</Text>
+                </View>
+              </View>
+            ))
+          ) : (
+            <View style={styles.emptyContainer}>
+                <View style={styles.emptyIconBox}>
+                  <Text style={styles.emptyIcon}>✅</Text>
+                </View>
+                <Text style={styles.emptyText}>You haven't completed any jobs yet.</Text>
+            </View>
+          )}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -431,8 +404,8 @@ const styles = StyleSheet.create({
   emptyText: { fontSize: 13, color: "#888" },
   premiumJobCard: { backgroundColor: "#FFF", borderRadius: 12, padding: 16, marginBottom: 16, borderWidth: 1.5, borderColor: "#FFD54F", elevation: 2 },
   jobCardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 6 },
-  jobCardCategory: { fontSize: 16, fontWeight: "700", color: "#333" },
-  jobCardPrice: { fontSize: 18, fontWeight: "900", color: "#2E7D32" },
+  jobCardCategory: { fontSize: 14, fontWeight: "700", color: "#333" },
+  jobCardPrice: { fontSize: 15, fontWeight: "900", color: "#2E7D32" },
   statusTag: { backgroundColor: "#FFF8E1", alignSelf: "flex-start", paddingHorizontal: 10, paddingVertical: 2, borderRadius: 12, borderWidth: 1, borderColor: "#FFD54F", marginBottom: 8 },
   statusTagText: { color: "#F57C00", fontSize: 11, fontWeight: "bold" },
   jobCardId: { fontSize: 12, color: "#777", marginBottom: 2 },
@@ -443,74 +416,21 @@ const styles = StyleSheet.create({
   metaItem: { fontSize: 11, color: "#666", marginRight: 15 },
   markApprovedBtn: { backgroundColor: "#000", paddingVertical: 10, paddingHorizontal: 15, borderRadius: 8, alignSelf: "flex-start" },
   markApprovedText: { color: "#FFF", fontWeight: "bold", fontSize: 12 },
-  
-  activeJobContainer: { 
-    backgroundColor: "#FFF", 
-    borderRadius: 12, 
-    flexDirection: "row", 
-    elevation: 8, 
-    minHeight: 320, 
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    marginVertical: 10
-  },
-  activeInfoSide: { 
-    flex: 1.4, 
-    padding: 15,
-    justifyContent: 'space-between' 
-  },
-  inProgressBadge: {
-    backgroundColor: '#E3F2FD',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 8,
-    marginLeft: 8,
-    borderWidth: 1,
-    borderColor: PRIMARY_BLUE
-  },
+  activeJobContainer: { backgroundColor: "#FFF", borderRadius: 12, flexDirection: "row", elevation: 8, minHeight: 320, overflow: "hidden", borderWidth: 1, borderColor: '#E0E0E0', marginVertical: 10 },
+  activeInfoSide: { flex: 1.4, padding: 15, justifyContent: 'space-between' },
+  inProgressBadge: { backgroundColor: '#E3F2FD', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8, marginLeft: 8, borderWidth: 1, borderColor: PRIMARY_BLUE },
   inProgressText: { color: PRIMARY_BLUE, fontSize: 10, fontWeight: 'bold' },
   metaMini: { fontSize: 10, color: '#888' },
-  customerDetailsBox: { 
-    backgroundColor: "#F9FAFB", 
-    borderRadius: 8, 
-    padding: 12, 
-    borderWidth: 1,
-    borderColor: '#F0F0F0',
-    marginBottom: 10
-  },
+  customerDetailsBox: { backgroundColor: "#F9FAFB", borderRadius: 8, padding: 12, borderWidth: 1, borderColor: '#F0F0F0', marginBottom: 10 },
   customerName: { fontSize: 14, fontWeight: "700", marginBottom: 4 },
   customerMetaLine: { fontSize: 11, color: PRIMARY_BLUE, marginBottom: 2 },
   currentStageRow: { backgroundColor: '#E1F5FE', padding: 10, borderRadius: 8, marginBottom: 5 },
   helpLink: { paddingVertical: 5 },
-  
-  trackerSide: { 
-    flex: 1, 
-    backgroundColor: "#101D2D", 
-    padding: 12,
-    justifyContent: 'center' 
-  },
-  liveBadge: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    paddingVertical: 4,
-    borderRadius: 20,
-    marginBottom: 20,
-    alignItems: 'center',
-    width: '80%',
-    alignSelf: 'center'
-  },
+  trackerSide: { flex: 1, backgroundColor: "#101D2D", padding: 12, justifyContent: 'center' },
+  liveBadge: { backgroundColor: 'rgba(255,255,255,0.15)', paddingVertical: 4, borderRadius: 20, marginBottom: 20, alignItems: 'center', width: '80%', alignSelf: 'center' },
   liveBadgeText: { color: '#FFF', fontSize: 10, fontWeight: 'bold' },
   stepRow: { flexDirection: "row", alignItems: 'center' },
-  stepIndicator: { 
-    width: 22, 
-    height: 22, 
-    borderRadius: 11, 
-    borderWidth: 1, 
-    borderColor: '#455A64', 
-    alignItems: 'center', 
-    justifyContent: 'center',
-    marginRight: 10
-  },
+  stepIndicator: { width: 22, height: 22, borderRadius: 11, borderWidth: 1, borderColor: '#455A64', alignItems: 'center', justifyContent: 'center', marginRight: 10 },
   stepIndicatorActive: { borderColor: '#FFF', backgroundColor: 'rgba(255,255,255,0.1)' },
   stepNum: { color: "#455A64", fontSize: 10, fontWeight: 'bold' },
   stepNumActive: { color: "#FFF" },
@@ -520,17 +440,14 @@ const styles = StyleSheet.create({
   stepDesc: { color: "#455A64", fontSize: 9 },
   moveNextBtn: { backgroundColor: PRIMARY_YELLOW, paddingVertical: 10, borderRadius: 8, alignItems: 'center', marginTop: 15 },
   moveNextText: { color: "#000", fontWeight: "bold", fontSize: 11 },
-  
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
   alertBox: { backgroundColor: "#FFF", borderRadius: 12, padding: 20, width: "80%" },
-  alertTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
-  alertMessage: { color: "#666", marginBottom: 20 },
+  alertTitle: { fontSize: 18, fontWeight: "bold", color: "#222" },
+  alertMessage: { color: "#666", marginBottom: 20, fontSize: 14, lineHeight: 20 },
   okBtn: { backgroundColor: PRIMARY_BLUE, alignSelf: 'flex-end', paddingHorizontal: 25, paddingVertical: 8, borderRadius: 5 },
   okBtnText: { color: "#FFF", fontWeight: "bold" },
-  
   stageLabel: { fontSize: 12, color: "#555" },
   stageBlue: { color: PRIMARY_BLUE, fontWeight: "bold" },
-
   otpBox: { backgroundColor: "#FFF", borderRadius: 12, padding: 20, width: "85%" },
   otpHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   otpTitle: { fontSize: 18, fontWeight: "bold", color: "#222" },
@@ -538,7 +455,6 @@ const styles = StyleSheet.create({
   otpSub: { fontSize: 13, color: "#666", marginBottom: 15, lineHeight: 18 },
   otpInput: { borderWidth: 1, borderColor: "#DDD", borderRadius: 8, padding: 12, fontSize: 16, marginBottom: 10, color: "#333" },
   otpHint: { fontSize: 12, color: "#888", marginBottom: 20 },
-  
   otpActionRow: { flexDirection: 'row', justifyContent: 'flex-end' },
   cancelBtn: { paddingVertical: 10, paddingHorizontal: 15 },
   cancelBtnText: { color: "#333", fontWeight: "600" },
