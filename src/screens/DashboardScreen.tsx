@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
+import { Image } from "react-native";
 
 // Shared data import
 import { GlobalAppData } from "./FreelancerPremiumScreen";
@@ -62,15 +63,17 @@ const StatCard = ({
   </View>
 );
 
-const TrackerStep = ({ 
-  number, 
-  title, 
-  desc, 
-  active, 
+const TrackerStep = ({
+  number,
+  title,
+  desc,
+  active,
   completed,
-  showProofBtn, // New prop
-  onProofPress  // New prop
-}: { 
+  showProofBtn,
+  onProofPress,
+  uploadedImages = []   // ✅ DEFAULT VALUE
+}: {
+
   number: string; 
   title: string; 
   desc: string; 
@@ -78,7 +81,10 @@ const TrackerStep = ({
   completed?: boolean;
   showProofBtn?: boolean;
   onProofPress?: () => void;
+  uploadedImages?: string[];
+
 }) => (
+
   <View style={{ marginBottom: 12 }}>
     <View style={styles.stepRow}>
       <View style={[styles.stepIndicator, active && styles.stepIndicatorActive]}>
@@ -89,16 +95,30 @@ const TrackerStep = ({
         <Text style={styles.stepDesc}>{desc}</Text>
         
         {/* Added Button UI */}
-        {showProofBtn && active && !completed && (
-          
-          <TouchableOpacity 
-            style={styles.uploadProofBtn} 
-            onPress={onProofPress}
-          >
-             <Text style={styles.uploadProofIcon}>📤</Text>
-             <Text style={styles.uploadProofText}>Capture / Upload proof</Text>
-          </TouchableOpacity>
-        )}
+      {showProofBtn && active && !completed && (
+  <View style={{ flexDirection: "row", alignItems: "center", marginTop: 8 }}>
+
+    <TouchableOpacity 
+      style={styles.uploadProofBtn} 
+      onPress={onProofPress}
+    >
+      <Text style={styles.uploadProofIcon}>📤</Text>
+      <Text style={styles.uploadProofText}>
+        {uploadedImages.length > 0 ? "Add / Replace images" : "Image 1"}
+      </Text>
+    </TouchableOpacity>
+
+    {/* ✅ Image count – ONLY AFTER upload */}
+    {uploadedImages.length > 0 && (
+      <Text style={{ marginLeft: 10, fontSize: 11, color: "#7FA6C8" }}>
+        {uploadedImages.length} image added
+      </Text>
+    )}
+
+  </View>
+)}
+
+
       </View>
     </View>
   </View>
@@ -117,6 +137,8 @@ export default function DashboardScreen() {
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const isMobile = Dimensions.get("window").width < 768;
+  const [generatedOtp, setGeneratedOtp] = useState<string>("");
+
 const handleCaptureProof = () => {
   Alert.alert(
     "Upload Proof",
@@ -162,7 +184,7 @@ const handleCaptureProof = () => {
     ]
   );
 };
-  // UPDATED LOGIC: If a job is active, show the alert pop-up
+  // UPDATED LOGIC: If a job is active, show the alert pop-up instead of starting a new job
   const handleStartJob = (job: JobRequest) => {
     if (activeJob) {
       setShowAlert(true); // Triggers the modal shown in image_cd3643.png
@@ -181,10 +203,14 @@ const handleCaptureProof = () => {
   };
 
   const handleNextStep = () => {
-    if (currentStep === 2) {
-      setShowOtpModal(true);
-      return;
-    }
+   if (currentStep === 2) {
+  const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
+  setGeneratedOtp(otp);
+  setShowOtpModal(true);
+
+  console.log("Generated OTP:", otp); // remove later
+  return;
+}
 
     if (currentStep < 4) {
       setCurrentStep((prev: number) => prev + 1);
@@ -206,7 +232,8 @@ const handleCaptureProof = () => {
   };
 
   const verifyOtp = () => {
-    if (otpInput === "933547") { 
+    if (otpInput === generatedOtp) {
+ 
       setShowOtpModal(false);
       setOtpInput("");
       setCurrentStep(3); 
@@ -256,7 +283,8 @@ const handleCaptureProof = () => {
               onChangeText={setOtpInput}
             />
             
-            <Text style={styles.otpHint}>OTP: 933547</Text>
+           <Text style={styles.otpHint}>OTP: {generatedOtp}</Text>
+
 
             <View style={styles.otpActionRow}>
               <TouchableOpacity style={styles.cancelBtn} onPress={() => setShowOtpModal(false)}>
@@ -360,11 +388,62 @@ const handleCaptureProof = () => {
                 <TrackerStep number="1" title="On the way" desc="Traveling to client" active={currentStep >= 1} completed={currentStep > 1} />
                 <TrackerStep number="2" title="Reached location" desc="At customer address" active={currentStep >= 2} completed={currentStep > 2} />
               <TrackerStep 
-    number="3" title="Job Started" desc="Service in progress" 
-    active={currentStep >= 3} completed={currentStep > 3} 
-    showProofBtn={true} 
-    onProofPress={handleCaptureProof} 
+  number="3"
+  title="Job Started"
+  desc="Service in progress"
+  active={currentStep >= 3}
+  completed={currentStep > 3}
+  showProofBtn={true}
+  onProofPress={handleCaptureProof}
+  uploadedImages={uploadedImages}
 />
+
+
+
+{/* Selected images preview */}
+{/* Selected images preview */}
+{/* Selected images preview with actions */}
+{uploadedImages.length > 0 && (
+  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
+    {uploadedImages.map((uri, index) => (
+      <View key={index} style={{ marginRight: 10, alignItems: "center" }}>
+
+        <Image
+          source={{ uri }}
+          style={{
+            width: 70,
+            height: 70,
+            borderRadius: 8,
+            borderWidth: 1,
+            borderColor: "#ccc",
+          }}
+        />
+
+        <View style={{ flexDirection: "row", marginTop: 4 }}>
+          <TouchableOpacity onPress={handleCaptureProof} style={{ marginRight: 8 }}>
+            <Text style={{ fontSize: 10, color: "#FFD54F", fontWeight: "bold" }}>
+              Replace
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() =>
+              setUploadedImages(prev => prev.filter((_, i) => i !== index))
+            }
+          >
+            <Text style={{ fontSize: 10, color: "#EF5350", fontWeight: "bold" }}>
+              Remove
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+      </View>
+    ))}
+  </ScrollView>
+)}
+
+
+
 <TrackerStep 
     number="4" title="Job Completed" desc="Confirm finish" 
     active={currentStep >= 4} 
