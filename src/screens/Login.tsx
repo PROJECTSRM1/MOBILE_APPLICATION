@@ -7,6 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
+  Alert,
   StatusBar,
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
@@ -20,10 +21,57 @@ const Login: React.FC = () => {
   const [remember, setRemember] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const onLogin = () => {
-    // TODO: Hook up your real API here
-    console.log("Login:", { email, password, remember });
-  };
+// const onLogin = async () => {
+//   if (!email || !password) {
+//     Alert.alert("Error", "Please enter email and password");
+//     return;
+//   }
+
+const onLogin = async () => {
+  if (!email || !password) {
+    Alert.alert("Error", "Please enter email or phone and password");
+    return;
+  }
+
+  try {
+    const payload = {
+      email_or_phone: email.trim(), // ✅ BACKEND EXPECTS THIS
+      password: password,
+    };
+
+    console.log("LOGIN PAYLOAD =>", payload);
+
+    const response = await fetch(
+      "https://swachify-india-be-1-mcrb.onrender.com/api/freelancer/login",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const data = await response.json();
+    console.log("LOGIN RESPONSE =>", data);
+
+    if (!response.ok) {
+      Alert.alert(
+        "Login Failed",
+        data?.message || "Invalid email/phone or password"
+      );
+      return;
+    }
+
+    // SUCCESS
+    navigation.replace("FreelancerDashboard");
+
+  } catch (error) {
+    console.error("LOGIN ERROR =>", error);
+    Alert.alert("Error", "Unable to connect to server");
+  }
+};
+
 
   return (
     <>
@@ -161,7 +209,7 @@ const Login: React.FC = () => {
               <TouchableOpacity
                 style={styles.loginBtn}
                 activeOpacity={0.9}
-                onPress={() => navigation.navigate("FreelancerDashboard")}
+                onPress={onLogin}
               >
                 <Text style={styles.loginBtnText}>Login</Text>
               </TouchableOpacity>
@@ -182,7 +230,9 @@ const Login: React.FC = () => {
       </LinearGradient>
     </>
   );
+
 };
+
 
 export default Login;
 

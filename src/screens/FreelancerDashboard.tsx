@@ -1,464 +1,550 @@
 import React, { useState } from "react";
 import {
   View,
-  Image,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useNavigation, NavigationProp } from "@react-navigation/native";
+import { Animated, Dimensions } from "react-native";
 
-const requestsData = [
-  {
-    id: "TKT004",
-    title: "Home Services - Plumbing",
-    customer: "Priya Sharma",
-    description: "Bathroom tap leaking issue",
-    price: 500,
-    location: "Koramangala, Bangalore",
-    time: "2025-11-29 2:00 PM",
-  },
-  {
-    id: "TKT006",
-    title: "Home Services - Repairs",
-    customer: "Sarkaar Singh",
-    description: "Install new AC in living room.",
-    price: 12000,
-    location: "Whitefield, Bangalore",
-    time: "2025-11-29 4:00 PM",
-  },
-  {
-    id: "TKT007",
-    title: "Cleaning - Basic House Cleaning",
-    customer: "Neha Verma",
-    description:
-      "Full house cleaning including dusting, mopping, and sanitizing.",
-    price: 1500,
-    location: "Indiranagar, Bangalore",
-    time: "2025-12-01 9:30 AM",
-  },
-  {
-    id: "TKT008",
-    title: "Home Services - Carpenter",
-    customer: "Rohit Malhotra",
-    description: "Wooden door alignment & drawer repair work",
-    price: 800,
-    location: "HSR Layout, Bangalore",
-    time: "2025-12-01 11:00 AM",
-  },
-  {
-    id: "TKT009",
-    title: "Home Services - Plumbing",
-    customer: "Ayesha Khan",
-    description: "Kitchen sink drainage blocked; requires cleaning.",
-    price: 600,
-    location: "BTM Layout, Bangalore",
-    time: "2025-12-02 10:00 AM",
-  },
-  {
-    id: "TKT010",
-    title: "Home Services - Electrical",
-    customer: "Manish Reddy",
-    description: "Geyser not heating; requires inspection and repair.",
-    price: 900,
-    location: "Jayanagar, Bangalore",
-    time: "2025-12-02 3:00 PM",
-  },
-  {
-    id: "TKT011",
-    title: "Cleaning - Shampooing",
-    customer: "Shruti Desai",
-    description: "6-seater sofa deep shampoo and vacuum cleaning.",
-    price: 1800,
-    location: "Malleshwaram, Bangalore",
-    time: "2025-12-03 12:00 PM",
-  },
-  {
-    id: "TKT012",
-    title: "Home Services - Electrical Wiring",
-    customer: "Gaurav Sinha",
-    description: "Electrical wiring replacement required in bedroom.",
-    price: 2200,
-    location: "Banashankari, Bangalore",
-    time: "2025-12-03 4:30 PM",
-  },
-  {
-    id: "TKT013",
-    title: "Cleaning - Bathroom Deep Cleaning",
-    customer: "Shruti Desai",
-    description:
-      "2 bathrooms deep cleaning including descaling and sanitizing.",
-    price: 1200,
-    location: "RT Nagar, Bangalore",
-    time: "2025-12-04 12:00 PM",
-  },
-  {
-    id: "TKT014",
-    title: "Home Services - AC Gas Refill",
-    customer: "Karthik Menon",
-    description: "1.5-ton AC gas refill and cooling performance check.",
-    price: 1800,
-    location: "Hebbal, Bangalore",
-    time: "2025-12-04 1:00 PM",
-  },
-  {
-    id: "TKT015",
-    title: "Plumbing - Tap Replacement",
-    customer: "Anita Bose",
-    description: "Kitchen tap broken; requires full replacement.",
-    price: 450,
-    location: "Yelahanka, Bangalore",
-    time: "2025-12-04 3:30 PM",
-  },
-  {
-    id: "TKT016",
-    title: "Electrical - Switchboard Replacement",
-    customer: "Harish Gowda",
-    description: "Replace damaged switchboard and fix loose wiring.",
-    price: 700,
-    location: "Basavanagudi, Bangalore",
-    time: "2025-12-05 11:00 AM",
-  },
-];
 
-const FreelancerDashboard = () => {
-  const navigation = useNavigation() as any;
+interface Request {
+  id: string;
+  category: string;
+  price: string;
+  customer: string;
+  description: string;
+  location: string;
+  date: string;
+  estimate: string;
+}
 
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  // Keep available requests in state
-  const [requests, setRequests] = useState(requestsData);
-
-  // Store pending approval list
-  const [approvalPending, setApprovalPending] = useState<any[]>([]);
-
-  // ---------------- FILTER ----------------
-  const [filterOpen, setFilterOpen] = useState(false);
-  const [selectedFilter, setSelectedFilter] = useState("All Requests");
-
-  const filterOptions = [
-    "All Requests",
-    "Cleaning",
-    "Plumbing",
-    "Electrical",
-    "Home Services",
-  ];
-
-  // ---------------- SORT ----------------
-  const [sortOpen, setSortOpen] = useState(false);
-  const [selectedSort, setSelectedSort] = useState("Newest First");
-
-  const sortOptions = ["Newest First", "Highest Price"];
-
-  // FILTER LOGIC
-  let filtered = requests.filter((req) => {
-    if (selectedFilter === "All Requests") return true;
-    return req.title.toLowerCase().includes(selectedFilter.toLowerCase());
-  });
-
-  // SORT LOGIC
-  if (selectedSort === "Newest First") {
-    filtered = [...filtered].sort(
-      (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()
-    );
-  } else if (selectedSort === "Highest Price") {
-    filtered = [...filtered].sort((a, b) => b.price - a.price);
-  }
-
-  // ACCEPT REQUEST LOGIC
-  const handleAcceptRequest = (req: any) => {
-    const updatedPending = [...approvalPending, req];
-    setApprovalPending(updatedPending);
-
-    const updatedRequests = requests.filter((item) => item.id !== req.id);
-    setRequests(updatedRequests);
-
-    navigation.navigate("FreelancerDashboardOverview", {
-      approvalPending: updatedPending,
-    });
-  };
-
-  return (
-    <ScrollView style={styles.root} showsVerticalScrollIndicator={false}>
-      {/* HEADER */}
-      <View style={styles.headerContainer}>
-        <View style={styles.headerLeft}>
-          <Text style={styles.logo}>SWACHIFY INDIA</Text>
-          <Text style={styles.subLogo}>Freelancer Portal</Text>
-        </View>
-
-        <TouchableOpacity
-          style={styles.dashboardButton}
-          onPress={() =>
-            navigation.navigate("FDOverview", {
-              approvalPending: approvalPending,
-            })
-          }
-        >
-          <Text style={styles.dashboardText}>View My Dashboard</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => setMenuOpen(!menuOpen)}>
-          <View style={styles.profileCircle}>
-            <Image
-              source={{
-                uri: "https://cdn-icons-png.flaticon.com/512/847/847969.png",
-              }}
-              style={styles.profileIcon}
-            />
-          </View>
-        </TouchableOpacity>
-      </View>
-
-      {/* Optional menu (if you want to show it when menuOpen is true) */}
-      {menuOpen && (
-        <View style={styles.menuBox}>
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuText}>Logout</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      <Text style={styles.pageHeading}>Available Requests</Text>
-      <Text style={styles.pageSubHeading}>
-        Start your flow by accepting a request
-      </Text>
-
-      {/* FILTER + SORT ROW */}
-      <View style={styles.dropdownRow}>
-        {/* FILTER */}
-        <View style={{ position: "relative" }}>
-          <TouchableOpacity
-            style={styles.dropdownButton}
-            onPress={() => setFilterOpen(!filterOpen)}
-          >
-            <Text style={styles.dropdownText}>{selectedFilter}</Text>
-          </TouchableOpacity>
-
-          {filterOpen && (
-            <View style={styles.dropdownBox}>
-              {filterOptions.map((opt) => (
-                <TouchableOpacity
-                  key={opt}
-                  style={styles.dropdownItem}
-                  onPress={() => {
-                    setSelectedFilter(opt);
-                    setFilterOpen(false);
-                  }}
-                >
-                  <Text style={styles.dropdownItemText}>{opt}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-        </View>
-
-        {/* SORT */}
-        <View style={{ position: "relative" }}>
-          <TouchableOpacity
-            style={styles.dropdownButton}
-            onPress={() => setSortOpen(!sortOpen)}
-          >
-            <Text style={styles.dropdownText}>{selectedSort}</Text>
-          </TouchableOpacity>
-
-          {sortOpen && (
-            <View style={styles.dropdownBox}>
-              {sortOptions.map((opt) => (
-                <TouchableOpacity
-                  key={opt}
-                  style={styles.dropdownItem}
-                  onPress={() => {
-                    setSelectedSort(opt);
-                    setSortOpen(false);
-                  }}
-                >
-                  <Text style={styles.dropdownItemText}>{opt}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-        </View>
-      </View>
-
-      {/* REQUEST CARDS */}
-      {filtered.map((req) => (
-        <View key={req.id} style={styles.card}>
-          <View style={styles.cardRowTop}>
-            <Text style={styles.cardTitle}>{req.title}</Text>
-            <Text style={styles.cardPrice}>₹{req.price}</Text>
-          </View>
-
-          <Text style={styles.cardTicket}>Ticket ID: {req.id}</Text>
-          <Text style={styles.cardCustomer}>Customer: {req.customer}</Text>
-          <Text style={styles.cardDescription}>{req.description}</Text>
-          <Text style={styles.cardMeta}>📍 {req.location}</Text>
-          <Text style={styles.cardMeta}>⏱ {req.time}</Text>
-
-          <TouchableOpacity
-            style={styles.acceptBtn}
-            onPress={() => handleAcceptRequest(req)}
-          >
-            <Text style={styles.acceptText}>Accept Request</Text>
-          </TouchableOpacity>
-        </View>
-      ))}
-    </ScrollView>
-  );
+// =======================================================
+// 2. DEFINE TYPE FOR NAVIGATION PARAMETERS
+// =======================================================
+type RootStackParamList = {
+    Dashboard: undefined; 
+    [key: string]: object | undefined; 
 };
 
-export default FreelancerDashboard;
+type AvailableRequestsScreenNavigationProp = NavigationProp<RootStackParamList>;
+
+// Global shared state
+export const GlobalAppData: {
+  pendingCount: number;
+  pendingList: Request[]; 
+} = {
+  pendingCount: 0,
+  pendingList: [],
+};
+
+export default function AvailableRequestsScreen() {
+  const [showRequestDropdown, setShowRequestDropdown] = useState(false);
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState("All Requests");
+  const [selectedSort, setSelectedSort] = useState("Highest Price");
+  
+  const navigation = useNavigation<AvailableRequestsScreenNavigationProp>();
+  
+  // POPUP STATES
+  const [showAcceptPopup, setShowAcceptPopup] = useState(false);
+  const [acceptedTicketId, setAcceptedTicketId] = useState<string | null>(null);
+  const slideAnim = useState(new Animated.Value(-100))[0];
+
+  // === MOCK DATA ===
+  const [availableRequests, setAvailableRequests] = useState<Request[]>([
+    {
+      id: "TKT001",
+      category: "Cleaning - Deep Cleaning",
+      price: "₹3,000",
+      customer: "Rajesh Kumar",
+      description: "3BHK apartment deep cleaning required",
+      location: "MG Road, Bangalore",
+      date: "2025-11-28 at 10:00 AM",
+      estimate: "₹3,000",
+    },
+    {
+      id: "TKT004",
+      category: "Home Services - Plumbing",
+      price: "₹500",
+      customer: "Priya Sharma",
+      description: "Bathroom tap leaking issue",
+      location: "Koramangala, Bangalore",
+      date: "2025-11-29 at 2:00 PM",
+      estimate: "₹500",
+    },
+    {
+      id: "TKT005",
+      category: "Home Services - Electrical",
+      price: "₹1,200",
+      customer: "Amit Singh",
+      description: "Install new ceiling fan in living room",
+      location: "Whitefield, Bangalore",
+      date: "2025-11-29 at 4:00 PM",
+      estimate: "₹1,200",
+    },
+    {
+        id: "TKT006",
+        category: "Home Services - Repairs",
+        price: "₹12,000",
+        customer: "Sarkaar Singh",
+        description: "Install new AC in living room",
+        location: "Whitefield, Bangalore",
+        date: "2025-11-29 at 4:00 PM",
+        estimate: "₹12,000",
+      },
+      {
+        id: "TKT007",
+        category: "Cleaning - Basic House Cleaning",
+        price: "₹1,500",
+        customer: "Neha Verma",
+        description:
+          "Full house cleaning including dusting, mopping and sanitizing",
+        location: "Indiranagar, Bangalore",
+        date: "2025-12-01 at 9:30 AM",
+        estimate: "₹1,500",
+      },
+      {
+        id: "TKT008",
+        category: "Home Services - Carpenter",
+        price: "₹800",
+        customer: "Rohit Malhotra",
+        description: "Wooden door alignment and drawer repair work",
+        location: "HSR Layout, Bangalore",
+        date: "2025-12-01 at 11:00 AM",
+        estimate: "₹800",
+      },
+      {
+        id: "TKT009",
+        category: "Home Services - Plumbing",
+        price: "₹600",
+        customer: "Ayesha Khan",
+        description: "Kitchen sink drainage blocked; requires cleaning",
+        location: "BTM Layout, Bangalore",
+        date: "2025-12-02 at 10:00 AM",
+        estimate: "₹600",
+      },
+      {
+        id: "TKT010",
+        category: "Home Services - Electrical",
+        price: "₹900",
+        customer: "Manish Reddy",
+        description: "Geyser not heating, requires inspection and repair",
+        location: "Jayanagar, Bangalore",
+        date: "2025-12-02 at 3:00 PM",
+        estimate: "₹900",
+      },
+      {
+        id: "TKT012",
+        category: "Home Services - Electrical Wiring",
+        price: "₹2,200",
+        customer: "Gaurav Sinha",
+        description: "Electrical wiring replacement required in bedroom.",
+        location: "Banashankari, Bangalore",
+        date: "2025-12-03 at 4:30 PM",
+        estimate: "₹2,200",
+      },
+      {
+        id: "TKT013",
+        category: "Cleaning - Bathroom Deep Cleaning",
+        price: "₹1,200",
+        customer: "Vishal R",
+        description:
+          "2 bathrooms deep cleaning including descaling and sanitizing.",
+        location: "RT Nagar, Bangalore",
+        date: "2025-12-04 at 10:00 AM",
+        estimate: "₹1,200",
+      },
+      {
+        id: "TKT023",
+        category: "Cleaning - Sofa Shampooing",
+        price: "₹1,800",
+        customer: "Shruti Desai",
+        description: "6-seater sofa deep shampoo and vacuum cleaning.",
+        location: "Malleshwaram, Bangalore",
+        date: "2025-12-03 at 12:00 PM",
+        estimate: "₹1,800",
+      },
+  ]);
+
+  const handleAcceptRequest = (ticketId: string) => {
+    const acceptedJob = availableRequests.find(req => req.id === ticketId);
+    
+    if (acceptedJob) {
+      // 1. Update Global Data for Dashboard
+      GlobalAppData.pendingCount += 1;
+      GlobalAppData.pendingList.push(acceptedJob);
+      
+      // 2. REMOVE FROM LOCAL LIST (Disables/Hides the card)
+      setAvailableRequests(prev => prev.filter(req => req.id !== ticketId));
+
+      // 3. TRIGGER POPUP
+      setAcceptedTicketId(ticketId);
+      setShowAcceptPopup(true);
+
+      // 4. ANIMATION
+      Animated.timing(slideAnim, {
+        toValue: 20, 
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+
+      // 5. AUTO-HIDE POPUP
+      setTimeout(() => {
+        Animated.timing(slideAnim, {
+          toValue: -100,
+          duration: 300,
+          useNativeDriver: true,
+        }).start(() => {
+          setShowAcceptPopup(false);
+          setAcceptedTicketId(null);
+        });
+      }, 3000);
+    }
+  };
+
+  const getFilteredRequests = (): Request[] => {
+    if (selectedRequest === "All Requests") return availableRequests;
+    return availableRequests.filter((req: Request) =>
+      req.category.toLowerCase().includes(selectedRequest.toLowerCase())
+    );
+  };
+
+  const getSortedRequests = (filteredRequests: Request[]): Request[] => {
+    if (selectedSort === "Newest First") {
+      return [...filteredRequests].sort((a, b) => b.date.localeCompare(a.date));
+    } else if (selectedSort === "Highest Price") {
+      return [...filteredRequests].sort((a, b) => {
+        const priceA = parseInt(a.price.replace(/[^0-9]/g, "") || "0");
+        const priceB = parseInt(b.price.replace(/[^0-9]/g, "") || "0");
+        return priceB - priceA;
+      });
+    }
+    return filteredRequests;
+  };
+
+  const filteredAndSortedRequests = getSortedRequests(getFilteredRequests());
+
+  const toggleProfileDropdown = () => {
+    setShowProfileDropdown(!showProfileDropdown);
+    setShowRequestDropdown(false);
+    setShowSortDropdown(false);
+  };
+
+  const ProfileDropdown = () => (
+    <View style={styles.profileDropdown}>
+      <View style={styles.profileDropdownItem}>
+        <Text style={styles.profileDropdownUserText}>User</Text>
+      </View>
+      <View style={styles.dropdownDivider} />
+<TouchableOpacity
+  style={styles.profileDropdownItem}
+  onPress={() => {
+    setShowProfileDropdown(false);
+    navigation.navigate("Login");
+  }}
+>
+        <Text style={styles.logoutIcon}>⟲ </Text>
+        <Text style={styles.logoutText}>Logout</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  return (
+    <SafeAreaView style={styles.container}>
+      {/* HEADER */}
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.brand}>SWACHIFY INDIA</Text>
+          <Text style={styles.portal}>Freelancer Portal</Text>
+        </View>
+
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={styles.dashboardBtn}
+            onPress={() => navigation.navigate("FDOverview")}
+          >
+            <Text style={styles.dashboardText}>Dashboard</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.profile} onPress={toggleProfileDropdown}>
+            <Text style={styles.profileText}>👤</Text> 
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {showProfileDropdown && <ProfileDropdown />}
+
+      {/* TITLE */}
+      <View style={styles.titleSection}>
+        <Text style={styles.title}>Available Requests</Text>
+        <Text style={styles.subtitle}>Start your flow by accepting a request</Text>
+      </View>
+
+      {/* FILTERS */}
+      <View style={styles.filters}>
+        <View style={{ position: "relative" }}>
+          <TouchableOpacity
+            style={selectedRequest === "All Requests" ? styles.filterChip : styles.filterChipActive}
+            onPress={() => {
+              setShowRequestDropdown(!showRequestDropdown);
+              setShowSortDropdown(false);
+            }}
+          >
+            <Text style={selectedRequest === "All Requests" ? styles.filterText : styles.filterActiveText}>
+              {selectedRequest} ▼
+            </Text>
+          </TouchableOpacity>
+
+          {showRequestDropdown && (
+            <View style={styles.dropdown}>
+              {["All Requests", "Cleaning", "Home Services", "Plumbing", "Electrical"].map((item) => (
+                <TouchableOpacity
+                  key={item}
+                  style={styles.dropdownItem}
+                  onPress={() => {
+                    setSelectedRequest(item);
+                    setShowRequestDropdown(false);
+                  }}
+                >
+                  <Text style={styles.dropdownText}>{item}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+
+        <View style={{ position: "relative", marginLeft: 10 }}>
+          <TouchableOpacity
+            style={styles.filterChip}
+            onPress={() => {
+              setShowSortDropdown(!showSortDropdown);
+              setShowRequestDropdown(false);
+            }}
+          >
+            <Text style={styles.filterText}>{selectedSort} ▼</Text>
+          </TouchableOpacity>
+
+          {showSortDropdown && (
+            <View style={styles.dropdown}>
+              {["Newest First", "Highest Price"].map((item) => (
+                <TouchableOpacity
+                  key={item}
+                  style={styles.dropdownItem}
+                  onPress={() => {
+                    setSelectedSort(item);
+                    setShowSortDropdown(false);
+                  }}
+                >
+                  <Text style={styles.dropdownText}>{item}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+      </View>
+
+      {/* REQUEST LIST */}
+      <ScrollView contentContainerStyle={styles.list}>
+        {filteredAndSortedRequests.length > 0 ? (
+          filteredAndSortedRequests.map((req: Request) => (
+            <View key={req.id} style={styles.card}>
+              <View style={styles.greenStrip} />
+              <View style={styles.cardContent}>
+                <View style={styles.cardTop}>
+                  <Text style={styles.cardTitle}>{req.category}</Text>
+                  <Text style={styles.cardPrice}>{req.price}</Text>
+                </View>
+
+                <View style={styles.metadataRow}>
+                    <Text style={styles.ticket}>TKT ID: {req.id}</Text>
+                    <Text style={styles.customer}>
+                        Client: <Text style={styles.bold}>{req.customer}</Text>
+                    </Text>
+                </View>
+
+                <Text style={styles.description}>{req.description}</Text>
+                
+                <View style={styles.metaContainer}>
+                    <Text style={styles.meta}>📍 {req.location}</Text>
+                    <Text style={styles.meta}>🕒 {req.date}</Text>
+                    <Text style={styles.metaEstimate}>💰 Estimated: {req.estimate}</Text>
+                </View>
+                
+                <TouchableOpacity style={styles.acceptBtn} onPress={() => handleAcceptRequest(req.id)}>
+                  <Text style={styles.acceptText}>→ Accept Request</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))
+        ) : (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyText}>No available requests found.</Text>
+          </View>
+        )}
+      </ScrollView>
+
+      {/* SUCCESS POPUP */}
+      {showAcceptPopup && acceptedTicketId && (
+        <Animated.View
+          style={[
+            popupStyles.popupContainer,
+            { transform: [{ translateY: slideAnim }] },
+          ]}
+        >
+          <View style={popupStyles.popupCard}>
+            <Text style={popupStyles.checkIcon}>✅</Text>
+            <Text style={popupStyles.popupText}>
+              Request <Text style={{ fontWeight: "800" }}>{acceptedTicketId}</Text> accepted successfully.{"\n"}
+              Waiting for admin approval.
+            </Text>
+          </View>
+        </Animated.View>
+      )}
+    </SafeAreaView>
+  );
+}
+
+const PRIMARY_BLUE = "#1565C0"; 
+const PRIMARY_GREEN = "#00A86B"; 
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: "#F9FAFB",
-    paddingHorizontal: 14,
-    paddingTop: 20,
-  },
-
-  headerContainer: {
+  container: { flex: 1, backgroundColor: "#F4F5F9" }, 
+  header: {
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    backgroundColor: "#FFF",
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 10,
+    elevation: 4,
   },
-
-  headerLeft: {
-    flexDirection: "column",
+  brand: { fontSize: 19, fontWeight: "900", color: PRIMARY_BLUE },
+  portal: { fontSize: 12, color: "#777", fontWeight: "400" }, 
+  headerActions: { flexDirection: "row", alignItems: "center" },
+  dashboardBtn: {
+    backgroundColor: "#333", 
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    marginRight: 10,
   },
-
-  logo: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#2563EB",
-  },
-
-  subLogo: {
-    fontSize: 12,
-    color: "#6B7280",
-  },
-
-  profileCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 80,
-    borderWidth: 2,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  profileIcon: {
-    width: 32,
+  dashboardText: { color: "#FFF", fontSize: 12, fontWeight: "600" },
+  profile: {
+    width: 35,
     height: 32,
+    borderRadius: 8, 
+    backgroundColor: '#3e3a3aff',
+    alignItems: "center",
+    justifyContent: "center",
   },
-
-  menuBox: {
+  profileText: { color: "#FFF", fontSize: 14, fontWeight: "600" },
+  profileDropdown: {
+    position: 'absolute',
+    top: 60,
+    right: 20,
+    width: 150,
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    elevation: 8,
+    zIndex: 20, 
+  },
+  profileDropdownItem: { padding: 12, flexDirection: 'row', alignItems: 'center' },
+  profileDropdownUserText: { fontSize: 15, fontWeight: '700', color: '#333' },
+  dropdownDivider: { height: 1, backgroundColor: '#EEE', marginHorizontal: 10 },
+  logoutText: { fontSize: 15, color: '#D9534F', fontWeight: '600', marginLeft: 4 },
+  logoutIcon: { color: '#D9534F', fontSize: 18, transform: [{ rotate: '90deg' }] },
+  titleSection: { paddingHorizontal: 20, paddingTop: 25 },
+  title: { fontSize: 28, fontWeight: "800", color: "#222" }, 
+  subtitle: { marginTop: 4, fontSize: 14, color: "#666" },
+  filters: { flexDirection: "row", paddingHorizontal: 20, marginTop: 18, zIndex: 10, marginBottom: 10 },
+  filterChipActive: {
+    backgroundColor: PRIMARY_BLUE,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 16,
+  },
+  filterActiveText: { color: "#FFF", fontWeight: "700", fontSize: 13 },
+  filterChip: {
+    backgroundColor: "#FFF",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#DDD",
+  },
+  filterText: { fontSize: 13, color: "#444", fontWeight: "600" },
+  dropdown: {
     position: "absolute",
-    right: 10,
-    top: 70,
-    width: 120,
+    top: 44,
     backgroundColor: "#FFF",
     borderRadius: 10,
+    width: 180,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: "#EEE",
+    zIndex: 15,
+  },
+  dropdownItem: { padding: 12 },
+  dropdownText: { fontSize: 14, color: "#333" },
+  list: { padding: 20, paddingTop: 15 },
+  card: {
+    flexDirection: "row",
+    backgroundColor: "#FFF",
+    borderRadius: 18,
+    marginBottom: 18,
     elevation: 8,
   },
-
-  menuItem: {
-    padding: 12,
+  greenStrip: {
+    width: 8,
+    backgroundColor: PRIMARY_GREEN,
+    borderTopLeftRadius: 18,
+    borderBottomLeftRadius: 18,
   },
+  cardContent: { flex: 1, padding: 18 }, 
+  cardTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
+  cardTitle: { fontSize: 18, fontWeight: "800", color: "#222", flex: 1, marginRight: 10, marginBottom: 4 },
+  cardPrice: { fontSize: 22, fontWeight: "900", color: "#1A4A9A", textAlign: "right" },
+  metadataRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  ticket: { fontSize: 12, color: "#999", fontWeight: '500' }, 
+  customer: { color: "#444", fontSize: 13 },
+  bold: { fontWeight: "700", color: "#333" },
+  description: { marginTop: 8, color: "#555", fontStyle: "italic", fontSize: 14, marginBottom: 12 },
+  metaContainer: { borderTopWidth: 1, borderTopColor: '#F0F0F0', paddingTop: 12 },
+  meta: { marginTop: 4, color: "#666", fontSize: 13, fontWeight: '500' },
+  metaEstimate: { marginTop: 4, color: PRIMARY_BLUE, fontSize: 14, fontWeight: '700' }, 
+  acceptBtn: { marginTop: 20, backgroundColor: PRIMARY_GREEN, paddingVertical: 14, borderRadius: 14, alignItems: "center" },
+  acceptText: { color: "#FFF", fontWeight: "800", fontSize: 16 },
+  emptyState: { padding: 40, alignItems: 'center' },
+  emptyText: { color: '#999' }
+});
 
-  menuText: {
-    fontWeight: "700",
-    color: "#EF4444",
-  },
+const { width } = Dimensions.get("window");
 
-  dashboardButton: {
-    backgroundColor: "#000",
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-
-  dashboardText: { color: "#FFF", fontWeight: "600" },
-
-  pageHeading: { fontSize: 20, fontWeight: "700", color: "#111827" },
-
-  pageSubHeading: { fontSize: 13, color: "#6B7280", marginBottom: 20 },
-
-  dropdownRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 20,
-  },
-
-  dropdownButton: {
-    backgroundColor: "#E5E7EB",
-    padding: 10,
-    borderRadius: 8,
-    width: 150,
-  },
-
-  dropdownText: { fontSize: 14, fontWeight: "600" },
-
-  dropdownBox: {
+const popupStyles = StyleSheet.create({
+  popupContainer: {
     position: "absolute",
-    top: 48,
-    width: 150,
-    backgroundColor: "white",
-    borderRadius: 8,
-    elevation: 6,
-    zIndex: 9999,
-  },
-
-  dropdownItem: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#DDD",
-  },
-
-  dropdownItemText: { fontSize: 14 },
-
-  card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    padding: 16,
-    marginVertical: 10,
-    borderLeftWidth: 4,
-    borderLeftColor: "#22C55E",
-    elevation: 2,
-  },
-
-  cardRowTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 4,
-  },
-
-  cardTitle: { fontSize: 16, fontWeight: "700", color: "#111827" },
-
-  cardPrice: { fontSize: 18, fontWeight: "700", color: "#22C55E" },
-
-  cardTicket: { fontSize: 12, color: "#6B7280", marginBottom: 6 },
-
-  cardCustomer: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#374151",
-    marginBottom: 6,
-  },
-
-  cardDescription: { fontSize: 13, color: "#4B5563", marginBottom: 10 },
-
-  cardMeta: { fontSize: 12, color: "#6B7280", marginBottom: 4 },
-
-  acceptBtn: {
-    marginTop: 12,
-    backgroundColor: "#22C55E",
-    paddingVertical: 10,
-    borderRadius: 6,
+    top: 50, 
+    left: 0,
+    right: 0,
     alignItems: "center",
+    zIndex: 100,
   },
-
-  acceptText: { color: "#FFF", fontWeight: "700" },
+  popupCard: {
+    width: width - 32, 
+    backgroundColor: "#FFFFFF",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 16,
+    elevation: 10,
+  },
+  checkIcon: { fontSize: 22, marginRight: 12 },
+  popupText: { fontSize: 14, fontWeight: "600", color: "#333", flex: 1, lineHeight: 20 },
 });
