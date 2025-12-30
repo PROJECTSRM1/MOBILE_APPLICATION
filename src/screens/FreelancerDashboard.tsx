@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+// import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+
 import {
   View,
   Text,
@@ -23,9 +25,7 @@ interface Request {
   estimate: string;
 }
 
-// =======================================================
 // 2. DEFINE TYPE FOR NAVIGATION PARAMETERS
-// =======================================================
 type RootStackParamList = {
     Dashboard: undefined; 
     [key: string]: object | undefined; 
@@ -57,120 +57,166 @@ export default function AvailableRequestsScreen() {
   const slideAnim = useState(new Animated.Value(-100))[0];
 
   // === MOCK DATA ===
-  const [availableRequests, setAvailableRequests] = useState<Request[]>([
-    {
-      id: "TKT001",
-      category: "Cleaning - Deep Cleaning",
-      price: "₹3,000",
-      customer: "Rajesh Kumar",
-      description: "3BHK apartment deep cleaning required",
-      location: "MG Road, Bangalore",
-      date: "2025-11-28 at 10:00 AM",
-      estimate: "₹3,000",
-    },
-    {
-      id: "TKT004",
-      category: "Home Services - Plumbing",
-      price: "₹500",
-      customer: "Priya Sharma",
-      description: "Bathroom tap leaking issue",
-      location: "Koramangala, Bangalore",
-      date: "2025-11-29 at 2:00 PM",
-      estimate: "₹500",
-    },
-    {
-      id: "TKT005",
-      category: "Home Services - Electrical",
-      price: "₹1,200",
-      customer: "Amit Singh",
-      description: "Install new ceiling fan in living room",
-      location: "Whitefield, Bangalore",
-      date: "2025-11-29 at 4:00 PM",
-      estimate: "₹1,200",
-    },
-    {
-        id: "TKT006",
-        category: "Home Services - Repairs",
-        price: "₹12,000",
-        customer: "Sarkaar Singh",
-        description: "Install new AC in living room",
-        location: "Whitefield, Bangalore",
-        date: "2025-11-29 at 4:00 PM",
-        estimate: "₹12,000",
-      },
+//   const [availableRequests, setAvailableRequests] = useState<Request[]>([
+//     {
+//       id: "TKT001",
+//       category: "Cleaning - Deep Cleaning",
+//       price: "₹3,000",
+//       customer: "Rajesh Kumar",
+//       description: "3BHK apartment deep cleaning required",
+//       location: "MG Road, Bangalore",
+//       date: "2025-11-28 at 10:00 AM",
+//       estimate: "₹3,000",
+//     },
+//     {
+//       id: "TKT004",
+//       category: "Home Services - Plumbing",
+//       price: "₹500",
+//       customer: "Priya Sharma",
+//       description: "Bathroom tap leaking issue",
+//       location: "Koramangala, Bangalore",
+//       date: "2025-11-29 at 2:00 PM",
+//       estimate: "₹500",
+//     },
+//     {
+//       id: "TKT005",
+//       category: "Home Services - Electrical",
+//       price: "₹1,200",
+//       customer: "Amit Singh",
+//       description: "Install new ceiling fan in living room",
+//       location: "Whitefield, Bangalore",
+//       date: "2025-11-29 at 4:00 PM",
+//       estimate: "₹1,200",
+//     },
+//     {
+//         id: "TKT006",
+//         category: "Home Services - Repairs",
+//         price: "₹12,000",
+//         customer: "Sarkaar Singh",
+//         description: "Install new AC in living room",
+//         location: "Whitefield, Bangalore",
+//         date: "2025-11-29 at 4:00 PM",
+//         estimate: "₹12,000",
+//       },
+//       {
+//         id: "TKT007",
+//         category: "Cleaning - Basic House Cleaning",
+//         price: "₹1,500",
+//         customer: "Neha Verma",
+//         description:
+//           "Full house cleaning including dusting, mopping and sanitizing",
+//         location: "Indiranagar, Bangalore",
+//         date: "2025-12-01 at 9:30 AM",
+//         estimate: "₹1,500",
+//       },
+//       {
+//         id: "TKT008",
+//         category: "Home Services - Carpenter",
+//         price: "₹800",
+//         customer: "Rohit Malhotra",
+//         description: "Wooden door alignment and drawer repair work",
+//         location: "HSR Layout, Bangalore",
+//         date: "2025-12-01 at 11:00 AM",
+//         estimate: "₹800",
+//       },
+//       {
+//         id: "TKT009",
+//         category: "Home Services - Plumbing",
+//         price: "₹600",
+//         customer: "Ayesha Khan",
+//         description: "Kitchen sink drainage blocked; requires cleaning",
+//         location: "BTM Layout, Bangalore",
+//         date: "2025-12-02 at 10:00 AM",
+//         estimate: "₹600",
+//       },
+//       {
+//         id: "TKT010",
+//         category: "Home Services - Electrical",
+//         price: "₹900",
+//         customer: "Manish Reddy",
+//         description: "Geyser not heating, requires inspection and repair",
+//         location: "Jayanagar, Bangalore",
+//         date: "2025-12-02 at 3:00 PM",
+//         estimate: "₹900",
+//       },
+//       {
+//         id: "TKT012",
+//         category: "Home Services - Electrical Wiring",
+//         price: "₹2,200",
+//         customer: "Gaurav Sinha",
+//         description: "Electrical wiring replacement required in bedroom.",
+//         location: "Banashankari, Bangalore",
+//         date: "2025-12-03 at 4:30 PM",
+//         estimate: "₹2,200",
+//       },
+//       {
+//         id: "TKT013",
+//         category: "Cleaning - Bathroom Deep Cleaning",
+//         price: "₹1,200",
+//         customer: "Vishal R",
+//         description:
+//           "2 bathrooms deep cleaning including descaling and sanitizing.",
+//         location: "RT Nagar, Bangalore",
+//         date: "2025-12-04 at 10:00 AM",
+//         estimate: "₹1,200",
+//       },
+//       {
+//         id: "TKT023",
+//         category: "Cleaning - Sofa Shampooing",
+//         price: "₹1,800",
+//         customer: "Shruti Desai",
+//         description: "6-seater sofa deep shampoo and vacuum cleaning.",
+//         location: "Malleshwaram, Bangalore",
+//         date: "2025-12-03 at 12:00 PM",
+//         estimate: "₹1,800",
+//       },
+//   ]);
+
+const [availableRequests, setAvailableRequests] = useState<Request[]>([]);
+const [loading, setLoading] = useState(true);
+
+const fetchRequests = async () => {
+  try {
+    setLoading(true);
+
+    const response = await fetch(
+      "https://swachify-india-be-1-mcrb.onrender.com/api/home-service",
       {
-        id: "TKT007",
-        category: "Cleaning - Basic House Cleaning",
-        price: "₹1,500",
-        customer: "Neha Verma",
-        description:
-          "Full house cleaning including dusting, mopping and sanitizing",
-        location: "Indiranagar, Bangalore",
-        date: "2025-12-01 at 9:30 AM",
-        estimate: "₹1,500",
-      },
-      {
-        id: "TKT008",
-        category: "Home Services - Carpenter",
-        price: "₹800",
-        customer: "Rohit Malhotra",
-        description: "Wooden door alignment and drawer repair work",
-        location: "HSR Layout, Bangalore",
-        date: "2025-12-01 at 11:00 AM",
-        estimate: "₹800",
-      },
-      {
-        id: "TKT009",
-        category: "Home Services - Plumbing",
-        price: "₹600",
-        customer: "Ayesha Khan",
-        description: "Kitchen sink drainage blocked; requires cleaning",
-        location: "BTM Layout, Bangalore",
-        date: "2025-12-02 at 10:00 AM",
-        estimate: "₹600",
-      },
-      {
-        id: "TKT010",
-        category: "Home Services - Electrical",
-        price: "₹900",
-        customer: "Manish Reddy",
-        description: "Geyser not heating, requires inspection and repair",
-        location: "Jayanagar, Bangalore",
-        date: "2025-12-02 at 3:00 PM",
-        estimate: "₹900",
-      },
-      {
-        id: "TKT012",
-        category: "Home Services - Electrical Wiring",
-        price: "₹2,200",
-        customer: "Gaurav Sinha",
-        description: "Electrical wiring replacement required in bedroom.",
-        location: "Banashankari, Bangalore",
-        date: "2025-12-03 at 4:30 PM",
-        estimate: "₹2,200",
-      },
-      {
-        id: "TKT013",
-        category: "Cleaning - Bathroom Deep Cleaning",
-        price: "₹1,200",
-        customer: "Vishal R",
-        description:
-          "2 bathrooms deep cleaning including descaling and sanitizing.",
-        location: "RT Nagar, Bangalore",
-        date: "2025-12-04 at 10:00 AM",
-        estimate: "₹1,200",
-      },
-      {
-        id: "TKT023",
-        category: "Cleaning - Sofa Shampooing",
-        price: "₹1,800",
-        customer: "Shruti Desai",
-        description: "6-seater sofa deep shampoo and vacuum cleaning.",
-        location: "Malleshwaram, Bangalore",
-        date: "2025-12-03 at 12:00 PM",
-        estimate: "₹1,800",
-      },
-  ]);
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    const paidRequests = data
+      .filter((item: any) => item.payment_done === true)
+      .map((item: any) => ({
+        id: `TKT${item.id}`,
+        category: "Home Service",
+        price: item.service_price ? `₹${item.service_price}` : "₹ --",
+        customer: item.full_name,
+        description: item.problem_description,
+        location: item.address,
+        date: item.preferred_date,
+        estimate: "Paid",
+      }));
+
+    setAvailableRequests(paidRequests);
+  } catch (error) {
+    console.error("API Error:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+useEffect(() => {
+  fetchRequests();
+}, []);
+
+
 
   const handleAcceptRequest = (ticketId: string) => {
     const acceptedJob = availableRequests.find(req => req.id === ticketId);
