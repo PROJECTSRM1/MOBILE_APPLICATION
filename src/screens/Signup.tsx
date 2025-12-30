@@ -233,50 +233,124 @@ export default function Signup() {
     // State for new skill selection
     const [selectedSkills, setSelectedSkills] = useState<string[]>([]); // Explicit type
     const [panNumber, setPanNumber] = useState<string>(''); // Explicit type
+    // Step 1 states (NEW – required for backend)
+const [firstName, setFirstName] = useState<string>("");
+const [lastName, setLastName] = useState<string>("");
+const [email, setEmail] = useState<string>("");
+const [phone, setPhone] = useState<string>("");
+
+// Optional loading flag
+const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
 
     // FUNCTION TO ADVANCE STEP
-    const handleContinue = () => {
-        // Simple validation for Step 3
-        if (currentStep === 3) {
-            if (selectedSkills.length === 0) {
-                // FIX 1 applied: Alert is now available
-                Alert.alert("Skills Required", "Please select at least one skill.");
-                return;
-            }
-            if (panNumber.trim().length === 0) {
-                 // FIX 1 applied: Alert is now available
-                Alert.alert("ID Proof Required", "Please enter your Government ID (PAN/Aadhaar number).");
-                return;
-            }
-        }
-        // Add validation for Step 2 (Password matching)
-        if (currentStep === 2) {
-             if (password.length < 6) { // Simple minimum length check
-                Alert.alert("Invalid Password", "Password must be at least 6 characters long.");
-                return;
-            }
-            if (password !== confirmPassword) {
-                Alert.alert("Password Mismatch", "Password and Confirm Password must match.");
-                return;
-            }
-        }
-        // Add validation for Step 1 (Minimal checks)
-        if (currentStep === 1) {
-            if (selectedGender === "") {
-                Alert.alert("Missing Information", "Please select your gender.");
-                return;
-            }
-            // Minimal validation for other fields omitted for brevity, assuming they are filled.
-        }
+   const handleContinue = async () => {
+  // ---------------- STEP 1 VALIDATION ----------------
+  if (currentStep === 1) {
+    if (!firstName.trim() || !lastName.trim() || !email.trim() || !phone.trim()) {
+      Alert.alert("Missing Information", "Please fill all required fields.");
+      return;
+    }
+    if (!selectedGender) {
+      Alert.alert("Missing Information", "Please select your gender.");
+      return;
+    }
+    setCurrentStep(2);
+    return;
+  }
+
+  // ---------------- STEP 2 VALIDATION ----------------
+  if (currentStep === 2) {
+    if (password.length < 6) {
+      Alert.alert("Invalid Password", "Password must be at least 6 characters.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      Alert.alert("Password Mismatch", "Passwords do not match.");
+      return;
+    }
+    setCurrentStep(3);
+    return;
+  }
+
+  // ---------------- STEP 3 VALIDATION ----------------
+  if (currentStep === 3) {
+    if (selectedSkills.length === 0) {
+      Alert.alert("Skills Required", "Select at least one skill.");
+      return;
+    }
+    if (!panNumber.trim()) {
+      Alert.alert("ID Proof Required", "Enter your Government ID.");
+      return;
+    }
+    setCurrentStep(4);
+    return;
+  }
+
+  // ---------------- FINAL SUBMIT (STEP 4) ----------------
+  if (currentStep === 4) {
+    try {
+      setIsSubmitting(true);
+
+      // Map gender → ID (backend-safe)
+      const genderMap: Record<string, number> = {
+        male: 1,
+        female: 2,
+        other: 3,
+      };
+
+      // Map skills → IDs (example mapping)
+      const skillIds = selectedSkills.map(
+        skill => skillOptions.indexOf(skill) + 1
+      );
+
+      const payload = {
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        email: email.trim().toLowerCase(),
+        mobile: phone.trim(),
+        password: password,
+        confirm_password: confirmPassword,
+        gender_id: genderMap[selectedGender],
+        state_id: 1,          // replace if dynamic later
+        district_id: 1,       // replace if dynamic later
+        skill_ids: skillIds,  // array → backend friendly
+        government_id_type: "PAN",
+        government_id_number: panNumber.trim(),
+        address: location,
+        payment_status: "PAID",
+      };
+
+      console.log("FINAL PAYLOAD:", payload);
+const response = await fetch(
+  "https://swachify-india-be-1-mcrb.onrender.com/api/freelancer/register",
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }
+);
 
 
-        if (currentStep < 4) {
-            setCurrentStep(prevStep => prevStep + 1);
-        } else {
-            // Final submit/Create Account logic here (after payment is conceptually done)
-            Alert.alert("Registration Complete!", "Your account is ready for review.");
-        }
-    };
+      const data = await response.json();
+
+      if (!response.ok) {
+        Alert.alert("Error", data.message || "Registration failed");
+        return;
+      }
+
+      Alert.alert("Success", "Account created successfully!");
+      navigation.navigate("Login");
+
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Error", "Server error. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+};
+
     
     // Function to jump to a specific step
     const handleStepJump = (stepNumber: number) => {
@@ -309,6 +383,8 @@ export default function Signup() {
                                     style={styles.input}
                                     placeholder="John"
                                     placeholderTextColor="#999"
+                                    value={firstName}
+                                    onChangeText={setFirstName}
                                 />
                             </View>
                             <View style={styles.inputGroup}>
@@ -317,6 +393,8 @@ export default function Signup() {
                                     style={styles.input}
                                     placeholder="Doe"
                                     placeholderTextColor="#999"
+                                    value={lastName}
+                                    onChangeText={setLastName}
                                 />
                             </View>
                         </View>
@@ -325,6 +403,7 @@ export default function Signup() {
                             <GenderDropdown
                                 value={selectedGender}
                                 onSelect={setSelectedGender}
+
                             />
                         </View>
                         <View style={styles.inputGroupFull}>
@@ -334,6 +413,9 @@ export default function Signup() {
                                 placeholder="you@example.com"
                                 placeholderTextColor="#999"
                                 keyboardType="email-address"
+                                // autoCapitalize="none"
+                                value={email}
+                                onChangeText={setEmail}
                             />
                         </View>
                         <View style={styles.inputGroupFull}>
@@ -343,6 +425,8 @@ export default function Signup() {
                                 placeholder="9876543210"
                                 placeholderTextColor="#999"
                                 keyboardType="phone-pad"
+                                value={phone}
+                                onChangeText={setPhone}
                             />
                         </View>
                     </>
@@ -954,7 +1038,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#e5e7eb", // Light grey
         paddingVertical: 15,
         borderRadius: 12,
-        alignItems: "center",
+        alignItems: "center", 
         justifyContent: 'center',
     },
     createAccountButtonText: {

@@ -1,209 +1,445 @@
+ 
 import React, { useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
+  ScrollView,
   TouchableOpacity,
   TextInput,
-  Dimensions,
-  ScrollView,
-  Platform,
   Alert,
-  KeyboardAvoidingView, // ✅ Added
+  StatusBar,
 } from "react-native";
+import LinearGradient from "react-native-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
-const { width } = Dimensions.get("window");
+const Login: React.FC = () => {
+  const navigation = useNavigation<any>();
 
-type RootStackParamList = {
-  Login: undefined;
-  Signup: undefined;
-  FreelancerPremiumFlow: undefined;
-};
-
-type LoginScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, "Login">;
-
-export default function Login() {
-  const navigation = useNavigation<LoginScreenNavigationProp>();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [remember, setRemember] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
 
-  const handleLogin = () => {
-    if (!email || !password) {
-      Alert.alert("Validation Error", "Please enter email and password");
+// const onLogin = async () => {
+//   if (!email || !password) {
+//     Alert.alert("Error", "Please enter email and password");
+//     return;
+//   }
+
+const onLogin = async () => {
+  if (!email || !password) {
+    Alert.alert("Error", "Please enter email or phone and password");
+    return;
+  }
+
+  try {
+    const payload = {
+      email_or_phone: email.trim(), // ✅ BACKEND EXPECTS THIS
+      password: password,
+    };
+
+    console.log("LOGIN PAYLOAD =>", payload);
+
+    const response = await fetch(
+      "https://swachify-india-be-1-mcrb.onrender.com/api/freelancer/login",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const data = await response.json();
+    console.log("LOGIN RESPONSE =>", data);
+
+    if (!response.ok) {
+      Alert.alert(
+        "Login Failed",
+        data?.message || "Invalid email/phone or password"
+      );
       return;
     }
-    navigation.replace("FreelancerPremiumFlow");
-  };
+
+    // SUCCESS
+    navigation.replace("FreelancerDashboard");
+
+  } catch (error) {
+    console.error("LOGIN ERROR =>", error);
+    Alert.alert("Error", "Unable to connect to server");
+  }
+};
+
 
   return (
-    // ✅ KeyboardAvoidingView ensures the inputs lift up when the keyboard opens
-    <KeyboardAvoidingView 
-      style={{ flex: 1 }} 
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <ScrollView 
-        contentContainerStyle={styles.scrollContent} 
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.container}>
-          {/* Back Button */}
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Text style={styles.backArrow}>&lt;</Text>
-            <Text style={styles.backText}>Back</Text>
-          </TouchableOpacity>
+    <>
+      <StatusBar barStyle="light-content" backgroundColor="#3B82F6" />
 
-          {/* Main Card */}
-          <View style={styles.card}>
-            {/* Left Panel */}
-            <View style={styles.leftPanel}>
-              <Text style={styles.logoTitle}>Swachify Freelance</Text>
-              <Text style={styles.panelSubtitle}>
-                Empowering freelancers with real-time job opportunities nearby.
-              </Text>
-              <View style={styles.featureList}>
-                <Text style={styles.featureItem}>• Instant job requests</Text>
-                <Text style={styles.featureItem}>• Manage your projects</Text>
-                <Text style={styles.featureItem}>• Track your earnings</Text>
-                <Text style={styles.featureItem}>• Build professional reputation</Text>
-              </View>
+      <LinearGradient
+        colors={["#3B82F6", "#8B5CF6"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.root}
+      >
+        {/* Back button same style as Signup */}   
+        <TouchableOpacity
+          style={styles.backTop}
+          onPress={() => navigation.navigate("Freelancer")}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.backArrow}>←</Text>
+          <Text style={styles.backText}>Back</Text>
+        </TouchableOpacity>
+
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={styles.contentContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.mainRow}>
+            {/* LEFT BRAND PANEL (similar to signup left card style) */}
+            <View style={styles.leftCard}>
+              <LinearGradient
+                colors={["#0EA5E9", "#2563EB"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.leftInner}
+              >
+                <Text style={styles.brandTitle}>Swachify Freelance</Text>
+                <Text style={styles.leftSubtitle}>
+                  Empowering freelancers with real-time job opportunities
+                  nearby.
+                </Text>
+
+                <View style={styles.bulletRow}>
+                  <Text style={styles.bulletIcon}>⚡</Text>
+                  <Text style={styles.bulletText}>Instant job requests</Text>
+                </View>
+
+                <View style={styles.bulletRow}>
+                  <Text style={styles.bulletIcon}>💼</Text>
+                  <Text style={styles.bulletText}>Manage your projects</Text>
+                </View>
+
+                <View style={styles.bulletRow}>
+                  <Text style={styles.bulletIcon}>🪙</Text>
+                  <Text style={styles.bulletText}>Track your earnings</Text>
+                </View>
+
+                <View style={styles.bulletRow}>
+                  <Text style={styles.bulletIcon}>⭐</Text>
+                  <Text style={styles.bulletText}>
+                    Build professional reputation
+                  </Text>
+                </View>
+              </LinearGradient>
             </View>
 
-            {/* Right Panel */}
-            <View style={styles.rightPanel}>
-              <Text style={styles.welcomeTitle}>Welcome Back</Text>
-              <Text style={styles.accessText}>Login to access your freelancer dashboard</Text>
+            {/* RIGHT LOGIN CARD – same “card” feeling as signup form card */}
+            <View style={styles.formCard}>
+              <Text style={styles.formTitle}>Welcome Back</Text>
+              <Text style={styles.formSubtitle}>
+                Login to access your freelancer dashboard
+              </Text>
 
-              {/* Email Input */}
-              <Text style={styles.label}>Email Address</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="you@example.com"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                placeholderTextColor="#999"
-              />
-
-              {/* Password Input */}
-              <Text style={styles.label}>Password</Text>
-              <View style={styles.passwordContainer}>
-                <TextInput
-                  style={styles.passwordInput}
-                  placeholder="********"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry={!showPassword}
-                  placeholderTextColor="#999"
-                />
-                <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
-                  <Text style={styles.passwordToggleText}>{showPassword ? "Hide" : "Show"}</Text>
-                </TouchableOpacity>
+              {/* Email */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Email Address</Text>
+                <View style={styles.inputWrapper}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="you@example.com"
+                    placeholderTextColor="#9CA3AF"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    value={email}
+                    onChangeText={setEmail}
+                  />
+                </View>
               </View>
 
-              {/* Remember Me & Forgot Password */}
-              <View style={styles.optionsRow}>
+              {/* Password */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Password</Text>
+                <View style={styles.passwordRow}>
+                  <TextInput
+                    style={[styles.input, { flex: 1 }]}
+                    placeholder="••••••••"
+                    placeholderTextColor="#9CA3AF"
+                    secureTextEntry={!showPassword}
+                    value={password}
+                    onChangeText={setPassword}
+                  />
+                  <TouchableOpacity
+                    style={styles.eyeBtn}
+                    onPress={() => setShowPassword((p) => !p)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.eyeText}>
+                      {showPassword ? "Hide" : "Show"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* Remember + Forgot */}
+              <View style={styles.rowBetween}>
                 <TouchableOpacity
-                  style={styles.checkboxContainer}
-                  onPress={() => setRememberMe(!rememberMe)}
+                  style={styles.rememberRow}
+                  onPress={() => setRemember((p) => !p)}
+                  activeOpacity={0.8}
                 >
-                  <View style={[styles.customCheckbox, rememberMe && styles.customCheckboxActive]}>
-                    {rememberMe && <Text style={styles.checkboxCheck}>✓</Text>}
+                  <View style={styles.checkbox}>
+                    {remember && <View style={styles.checkboxTick} />}
                   </View>
-                  <Text style={styles.rememberMeText}>Remember me</Text>
+                  <Text style={styles.rememberText}>Remember me</Text>
                 </TouchableOpacity>
-                <TouchableOpacity>
-                  <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+
+                <TouchableOpacity
+                  onPress={() => console.log("Forgot password")}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.forgotText}>Forgot Password?</Text>
                 </TouchableOpacity>
               </View>
 
-              {/* Login Button */}
-              <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-                <Text style={styles.loginButtonText}>Login</Text>
+              {/* Login button */}
+              <TouchableOpacity
+                style={styles.loginBtn}
+                activeOpacity={0.9}
+                onPress={onLogin}
+              >
+                <Text style={styles.loginBtnText}>Login</Text>
               </TouchableOpacity>
 
-              {/* Signup Link */}
-              <View style={styles.signupTextContainer}>
-                <Text style={styles.dontHaveAccountText}>Don't have an account? </Text>
-                <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
+              {/* Signup link */}
+              <View style={styles.signupRow}>
+                <Text style={styles.signupText}>Don&apos;t have an account? </Text>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate("Signup")}
+                  activeOpacity={0.8}
+                >
                   <Text style={styles.signupLink}>Sign up free</Text>
                 </TouchableOpacity>
               </View>
             </View>
           </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </LinearGradient>
+    </>
   );
-}
+
+};
+
+
+export default Login;
 
 const styles = StyleSheet.create({
-  scrollContent: { 
-    flexGrow: 1, 
-    backgroundColor: "#f0f2f5" 
-  },
-  container: {
+  root: {
     flex: 1,
+  },
+
+// Back button – same style as Signup
+  backTop: {
+    position: "absolute",
+    top: 16,
+    left: 16,
+    zIndex: 10,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  backArrow: {
+    color: "#E5E7EB",
+    fontSize: 16,
+    marginRight: 4,
+  },
+  backText: {
+    color: "#E5E7EB",
+    fontSize: 14,
+  },
+
+  contentContainer: {
+    paddingTop: 48,
+    paddingHorizontal: 16,
+    paddingBottom: 32,
+    flexGrow: 1,
+    justifyContent: "center",
+  },
+  mainRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+  },
+
+  /* LEFT CARD (brand panel) */
+  leftCard: {
+    width: "100%",
+    backgroundColor: "rgba(15,23,42,0.18)",
+    borderRadius: 24,
+    padding: 4,
+    marginBottom: 16,
+  },
+  leftInner: {
+    borderRadius: 20,
+    paddingVertical: 20,
+    paddingHorizontal: 16,
+  },
+  brandTitle: {
+    color: "#FFFFFF",
+    fontSize: 20,
+    fontWeight: "800",
+    marginBottom: 6,
+  },
+  leftSubtitle: {
+    color: "#E5E7EB",
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 16,
+  },
+  bulletRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  bulletIcon: {
+    marginRight: 8,
+    fontSize: 16,
+  },
+  bulletText: {
+    color: "#F9FAFB",
+    fontSize: 13,
+  },
+
+  /* LOGIN FORM CARD */
+  formCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    padding: 20,
+    width: "100%",
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+  },
+  formTitle: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: "#111827",
+  },
+  formSubtitle: {
+    fontSize: 13,
+    color: "#6B7280",
+    marginTop: 4,
+    marginBottom: 18,
+  },
+
+  inputGroup: {
+    marginBottom: 14,
+  },
+  inputLabel: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#374151",
+    marginBottom: 4,
+  },
+  inputWrapper: {
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    borderRadius: 10,
+    backgroundColor: "#F9FAFB",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  input: {
+    fontSize: 14,
+    color: "#111827",
+  },
+
+  passwordRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    borderRadius: 10,
+    backgroundColor: "#F9FAFB",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  eyeBtn: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  eyeText: {
+    fontSize: 13,
+    color: "#6B7280",
+    fontWeight: "600",
+  },
+
+  rowBetween: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 6,
+    marginBottom: 16,
+  },
+  rememberRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  checkbox: {
+    width: 16,
+    height: 16,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: "#9CA3AF",
+    marginRight: 6,
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 50,
   },
-  backButton: { position: "absolute", top: 30, left: 20, flexDirection: "row", alignItems: "center", padding: 10, zIndex: 10 },
-  backArrow: { fontSize: 20, color: "#000", marginRight: 5, fontWeight: "bold" },
-  backText: { fontSize: 14, color: "#000", marginLeft: 5 },
-  card: {
-    flexDirection: width > 768 ? "row" : "column",
-    width: width > 768 ? 900 : width * 0.9,
-    minHeight: width > 768 ? 550 : "auto",
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
-    elevation: 5,
-    marginTop: 30,
+  checkboxTick: {
+    width: 10,
+    height: 10,
+    borderRadius: 2,
+    backgroundColor: "#111827",
   },
-  leftPanel: { width: width > 768 ? "40%" : "100%", padding: 40, justifyContent: "center", backgroundColor: "#4c26a7" },
-  logoTitle: { fontSize: 24, fontWeight: "bold", color: "#fff", marginBottom: 20 },
-  panelSubtitle: { fontSize: 14, color: "#e0e0e0", marginBottom: 30 },
-  featureList: { gap: 15, marginTop: 20 },
-  featureItem: { fontSize: 15, color: "#fff", fontWeight: "600" },
-  rightPanel: { width: width > 768 ? "60%" : "100%", padding: 40, paddingTop: 50 },
-  welcomeTitle: { fontSize: 28, fontWeight: "bold", color: "#000", marginBottom: 5 },
-  accessText: { fontSize: 16, color: "#555", marginBottom: 30 },
-  label: { fontSize: 14, color: "#333", fontWeight: "500", marginBottom: 8, marginTop: 15 },
-  input: { height: 48, borderColor: "#ccc", borderWidth: 1, borderRadius: 8, paddingHorizontal: 15, fontSize: 15, backgroundColor: "#fff" },
-  passwordContainer: { flexDirection: "row", alignItems: "center", height: 48, borderColor: "#ccc", borderWidth: 1, borderRadius: 8, backgroundColor: "#fff" },
-  passwordInput: { flex: 1, paddingHorizontal: 15, fontSize: 15 },
-  eyeIcon: { padding: 10 },
-  passwordToggleText: { fontSize: 14, color: "#888", fontWeight: "600" },
-  optionsRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 15, marginBottom: 25 },
-  checkboxContainer: { flexDirection: "row", alignItems: "center" },
-  customCheckbox: { width: 20, height: 20, borderRadius: 4, borderWidth: 2, borderColor: "#888", justifyContent: "center", alignItems: "center" },
-  customCheckboxActive: { backgroundColor: "#000", borderColor: "#000" },
-  checkboxCheck: { color: "#fff", fontSize: 14, fontWeight: "bold" },
-  rememberMeText: { fontSize: 13, color: "#555", marginLeft: 10 },
-  forgotPasswordText: { fontSize: 13, color: "#007bff", fontWeight: "500" },
-  loginButton: {
-    backgroundColor: "#000",
+  rememberText: {
+    fontSize: 12,
+    color: "#374151",
+  },
+
+  forgotText: {
+    fontSize: 12,
+    color: "#2563EB",
+  },
+
+  loginBtn: {
+    backgroundColor: "#000000",
+    borderRadius: 999,
     paddingVertical: 12,
-    borderRadius: 8,
     alignItems: "center",
-    marginBottom: 20,
-    ...Platform.select({
-      ios: { shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 5 },
-      android: { elevation: 8 },
-    }),
+    marginBottom: 10,
   },
-  loginButtonText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  signupTextContainer: { flexDirection: "row", justifyContent: "center", marginTop: 10 },
-  dontHaveAccountText: { fontSize: 14, color: "#555" },
-  signupLink: { fontSize: 14, color: "#007bff", fontWeight: "600" },
+  loginBtnText: {
+    color: "#FFFFFF",
+    fontWeight: "700",
+    fontSize: 15,
+  },
+
+  signupRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 4,
+  },
+  signupText: {
+    fontSize: 13,
+    color: "#6B7280",
+  },
+  signupLink: {
+    fontSize: 13,
+    color: "#2563EB",
+    fontWeight: "700",
+  },
 });
