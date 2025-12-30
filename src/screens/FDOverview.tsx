@@ -662,7 +662,7 @@
 // },
 
 // });
-import React, { useState } from "react";
+import React, { useState , useEffect } from "react";
 import {
   View,
   Text,
@@ -905,6 +905,50 @@ const [showProfileDropdown, setShowProfileDropdown] = useState(false);
       Alert.alert("Invalid OTP", "Please enter the correct 6-digit OTP.");
     }
   };
+const freelancerId = 184; // later from login
+
+  const fetchAssignedActiveJob = async () => {
+  try {
+    const response = await fetch(
+      "https://swachify-india-be-1-mcrb.onrender.com/api/home-service",
+      {
+        method: "GET",
+        headers: { Accept: "application/json" },
+      }
+    );
+
+    const data = await response.json();
+
+    // ONLY assigned job for THIS freelancer
+    const assignedJob = data.find(
+      (item: any) =>
+        item.assigned_to === freelancerId &&
+        item.payment_done === true
+    );
+
+    if (assignedJob) {
+      setActiveJob({
+        id: `TKT${assignedJob.id}`,
+        category: "Home Service",
+        price: `₹${assignedJob.service_price}`,
+        customer: assignedJob.full_name,
+        description: assignedJob.problem_description,
+        location: assignedJob.address,
+        date: assignedJob.preferred_date,
+        phone: assignedJob.mobile,
+        email: assignedJob.email,
+      });
+    }
+  } catch (e) {
+    console.error("Assigned job fetch failed", e);
+  }
+};
+
+useEffect(() => {
+  fetchAssignedActiveJob();
+}, []);
+
+
 
   return (
     <SafeAreaView style={styles.container}>
