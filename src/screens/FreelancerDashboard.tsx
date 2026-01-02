@@ -25,6 +25,15 @@ interface Request {
   estimate: string;
 }
 
+const COMMISSION_PERCENT = 20;
+
+const getCommission = (price: number) =>
+  Math.round((price * COMMISSION_PERCENT) / 100);
+
+const getFreelancerAmount = (price: number) =>
+  Math.round((price * (100 - COMMISSION_PERCENT)) / 100);
+
+
 // 2. DEFINE TYPE FOR NAVIGATION PARAMETERS
 type RootStackParamList = {
     Dashboard: undefined; 
@@ -41,6 +50,90 @@ export const GlobalAppData: {
   pendingCount: 0,
   pendingList: [],
 };
+
+// const CommissionBreakdown = ({ price }: { price: number }) => {
+//   const commission = getCommission(price);
+//   const earning = getFreelancerAmount(price);
+
+//   return (
+//     <View style={styles.commissionBox}>
+//       <View style={styles.row}>
+//         <Text style={styles.label}>Service Price</Text>
+//         <Text style={styles.value}>₹{price}</Text>
+//       </View>
+
+//       <View style={styles.row}>
+//         <Text style={styles.label}>Platform Fee (20%)</Text>
+//         <Text style={[styles.value, styles.deduct]}>- ₹{commission}</Text>
+//       </View>
+
+//       <View style={styles.divider} />
+
+//       <View style={styles.row}>
+//         <Text style={styles.earningLabel}>You’ll Earn</Text>
+//         <Text style={styles.earningValue}>₹{earning}</Text>
+//       </View>
+//     </View>
+//   );
+// };
+
+
+const CommissionBreakdown = ({ price }: { price: number }) => {
+  const commission = getCommission(price);
+  const earning = getFreelancerAmount(price);
+
+  return (
+    <View style={styles.breakdownBox}>
+      <View style={styles.row}>
+        <Text style={styles.rowLabel}>Service price</Text>
+        <Text style={styles.rowValue}>₹{price}</Text>
+      </View>
+
+      <View style={styles.row}>
+        <Text style={styles.rowLabel}>Platform fee (20%)</Text>
+        <Text style={[styles.rowValue, { color: "#D32F2F" }]}>
+          - ₹{commission}
+        </Text>
+      </View>
+
+      <View style={styles.divider} />
+
+      <View style={styles.row}>
+        <Text style={[styles.rowLabel, { fontWeight: "700" }]}>
+          You will receive
+        </Text>
+        <Text
+          style={[
+            styles.rowValue,
+            { color: "#2E7D32", fontWeight: "800" },
+          ]}
+        >
+          ₹{earning}
+        </Text>
+      </View>
+    </View>
+  );
+};
+
+
+const Row = ({ label, value, red, green, bold }: any) => (
+  <View style={styles.row}>
+    <Text style={[styles.rowLabel, bold && { fontWeight: "700" }]}>
+      {label}
+    </Text>
+    <Text
+      style={[
+        styles.rowValue,
+        red && { color: "#D32F2F" },
+        green && { color: "#2E7D32" },
+        bold && { fontWeight: "800" },
+      ]}
+    >
+      {value}
+    </Text>
+  </View>
+);
+
 
 export default function AvailableRequestsScreen() {
   const [showRequestDropdown, setShowRequestDropdown] = useState(false);
@@ -191,18 +284,38 @@ const fetchRequests = async () => {
 
     const data = await response.json();
 
+    // const paidRequests = data
+    //   .filter((item: any) => item.payment_done === true)
+    //   .map((item: any) => ({
+    //     id: `TKT${item.id}`,
+    //     category: "Home Service",
+    //     price: item.service_price ? `₹${item.service_price}` : "₹ --",
+    //     customer: item.full_name,
+    //     description: item.problem_description,
+    //     location: item.address,
+    //     date: item.preferred_date,
+    //     estimate: "Paid",
+    //   }));
+
     const paidRequests = data
-      .filter((item: any) => item.payment_done === true)
-      .map((item: any) => ({
-        id: `TKT${item.id}`,
-        category: "Home Service",
-        price: item.service_price ? `₹${item.service_price}` : "₹ --",
-        customer: item.full_name,
-        description: item.problem_description,
-        location: item.address,
-        date: item.preferred_date,
-        estimate: "Paid",
-      }));
+  .filter((item: any) => item.payment_done === true)
+  .map((item: any) => {
+    const originalPrice = Number(item.service_price || 0);
+    const freelancerPrice = getFreelancerAmount(originalPrice);
+
+    return {
+      id: `TKT${item.id}`,
+      category: "Home Service",
+      price: `₹${freelancerPrice}`,     //  SHOW 80%
+      originalPrice,                    //  STORE 100%
+      customer: item.full_name,
+      description: item.problem_description,
+      location: item.address,
+      date: item.preferred_date,
+      estimate: "Paid",
+    };
+  });
+
 
     setAvailableRequests(paidRequests);
   } catch (error) {
@@ -217,6 +330,7 @@ useEffect(() => {
 }, []);
 
 
+const [openBreakdownId, setOpenBreakdownId] = useState<string | null>(null);
 
   const handleAcceptRequest = (ticketId: string) => {
     const acceptedJob = availableRequests.find(req => req.id === ticketId);
@@ -403,8 +517,43 @@ useEffect(() => {
               <View style={styles.greenStrip} />
               <View style={styles.cardContent}>
                 <View style={styles.cardTop}>
-                  <Text style={styles.cardTitle}>{req.category}</Text>
-                  <Text style={styles.cardPrice}>{req.price}</Text>
+                  {/* <Text style={styles.cardTitle}>{req.category}</Text> */}
+                  {/* <Text style={styles.cardPrice}>{req.price}</Text> */}
+                  {/* <Text style={styles.cardCategory}>Home Service</Text>
+  <Text style={styles.cardPrice}>{req.price}</Text> */}
+{/* HEADER */}
+<View style={styles.cardHeader}>
+  <Text style={styles.cardCategory}>{req.category}</Text>
+  <Text style={styles.cardPrice}>{req.price}</Text>
+</View>
+
+{/* EARNINGS ROW */}
+<View style={styles.earningRow}>
+  <Text style={styles.earningText}>
+    Earnings: <Text style={styles.earningAmount}>{req.price}</Text>
+  </Text>
+
+  <TouchableOpacity
+    onPress={() =>
+      setOpenBreakdownId(openBreakdownId === req.id ? null : req.id)
+    }
+  >
+    <Text style={styles.breakdownLink}>
+      {openBreakdownId === req.id ? "Hide breakdown" : "View breakdown"}
+    </Text>
+  </TouchableOpacity>
+</View>
+
+{/* BREAKDOWN (ONLY WHEN OPEN) */}
+{/* {openBreakdownId === req.id && (req as any).originalPrice && (
+  <CommissionBreakdown price={(req as any).originalPrice} />
+)} */}
+{openBreakdownId === req.id && (req as any).originalPrice && (
+  <View style={styles.breakdownWrapper}>
+    <CommissionBreakdown price={(req as any).originalPrice} />
+  </View>
+)}
+
                 </View>
 
                 <View style={styles.metadataRow}>
@@ -473,6 +622,7 @@ const styles = StyleSheet.create({
   brand: { fontSize: 19, fontWeight: "900", color: PRIMARY_BLUE },
   portal: { fontSize: 12, color: "#777", fontWeight: "400" }, 
   headerActions: { flexDirection: "row", alignItems: "center" },
+  
   dashboardBtn: {
     backgroundColor: "#333", 
     paddingHorizontal: 10,
@@ -553,9 +703,9 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 18,
   },
   cardContent: { flex: 1, padding: 18 }, 
-  cardTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
+  cardTop: { marginBottom: 1 },
   cardTitle: { fontSize: 18, fontWeight: "800", color: "#222", flex: 1, marginRight: 10, marginBottom: 4 },
-  cardPrice: { fontSize: 22, fontWeight: "900", color: "#1A4A9A", textAlign: "right" },
+  // cardPrice: { fontSize: 22, fontWeight: "900", color: "#1A4A9A", textAlign: "right" },
   metadataRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   ticket: { fontSize: 12, color: "#999", fontWeight: '500' }, 
   customer: { color: "#444", fontSize: 13 },
@@ -567,8 +717,264 @@ const styles = StyleSheet.create({
   acceptBtn: { marginTop: 20, backgroundColor: PRIMARY_GREEN, paddingVertical: 14, borderRadius: 14, alignItems: "center" },
   acceptText: { color: "#FFF", fontWeight: "800", fontSize: 16 },
   emptyState: { padding: 40, alignItems: 'center' },
-  emptyText: { color: '#999' }
+  emptyText: { color: '#999' },
+//   cardTop: {
+//   flexDirection: "row",
+//   justifyContent: "space-between",
+//   alignItems: "center",
+//   marginBottom: 6,
+// },
+
+cardHeader: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  marginBottom: 4,
+},
+
+cardCategory: {
+  fontSize: 15,
+  fontWeight: "700",
+  color: "#333",
+},
+
+cardPrice: {
+  fontSize: 22,
+  fontWeight: "900",
+  color: "#1A4A9A",
+},
+
+earningRow: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  marginBottom: 8,
+},
+
+earningText: {
+  fontSize: 13,
+  color: "#555",
+  fontWeight: "600",
+},
+
+earningAmount: {
+  color: "#2E7D32",
+  fontWeight: "800",
+},
+
+breakdownLink: {
+  fontSize: 12,
+  fontWeight: "700",
+  color: "#1565C0",
+},
+
+breakdownBox: {
+  backgroundColor: "#F9FAFB",
+  padding: 10,
+  borderRadius: 8,
+  marginBottom: 10,
+  borderWidth: 1,
+  borderColor: "#E6EEF5",
+},
+
+row: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  marginVertical: 4,
+},
+
+rowLabel: {
+  fontSize: 12,
+  color: "#555",
+},
+
+rowValue: {
+  fontSize: 12,
+  fontWeight: "600",
+  color: "#222",
+},
+
+divider: {
+  height: 1,
+  backgroundColor: "#EEE",
+  marginVertical: 8,
+},
+
+// cardCategory: {
+//   fontSize: 14,
+//   fontWeight: "700",
+//   color: "#444",
+// },
+
+// cardPrice: {
+//   fontSize: 24,
+//   fontWeight: "900",
+//   color: "#1A4A9A",
+// },
+
+// cardHeader: {
+//   flexDirection: "row",
+//   justifyContent: "space-between",
+//   alignItems: "center",
+//   marginBottom: 4,
+// },
+
+// cardCategory: {
+//   fontSize: 15,
+//   fontWeight: "700",
+//   color: "#333",
+// },
+
+// cardPrice: {
+//   fontSize: 22,
+//   fontWeight: "900",
+//   color: "#1A4A9A",
+// },
+
+// earningRow: {
+//   flexDirection: "row",
+//   justifyContent: "space-between",
+//   alignItems: "center",
+//   marginBottom: 10,
+// },
+
+// earningText: {
+//   fontSize: 13,
+//   color: "#555",
+//   fontWeight: "600",
+// },
+
+// earningAmount: {
+//   color: "#2E7D32",
+//   fontWeight: "800",
+// },
+
+// breakdownLink: {
+//   fontSize: 12,
+//   fontWeight: "700",
+//   color: "#1565C0",
+// },
+
+//   commissionBox: {
+//   marginTop: 10,
+//   padding: 10,
+//   backgroundColor: "#F8FAFC",
+//   borderRadius: 10,
+//   borderWidth: 1,
+//   borderColor: "#E2E8F0",
+// },
+
+// row: {
+//   flexDirection: "row",
+//   justifyContent: "space-between",
+//   marginVertical: 2,
+// },
+
+// label: {
+//   fontSize: 12,
+//   color: "#475569",
+// },
+
+// value: {
+//   fontSize: 12,
+//   fontWeight: "600",
+//   color: "#0F172A",
+// },
+
+// deduct: {
+//   color: "#DC2626",
+// },
+
+// divider: {
+//   height: 1,
+//   backgroundColor: "#E2E8F0",
+//   marginVertical: 6,
+// },
+
+// earningLabel: {
+//   fontSize: 13,
+//   fontWeight: "700",
+//   color: "#16A34A",
+// },
+
+// earningValue: {
+//   fontSize: 14,
+//   fontWeight: "800",
+//   color: "#16A34A",
+// },
+
+
+earningWrapper: {
+  marginTop: 10,
+},
+
+earningHeader: {
+  backgroundColor: "#F1F8F4",
+  borderRadius: 12,
+  padding: 12,
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+},
+
+earnLabel: {
+  fontSize: 11,
+  color: "#388E3C",
+  fontWeight: "600",
+},
+
+earnAmount: {
+  fontSize: 22,
+  fontWeight: "900",
+  color: "#1B5E20",
+},
+
+breakdownToggle: {
+  fontSize: 11,
+  fontWeight: "700",
+  color: "#1565C0",
+},
+
+breakdownWrapper: {
+  marginTop: 8,
+  width: "100%",
+},
+
+
+// breakdownBox: {
+//   marginTop: 8,
+//   backgroundColor: "#FFFFFF",
+//   borderRadius: 12,
+//   padding: 12,
+//   borderWidth: 1,
+//   borderColor: "#E6EEF5",
+// },
+
+// row: {
+//   flexDirection: "row",
+//   justifyContent: "space-between",
+//   marginVertical: 4,
+// },
+
+// rowLabel: {
+//   fontSize: 12,
+//   color: "#555",
+// },
+
+// rowValue: {
+//   fontSize: 12,
+//   fontWeight: "600",
+//   color: "#222",
+// },
+
+// divider: {
+//   height: 1,
+//   backgroundColor: "#EEE",
+//   marginVertical: 8,
+// },
+
 });
+
 
 const { width } = Dimensions.get("window");
 
@@ -593,4 +999,7 @@ const popupStyles = StyleSheet.create({
   },
   checkIcon: { fontSize: 22, marginRight: 12 },
   popupText: { fontSize: 14, fontWeight: "600", color: "#333", flex: 1, lineHeight: 20 },
+  
+
+  
 });

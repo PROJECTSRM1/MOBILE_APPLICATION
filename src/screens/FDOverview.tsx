@@ -109,7 +109,7 @@ const TrackerStep = ({
       </Text>
     </TouchableOpacity>
 
-    {/* ✅ Image count – ONLY AFTER upload */}
+    {/* Image count – ONLY AFTER upload */}
     {uploadedImages.length > 0 && (
       <Text style={{ marginLeft: 10, fontSize: 11, color: "#7FA6C8" }}>
         {uploadedImages.length} image added
@@ -129,13 +129,16 @@ export default function DashboardScreen() {
   const navigation = useNavigation<DashboardScreenNavigationProp>();
 
   const [showAlert, setShowAlert] = useState<boolean>(false);
-  const [showOtpModal, setShowOtpModal] = useState<boolean>(false);
+  const [showOtpModal, setShowOtpModal] = useState<boolean>(false)  ;
   const [otpInput, setOtpInput] = useState<string>("");
   const [currentStep, setCurrentStep] = useState<number>(1); 
   const [pendingList, setPendingList] = useState<JobRequest[]>(GlobalAppData.pendingList || []);
   const [activeJob, setActiveJob] = useState<JobRequest | null>(null);
   const [completedList, setCompletedList] = useState<JobRequest[]>([]);
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  // const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [stage3Images, setStage3Images] = useState<string[]>([]);
+const [stage4Images, setStage4Images] = useState<string[]>([]);
+
 const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const isMobile = Dimensions.get("window").width < 768;
   const [generatedOtp, setGeneratedOtp] = useState<string>("");
@@ -186,7 +189,31 @@ const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 //   );
 // };
   // UPDATED LOGIC: If a job is active, show the alert pop-up instead of starting a new job
-const handleCaptureProof = () => {
+// const handleCaptureProof = () => {
+//   launchCamera(
+//     {
+//       mediaType: "photo",
+//       cameraType: "back",
+//       saveToPhotos: true,
+//     },
+//     response => {
+//       if (response.didCancel) return;
+
+//       if (response.errorCode) {
+//         Alert.alert("Camera Error", response.errorMessage || "Failed");
+//         return;
+//       }
+
+//       if (response.assets?.length) {
+//         const uri = response.assets[0].uri;
+//         if (uri) {
+//           setUploadedImages(prev => [...prev, uri]);
+//         }
+//       }
+//     }
+//   );
+// };
+ const handleCaptureProof = (stage: 3 | 4) => {
   launchCamera(
     {
       mediaType: "photo",
@@ -201,11 +228,13 @@ const handleCaptureProof = () => {
         return;
       }
 
-      if (response.assets?.length) {
-        const uri = response.assets[0].uri;
-        if (uri) {
-          setUploadedImages(prev => [...prev, uri]);
-        }
+      const uri = response.assets?.[0]?.uri;
+      if (!uri) return;
+
+      if (stage === 3) {
+        setStage3Images(prev => [...prev, uri]);
+      } else {
+        setStage4Images(prev => [...prev, uri]);
       }
     }
   );
@@ -214,13 +243,13 @@ const handleCaptureProof = () => {
 
   const handleStartJob = (job: JobRequest) => {
     if (activeJob) {
-      setShowAlert(true); // Triggers the modal shown in image_cd3643.png
+      setShowAlert(true); 
       return;
     }
     const jobWithContacts = {
         ...job,
         phone: "+91 98765 00003",
-        email: "amit.singh@example.com"
+        email: "amit.singh@example.com" 
     };
     setActiveJob(jobWithContacts);
     // Remove only this job; others stay in pendingList
@@ -235,7 +264,7 @@ const handleCaptureProof = () => {
   setGeneratedOtp(otp);
   setShowOtpModal(true);
 
-  console.log("Generated OTP:", otp); // remove later
+  console.log("Generated OTP:", otp); 
   return;
 }
 
@@ -268,7 +297,7 @@ const handleCaptureProof = () => {
       Alert.alert("Invalid OTP", "Please enter the correct 6-digit OTP.");
     }
   };
-const freelancerId = 184; // later from login
+const freelancerId = 184; 
 
   const fetchAssignedActiveJob = async () => {
   try {
@@ -464,59 +493,51 @@ useEffect(() => {
   active={currentStep >= 3}
   completed={currentStep > 3}
   showProofBtn={true}
-  onProofPress={handleCaptureProof}
-  uploadedImages={uploadedImages}
+  onProofPress={() => handleCaptureProof(3)}
+  uploadedImages={stage3Images}
 />
-
-
-{/* Selected images preview with actions */}
-{uploadedImages.length > 0 && (
-  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
-    {uploadedImages.map((uri, index) => (
-      <View key={index} style={{ marginRight: 10, alignItems: "center" }}>
-
-        <Image
-          source={{ uri }}
-          style={{
-            width: 70,
-            height: 70,
-            borderRadius: 8,
-            borderWidth: 1,
-            borderColor: "#ccc",
-          }}
-        />
-
-        <View style={{ flexDirection: "row", marginTop: 4 }}>
-          {/* <TouchableOpacity onPress={handleCaptureProof} style={{ marginRight: 8 }}>
-            <Text style={{ fontSize: 10, color: "#FFD54F", fontWeight: "bold" }}>
-              Replace
-            </Text>
-          </TouchableOpacity> */}
-
-          <TouchableOpacity
-            onPress={() =>
-              setUploadedImages(prev => prev.filter((_, i) => i !== index))
-            }
-          >
-            <Text style={{ fontSize: 10, color: "#EF5350", fontWeight: "bold" }}>
-              Remove
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-      </View>
+{currentStep >= 3 && stage3Images.length > 0 && (
+  <ScrollView horizontal style={{ marginTop: 8 }}>
+    {stage3Images.map((uri, index) => (
+      <Image
+        key={index}
+        source={{ uri }}
+        style={{ width: 70, height: 70, borderRadius: 8, marginRight: 8 }}
+      />
     ))}
   </ScrollView>
 )}
 
 
 
-<TrackerStep 
+{/* <TrackerStep 
     number="4" title="Job Completed" desc="Confirm finish" 
     active={currentStep >= 4} 
     showProofBtn={true} 
     onProofPress={handleCaptureProof} 
+/> */}
+<TrackerStep 
+  number="4"
+  title="Job Completed"
+  desc="Confirm finish"
+  active={currentStep >= 4}
+  showProofBtn={true}
+  onProofPress={() => handleCaptureProof(4)}
+  uploadedImages={stage4Images}
 />
+{currentStep >= 4 && stage4Images.length > 0 && (
+  <ScrollView horizontal style={{ marginTop: 8 }}>
+    {stage4Images.map((uri, index) => (
+      <Image
+        key={index}
+        source={{ uri }}
+        style={{ width: 70, height: 70, borderRadius: 8, marginRight: 8 }}
+      />
+    ))}
+  </ScrollView>
+)}
+
+
                 
                 <TouchableOpacity style={styles.moveNextBtn} onPress={handleNextStep}>
                   <Text style={styles.moveNextText}>Move to next stage</Text>
