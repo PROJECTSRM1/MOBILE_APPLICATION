@@ -82,6 +82,9 @@ android {
         applicationId "com.educationapp"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
+        ndk {
+            version '27.1.12297006'
+        }
         versionCode 1
         versionName "1.0"
     }
