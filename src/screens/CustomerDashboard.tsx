@@ -70,8 +70,8 @@ export default function CustomerDashboard(): React.ReactElement {
     const assignment = {
       id: Date.now().toString(),
       serviceId,
-      serviceTitle: s?.title ?? "Service",
-      serviceImage: s?.image ?? undefined, // <-- copy image into assignment
+      serviceTitle: s?.title ?? " service",
+      serviceImage: s?.image ?? undefined, 
       customerName: customerName.trim(),
       customerPhone: customerPhone.trim(),
       address: address.trim(),
@@ -393,3 +393,4 @@ const styles = StyleSheet.create({
   statusChipCompleted: { marginTop: 8, color: "#2e7d32", fontWeight: "800" },
   statusChipCancelled: { marginTop: 8, color: "#b71c1c", fontWeight: "800" },
 });
+ 

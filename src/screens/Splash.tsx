@@ -3,7 +3,7 @@
 import React, { useEffect, useRef } from 'react';
 import {
   View,
-  Text,
+  Text, 
   Animated,
   StatusBar,
   StyleSheet,
@@ -14,7 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
-const gifSource: ImageSourcePropType = require('../../assets/swachlogo.png');
+// const gifSource: ImageSourcePropType = require('../../assets/swachlogo.png');
 
 export default function Splash(): React.ReactElement {
   const navigation = useNavigation<any>();
@@ -66,7 +66,7 @@ export default function Splash(): React.ReactElement {
   });
 
   const img = React.createElement(Animated.Image as any, {
-    source: gifSource,
+    // source: gifSource,
     style: { width: IMG_SIZE, height: IMG_SIZE },
     resizeMode: 'contain',
   });

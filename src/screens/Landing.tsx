@@ -456,3 +456,4 @@ const footerStyles = StyleSheet.create({
   copyWrap: { alignItems: 'center', paddingTop: 8 },
   copy: { color: '#cfdbe6', fontSize: 13 },
 });
+

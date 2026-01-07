@@ -11,9 +11,7 @@ import Landing from "./src/screens/Landing";
 import CustomerDashboard from "./src/screens/CustomerDashboard";
 import UserDashboard from "./src/screens/UserDashboard";
 import Settings from "./src/screens/Settings";
-import Transport from "./src/screens/Transport";
-import Construction from "./src/screens/Construction";
-import Rentals from "./src/screens/Rentals";
+
 import FreelancerScreen from "./src/screens/FreelancerScreen";
 import ServiceRequestsScreen from "./src/screens/ServiceRequestsScreen";
 import FreelancerDashboard from "./src/screens/FreelancerDashboard";
@@ -55,12 +53,12 @@ export default function App(): React.ReactElement {
         <Stack.Screen name="Signup" component={Signup} />
         <Stack.Screen name="CustomerDashboard" component={CustomerDashboard} />
         <Stack.Screen name="UserDashboard" component={UserDashboard} />
-        <Stack.Screen name="Transport" component={Transport} />
-        <Stack.Screen name="Construction" component={Construction} />
+        {/* <Stack.Screen name="Transport" component={Transport} /> */}
+        {/* <Stack.Screen name="Construction" component={Construction} /> */}
         {/* <Stack.Screen name="Cleaning" component={Cleaning} /> */}
         {/* <Stack.Screen name="Packers" component={Packers} /> */}
         <Stack.Screen name="Settings" component={Settings} />
-        <Stack.Screen name="Rentals" component={Rentals} />
+        {/* <Stack.Screen name="Rentals" component={Rentals} /> */}
         <Stack.Screen name="Freelancer" component={FreelancerScreen} />
         <Stack.Screen name="ServiceRequests" component={ServiceRequestsScreen} />
         <Stack.Screen name="FreelancerDashboard" component={FreelancerDashboard} />
