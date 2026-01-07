@@ -10,12 +10,20 @@ import {
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const PaymentSummaryScreen = ({ navigation }: any) => { 
+const PaymentSummaryScreen = ({ navigation, route }: any) => {
+  // --- UPDATE 1: Extract the dynamic data from navigation params ---
+ const { 
+    serviceName = "Deep Home Cleaning", 
+    floorArea = "0", 
+    jobDate = "Not Selected", 
+    selectedTime = "TBD",
+    selectedAddons = [] // Receive the array here
+  } = route.params || {};
+
   return (
     <SafeAreaView style={styles.container}>
       {/* HEADER */}
       <View style={styles.header}>
-        {/* 2. Add onPress to the back button */}
         <TouchableOpacity 
           style={styles.backBtn} 
           onPress={() => navigation.goBack()}
@@ -26,22 +34,28 @@ const PaymentSummaryScreen = ({ navigation }: any) => {
         <Text style={styles.headerTitle}>Payment Summary</Text>
         <View style={{ width: 40 }} /> 
       </View>
+
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* SERVICE DETAILS */}
         <Text style={styles.sectionLabel}>SERVICE DETAILS</Text>
         <View style={styles.card}>
           <View style={styles.serviceRow}>
             <View style={styles.serviceInfo}>
-              <Text style={styles.serviceName}>Deep Home Cleaning</Text>
+              {/* --- UPDATE 2: Use dynamic Service Name --- */}
+              <Text style={styles.serviceName}>{serviceName}</Text>
+              
               <View style={styles.tagRow}>
                 <View style={styles.blueTag}>
-                  <Text style={styles.blueTagText}>2 BHK</Text>
+                  {/* --- UPDATE 3: Use dynamic Floor Area --- */}
+                  <Text style={styles.blueTagText}>{floorArea} Sqft</Text>
                 </View>
                 <Text style={styles.subInfoText}>Standard • 3 Hours</Text>
               </View>
+              
               <View style={styles.dateRow}>
                 <MaterialIcons name="calendar-today" size={14} color="#94a3b8" />
-                <Text style={styles.dateText}>Sat, Oct 24 • 10:00 AM</Text>
+                {/* --- UPDATE 4: Use dynamic Date and Time --- */}
+                <Text style={styles.dateText}>{jobDate} • {selectedTime}</Text>
               </View>
             </View>
             <Image
@@ -50,7 +64,21 @@ const PaymentSummaryScreen = ({ navigation }: any) => {
             />
           </View>
         </View>
-
+{selectedAddons.length > 0 && (
+    <View style={{ marginTop: 15, paddingTop: 15, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)' }}>
+      <Text style={[styles.sectionLabel, { marginTop: 0, marginBottom: 10 }]}>SELECTED ADDONS</Text>
+      {selectedAddons.map((item: any, index: number) => (
+        <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
+          <View>
+            <Text style={{ color: '#fff', fontSize: 15, fontWeight: '600' }}>{item.service}</Text>
+            <Text style={{ color: '#94a3b8', fontSize: 13 }}>{item.duration}</Text>
+          </View>
+          {/* You can make this price dynamic if you have a price list */}
+          <Text style={{ color: '#3b82f6', fontSize: 15, fontWeight: '700' }}>$25.00</Text>
+        </View>
+      ))}
+    </View>
+  )}
         {/* PAYMENT METHOD */}
         <Text style={styles.sectionLabel}>PAYMENT METHOD</Text>
         <View style={styles.card}>
@@ -111,7 +139,6 @@ const PaymentSummaryScreen = ({ navigation }: any) => {
     </SafeAreaView>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -299,3 +326,4 @@ const styles = StyleSheet.create({
 });
 
 export default PaymentSummaryScreen;
+// ... keep your styles object the same ...

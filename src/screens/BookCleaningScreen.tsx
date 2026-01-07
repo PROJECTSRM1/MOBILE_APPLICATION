@@ -36,7 +36,8 @@ const [selectedAddonId, setSelectedAddonId] = useState<number | null>(null);
 
   const [jobDate, setJobDate] = useState<Date | null>(null);
   const [addonDate, setAddonDate] = useState<Date | null>(null);
-
+// Inside BookCleaningScreen component
+const [floorArea, setFloorArea] = useState("1200"); // Default value
   const [showJobPicker, setShowJobPicker] = useState(false);
   const [showAddonPicker, setShowAddonPicker] = useState(false);
 const [addons, setAddons] = useState<AddonItem[]>([
@@ -96,6 +97,8 @@ const addNewAddon = () => {
                   placeholderTextColor="#64748b"
                   keyboardType="numeric"
                   style={styles.input}
+                  value={floorArea}                // Add this
+  onChangeText={setFloorArea}
                 />
                 <Text style={styles.unit}>sqft</Text>
               </View>
@@ -238,13 +241,19 @@ const addNewAddon = () => {
 <View style={styles.ctaWrapper}>
   <TouchableOpacity 
     style={styles.ctaBtn}
-    onPress={() => navigation.navigate("PaymentSummary")} // Use the name you gave this screen in your Stack.Navigator
+    onPress={() => navigation.navigate("PaymentSummary", {
+      // Use the state variable here
+      serviceName: selectedService, 
+      floorArea: floorArea,
+      jobDate: jobDate ? formatDate(jobDate) : "Not Selected",
+      selectedTime: selectedTime,
+      addonsCount: addons.length,
+    })}
   >
     <MaterialIcons name="lock" size={20} color="#fff" />
     <Text style={styles.ctaText}>Add to Cart and Checkout</Text>
   </TouchableOpacity>
 </View>
-
       {/* DATE PICKERS */}
     {showJobPicker && (
   <DateTimePicker
