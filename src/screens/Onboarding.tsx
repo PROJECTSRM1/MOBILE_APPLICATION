@@ -53,7 +53,7 @@ export default function Onboarding(): React.ReactElement {
     if (index < PAGES.length - 1) {
       goToPage(index + 1);
     } else {
-      navigation.replace('Freelancer'); 
+      navigation.replace('Landing'); 
     }
   };
 
@@ -116,7 +116,7 @@ export default function Onboarding(): React.ReactElement {
       React.createElement(
         TouchableOpacity as any,
         {
-          onPress: () => navigation.replace('Freelancer'),
+          onPress: () => navigation.replace('Landing'),
           style: styles.getStartedBtn,
           activeOpacity: 0.92,
         },
