@@ -5,7 +5,7 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 
-import CleaningServicesScreen from './src/screens/CleaningServicesScreen';
+import EmployeeAllocation from './src/screens/EmployeeAllocation';
 
 
 function App() {
@@ -27,7 +27,7 @@ function AppContent() {
 
   return (
     <View style={[styles.container, { paddingTop: safeAreaInsets.top }]}>
-      <CleaningServicesScreen/>
+      <EmployeeAllocation/>
     </View>
   );
 }
