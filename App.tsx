@@ -26,12 +26,18 @@ import CleaningServicesScreen from "./src/screens/CleaningServicesScreen";
 import EmployeeAllocation from "./src/screens/EmployeeAllocation";
 import EducationHome from "./src/screens/EducationHome";
 import Collegelisting from "./src/screens/Collegelisting";
+import Cleaning from "./src/screens/Cleaning";
+import InternshipDetailsScreen from "./src/screens/Intership";
+import CleaningCategorySelectScreen from "./src/screens/CleaningCategory";
 export type RootStackParamList = {
   Splash: undefined;
   Onboarding: undefined;
   Landing: undefined;
+  Internship:undefined;
   WelcomeOne: undefined;
   CollegeListing:undefined;
+  Cleaning:undefined;
+  CleaningCategory:undefined;
   // Login: undefined;
     Login: { role?: "customer" | "user"; prefilledEmail?: string;prefilledPassword?: string;
  } | undefined;
@@ -64,11 +70,14 @@ export default function App(): React.ReactElement {
       <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={Splash} />
         <Stack.Screen name="Onboarding" component={Onboarding} />
+        <Stack.Screen name="Internship" component={InternshipDetailsScreen}/>
         {/* <Stack.Screen name="Landing" component={Landing} /> */}
         {/* <Stack.Screen name="WelcomeOne" component={WelcomeOne} /> */}
         {/* <Stack.Screen name="Login" component={Login} /> */}
         {/* <Stack.Screen name="Signup" component={Signup} /> */}
         <Stack.Screen name="Landing" component={Landing} />
+        <Stack.Screen name="Cleaning" component={Cleaning}/>
+        <Stack.Screen name="CleaningCategory" component={CleaningCategorySelectScreen}/>
         {/* <Stack.Screen name="CustomerDashboard" component={CustomerDashboard} /> */}
         {/* <Stack.Screen name="UserDashboard" component={UserDashboard} /> */}
         {/* <Stack.Screen name="Transport" component={Transport} /> */}

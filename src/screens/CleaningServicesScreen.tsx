@@ -8,6 +8,7 @@ import {
   Image,
   StatusBar,
 } from "react-native";
+// import { SafeAreaView } from "react-native-safe-area-context";
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useNavigation } from "@react-navigation/native";
@@ -27,37 +28,37 @@ type Service = {
 const SERVICES: Service[] = [
   {
     id: "1",
-    title: "Floor Cleaning",
+    title: "Plumbing",
     price: "From $20",
      image: require("../../assets/pack1.jpg"),
   },
   {
     id: "2",
-    title: "Room Cleaning",
+    title: "Painting",
     price: "From $30",
      image: require("../../assets/pack2.jpg"),
   },
   {
     id: "3",
-    title: "Washroom",
+    title: "Electrician",
     price: "From $25",
      image: require("../../assets/pack3.jpg"),
   },
   {
     id: "4",
-    title: "Balcony",
+    title: "Kitchen",
     price: "From $15",
      image: require("../../assets/pack5.jpg"),
   },
   {
     id: "5",
-    title: "Kitchen",
+    title: "Ac Repair",
     price: "From $28",
     image: require("../../assets/pack6.jpg"),
   },
   {
     id: "6",
-    title: "Office",
+    title: "Carpentary",
     price: "From $35",
      image: require("../../assets/pack7.jpg"),
   },
@@ -122,7 +123,7 @@ const selectedServices = SERVICES
     <TouchableOpacity onPress={() => navigation.goBack()}>
       <Icon name="arrow-back" size={24} color="#fff" />
     </TouchableOpacity>
-    <Text style={styles.headerTitle}>Cleaning Services</Text>
+    <Text style={styles.headerTitle}>Home Services</Text>
     <View style={{ width: 24 }} />
   </View>
 </SafeAreaView>
@@ -208,7 +209,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    height: 56,
+    height: 32,
     paddingHorizontal: 16,
     flexDirection: "row",
     alignItems: "center",

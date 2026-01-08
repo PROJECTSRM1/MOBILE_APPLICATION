@@ -116,10 +116,14 @@ const EducationHome = () => {
               style={styles.categoryCard}
               activeOpacity={0.8}
               onPress={() => {
-                if (item.title === "Colleges") {
-                  navigation.navigate("CollegeListing");
-                }
-              }}
+  if (item.title === "Colleges") {
+    navigation.navigate("CollegeListing");
+  } else if (item.title === "Internships") {
+    navigation.navigate("Internship"); // <-- match the Stack.Screen name
+}
+
+}}
+
             >
               <View
                 style={[

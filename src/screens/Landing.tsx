@@ -129,7 +129,7 @@ const isLoggedIn = route?.params?.isLoggedIn === true;
 
  switch (item.name) {
   case "Housing / Cleaning":
-    navigation.navigate("CleaningServiceScreen");
+    navigation.navigate("CleaningCategory");
     break;
 
   case "Education":
@@ -213,7 +213,7 @@ const isLoggedIn = route?.params?.isLoggedIn === true;
 
           <View style={styles.card}>
           <Image
-            source={{ uri: "https://i.imgur.com/7D7I6dI.png" }}
+            source={{ uri: "https:// i.imgur.com/7D7I6dI.png" }}
             style={styles.cardImage}
           />
           <View style={{ flex: 1 }}>
