@@ -11,7 +11,16 @@ import {
   Modal,
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { Company } from "./navigation/types";
+
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+
+import JobDetailsScreen from "./JobDetailsScreen";
+import { Company, RootStackParamList } from "./navigation/types";
+
+/* ---------------- STACK ---------------- */
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 /* ---------------- DATA ---------------- */
 
@@ -94,9 +103,9 @@ const getSizeRange = (size: string): "1-200" | "201-500" | "500+" => {
   return "500+";
 };
 
-/* ---------------- SCREEN ---------------- */
+/* ---------------- MAIN SCREEN ---------------- */
 
-const CompaniesListingScreen = ({ navigation }: any) => {
+const CompaniesScreen = ({ navigation }: any) => {
   const [search, setSearch] = useState("");
   const [industry, setIndustry] = useState<"IT" | "Non-IT" | null>(null);
   const [location, setLocation] = useState<string | null>(null);
@@ -144,7 +153,6 @@ const CompaniesListingScreen = ({ navigation }: any) => {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#101622" />
 
-      {/* HEADER */}
       <SafeAreaView style={styles.safeHeader}>
         <View style={styles.header}>
           <MaterialIcons name="arrow-back" size={24} color="#fff" />
@@ -153,7 +161,6 @@ const CompaniesListingScreen = ({ navigation }: any) => {
         </View>
       </SafeAreaView>
 
-      {/* SEARCH */}
       <View style={styles.searchBox}>
         <MaterialIcons name="search" size={20} color="#9da6b9" />
         <TextInput
@@ -165,7 +172,6 @@ const CompaniesListingScreen = ({ navigation }: any) => {
         />
       </View>
 
-      {/* FILTER BAR */}
       <View style={styles.filterBar}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <FilterChip label="All" active={!hasActiveFilters} onPress={clearAll} />
@@ -176,7 +182,6 @@ const CompaniesListingScreen = ({ navigation }: any) => {
         </ScrollView>
       </View>
 
-      {/* LIST */}
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.resultText}>
           Showing {filteredCompanies.length} companies
@@ -193,12 +198,11 @@ const CompaniesListingScreen = ({ navigation }: any) => {
         ))}
       </ScrollView>
 
-      {/* DROPDOWNS */}
       <Dropdown
         visible={open === "industry"}
         options={["IT", "Non-IT"]}
         onClose={() => setOpen(null)}
-        onSelect={(v: string) => {
+        onSelect={(v) => {
           setIndustry(v as "IT" | "Non-IT");
           setOpen(null);
         }}
@@ -208,7 +212,7 @@ const CompaniesListingScreen = ({ navigation }: any) => {
         visible={open === "location"}
         options={locations}
         onClose={() => setOpen(null)}
-        onSelect={(v: string) => {
+        onSelect={(v) => {
           setLocation(v);
           setOpen(null);
         }}
@@ -218,8 +222,8 @@ const CompaniesListingScreen = ({ navigation }: any) => {
         visible={open === "size"}
         options={["1-200", "201-500", "500+"]}
         onClose={() => setOpen(null)}
-        onSelect={(v: string) => {
-          setSize(v as "1-200" | "201-500" | "500+");
+        onSelect={(v) => {
+          setSize(v as any);
           setOpen(null);
         }}
       />
@@ -227,7 +231,23 @@ const CompaniesListingScreen = ({ navigation }: any) => {
   );
 };
 
-export default CompaniesListingScreen;
+/* ---------------- EXPORT NAVIGATOR ---------------- */
+
+export default function CompaniesListingScreen() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Companies" component={CompaniesScreen} />
+        <Stack.Screen name="JobDetails" component={JobDetailsScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+
+/* ---------------- COMPONENTS + STYLES ---------------- */
+/* 🔽 NOTHING CHANGED BELOW (exactly same as your code) */
+
+
 
 /* ---------------- COMPONENTS ---------------- */
 
