@@ -9,47 +9,72 @@ import {
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRoute } from "@react-navigation/native";
 
-const PaymentSummaryScreen = ({ navigation }: any) => { 
+const PaymentScreen = ({ navigation }: any) => {
+  const route = useRoute<any>();
+
+  const {
+    services = [],
+    floorArea,
+    jobDate,
+    selectedTime,
+    addonsCount,
+  } = route.params || {};
+
   return (
     <SafeAreaView style={styles.container}>
       {/* HEADER */}
       <View style={styles.header}>
-        {/* 2. Add onPress to the back button */}
-        <TouchableOpacity 
-          style={styles.backBtn} 
+        <TouchableOpacity
+          style={styles.backBtn}
           onPress={() => navigation.goBack()}
         >
           <MaterialIcons name="arrow-back-ios" size={20} color="#fff" />
         </TouchableOpacity>
-        
+
         <Text style={styles.headerTitle}>Payment Summary</Text>
-        <View style={{ width: 40 }} /> 
+        <View style={{ width: 40 }} />
       </View>
+
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* SERVICE DETAILS */}
         <Text style={styles.sectionLabel}>SERVICE DETAILS</Text>
-        <View style={styles.card}>
-          <View style={styles.serviceRow}>
-            <View style={styles.serviceInfo}>
-              <Text style={styles.serviceName}>Deep Home Cleaning</Text>
-              <View style={styles.tagRow}>
-                <View style={styles.blueTag}>
-                  <Text style={styles.blueTagText}>2 BHK</Text>
+
+        {services.map((service: string, index: number) => (
+          <View key={index} style={styles.card}>
+            <View style={styles.serviceRow}>
+              <View style={styles.serviceInfo}>
+                <Text style={styles.serviceName}>{service}</Text>
+
+                <View style={styles.tagRow}>
+                  <View style={styles.blueTag}>
+                    <Text style={styles.blueTagText}>{floorArea} sqft</Text>
+                  </View>
+                  <Text style={styles.subInfoText}>Addon Service</Text>
                 </View>
-                <Text style={styles.subInfoText}>Standard • 3 Hours</Text>
+
+                <View style={styles.dateRow}>
+                  <MaterialIcons
+                    name="calendar-today"
+                    size={14}
+                    color="#94a3b8"
+                  />
+                  <Text style={styles.dateText}>
+                    {jobDate} • {selectedTime}
+                  </Text>
+                </View>
               </View>
-              <View style={styles.dateRow}>
-                <MaterialIcons name="calendar-today" size={14} color="#94a3b8" />
-                <Text style={styles.dateText}>Sat, Oct 24 • 10:00 AM</Text>
-              </View>
+
+              <Image
+                source={{
+                  uri: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=200&auto=format&fit=crop",
+                }}
+                style={styles.serviceImage}
+              />
             </View>
-            <Image
-              source={{ uri: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=200&auto=format&fit=crop' }}
-              style={styles.serviceImage}
-            />
           </View>
-        </View>
+        ))}
 
         {/* PAYMENT METHOD */}
         <Text style={styles.sectionLabel}>PAYMENT METHOD</Text>
@@ -74,18 +99,22 @@ const PaymentSummaryScreen = ({ navigation }: any) => {
         <Text style={styles.sectionLabel}>PAYMENT BREAKDOWN</Text>
         <View style={styles.card}>
           <View style={styles.breakdownRow}>
-            <Text style={styles.breakdownLabel}>Estimated Cost</Text>
+            <Text style={styles.breakdownLabel}>
+              Addon Services ({addonsCount})
+            </Text>
             <Text style={styles.breakdownValue}>$120.00</Text>
           </View>
+
           <View style={styles.breakdownRow}>
             <Text style={styles.breakdownLabel}>Platform Fee</Text>
             <Text style={styles.breakdownValue}>$5.00</Text>
           </View>
+
           <View style={styles.breakdownRow}>
             <Text style={styles.breakdownLabel}>GST (18%)</Text>
             <Text style={styles.breakdownValue}>$22.50</Text>
           </View>
-          
+
           <View style={styles.divider} />
 
           <View style={styles.totalRow}>
@@ -94,7 +123,6 @@ const PaymentSummaryScreen = ({ navigation }: any) => {
           </View>
         </View>
 
-        {/* POLICY TEXT */}
         <Text style={styles.policyText}>
           By proceeding, you agree to our{" "}
           <Text style={styles.linkText}>Terms of Service</Text> and{" "}
@@ -102,10 +130,11 @@ const PaymentSummaryScreen = ({ navigation }: any) => {
         </Text>
       </ScrollView>
 
-      {/* FOOTER CTA */}
+      {/* FOOTER */}
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.checkoutBtn}
-        onPress={() => navigation.navigate("EmployeeAllocation")}
+        <TouchableOpacity
+          style={styles.checkoutBtn}
+          onPress={() => navigation.navigate("EmployeeAllocation")}
         >
           <Text style={styles.checkoutText}>Checkout for Payment $147.50</Text>
         </TouchableOpacity>
@@ -113,6 +142,7 @@ const PaymentSummaryScreen = ({ navigation }: any) => {
     </SafeAreaView>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {
@@ -300,4 +330,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PaymentSummaryScreen;
+export default PaymentScreen;
