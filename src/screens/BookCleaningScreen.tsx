@@ -11,6 +11,7 @@ import {
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRoute } from "@react-navigation/native";
 
 const TIMES = ["10:00 AM", "11:00 AM", "12:00 PM", "01:00 PM"];
 
@@ -18,47 +19,69 @@ const SERVICES = [
   "Floor Cleaning",
   "Room Cleaning",
   "Washroom Cleaning",
-  "Balcony Cleaning",
+  "Balcony",
   "Kitchen",
   "Office",
 ];
 
 const DURATIONS = ["15 Mins", "30 Mins", "45 Mins", "60 Mins"];
+
 interface AddonItem {
   id: number;
   service: string;
   duration: string;
   date: Date | null;
 }
+
 const BookCleaningScreen = ({ navigation }: any) => {
+  // ✅ MOVED INSIDE COMPONENT
+  const route = useRoute<any>();
+  const selectedServices: string[] = route.params?.selectedServices || [];
+
   const [selectedTime, setSelectedTime] = useState("10:00 AM");
-const [selectedAddonId, setSelectedAddonId] = useState<number | null>(null);
+  const [selectedAddonId, setSelectedAddonId] = useState<number | null>(null);
 
   const [jobDate, setJobDate] = useState<Date | null>(null);
-  const [addonDate, setAddonDate] = useState<Date | null>(null);
-// Inside BookCleaningScreen component
-const [floorArea, setFloorArea] = useState("1200"); // Default value
+  const [floorArea, setFloorArea] = useState("1200");
+
   const [showJobPicker, setShowJobPicker] = useState(false);
   const [showAddonPicker, setShowAddonPicker] = useState(false);
-const [addons, setAddons] = useState<AddonItem[]>([
-    { id: Date.now(), service: "Floor Cleaning", duration: "30 Mins", date: null }
-  ]);
+
+  // ✅ PREFILL ADDONS FROM SELECTED SERVICES
+  const [addons, setAddons] = useState<AddonItem[]>(
+    selectedServices.length > 0
+      ? selectedServices.map((service, index) => ({
+          id: Date.now() + index,
+          service,
+          duration: "30 Mins",
+          date: null,
+        }))
+      : [
+          {
+            id: Date.now(),
+            service: "Floor Cleaning",
+            duration: "30 Mins",
+            date: null,
+          },
+        ]
+  );
+
   const [serviceModal, setServiceModal] = useState(false);
   const [durationModal, setDurationModal] = useState(false);
 
-  const [selectedService, setSelectedService] = useState("Floor Cleaning");
-  const [selectedDuration, setSelectedDuration] = useState("30 Mins");
-
   const formatDate = (d: Date) =>
     `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
-const addNewAddon = () => {
-    const newAddon: AddonItem = {
-      id: Date.now(),
-      service: "Select Service",
-      duration: "30 Mins",
-      date: null,
-    };
-    setAddons([...addons, newAddon]);
+
+  const addNewAddon = () => {
+    setAddons([
+      ...addons,
+      {
+        id: Date.now(),
+        service: "Select Service",
+        duration: "30 Mins",
+        date: null,
+      },
+    ]);
   };
 
   const deleteAddon = (id: number) => {
@@ -66,14 +89,19 @@ const addNewAddon = () => {
   };
 
   const updateAddon = (id: number, field: keyof AddonItem, value: any) => {
-    setAddons(prev => prev.map(item => item.id === id ? { ...item, [field]: value } : item));
+    setAddons((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, [field]: value } : item
+      )
+    );
   };
+
   return (
     <View style={styles.container}>
       {/* HEADER */}
       <SafeAreaView edges={["top"]} style={styles.headerSafe}>
         <View style={styles.header}>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
             <MaterialIcons name="arrow-back-ios" size={20} color="#fff" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Book Cleaning</Text>
@@ -93,12 +121,10 @@ const addNewAddon = () => {
               <Text style={styles.label}>Floor Area (Sqft)</Text>
               <View style={styles.inputRow}>
                 <TextInput
-                  placeholder="e.g. 1200"
-                  placeholderTextColor="#64748b"
-                  keyboardType="numeric"
                   style={styles.input}
-                  value={floorArea}                // Add this
-  onChangeText={setFloorArea}
+                  keyboardType="numeric"
+                  value={floorArea}
+                  onChangeText={setFloorArea}
                 />
                 <Text style={styles.unit}>sqft</Text>
               </View>
@@ -150,137 +176,128 @@ const addNewAddon = () => {
         {/* ADDONS */}
         <View style={styles.addonHeader}>
           <Text style={styles.sectionTitle}>Addons</Text>
-         <TouchableOpacity style={styles.addBtn} onPress={addNewAddon}>
-
+          <TouchableOpacity style={styles.addBtn} onPress={addNewAddon}>
             <MaterialIcons name="add" size={20} color="#3b82f6" />
             <Text style={styles.addText}>Add New</Text>
           </TouchableOpacity>
         </View>
 
-    {addons.map((addon, index) => (
-  <View key={addon.id} style={styles.addonCard}>
-    <View style={styles.addonAccent} />
+        {addons.map((addon, index) => (
+          <View key={addon.id} style={styles.addonCard}>
+            <View style={styles.addonAccent} />
+            <View style={{ flex: 1, padding: 16 }}>
+              <View style={styles.addonTop}>
+                <Text style={styles.addonTitle}>
+                  ADDING SERVICE #{index + 1}
+                </Text>
+                <TouchableOpacity onPress={() => deleteAddon(addon.id)}>
+                  <MaterialIcons name="delete" size={20} color="#94a3b8" />
+                </TouchableOpacity>
+              </View>
 
-    <View style={{ flex: 1, padding: 16 }}>
-      <View style={styles.addonTop}>
-        <Text style={styles.addonTitle}>
-          ADDING SERVICE #{index + 1}
-        </Text>
+              <Text style={styles.label}>Select Service</Text>
+              <TouchableOpacity
+                style={styles.dropdown}
+                onPress={() => {
+                  setSelectedAddonId(addon.id);
+                  setServiceModal(true);
+                }}
+              >
+                <Text style={styles.dropdownText}>{addon.service}</Text>
+                <MaterialIcons
+                  name="keyboard-arrow-down"
+                  size={22}
+                  color="#94a3b8"
+                />
+              </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => deleteAddon(addon.id)}>
-          <MaterialIcons name="delete" size={20} color="#94a3b8" />
-        </TouchableOpacity>
-      </View>
+              <View style={styles.row}>
+                <TouchableOpacity
+                  style={styles.inputBox}
+                  onPress={() => {
+                    setSelectedAddonId(addon.id);
+                    setDurationModal(true);
+                  }}
+                >
+                  <Text style={styles.label}>Duration</Text>
+                  <View style={styles.inputRow}>
+                    <Text style={styles.placeholder}>{addon.duration}</Text>
+                    <MaterialIcons
+                      name="access-time"
+                      size={18}
+                      color="#94a3b8"
+                    />
+                  </View>
+                </TouchableOpacity>
 
-      {/* SERVICE */}
-      <Text style={styles.label}>Select Service</Text>
-      <TouchableOpacity
-        style={styles.dropdown}
-        onPress={() => {
-          setSelectedAddonId(addon.id);
-          setServiceModal(true);
-        }}
-      >
-        <Text style={styles.dropdownText}>{addon.service}</Text>
-        <MaterialIcons name="keyboard-arrow-down" size={22} color="#94a3b8" />
-      </TouchableOpacity>
-
-      <View style={styles.row}>
-        {/* DURATION */}
-        <TouchableOpacity
-          style={styles.inputBox}
-          onPress={() => {
-            setSelectedAddonId(addon.id);
-            setDurationModal(true);
-          }}
-        >
-          <Text style={styles.label}>Duration</Text>
-          <View style={styles.inputRow}>
-            <Text style={styles.placeholder}>{addon.duration}</Text>
-            <MaterialIcons name="access-time" size={18} color="#94a3b8" />
+                <TouchableOpacity
+                  style={styles.inputBox}
+                  onPress={() => {
+                    setSelectedAddonId(addon.id);
+                    setShowAddonPicker(true);
+                  }}
+                >
+                  <Text style={styles.label}>Date</Text>
+                  <View style={styles.inputRow}>
+                    <Text style={styles.placeholder}>
+                      {addon.date ? formatDate(addon.date) : "Same day"}
+                    </Text>
+                    <MaterialIcons
+                      name="calendar-today"
+                      size={18}
+                      color="#94a3b8"
+                    />
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
-        </TouchableOpacity>
-
-        {/* DATE */}
-        <TouchableOpacity
-          style={styles.inputBox}
-          onPress={() => {
-            setSelectedAddonId(addon.id);
-            setShowAddonPicker(true);
-          }}
-        >
-          <Text style={styles.label}>Date</Text>
-          <View style={styles.inputRow}>
-            <Text style={styles.placeholder}>
-              {addon.date ? formatDate(addon.date) : "Same day"}
-            </Text>
-            <MaterialIcons name="calendar-today" size={18} color="#94a3b8" />
-          </View>
-        </TouchableOpacity>
-      </View>
-    </View>
-  </View>
-))}
-
-
-        {/* SUMMARY */}
-        <View style={styles.summary}>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryText}>Base Service</Text>
-            <Text style={styles.summaryText}>$80.00</Text>
-          </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryText}>Addons (1)</Text>
-            <Text style={styles.summaryText}>$25.00</Text>
-          </View>
-        </View>
+        ))}
       </ScrollView>
 
       {/* CTA */}
-     {/* CTA */}
-<View style={styles.ctaWrapper}>
-  <TouchableOpacity 
-    style={styles.ctaBtn}
-    onPress={() => navigation.navigate("PaymentScreen", {
-      // Use the state variable here
-      serviceName: selectedService, 
-      floorArea: floorArea,
-      jobDate: jobDate ? formatDate(jobDate) : "Not Selected",
-      selectedTime: selectedTime,
-      addonsCount: addons.length,
-    })}
-  >
-    <MaterialIcons name="lock" size={20} color="#fff" />
-    <Text style={styles.ctaText}>Add to Cart and Checkout</Text>
-  </TouchableOpacity>
-</View>
+      <View style={styles.ctaWrapper}>
+        <TouchableOpacity
+          style={styles.ctaBtn}
+          onPress={() =>
+            navigation.navigate("PaymentScreen", {
+              services: addons.map((a) => a.service),
+              floorArea,
+              jobDate: jobDate ? formatDate(jobDate) : "Not Selected",
+              selectedTime,
+              addonsCount: addons.length,
+            })
+          }
+        >
+          <MaterialIcons name="lock" size={20} color="#fff" />
+          <Text style={styles.ctaText}>Add to Cart and Checkout</Text>
+        </TouchableOpacity>
+      </View>
+
       {/* DATE PICKERS */}
-    {showJobPicker && (
-  <DateTimePicker
-    value={jobDate || new Date()}
-    mode="date"
-    onChange={(_event: any, d?: Date) => { // Use _event to show it's unused
-      setShowJobPicker(false);
-      if (d) setJobDate(d);
-    }}
-  />
-)}
+      {showJobPicker && (
+        <DateTimePicker
+          value={jobDate || new Date()}
+          mode="date"
+          onChange={(_, d) => {
+            setShowJobPicker(false);
+            if (d) setJobDate(d);
+          }}
+        />
+      )}
 
- {showAddonPicker && (
-  <DateTimePicker
-    value={new Date()}
-    mode="date"
-    onChange={(_event: any, d?: Date) => { // Fixes the 'any' type error
-      setShowAddonPicker(false);
-      if (d && selectedAddonId !== null) {
-        updateAddon(selectedAddonId, "date", d);
-      }
-    }}
-  />
-)}
-  
-
-
+      {showAddonPicker && (
+        <DateTimePicker
+          value={new Date()}
+          mode="date"
+          onChange={(_, d) => {
+            setShowAddonPicker(false);
+            if (d && selectedAddonId !== null) {
+              updateAddon(selectedAddonId, "date", d);
+            }
+          }}
+        />
+      )}
 
       {/* SERVICE MODAL */}
       <Modal transparent animationType="slide" visible={serviceModal}>
@@ -290,13 +307,12 @@ const addNewAddon = () => {
               <TouchableOpacity
                 key={s}
                 style={styles.modalItem}
-               onPress={() => {
-  if (selectedAddonId !== null) {
-    updateAddon(selectedAddonId, "service", s);
-  }
-  setServiceModal(false);
-}}
-
+                onPress={() => {
+                  if (selectedAddonId !== null) {
+                    updateAddon(selectedAddonId, "service", s);
+                  }
+                  setServiceModal(false);
+                }}
               >
                 <Text style={styles.modalText}>{s}</Text>
               </TouchableOpacity>
@@ -314,12 +330,11 @@ const addNewAddon = () => {
                 key={d}
                 style={styles.modalItem}
                 onPress={() => {
-  if (selectedAddonId !== null) {
-    updateAddon(selectedAddonId, "duration", d);
-  }
-  setDurationModal(false);
-}}
-
+                  if (selectedAddonId !== null) {
+                    updateAddon(selectedAddonId, "duration", d);
+                  }
+                  setDurationModal(false);
+                }}
               >
                 <Text style={styles.modalText}>{d}</Text>
               </TouchableOpacity>
@@ -566,6 +581,7 @@ const styles = StyleSheet.create({
 
   modalCard: {
     backgroundColor: "#0f172a",
+    
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 16,

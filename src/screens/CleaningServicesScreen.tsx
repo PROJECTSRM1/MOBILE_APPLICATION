@@ -6,12 +6,12 @@ import {
   TouchableOpacity,
   FlatList,
   Image,
-  SafeAreaView,
   StatusBar,
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useNavigation } from "@react-navigation/native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 
 import { ImageSourcePropType } from "react-native";
@@ -68,6 +68,9 @@ const SERVICES: Service[] = [
 const CleaningServicesScreen = () => {
     const navigation=useNavigation<any>();
   const [selected, setSelected] = useState<string[]>([]);
+const selectedServices = SERVICES
+  .filter(s => selected.includes(s.id))
+  .map(s => s.title);
 
   const toggleSelect = (id: string) => {
     setSelected((prev) =>
@@ -114,13 +117,16 @@ const CleaningServicesScreen = () => {
         colors={["#0d1321", "#101622"]}
         style={styles.container}
       >
-        <View style={styles.header}>
-          <TouchableOpacity>
-            <Icon name="arrow-back" size={24} color="#fff" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Cleaning Services</Text>
-          <View style={{ width: 24 }} />
-        </View>
+      <SafeAreaView edges={["top"]} style={styles.safeHeader}>
+  <View style={styles.header}>
+    <TouchableOpacity onPress={() => navigation.goBack()}>
+      <Icon name="arrow-back" size={24} color="#fff" />
+    </TouchableOpacity>
+    <Text style={styles.headerTitle}>Cleaning Services</Text>
+    <View style={{ width: 24 }} />
+  </View>
+</SafeAreaView>
+
 
         <View style={styles.content}>
           <Text style={styles.title}>
@@ -144,7 +150,13 @@ const CleaningServicesScreen = () => {
   <TouchableOpacity
     disabled={selected.length === 0}
     activeOpacity={0.8}
-    onPress={() => navigation.navigate("BookCleaning")}
+    onPress={() =>
+  navigation.navigate("BookCleaning", {
+    selectedServices,
+  })
+
+
+}
   >
     <LinearGradient
       colors={["#1a5cff", "#0f4ae0"]}
@@ -334,4 +346,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
   },
+  safeHeader: {
+    // marginTop: StatusBar.currentHeight,
+
+  backgroundColor: "#0d1321",
+},
+
 });
