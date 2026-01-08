@@ -24,11 +24,14 @@ import NotificationsScreen from "./src/screens/NotificationsScreen";
 import AuthScreen from "./src/screens/AuthScreen";
 import CleaningServicesScreen from "./src/screens/CleaningServicesScreen";
 import EmployeeAllocation from "./src/screens/EmployeeAllocation";
+import EducationHome from "./src/screens/EducationHome";
+import Collegelisting from "./src/screens/Collegelisting";
 export type RootStackParamList = {
   Splash: undefined;
   Onboarding: undefined;
   Landing: undefined;
   WelcomeOne: undefined;
+  CollegeListing:undefined;
   // Login: undefined;
     Login: { role?: "customer" | "user"; prefilledEmail?: string;prefilledPassword?: string;
  } | undefined;
@@ -45,6 +48,7 @@ export type RootStackParamList = {
   ServiceRequests: undefined;
   PaymentScreen: undefined;
   BookCleaning: undefined;
+  EducationHome:undefined;
   // ProfileInformation: undefined;
 AuthScreen: undefined;
 Notifications: undefined;
@@ -83,6 +87,8 @@ export default function App(): React.ReactElement {
   name="Notifications"
   component={NotificationsScreen}
 />
+<Stack.Screen name="CollegeListing"component={Collegelisting}/>
+<Stack.Screen name="EducationHome" component={EducationHome}/>
 <Stack.Screen name="AuthScreen" component={AuthScreen} />
 {/* <Stack.Screen name="ProfileInformation" component={ProfileInformation} /> */}
 <Stack.Screen name="EmployeeAllocation" component={EmployeeAllocation} />

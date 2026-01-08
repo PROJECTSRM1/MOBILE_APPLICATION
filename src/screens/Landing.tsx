@@ -105,15 +105,15 @@ const isLoggedIn = route?.params?.isLoggedIn === true;
 
         <View style={styles.grid}>
           {[
-            { name: "Housing", icon: "home" },
-            { name: "Education", icon: "school" },
-            { name: "Freelance", icon: "work" },
-            { name: "Buy/Sell", icon: "shopping-bag" },
-            { name: "Bills", icon: "receipt" },
-            { name: "Wallet", icon: "account-balance-wallet" },
-            { name: "Cleaning", icon: "cleaning-services" },
-            { name: "More", icon: "grid-view" },
-          ].map((item, i) => {
+  { name: "Housing / Cleaning", icon: "home" },
+  { name: "Education", icon: "school" },
+  { name: "Freelance", icon: "work" },
+  { name: "Buy/Sell", icon: "shopping-bag" },
+//   { name: "Bills", icon: "receipt" },
+  { name: "Wallet", icon: "account-balance-wallet" },
+  { name: "More", icon: "grid-view" },
+]
+.map((item, i) => {
     const isCleaning = item.name === "Cleaning";
 
     return (
@@ -121,15 +121,27 @@ const isLoggedIn = route?.params?.isLoggedIn === true;
         key={i}
         style={styles.gridItem}
         activeOpacity={0.8}
-        onPress={() => {
-          if (isCleaning) {
-            if (!isLoggedIn) {
-              navigation.navigate("AuthScreen");   //  guard
-            } else {
-              navigation.navigate("CleaningServiceScreen"); //  access
-            }
-          }
-        }}
+       onPress={() => {
+  if (!isLoggedIn) {
+    navigation.navigate("AuthScreen");
+    return;
+  }
+
+ switch (item.name) {
+  case "Housing / Cleaning":
+    navigation.navigate("CleaningServiceScreen");
+    break;
+
+  case "Education":
+    navigation.navigate("EducationHome");
+    break;
+
+  default:
+    break;
+}
+
+}}
+
       >
         <View style={styles.gridIcon}>
           <MaterialIcons name={item.icon} size={28} color="#3b82f6" />
@@ -160,9 +172,62 @@ const isLoggedIn = route?.params?.isLoggedIn === true;
                 <Text style={styles.cardBtnText}>Book</Text>
               </TouchableOpacity>
             </View>
+            
           </View>
         </View>
 
+        <View style={styles.card}>
+          <Image
+            source={{ uri: "https://i.imgur.com/7D7I6dI.png" }}
+            style={styles.cardImage}
+          />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.cardTitle}>Modern Studio Apt</Text>
+            <Text style={styles.cardSub}>Housing • DownTown</Text>
+            <View style={styles.cardFooter}>
+              <Text style={styles.price}>$1200/mo</Text>
+              <TouchableOpacity style={styles.cardBtn}>
+                <Text style={styles.cardBtnText}>Contact</Text>
+              </TouchableOpacity>
+            </View>
+            
+          </View>
+        </View>
+          <View style={styles.card}>
+          <Image
+            source={{ uri: "https://i.imgur.com/7D7I6dI.png" }}
+            style={styles.cardImage}
+          />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.cardTitle}>Licensed Electrician</Text>
+            <Text style={styles.cardSub}>Services • Available Now</Text>
+            <View style={styles.cardFooter}>
+              <Text style={styles.price}>QUOTE</Text>
+              <TouchableOpacity style={styles.cardBtn}>
+                <Text style={styles.cardBtnText}>Call</Text>
+              </TouchableOpacity>
+            </View>
+            
+          </View>
+        </View>
+
+          <View style={styles.card}>
+          <Image
+            source={{ uri: "https://i.imgur.com/7D7I6dI.png" }}
+            style={styles.cardImage}
+          />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.cardTitle}>Licensed Electrician</Text>
+            <Text style={styles.cardSub}>Services • Available Now</Text>
+            <View style={styles.cardFooter}>
+              <Text style={styles.price}>QUOTE</Text>
+              <TouchableOpacity style={styles.cardBtn}>
+                <Text style={styles.cardBtnText}>Call</Text>
+              </TouchableOpacity>
+            </View>
+            
+          </View>
+        </View>
         {/* ================= REFER & EARN ================= */}
         <View style={styles.referBox}>
           <View>
@@ -349,7 +414,7 @@ safeHeader: {
     justifyContent: "space-around",
   },
 
-  gridItem: { alignItems: "center", marginBottom: 20, width: "22%" },
+  gridItem: { alignItems: "center", marginBottom: 20, width: "32%" },
 
   gridIcon: {
     width: 56,
