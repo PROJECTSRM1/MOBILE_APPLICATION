@@ -5,7 +5,8 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 
-import EmployeeAllocation from './src/screens/EmployeeAllocation';
+
+import EducationHome from './src/screens/EducationHome';
 
 
 function App() {
@@ -27,7 +28,7 @@ function AppContent() {
 
   return (
     <View style={[styles.container, { paddingTop: safeAreaInsets.top }]}>
-      <EmployeeAllocation/>
+      <EducationHome/>
     </View>
   );
 }
