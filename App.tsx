@@ -24,6 +24,7 @@ import NotificationsScreen from "./src/screens/NotificationsScreen";
 import AuthScreen from "./src/screens/AuthScreen";
 import CleaningServicesScreen from "./src/screens/CleaningServicesScreen";
 import EmployeeAllocation from "./src/screens/EmployeeAllocation";
+import CollegesScreen from "./src/screens/Collegelisting";
 export type RootStackParamList = {
   Splash: undefined;
   Onboarding: undefined;
@@ -55,38 +56,40 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App(): React.ReactElement {
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Splash" component={Splash} />
-        <Stack.Screen name="Onboarding" component={Onboarding} />
-        {/* <Stack.Screen name="Landing" component={Landing} /> */}
-        {/* <Stack.Screen name="WelcomeOne" component={WelcomeOne} /> */}
-        {/* <Stack.Screen name="Login" component={Login} /> */}
-        {/* <Stack.Screen name="Signup" component={Signup} /> */}
-        <Stack.Screen name="Landing" component={Landing} />
-        {/* <Stack.Screen name="CustomerDashboard" component={CustomerDashboard} /> */}
-        {/* <Stack.Screen name="UserDashboard" component={UserDashboard} /> */}
-        {/* <Stack.Screen name="Transport" component={Transport} /> */}
-        {/* <Stack.Screen name="Construction" component={Construction} /> */}
-        {/* <Stack.Screen name="Cleaning" component={Cleaning} /> */}
-        {/* <Stack.Screen name="Packers" component={Packers} /> */}
-        <Stack.Screen name="Settings" component={Settings} />
-        {/* <Stack.Screen name="Rentals" component={Rentals} /> */}
-        {/* <Stack.Screen name="Freelancer" component={FreelancerScreen} /> */}
-        <Stack.Screen name="ServiceRequests" component={ServiceRequestsScreen} />
-        {/* <Stack.Screen name="FreelancerDashboard" component={FreelancerDashboard} /> */}
-        {/* <Stack.Screen name="FDOverview" component={FDOverview} /> */}
-        <Stack.Screen name="PaymentScreen" component={PaymentScreen} />
-        <Stack.Screen name="BookCleaning" component={BookCleaningScreen} />
-<Stack.Screen
-  name="Notifications"
-  component={NotificationsScreen}
-/>
-<Stack.Screen name="AuthScreen" component={AuthScreen} />
-<Stack.Screen name="EmployeeAllocation" component={EmployeeAllocation} />
-<Stack.Screen name="CleaningServiceScreen" component={CleaningServicesScreen} />
+//     <NavigationContainer>
+//       <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
+//         <Stack.Screen name="Splash" component={Splash} />
+//         <Stack.Screen name="Onboarding" component={Onboarding} />
+//         {/* <Stack.Screen name="Landing" component={Landing} /> */}
+//         {/* <Stack.Screen name="WelcomeOne" component={WelcomeOne} /> */}
+//         {/* <Stack.Screen name="Login" component={Login} /> */}
+//         {/* <Stack.Screen name="Signup" component={Signup} /> */}
+//         <Stack.Screen name="Landing" component={Landing} />
+//         {/* <Stack.Screen name="CustomerDashboard" component={CustomerDashboard} /> */}
+//         {/* <Stack.Screen name="UserDashboard" component={UserDashboard} /> */}
+//         {/* <Stack.Screen name="Transport" component={Transport} /> */}
+//         {/* <Stack.Screen name="Construction" component={Construction} /> */}
+//         {/* <Stack.Screen name="Cleaning" component={Cleaning} /> */}
+//         {/* <Stack.Screen name="Packers" component={Packers} /> */}
+//         <Stack.Screen name="Settings" component={Settings} />
+//         {/* <Stack.Screen name="Rentals" component={Rentals} /> */}
+//         {/* <Stack.Screen name="Freelancer" component={FreelancerScreen} /> */}
+//         <Stack.Screen name="ServiceRequests" component={ServiceRequestsScreen} />
+//         {/* <Stack.Screen name="FreelancerDashboard" component={FreelancerDashboard} /> */}
+//         {/* <Stack.Screen name="FDOverview" component={FDOverview} /> */}
+//         <Stack.Screen name="PaymentScreen" component={PaymentScreen} />
+//         <Stack.Screen name="BookCleaning" component={BookCleaningScreen} />
+// <Stack.Screen
+//   name="Notifications"
+//   component={NotificationsScreen}
+// />
+// <Stack.Screen name="AuthScreen" component={AuthScreen} />
+// <Stack.Screen name="EmployeeAllocation" component={EmployeeAllocation} />
+// <Stack.Screen name="CleaningServiceScreen" component={CleaningServicesScreen} />
 
-      </Stack.Navigator>
-    </NavigationContainer>
+//       </Stack.Navigator>
+//     </NavigationContainer>
+
+    <CollegesScreen/>
   );
 }
