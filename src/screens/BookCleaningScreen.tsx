@@ -241,7 +241,7 @@ const addNewAddon = () => {
 <View style={styles.ctaWrapper}>
   <TouchableOpacity 
     style={styles.ctaBtn}
-    onPress={() => navigation.navigate("PaymentSummary", {
+    onPress={() => navigation.navigate("PaymentScreen", {
       // Use the state variable here
       serviceName: selectedService, 
       floorArea: floorArea,
