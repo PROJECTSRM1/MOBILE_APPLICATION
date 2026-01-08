@@ -4,19 +4,19 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import Splash from "./src/screens/Splash";
 import Onboarding from "./src/screens/Onboarding";
-import WelcomeOne from "./src/screens/WelcomeOne";
-import Login from "./src/screens/Login";
-import Signup from "./src/screens/Signup";
+// import WelcomeOne from "./src/screens/WelcomeOne";
+// import Login from "./src/screens/Login";
+// import Signup from "./src/screens/Signup";
 import Landing from "./src/screens/Landing";
 // import Landing from "./src/screens/Landing";
-import CustomerDashboard from "./src/screens/CustomerDashboard";
-import UserDashboard from "./src/screens/UserDashboard";
+// import CustomerDashboard from "./src/screens/CustomerDashboard";
+// import UserDashboard from "./src/screens/UserDashboard";
 import Settings from "./src/screens/Settings";
 
 // import FreelancerScreen from "./src/screens/Landing";
 import ServiceRequestsScreen from "./src/screens/ServiceRequestsScreen";
-import FreelancerDashboard from "./src/screens/FreelancerDashboard";
-import FDOverview from "./src/screens/FDOverview";
+// import FreelancerDashboard from "./src/screens/FreelancerDashboard";
+// import FDOverview from "./src/screens/FDOverview";
 
 import PaymentScreen from "./src/screens/Paymentscreen";
 import BookCleaningScreen from "./src/screens/BookCleaningScreen";
@@ -60,12 +60,12 @@ export default function App(): React.ReactElement {
         <Stack.Screen name="Splash" component={Splash} />
         <Stack.Screen name="Onboarding" component={Onboarding} />
         {/* <Stack.Screen name="Landing" component={Landing} /> */}
-        <Stack.Screen name="WelcomeOne" component={WelcomeOne} />
-        <Stack.Screen name="Login" component={Login} />
-        <Stack.Screen name="Signup" component={Signup} />
+        {/* <Stack.Screen name="WelcomeOne" component={WelcomeOne} /> */}
+        {/* <Stack.Screen name="Login" component={Login} /> */}
+        {/* <Stack.Screen name="Signup" component={Signup} /> */}
         <Stack.Screen name="Landing" component={Landing} />
-        <Stack.Screen name="CustomerDashboard" component={CustomerDashboard} />
-        <Stack.Screen name="UserDashboard" component={UserDashboard} />
+        {/* <Stack.Screen name="CustomerDashboard" component={CustomerDashboard} /> */}
+        {/* <Stack.Screen name="UserDashboard" component={UserDashboard} /> */}
         {/* <Stack.Screen name="Transport" component={Transport} /> */}
         {/* <Stack.Screen name="Construction" component={Construction} /> */}
         {/* <Stack.Screen name="Cleaning" component={Cleaning} /> */}
@@ -74,8 +74,8 @@ export default function App(): React.ReactElement {
         {/* <Stack.Screen name="Rentals" component={Rentals} /> */}
         {/* <Stack.Screen name="Freelancer" component={FreelancerScreen} /> */}
         <Stack.Screen name="ServiceRequests" component={ServiceRequestsScreen} />
-        <Stack.Screen name="FreelancerDashboard" component={FreelancerDashboard} />
-        <Stack.Screen name="FDOverview" component={FDOverview} />
+        {/* <Stack.Screen name="FreelancerDashboard" component={FreelancerDashboard} /> */}
+        {/* <Stack.Screen name="FDOverview" component={FDOverview} /> */}
         <Stack.Screen name="PaymentScreen" component={PaymentScreen} />
         <Stack.Screen name="BookCleaning" component={BookCleaningScreen} />
 <Stack.Screen
