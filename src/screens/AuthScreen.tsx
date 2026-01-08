@@ -6,15 +6,24 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  Alert,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
+// import { useNavigation  } from "@react-navigation/native";
 import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+// import React from 'react';
+// const navigation = useNavigation();
+
+
 
 const AuthScreen = () => {
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
+    const navigation = useNavigation<NativeStackNavigationProp<any>>();
 
-  // shared (auto-fill login)
+
+  // shared
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -28,22 +37,78 @@ const AuthScreen = () => {
   const [lookingForWork, setLookingForWork] = useState('');
   const [workType, setWorkType] = useState('');
 
+  // ✅ STORED REGISTERED USER (IMPORTANT)
+  const [registeredEmail, setRegisteredEmail] = useState('');
+  const [registeredPassword, setRegisteredPassword] = useState('');
+
+  /* ================= REGISTER ================= */
   const handleRegister = () => {
-    if (!email || !password) {
-      alert('Email and Password are required');
+    if (!email || !password || !confirmPassword) {
+      Alert.alert('Error', 'All required fields must be filled');
       return;
     }
 
     if (password !== confirmPassword) {
-      alert('Passwords do not match');
+      Alert.alert('Error', 'Passwords do not match');
       return;
     }
 
+    // ✅ Save registered credentials
+    setRegisteredEmail(email);
+    setRegisteredPassword(password);
+
+    // ✅ Auto-switch to login & auto-fill
     setActiveTab('login');
+
+    Alert.alert(
+      'Success',
+      'Registration completed. Please login.'
+    );
   };
 
-  const navigation = useNavigation<any>();
+  /* ================= LOGIN ================= */
+  const handleLogin = () => {
+    if (!registeredEmail || !registeredPassword) {
+      Alert.alert(
+        'Not Registered',
+        'Please register before logging in.'
+      );
+      return;
+    }
 
+    if (email !== registeredEmail || password !== registeredPassword) {
+      Alert.alert(
+        'Invalid Credentials',
+        'Email or password is incorrect.'
+      );
+      return;
+    }
+
+    // Alert.alert('Login Successful', 'Welcome back!');
+    Alert.alert(
+  "Login Successful",
+  "Welcome back!",
+  [
+    {
+      text: "OK",
+      onPress: () =>
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: "Landing",
+              params: { isLoggedIn: true }, // 👈 THIS IS KEY
+            },
+          ],
+        }),
+    },
+  ],
+  { cancelable: false }
+);
+
+
+    // 👉 later navigate to dashboard / internship
+  };
 
   return (
     <LinearGradient colors={['#020617', '#020617']} style={styles.container}>
@@ -95,7 +160,6 @@ const AuthScreen = () => {
                 onChange={setLookingForWork}
               />
 
-              {/* DROPDOWN */}
               <Text style={styles.label}>Select Work Type</Text>
               <View style={styles.dropdownWrapper}>
                 <Picker
@@ -127,39 +191,9 @@ const AuthScreen = () => {
               <Input label="Email ID" value={email} onChange={setEmail} />
               <Input label="Password" value={password} onChange={setPassword} secure />
 
-              {/* <TouchableOpacity
-  style={styles.primaryBtn}
-  onPress={() => {
-    // assume login success
-    navigation.reset({
-      index: 0,
-      routes: [{ name: "Landing" }],
-    });
-  }}
->
-  <Text style={styles.primaryText}>Log In →</Text>
-</TouchableOpacity> */}
-<TouchableOpacity
-  style={styles.primaryBtn}
-  onPress={() => {
-    // LOGIN SUCCESS
-    navigation.reset({
-      index: 0,
-      routes: [
-        {
-          name: "Landing",
-          params: { isLoggedIn: true }, //  THIS IS THE KEY
-        },
-      ],
-    });
-  }}
->
-  <Text style={styles.primaryText}>Log In →</Text>
-</TouchableOpacity>
-
-{/* <TouchableOpacity style={styles.primaryBtn}>
+              <TouchableOpacity style={styles.primaryBtn} onPress={handleLogin}>
                 <Text style={styles.primaryText}>Log In →</Text>
-              </TouchableOpacity> */}
+              </TouchableOpacity>
 
               <Text style={styles.link}>Forgot Password?</Text>
               <SocialSection />
@@ -170,6 +204,8 @@ const AuthScreen = () => {
     </LinearGradient>
   );
 };
+
+/* ================= COMPONENTS ================= */
 
 const Input = ({ label, value, onChange, secure }: any) => (
   <>
@@ -204,6 +240,8 @@ const SocialBtn = ({ text }: any) => (
     <Text style={styles.socialText}>{text}</Text>
   </TouchableOpacity>
 );
+
+/* ================= STYLES ================= */
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
@@ -275,7 +313,3 @@ const styles = StyleSheet.create({
 });
 
 export default AuthScreen;
-
-function alert(arg0: string) {
-  throw new Error('Function not implemented.');
-}

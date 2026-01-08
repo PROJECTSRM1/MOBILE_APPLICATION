@@ -12,7 +12,8 @@ import Landing from "./src/screens/Landing";
 // import CustomerDashboard from "./src/screens/CustomerDashboard";
 // import UserDashboard from "./src/screens/UserDashboard";
 import Settings from "./src/screens/Settings";
-
+import EducationHome from "./src/screens/EducationHome";
+import Collegeslisting from "./src/screens/Collegelisting";
 // import FreelancerScreen from "./src/screens/Landing";
 import ServiceRequestsScreen from "./src/screens/ServiceRequestsScreen";
 // import FreelancerDashboard from "./src/screens/FreelancerDashboard";
@@ -49,6 +50,8 @@ AuthScreen: undefined;
 Notifications: undefined;
 EmployeeAllocation: undefined;
 CleaningServiceScreen: undefined;
+EducationHome: undefined;
+Collegeslisting: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -85,7 +88,8 @@ export default function App(): React.ReactElement {
 <Stack.Screen name="AuthScreen" component={AuthScreen} />
 <Stack.Screen name="EmployeeAllocation" component={EmployeeAllocation} />
 <Stack.Screen name="CleaningServiceScreen" component={CleaningServicesScreen} />
-
+<Stack.Screen name="EducationHome" component={EducationHome} />
+<Stack.Screen name="Collegeslisting" component={Collegeslisting} />
       </Stack.Navigator>
     </NavigationContainer>
   );
