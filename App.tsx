@@ -4,22 +4,26 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import Splash from "./src/screens/Splash";
 import Onboarding from "./src/screens/Onboarding";
-import WelcomeOne from "./src/screens/WelcomeOne";
-import Login from "./src/screens/Login";
-import Signup from "./src/screens/Signup";
+// import WelcomeOne from "./src/screens/WelcomeOne";
+// import Login from "./src/screens/Login";
+// import Signup from "./src/screens/Signup";
 import Landing from "./src/screens/Landing";
-import CustomerDashboard from "./src/screens/CustomerDashboard";
-import UserDashboard from "./src/screens/UserDashboard";
+// import Landing from "./src/screens/Landing";
+// import CustomerDashboard from "./src/screens/CustomerDashboard";
+// import UserDashboard from "./src/screens/UserDashboard";
 import Settings from "./src/screens/Settings";
-import Transport from "./src/screens/Transport";
-import Construction from "./src/screens/Construction";
-import Rentals from "./src/screens/Rentals";
-import FreelancerScreen from "./src/screens/FreelancerScreen";
+
+// import FreelancerScreen from "./src/screens/Landing";
 import ServiceRequestsScreen from "./src/screens/ServiceRequestsScreen";
-import FreelancerDashboard from "./src/screens/FreelancerDashboard";
-import FDOverview from "./src/screens/FDOverview";
+// import FreelancerDashboard from "./src/screens/FreelancerDashboard";
+// import FDOverview from "./src/screens/FDOverview";
 
-
+import PaymentScreen from "./src/screens/Paymentscreen";
+import BookCleaningScreen from "./src/screens/BookCleaningScreen";
+import NotificationsScreen from "./src/screens/NotificationsScreen";
+import AuthScreen from "./src/screens/AuthScreen";
+import CleaningServicesScreen from "./src/screens/CleaningServicesScreen";
+import EmployeeAllocation from "./src/screens/EmployeeAllocation";
 export type RootStackParamList = {
   Splash: undefined;
   Onboarding: undefined;
@@ -39,6 +43,12 @@ export type RootStackParamList = {
   FDOverview: undefined;
   Freelancer: undefined;
   ServiceRequests: undefined;
+  PaymentScreen: undefined;
+  BookCleaning: undefined;
+AuthScreen: undefined;
+Notifications: undefined;
+EmployeeAllocation: undefined;
+CleaningServiceScreen: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -49,23 +59,32 @@ export default function App(): React.ReactElement {
       <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={Splash} />
         <Stack.Screen name="Onboarding" component={Onboarding} />
+        {/* <Stack.Screen name="Landing" component={Landing} /> */}
+        {/* <Stack.Screen name="WelcomeOne" component={WelcomeOne} /> */}
+        {/* <Stack.Screen name="Login" component={Login} /> */}
+        {/* <Stack.Screen name="Signup" component={Signup} /> */}
         <Stack.Screen name="Landing" component={Landing} />
-        <Stack.Screen name="WelcomeOne" component={WelcomeOne} />
-        <Stack.Screen name="Login" component={Login} />
-        <Stack.Screen name="Signup" component={Signup} />
-        <Stack.Screen name="CustomerDashboard" component={CustomerDashboard} />
-        <Stack.Screen name="UserDashboard" component={UserDashboard} />
-        <Stack.Screen name="Transport" component={Transport} />
-        <Stack.Screen name="Construction" component={Construction} />
+        {/* <Stack.Screen name="CustomerDashboard" component={CustomerDashboard} /> */}
+        {/* <Stack.Screen name="UserDashboard" component={UserDashboard} /> */}
+        {/* <Stack.Screen name="Transport" component={Transport} /> */}
+        {/* <Stack.Screen name="Construction" component={Construction} /> */}
         {/* <Stack.Screen name="Cleaning" component={Cleaning} /> */}
         {/* <Stack.Screen name="Packers" component={Packers} /> */}
         <Stack.Screen name="Settings" component={Settings} />
-        <Stack.Screen name="Rentals" component={Rentals} />
-        <Stack.Screen name="Freelancer" component={FreelancerScreen} />
+        {/* <Stack.Screen name="Rentals" component={Rentals} /> */}
+        {/* <Stack.Screen name="Freelancer" component={FreelancerScreen} /> */}
         <Stack.Screen name="ServiceRequests" component={ServiceRequestsScreen} />
-        <Stack.Screen name="FreelancerDashboard" component={FreelancerDashboard} />
-        <Stack.Screen name="FDOverview" component={FDOverview} />
-
+        {/* <Stack.Screen name="FreelancerDashboard" component={FreelancerDashboard} /> */}
+        {/* <Stack.Screen name="FDOverview" component={FDOverview} /> */}
+        <Stack.Screen name="PaymentScreen" component={PaymentScreen} />
+        <Stack.Screen name="BookCleaning" component={BookCleaningScreen} />
+<Stack.Screen
+  name="Notifications"
+  component={NotificationsScreen}
+/>
+<Stack.Screen name="AuthScreen" component={AuthScreen} />
+<Stack.Screen name="EmployeeAllocation" component={EmployeeAllocation} />
+<Stack.Screen name="CleaningServiceScreen" component={CleaningServicesScreen} />
 
       </Stack.Navigator>
     </NavigationContainer>

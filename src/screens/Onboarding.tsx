@@ -15,15 +15,15 @@ import { useNavigation } from '@react-navigation/native';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
-const IMAGES: ImageSourcePropType[] = [
-  require('../../assets/swachlogo.png'),
-  require('../../assets/swachlogo.png'),
-  require('../../assets/swachlogo.png'),
-];
+// const IMAGES: ImageSourcePropType[] = [
+//   require('../../assets/swachlogo.png'),
+//   require('../../assets/swachlogo.png'),
+//   require('../../assets/swachlogo.png'),
+// ];
 
 const PAGES = [
-  { title: 'Keep it clean', subtitle: 'Expert cleaning tailored to your home.', image: IMAGES[0] },
-  { title: 'Book in seconds', subtitle: 'Easy scheduling with trusted professionals.', image: IMAGES[1] },
+  { title: 'Keep it clean', subtitle: 'Expert cleaning tailored to your home.', image: null },
+  { title: 'Book in seconds', subtitle: 'Easy scheduling with trusted professionals.', image: null },
   // { title: 'Sit back & relax', subtitle: 'We handle everything — premium results.', image: IMAGES[2] },
 ];
 
@@ -53,7 +53,7 @@ export default function Onboarding(): React.ReactElement {
     if (index < PAGES.length - 1) {
       goToPage(index + 1);
     } else {
-      navigation.replace('Freelancer'); 
+      navigation.replace('Landing'); 
     }
   };
 
@@ -77,7 +77,7 @@ export default function Onboarding(): React.ReactElement {
       View,
       { key: `pg-${i}`, style: [styles.page, { width: SCREEN_W }] },
       React.createElement(Animated.Image, {
-        source: p.image,
+        // source: p.image,
         style: [styles.image, { opacity, transform: [{ scale }] }],
         resizeMode: 'contain',
       }),
@@ -116,7 +116,7 @@ export default function Onboarding(): React.ReactElement {
       React.createElement(
         TouchableOpacity as any,
         {
-          onPress: () => navigation.replace('Freelancer'),
+          onPress: () => navigation.replace('Landing'),
           style: styles.getStartedBtn,
           activeOpacity: 0.92,
         },
