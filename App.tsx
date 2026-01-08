@@ -25,6 +25,7 @@ import AuthScreen from "./src/screens/AuthScreen";
 import CleaningServicesScreen from "./src/screens/CleaningServicesScreen";
 import EmployeeAllocation from "./src/screens/EmployeeAllocation";
 import CollegesScreen from "./src/screens/Collegelisting";
+import InternshipDetailsScreen from "./src/screens/Intership";
 export type RootStackParamList = {
   Splash: undefined;
   Onboarding: undefined;
@@ -90,6 +91,7 @@ export default function App(): React.ReactElement {
 //       </Stack.Navigator>
 //     </NavigationContainer>
 
-    <CollegesScreen/>
+    // <CollegesScreen/>
+    <InternshipDetailsScreen/>
   );
 }
