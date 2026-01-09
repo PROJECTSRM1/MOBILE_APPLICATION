@@ -7,22 +7,27 @@ import {
   ScrollView,
   Image,
   TextInput,
-  SafeAreaView,
+//   SafeAreaView,
   StatusBar,
   Dimensions,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import { useNavigation } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
 
 const EducationHome = () => {
+  const navigation = useNavigation<any>();
+
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="light-content" />
 
       <LinearGradient colors={["#0d1321", "#101622"]} style={styles.container}>
         {/* HEADER */}
+        <SafeAreaView edges={["top"]} style={styles.headerSafe}></SafeAreaView>
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <Image
@@ -58,12 +63,11 @@ const EducationHome = () => {
           {/* FEATURED CARD */}
           <View style={styles.featured}>
             <Image
-                source={{
-                  uri: "https://images.unsplash.com/photo-1562774053-701939374585?w=1200",
-                }}
-                style={styles.featuredImage}
-              />
-
+              source={{
+                uri: "https://images.unsplash.com/photo-1562774053-701939374585?w=1200",
+              }}
+              style={styles.featuredImage}
+            />
             <View style={styles.overlay} />
             <View style={styles.featuredContent}>
               <View style={styles.featuredTag}>
@@ -107,7 +111,20 @@ const EducationHome = () => {
               color: "#fb923c",
             },
           ].map((item, index) => (
-            <View key={index} style={styles.categoryCard}>
+            <TouchableOpacity
+              key={index}
+              style={styles.categoryCard}
+              activeOpacity={0.8}
+              onPress={() => {
+  if (item.title === "Colleges") {
+    navigation.navigate("CollegeListing");
+  } else if (item.title === "Internships") {
+    navigation.navigate("Internship"); 
+  }if (item.title === "Companies") { 
+    navigation.navigate("CompaniesListingScreen");  
+}}}
+
+            >
               <View
                 style={[
                   styles.categoryIcon,
@@ -121,7 +138,7 @@ const EducationHome = () => {
                 <Text style={styles.categorySub}>{item.sub}</Text>
               </View>
               <Icon name="chevron-right" size={22} color="#9da6b9" />
-            </View>
+            </TouchableOpacity>
           ))}
 
           {/* TRENDING */}
@@ -194,6 +211,7 @@ const EducationHome = () => {
 
 export default EducationHome;
 
+/* styles unchanged */
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#0d1321" },
   container: { flex: 1 },
@@ -335,11 +353,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     paddingBottom: 12,
   },
+   headerSafe: {
+    // marginTop: StatusBar.currentHeight,
+
+  backgroundColor: "#0d1321",
+},
+
   navItem: {
     flex: 1,
     alignItems: "center",
     justifyContent: "flex-end",
     gap: 4,
   },
+
   navText: { color: "#9da6b9", fontSize: 11 },
 });
