@@ -745,6 +745,8 @@ const Landing = () => {
     
       </ScrollView>
 
+      </ScrollView>
+
       {/* ================= BOTTOM TAB ================= */}
       <View style={styles.bottomTab}>
         {["home", "calendar-month", "account-balance-wallet", "chat", "person"].map(
