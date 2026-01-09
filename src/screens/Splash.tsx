@@ -72,7 +72,7 @@ export default function Splash(): React.ReactElement {
   });
 
   const title = React.createElement(Text, { style: styles.title }, 'Swachify');
-  const subtitle = React.createElement(Text, { style: styles.subtitle }, 'Cleaning Services — Premium');
+  const subtitle = React.createElement(Text, { style: styles.subtitle }, 'Home and Commercial Services');
 
   const animatedBox = React.createElement(
     Animated.View as any,
