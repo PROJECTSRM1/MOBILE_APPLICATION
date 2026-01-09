@@ -1,30 +1,24 @@
-import React from 'react';
-import { StatusBar } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import React from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import AuthScreen from './android/app/src/screens/AuthScreen';
+import ProductScreen from "./android/app/src/screens/ProductScreen";
 
-const Stack = createNativeStackNavigator();
-
-const App = () => {
-  return (
-    <>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor="#101622"
-      />
-
-      <NavigationContainer>
-        <Stack.Navigator
-          initialRouteName="Auth"   // ✅ FIXED
-          screenOptions={{ headerShown: false }}
-        >
-          <Stack.Screen name="Auth" component={AuthScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </>
-  );
+export type RootStackParamList = {
+  ProductScreen: undefined;
 };
 
-export default App;
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+export default function App() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen
+          name="ProductScreen"
+          component={ProductScreen}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
