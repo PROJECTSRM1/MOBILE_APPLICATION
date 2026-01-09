@@ -277,6 +277,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 12,
      marginBottom: 8,
+     height:100,
   },
   headerText: {
     color: '#fff',

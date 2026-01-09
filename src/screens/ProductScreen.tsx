@@ -9,6 +9,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import { useNavigation } from "@react-navigation/native";
+
 
 /* =======================
    TYPES
@@ -41,6 +43,8 @@ interface StatProps {
    ======================= */
 
 const PaymentScreen: React.FC = () => {
+  const navigation = useNavigation<any>();
+
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <View style={styles.container}>
@@ -69,12 +73,14 @@ const PaymentScreen: React.FC = () => {
           showsVerticalScrollIndicator={false}
         >
           {/* PRIMARY BUTTON */}
-          <TouchableOpacity style={styles.primaryBtn}>
-            <MaterialIcons name="add" size={22} color="#FFF" />
-            <Text style={styles.primaryBtnText}>
-              Register New Product
-            </Text>
-          </TouchableOpacity>
+          <TouchableOpacity
+  style={styles.primaryBtn}
+  onPress={() => navigation.navigate("ProductRegistration")}
+>
+  <MaterialIcons name="add" size={22} color="#FFF" />
+  <Text style={styles.primaryBtnText}>Register New Product</Text>
+</TouchableOpacity>
+
 
           {/* SEARCH */}
           <View style={styles.searchBox}>
@@ -94,9 +100,13 @@ const PaymentScreen: React.FC = () => {
 
           {/* LIST HEADER */}
           <View style={styles.listHeader}>
-            <Text style={styles.listTitle}>Active Products</Text>
-            <Text style={styles.viewAll}>View All</Text>
-          </View>
+  <Text style={styles.listTitle}>Active Products</Text>
+
+  <TouchableOpacity onPress={() => navigation.navigate("SwachifyMarketScreen")}>
+    <Text style={styles.viewAll}>View All</Text>
+  </TouchableOpacity>
+</View>
+
 
           {/* PRODUCTS */}
           <Product
