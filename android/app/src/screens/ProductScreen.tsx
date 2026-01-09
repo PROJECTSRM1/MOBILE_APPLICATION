@@ -8,6 +8,7 @@ import {
   ScrollView,
   Image,
   StatusBar,
+  Alert, // ✅ ADDED
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { launchImageLibrary } from "react-native-image-picker";
@@ -34,6 +35,26 @@ const ProductScreen = ({ navigation }: any) => {
     }
   };
 
+  /* ---------- REGISTER PRODUCT ---------- */
+  const handleRegisterProduct = () => {
+    Alert.alert(
+      "Success 🎉",
+      "Product registered successfully",
+      [
+        {
+          text: "OK",
+          onPress: () => {
+            setCompanyName("");
+            setProductName("");
+            setDescription("");
+            setImages([]);
+          },
+        },
+      ],
+      { cancelable: false }
+    );
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#020617" />
@@ -47,7 +68,10 @@ const ProductScreen = ({ navigation }: any) => {
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         <Text style={styles.title}>Product Registration</Text>
         <Text style={styles.subtitle}>
           Enter the details of your Swachify product below to list it on the platform.
@@ -105,7 +129,10 @@ const ProductScreen = ({ navigation }: any) => {
         )}
 
         {/* Register Button */}
-        <TouchableOpacity style={styles.submitBtn}>
+        <TouchableOpacity
+          style={styles.submitBtn}
+          onPress={handleRegisterProduct} // ✅ ADDED
+        >
           <Icon name="apps" size={18} color="#fff" />
           <Text style={styles.submitText}>Register Product</Text>
         </TouchableOpacity>
