@@ -138,6 +138,9 @@ import InternshipDetailsScreen from "./src/screens/Intership";
 import CleaningCategorySelectScreen from "./src/screens/CleaningCategory";
 import CompaniesListingScreen from "./src/screens/CompaniesListingScreen";
 import JobDetailsScreen from "./src/screens/JobDetailsScreen";
+import Marketplace from "./src/screens/Marketplace";
+import SellItem from "./src/screens/SellItem";
+
 export type RootStackParamList = {
   Splash: undefined;
   Onboarding: undefined;
@@ -147,6 +150,8 @@ export type RootStackParamList = {
   CollegeListing:undefined;
   Cleaning:undefined;
   CleaningCategory:undefined;
+  SellItem:undefined;
+  Marketplace:undefined;
   // Login: undefined;
     Login: { role?: "customer" | "user"; prefilledEmail?: string;prefilledPassword?: string;
  } | undefined;
@@ -215,9 +220,10 @@ export default function App(): React.ReactElement {
 <Stack.Screen name="CompaniesListingScreen" component={CompaniesListingScreen} />
 <Stack.Screen name="CleaningServiceScreen" component={CleaningServicesScreen} />
 <Stack.Screen name="JobDetails" component={JobDetailsScreen} />
-
-
+<Stack.Screen name="SellItem" component={SellItem} />
+<Stack.Screen name="Marketplace" component={Marketplace} />
       </Stack.Navigator>
     </NavigationContainer>
+
   );
 }
