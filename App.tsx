@@ -22,6 +22,8 @@ import ProfileInformation from "./src/screens/ProfileInformation";
 import Marketplace from "./src/screens/Marketplace";
 import SellItem from "./src/screens/SellItem";
 import ProductScreen from "./src/screens/ProductScreen";
+import SwachifyMarketScreen from "./src/screens/SwachifyMarketScreen";
+import ProductRegistration from "./src/screens/ProductRegistration";
 
 
 
@@ -56,6 +58,11 @@ export type RootStackParamList = {
   JobDetails: undefined;
   CleaningServiceScreen: undefined;
   CompaniesListingScreen: undefined;
+  Marketplace: undefined;
+  SellItem: undefined;
+  ProductScreen: undefined;
+  SwachifyMarketScreen: undefined;
+  ProductRegistration: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -81,6 +88,11 @@ export default function App(): React.ReactElement {
         <Stack.Screen name="CompaniesListingScreen" component={CompaniesListingScreen} />
         <Stack.Screen name="CleaningServiceScreen" component={CleaningServicesScreen} />
         <Stack.Screen name="JobDetails" component={JobDetailsScreen} />
+        <Stack.Screen name="Marketplace" component={Marketplace} />
+        <Stack.Screen name="SellItem" component={SellItem} />
+        <Stack.Screen name="ProductScreen" component={ProductScreen} />
+        <Stack.Screen name="SwachifyMarketScreen" component={SwachifyMarketScreen} />
+        <Stack.Screen name="ProductRegistration" component={ProductRegistration} />
       </Stack.Navigator>
     </NavigationContainer>
   );
