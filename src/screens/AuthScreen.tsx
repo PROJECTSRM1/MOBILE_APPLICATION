@@ -10,24 +10,21 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
-// import { useNavigation  } from "@react-navigation/native";
-import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-// import React from 'react';
-// const navigation = useNavigation();
+import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-
+/* ================= SCREEN ================= */
 
 const AuthScreen = () => {
+  const navigation = useNavigation<any>();
+
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
-    const navigation = useNavigation<NativeStackNavigationProp<any>>();
 
-
-  // shared
+  /* ===== SHARED ===== */
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  // register-only
+  /* ===== REGISTER ONLY ===== */
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [mobile, setMobile] = useState('');
@@ -37,12 +34,9 @@ const AuthScreen = () => {
   const [lookingForWork, setLookingForWork] = useState('');
   const [workType, setWorkType] = useState('');
 
-  // ✅ STORED REGISTERED USER (IMPORTANT)
-  const [registeredEmail, setRegisteredEmail] = useState('');
-  const [registeredPassword, setRegisteredPassword] = useState('');
-
   /* ================= REGISTER ================= */
-  const handleRegister = () => {
+
+  const handleRegister = async () => {
     if (!email || !password || !confirmPassword) {
       Alert.alert('Error', 'All required fields must be filled');
       return;
@@ -53,75 +47,83 @@ const AuthScreen = () => {
       return;
     }
 
-    // ✅ Save registered credentials
-    setRegisteredEmail(email);
-    setRegisteredPassword(password);
+    const userProfile = {
+      firstName,
+      lastName,
+      email,
+      mobile,
+      aadhaar,
+      location,
+      lookingForWork,
+      workType,
+    };
 
-    // ✅ Auto-switch to login & auto-fill
-    setActiveTab('login');
+    try {
+      await AsyncStorage.setItem(
+        'userProfile',
+        JSON.stringify(userProfile),
+      );
 
-    Alert.alert(
-      'Success',
-      'Registration completed. Please login.'
-    );
+      await AsyncStorage.setItem('authEmail', email);
+      await AsyncStorage.setItem('authPassword', password);
+
+      setActiveTab('login');
+
+      Alert.alert(
+        'Success',
+        'Registration completed. Please login.',
+      );
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save user data');
+    }
   };
 
   /* ================= LOGIN ================= */
-  const handleLogin = () => {
-    if (!registeredEmail || !registeredPassword) {
-      Alert.alert(
-        'Not Registered',
-        'Please register before logging in.'
-      );
-      return;
+
+  const handleLogin = async () => {
+    try {
+      const storedEmail = await AsyncStorage.getItem('authEmail');
+      const storedPassword = await AsyncStorage.getItem('authPassword');
+
+      if (!storedEmail || !storedPassword) {
+        Alert.alert('Not Registered', 'Please register first.');
+        return;
+      }
+
+      if (email !== storedEmail || password !== storedPassword) {
+        Alert.alert('Invalid Credentials', 'Email or password is incorrect.');
+        return;
+      }
+
+      Alert.alert('Login Successful', 'Welcome back!', [
+        {
+          text: 'OK',
+          onPress: () => navigation.replace('Landing'),
+        },
+      ]);
+    } catch (error) {
+      Alert.alert('Error', 'Login failed');
     }
-
-    if (email !== registeredEmail || password !== registeredPassword) {
-      Alert.alert(
-        'Invalid Credentials',
-        'Email or password is incorrect.'
-      );
-      return;
-    }
-
-    // Alert.alert('Login Successful', 'Welcome back!');
-    Alert.alert(
-  "Login Successful",
-  "Welcome back!",
-  [
-    {
-      text: "OK",
-      onPress: () =>
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: "Landing",
-              params: { isLoggedIn: true }, // 👈 THIS IS KEY
-            },
-          ],
-        }),
-    },
-  ],
-  { cancelable: false }
-);
-
-
-    // 👉 later navigate to dashboard / internship
   };
+
+  /* ================= UI ================= */
 
   return (
     <LinearGradient colors={['#020617', '#020617']} style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.card}>
 
-          {/* Tabs */}
+          {/* TABS */}
           <View style={styles.tabs}>
             <TouchableOpacity
               style={[styles.tab, activeTab === 'login' && styles.activeTab]}
               onPress={() => setActiveTab('login')}
             >
-              <Text style={activeTab === 'login' ? styles.activeText : styles.inactiveText}>
+              <Text
+                style={activeTab === 'login'
+                  ? styles.activeText
+                  : styles.inactiveText}
+              >
                 Login
               </Text>
             </TouchableOpacity>
@@ -130,7 +132,11 @@ const AuthScreen = () => {
               style={[styles.tab, activeTab === 'register' && styles.activeTab]}
               onPress={() => setActiveTab('register')}
             >
-              <Text style={activeTab === 'register' ? styles.activeText : styles.inactiveText}>
+              <Text
+                style={activeTab === 'register'
+                  ? styles.activeText
+                  : styles.inactiveText}
+              >
                 Register
               </Text>
             </TouchableOpacity>
@@ -175,7 +181,10 @@ const AuthScreen = () => {
                 </Picker>
               </View>
 
-              <TouchableOpacity style={styles.primaryBtn} onPress={handleRegister}>
+              <TouchableOpacity
+                style={styles.primaryBtn}
+                onPress={handleRegister}
+              >
                 <Text style={styles.primaryText}>Register</Text>
               </TouchableOpacity>
 
@@ -191,7 +200,10 @@ const AuthScreen = () => {
               <Input label="Email ID" value={email} onChange={setEmail} />
               <Input label="Password" value={password} onChange={setPassword} secure />
 
-              <TouchableOpacity style={styles.primaryBtn} onPress={handleLogin}>
+              <TouchableOpacity
+                style={styles.primaryBtn}
+                onPress={handleLogin}
+              >
                 <Text style={styles.primaryText}>Log In →</Text>
               </TouchableOpacity>
 

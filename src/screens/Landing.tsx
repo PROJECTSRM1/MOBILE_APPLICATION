@@ -435,7 +435,7 @@
 
 
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -446,18 +446,67 @@ import {
   TextInput,
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { useNavigation ,useRoute } from "@react-navigation/native";
+import { useNavigation, useRoute, useFocusEffect } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { SafeAreaView } from "react-native-safe-area-context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const isLoggedIn = false;
+interface UserProfile {
+  firstName: string;
+  lastName: string;
+  email: string;
+  mobile?: string;
+  location?: string;
+}
 
 const Landing = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
-
   const route = useRoute<any>();
 
-const isLoggedIn = route?.params?.isLoggedIn === true;
+  /* ================= STATE ================= */
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [userLocation, setUserLocation] = useState<string>("New York, NY");
+  const [userName, setUserName] = useState<string>("");
+
+  /* ================= LOAD USER DATA ================= */
+  useEffect(() => {
+    checkLoginStatus();
+  }, []);
+
+  // Reload data when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      checkLoginStatus();
+    }, [])
+  );
+
+  const checkLoginStatus = async () => {
+    try {
+      const storedUser = await AsyncStorage.getItem("userProfile");
+
+      if (storedUser) {
+        const parsed: UserProfile = JSON.parse(storedUser);
+        setIsLoggedIn(true);
+
+        // Set user location if available
+        if (parsed.location) {
+          setUserLocation(parsed.location);
+        }
+
+        // Set user name for display
+        if (parsed.firstName) {
+          setUserName(parsed.firstName);
+        }
+      } else {
+        setIsLoggedIn(false);
+        setUserName("");
+        setUserLocation("New York, NY");
+      }
+    } catch (err) {
+      console.log("Error loading user data:", err);
+      setIsLoggedIn(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -467,48 +516,52 @@ const isLoggedIn = route?.params?.isLoggedIn === true;
         <View style={styles.headerLeft}>
           {/* PROFILE + TOOLTIP */}
           <TouchableOpacity
-  style={styles.profileWrapper}
-  activeOpacity={0.8}
-  onPress={() => {
-    if (!isLoggedIn) {
-      navigation.navigate("AuthScreen");
-    }
-  }}
->
-  <View style={styles.avatar} />
+            style={styles.profileWrapper}
+            activeOpacity={0.8}
+            onPress={() => {
+              if (!isLoggedIn) {
+                navigation.navigate("AuthScreen");
+              } else {
+                navigation.navigate("ProfileInformation");
+              }
+            }}
+          >
+            <View style={styles.avatar}>
+              {isLoggedIn && userName ? (
+                <Text style={styles.avatarText}>
+                  {userName.charAt(0).toUpperCase()}
+                </Text>
+              ) : null}
+            </View>
 
-  {!isLoggedIn && (
-    <View style={styles.profileTooltip}>
-      <Text style={styles.tooltipText}>
-        Please Sign up for accessing the services
-      </Text>
-    </View>
-  )}
-</TouchableOpacity>
-
-
+            {!isLoggedIn && (
+              <View style={styles.profileTooltip}>
+                <Text style={styles.tooltipText}>
+                  Please Sign up for accessing the services
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
 
           {/* LOCATION */}
           <View>
             <Text style={styles.locationLabel}>Current Location</Text>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               <MaterialIcons name="location-on" size={16} color="#3b82f6" />
-              <Text style={styles.locationText}> New York, NY</Text>
+              <Text style={styles.locationText}> {userLocation}</Text>
             </View>
           </View>
         </View>
 
-
         {/* BELL */}
-<TouchableOpacity
-  style={styles.notificationWrapper}
-  onPress={() => navigation.navigate("Notifications")}
-  activeOpacity={0.7}
->
-  <MaterialIcons name="notifications" size={24} color="#fff" />
-  {!isLoggedIn && <View style={styles.notificationDot} />}
-</TouchableOpacity>
-
+        <TouchableOpacity
+          style={styles.notificationWrapper}
+          onPress={() => navigation.navigate("Notifications")}
+          activeOpacity={0.7}
+        >
+          <MaterialIcons name="notifications" size={24} color="#fff" />
+          {!isLoggedIn && <View style={styles.notificationDot} />}
+        </TouchableOpacity>
       </View>
 
       {/* ================= SEARCH ================= */}
@@ -539,52 +592,46 @@ const isLoggedIn = route?.params?.isLoggedIn === true;
 
         <View style={styles.grid}>
           {[
-  { name: "Housing / Cleaning", icon: "home" },
-  { name: "Education", icon: "school" },
-  { name: "Freelance", icon: "work" },
-  { name: "Buy/Sell", icon: "shopping-bag" },
-//   { name: "Bills", icon: "receipt" },
-  { name: "Wallet", icon: "account-balance-wallet" },
-  { name: "More", icon: "grid-view" },
-]
-.map((item, i) => {
-    const isCleaning = item.name === "Cleaning";
+            { name: "Housing / Cleaning", icon: "home" },
+            { name: "Education", icon: "school" },
+            { name: "Freelance", icon: "work" },
+            { name: "Buy/Sell", icon: "shopping-bag" },
+            { name: "Wallet", icon: "account-balance-wallet" },
+            { name: "More", icon: "grid-view" },
+          ].map((item, i) => {
+            return (
+              <TouchableOpacity
+                key={i}
+                style={styles.gridItem}
+                activeOpacity={0.8}
+                onPress={() => {
+                  if (!isLoggedIn) {
+                    navigation.navigate("AuthScreen");
+                    return;
+                  }
 
-    return (
-      <TouchableOpacity
-        key={i}
-        style={styles.gridItem}
-        activeOpacity={0.8}
-       onPress={() => {
-  if (!isLoggedIn) {
-    navigation.navigate("AuthScreen");
-    return;
-  }
+                  switch (item.name) {
+                    case "Housing / Cleaning":
+                      navigation.navigate("CleaningCategory");
+                      break;
 
- switch (item.name) {
-  case "Housing / Cleaning":
-    navigation.navigate("CleaningCategory");
-    break;
+                    case "Education":
+                      navigation.navigate("EducationHome");
+                      break;
 
-  case "Education":
-    navigation.navigate("EducationHome");
-    break;
-
-  default:
-    break;
-}
-
-}}
-
-      >
-        <View style={styles.gridIcon}>
-          <MaterialIcons name={item.icon} size={28} color="#3b82f6" />
+                    default:
+                      break;
+                  }
+                }}
+              >
+                <View style={styles.gridIcon}>
+                  <MaterialIcons name={item.icon} size={28} color="#3b82f6" />
+                </View>
+                <Text style={styles.gridText}>{item.name}</Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
-        <Text style={styles.gridText}>{item.name}</Text>
-      </TouchableOpacity>
-    );
-  })}
-</View>
 
         {/* ================= TRENDING ================= */}
         <View style={styles.trendingHeader}>
@@ -606,7 +653,6 @@ const isLoggedIn = route?.params?.isLoggedIn === true;
                 <Text style={styles.cardBtnText}>Book</Text>
               </TouchableOpacity>
             </View>
-            
           </View>
         </View>
 
@@ -624,10 +670,10 @@ const isLoggedIn = route?.params?.isLoggedIn === true;
                 <Text style={styles.cardBtnText}>Contact</Text>
               </TouchableOpacity>
             </View>
-            
           </View>
         </View>
-          <View style={styles.card}>
+
+        <View style={styles.card}>
           <Image
             source={{ uri: "https://i.imgur.com/7D7I6dI.png" }}
             style={styles.cardImage}
@@ -641,13 +687,12 @@ const isLoggedIn = route?.params?.isLoggedIn === true;
                 <Text style={styles.cardBtnText}>Call</Text>
               </TouchableOpacity>
             </View>
-            
           </View>
         </View>
 
-          <View style={styles.card}>
+        <View style={styles.card}>
           <Image
-            source={{ uri: "https:// i.imgur.com/7D7I6dI.png" }}
+            source={{ uri: "https://i.imgur.com/7D7I6dI.png" }}
             style={styles.cardImage}
           />
           <View style={{ flex: 1 }}>
@@ -659,9 +704,9 @@ const isLoggedIn = route?.params?.isLoggedIn === true;
                 <Text style={styles.cardBtnText}>Call</Text>
               </TouchableOpacity>
             </View>
-            
           </View>
         </View>
+
         {/* ================= REFER & EARN ================= */}
         <View style={styles.referBox}>
           <View>
@@ -680,12 +725,24 @@ const isLoggedIn = route?.params?.isLoggedIn === true;
       <View style={styles.bottomTab}>
         {["home", "calendar-month", "account-balance-wallet", "chat", "person"].map(
           (icon, i) => (
-            <MaterialIcons
+            <TouchableOpacity
               key={i}
-              name={icon}
-              size={26}
-              color={i === 0 ? "#3b82f6" : "#9ca3af"}
-            />
+              onPress={() => {
+                if (i === 4) {
+                  if (!isLoggedIn) {
+                    navigation.navigate("AuthScreen");
+                  } else {
+                    navigation.navigate("ProfileInformation");
+                  }
+                }
+              }}
+            >
+              <MaterialIcons
+                name={icon}
+                size={26}
+                color={i === 0 ? "#3b82f6" : "#9ca3af"}
+              />
+            </TouchableOpacity>
           )
         )}
       </View>
@@ -724,40 +781,33 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     backgroundColor: "#374151",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
-  // profileTooltip: {
-  //   position: "absolute",
-  //   top: 48,
-  //   // left: 10,
-  //   backgroundColor: "#ffffff",
-  //   // paddingHorizontal: 12,
-  //   // paddingVertical: 8,
-  //   borderRadius: 10,
-  //   maxWidth: 220,
-  //   elevation: 12,
-  //   zIndex: 999,
-  // },
+  avatarText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
 
-profileTooltip: {
-  position: "absolute",
-  bottom:-48,              // above avatar
-  // top: 48,                 // below avatar
-  left: 0,                 // keep inside screen
-  backgroundColor: "#ffffff",
-  paddingHorizontal: 14,
-  paddingVertical: 10,
-  borderRadius: 12,
-  minWidth: 180,           //  prevents vertical text
-  maxWidth: 240,
-  elevation: 10,
-  zIndex: 999,
-},
-safeHeader: {
-  backgroundColor: "#0f172a", // same as container
-},
+  profileTooltip: {
+    position: "absolute",
+    bottom: -48,
+    left: 0,
+    backgroundColor: "#ffffff",
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    minWidth: 180,
+    maxWidth: 240,
+    elevation: 10,
+    zIndex: 999,
+  },
 
-
+  safeHeader: {
+    backgroundColor: "#0f172a",
+  },
 
   tooltipText: {
     color: "#000",
