@@ -138,6 +138,7 @@ import InternshipDetailsScreen from "./src/screens/Intership";
 import CleaningCategorySelectScreen from "./src/screens/CleaningCategory";
 import CompaniesListingScreen from "./src/screens/CompaniesListingScreen";
 import JobDetailsScreen from "./src/screens/JobDetailsScreen";
+import ProductScreen from "./src/screens/ProductScreen";
 export type RootStackParamList = {
   Splash: undefined;
   Onboarding: undefined;
@@ -166,6 +167,7 @@ export type RootStackParamList = {
   EducationHome:undefined;
   // ProfileInformation: undefined;
 AuthScreen: undefined;
+ProductScreen: undefined;
 Notifications: undefined;
 EmployeeAllocation: undefined;
 JobDetails: undefined;
@@ -201,8 +203,10 @@ export default function App(): React.ReactElement {
         {/* <Stack.Screen name="ServiceRequests" component={ServiceRequestsScreen} /> */}
         {/* <Stack.Screen name="FreelancerDashboard" component={FreelancerDashboard} /> */}
         {/* <Stack.Screen name="FDOverview" component={FDOverview} /> */}
+        <Stack.Screen name="ProductScreen" component={ProductScreen} />
         <Stack.Screen name="PaymentScreen" component={PaymentScreen} />
         <Stack.Screen name="BookCleaning" component={BookCleaningScreen} />
+        
 <Stack.Screen
   name="Notifications"
   component={NotificationsScreen}

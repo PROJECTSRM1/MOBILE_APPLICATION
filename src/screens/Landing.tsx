@@ -544,7 +544,7 @@ const isLoggedIn = route?.params?.isLoggedIn === true;
   { name: "Freelance", icon: "work" },
   { name: "Buy/Sell", icon: "shopping-bag" },
 //   { name: "Bills", icon: "receipt" },
-  { name: "Wallet", icon: "account-balance-wallet" },
+  { name: "Swachify Products", icon: "shopping-bag" },
   { name: "More", icon: "grid-view" },
 ]
 .map((item, i) => {
@@ -568,6 +568,10 @@ const isLoggedIn = route?.params?.isLoggedIn === true;
 
   case "Education":
     navigation.navigate("EducationHome");
+    break;
+
+    case "Swachify Products":
+    navigation.navigate("ProductScreen");
     break;
 
   default:
