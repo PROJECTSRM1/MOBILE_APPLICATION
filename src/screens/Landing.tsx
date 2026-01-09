@@ -729,7 +729,7 @@ const Landing = () => {
             </View>
           </View>
         </View>
-
+      </ScrollView>
         {/* ================= REFER & EARN ================= */}
         <View style={styles.referBox}>
           <View>
@@ -743,7 +743,7 @@ const Landing = () => {
 
         <View style={{ height: 90 }} />
     
-      </ScrollView>
+      
 
       </ScrollView>
 
