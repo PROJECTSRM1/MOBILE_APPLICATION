@@ -435,7 +435,7 @@
 
 
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useRef } from "react";
 import {
   View,
   Text,
@@ -596,7 +596,7 @@ const Landing = () => {
             { name: "Education", icon: "school" },
             { name: "Freelance", icon: "work" },
             { name: "Buy/Sell", icon: "shopping-bag" },
-            { name: "Wallet", icon: "account-balance-wallet" },
+            { name: "Swachify Products", icon: "shopping-bag" },
             { name: "More", icon: "grid-view" },
           ].map((item, i) => {
             return (
@@ -618,6 +618,9 @@ const Landing = () => {
                     case "Education":
                       navigation.navigate("EducationHome");
                       break;
+                    case "Swachify Products":
+                      navigation.navigate("ProductScreen");     
+                      break;
 
                     default:
                       break;
@@ -634,10 +637,25 @@ const Landing = () => {
         </View>
 
         {/* ================= TRENDING ================= */}
-        <View style={styles.trendingHeader}>
+        {/* <View style={styles.trendingHeader}>
           <Text style={styles.sectionTitle}>Trending Near You</Text>
           <Text style={styles.viewAll}>View All</Text>
-        </View>
+        </View> */}
+<View style={styles.trendingHeader}>
+  <Text style={styles.sectionTitle}>Trending Near You</Text>
+  <TouchableOpacity
+  onPress={() => navigation.navigate("SwachifyMarketplace")}
+>
+  <Text style={styles.viewAll}>View All</Text>
+</TouchableOpacity>
+</View>
+
+<ScrollView
+  ref={verticalScrollRef}
+  showsVerticalScrollIndicator={false}
+  style={{ height: 380 }}   // THIS isolates scrolling
+>
+
 
         <View style={styles.card}>
           <Image
@@ -719,6 +737,7 @@ const Landing = () => {
         </View>
 
         <View style={{ height: 90 }} />
+    
       </ScrollView>
 
       {/* ================= BOTTOM TAB ================= */}
@@ -747,6 +766,7 @@ const Landing = () => {
         )}
       </View>
     </View>
+    
   );
 };
 

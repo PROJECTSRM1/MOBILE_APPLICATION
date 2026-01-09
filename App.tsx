@@ -19,6 +19,11 @@ import CleaningCategorySelectScreen from "./src/screens/CleaningCategory";
 import CompaniesListingScreen from "./src/screens/CompaniesListingScreen";
 import JobDetailsScreen from "./src/screens/JobDetailsScreen";
 import ProfileInformation from "./src/screens/ProfileInformation";
+import Marketplace from "./src/screens/Marketplace";
+import SellItem from "./src/screens/SellItem";
+import ProductScreen from "./src/screens/ProductScreen";
+
+
 
 export type RootStackParamList = {
   Splash: undefined;
