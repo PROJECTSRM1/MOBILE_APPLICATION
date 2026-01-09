@@ -18,7 +18,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 
 
-const isLoggedIn = false;
+
 
 const Landing = () => {
   const navigation = useNavigation<any>();
@@ -184,6 +184,12 @@ const isLoggedIn = route?.params?.isLoggedIn === true;
     );
   })}
 </View>
+<TouchableOpacity
+  onPress={() => navigation.navigate("ProductRegistrationScreen")}
+  activeOpacity={0.8}
+>
+  <Text>Register New Product</Text>
+</TouchableOpacity>
 
         {/* ================= TRENDING ================= */}
         {/* <View style={styles.trendingHeader}>
@@ -192,7 +198,11 @@ const isLoggedIn = route?.params?.isLoggedIn === true;
         </View> */}
 <View style={styles.trendingHeader}>
   <Text style={styles.sectionTitle}>Trending Near You</Text>
+  <TouchableOpacity
+  onPress={() => navigation.navigate("SwachifyMarketplace")}
+>
   <Text style={styles.viewAll}>View All</Text>
+</TouchableOpacity>
 </View>
 
 <ScrollView
