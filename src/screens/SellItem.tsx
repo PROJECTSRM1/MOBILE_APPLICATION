@@ -138,17 +138,21 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#0B1220',
     padding: 16,
+     
   },
 
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 12,
+    // height:100,
+   
   },
   headerText: {
     color: '#fff',
     fontSize: 20,
     fontWeight: '700',
+    // height:100,
   },
   help: {
     color: '#3B82F6',

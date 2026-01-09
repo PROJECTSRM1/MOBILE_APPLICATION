@@ -168,7 +168,8 @@ const isLoggedIn = route?.params?.isLoggedIn === true;
   case "Swachify Products":
     navigation.navigate("ProductScreen");
     break;  
-
+case "Buy/Sell":
+    navigation.navigate("Marketplace");
   default:
     break;
 }
