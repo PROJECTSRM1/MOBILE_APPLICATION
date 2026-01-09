@@ -462,6 +462,7 @@ interface UserProfile {
 const Landing = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const route = useRoute<any>();
+  const verticalScrollRef = useRef<ScrollView>(null);
 
   /* ================= STATE ================= */
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
