@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -15,12 +15,36 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+interface UserProfile {
+  firstName: string;
+  lastName: string;
+  email: string;
+  avatar?: string;
+}
+
 
 const { width } = Dimensions.get("window");
 
 const EducationHome = () => {
   const navigation = useNavigation<any>();
+    const [user, setUser] = useState<UserProfile | null>(null);
 
+  /* ===== LOAD USER FROM STORAGE ===== */
+  useEffect(() => {
+    loadUser();
+  }, []);
+  const loadUser = async () => {
+    try {
+      const storedUser = await AsyncStorage.getItem("userProfile");
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+    } catch (error) {
+      console.log("Failed to load user", error);
+    }
+  };
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="light-content" />
@@ -36,7 +60,7 @@ const EducationHome = () => {
             />
             <View>
               <Text style={styles.welcome}>Welcome back,</Text>
-              <Text style={styles.username}>Alex Johnson</Text>
+              <Text style={styles.username}> {user ? `${user.firstName} ${user.lastName}` : "User"}</Text>
             </View>
           </View>
           <TouchableOpacity style={styles.bell}>
