@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -9,14 +9,15 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { useNavigation } from "@react-navigation/native";
-
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 /* =======================
    TYPES
    ======================= */
 
 interface ProductProps {
+  id: string | number;
   title: string;
   stock: string;
   price: string;
@@ -24,6 +25,8 @@ interface ProductProps {
   statusColor: string;
   image: string;
   faded?: boolean;
+  brand?: string;
+  category?: string;
 }
 
 interface TabProps {
@@ -39,11 +42,82 @@ interface StatProps {
 }
 
 /* =======================
+   INITIAL STATIC PRODUCTS
+   ======================= */
+
+const STATIC_PRODUCTS: ProductProps[] = [
+  {
+    id: "1",
+    title: "Eco-friendly Cleaning Kit",
+    stock: "45 units",
+    price: "$24.99",
+    status: "LIVE ON STORE",
+    statusColor: "#22C55E",
+    image: "https://images.unsplash.com/photo-1586105251261-72a756497a11",
+  },
+  {
+    id: "2",
+    title: "Smart Waste Segregator",
+    stock: "12 units",
+    price: "$89.00",
+    status: "LOW STOCK",
+    statusColor: "#F59E0B",
+    image: "https://images.unsplash.com/photo-1618220179428-22790b461013",
+  },
+  {
+    id: "3",
+    title: "Organic Liquid Detergent",
+    stock: "0 units",
+    price: "$12.50",
+    status: "SOLD OUT",
+    statusColor: "#9CA3AF",
+    image: "https://images.unsplash.com/photo-1626806819282-2c1dc01a5e0c",
+    faded: true,
+  },
+];
+
+/* =======================
    SCREEN
    ======================= */
 
 const PaymentScreen: React.FC = () => {
   const navigation = useNavigation<any>();
+
+  const [products, setProducts] = useState<ProductProps[]>(STATIC_PRODUCTS);
+  const [loading, setLoading] = useState(true);
+
+  /* LOAD PRODUCTS FROM ASYNC STORAGE */
+  const loadProducts = async () => {
+    try {
+      const registeredProductsJson = await AsyncStorage.getItem("@registered_products");
+      const registeredProducts = registeredProductsJson
+        ? JSON.parse(registeredProductsJson)
+        : [];
+
+      // Combine static products with registered products
+      const combined = [...registeredProducts, ...STATIC_PRODUCTS];
+      setProducts(combined);
+    } catch (error) {
+      console.error("Error loading products:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* RELOAD WHEN SCREEN COMES INTO FOCUS */
+  useFocusEffect(
+    useCallback(() => {
+      loadProducts();
+    }, [])
+  );
+
+  /* CALCULATE STATS */
+  const activeProducts = products.filter(
+    (p) => p.status === "LIVE ON STORE"
+  ).length;
+  const lowStockProducts = products.filter(
+    (p) => p.status === "LOW STOCK"
+  ).length;
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
@@ -72,15 +146,20 @@ const PaymentScreen: React.FC = () => {
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
         >
-          {/* PRIMARY BUTTON */}
+          {/* REGISTER BUTTON */}
           <TouchableOpacity
-  style={styles.primaryBtn}
-  onPress={() => navigation.navigate("ProductRegistration")}
->
-  <MaterialIcons name="add" size={22} color="#FFF" />
-  <Text style={styles.primaryBtnText}>Register New Product</Text>
-</TouchableOpacity>
-
+            style={styles.primaryBtn}
+            onPress={() =>
+              navigation.navigate("ProductRegistration", {
+                onAddProduct: (newProduct: ProductProps) => {
+                  setProducts((prev) => [newProduct, ...prev]);
+                },
+              })
+            }
+          >
+            <MaterialIcons name="add" size={22} color="#FFF" />
+            <Text style={styles.primaryBtnText}>Register New Product</Text>
+          </TouchableOpacity>
 
           {/* SEARCH */}
           <View style={styles.searchBox}>
@@ -93,58 +172,48 @@ const PaymentScreen: React.FC = () => {
 
           {/* STATS */}
           <View style={styles.statsRow}>
-            <Stat title="TOTAL" value="24" />
-            <Stat title="ACTIVE" value="18" color="#22C55E" />
-            <Stat title="DRAFTS" value="6" color="#F59E0B" />
+            <Stat title="TOTAL" value={products.length.toString()} />
+            <Stat
+              title="ACTIVE"
+              value={activeProducts.toString()}
+              color="#22C55E"
+            />
+            <Stat
+              title="LOW STOCK"
+              value={lowStockProducts.toString()}
+              color="#F59E0B"
+            />
           </View>
 
           {/* LIST HEADER */}
           <View style={styles.listHeader}>
-  <Text style={styles.listTitle}>Active Products</Text>
+            <Text style={styles.listTitle}>Active Products</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("SwachifyMarketScreen")}
+            >
+              <Text style={styles.viewAll}>View All</Text>
+            </TouchableOpacity>
+          </View>
 
-  <TouchableOpacity onPress={() => navigation.navigate("SwachifyMarketScreen")}>
-    <Text style={styles.viewAll}>View All</Text>
-  </TouchableOpacity>
-</View>
-
-
-          {/* PRODUCTS */}
-          <Product
-            title="Eco-friendly Cleaning Kit"
-            stock="45 units"
-            price="$24.99"
-            status="LIVE ON STORE"
-            statusColor="#22C55E"
-            image="https://images.unsplash.com/photo-1586105251261-72a756497a11"
-          />
-
-          <Product
-            title="Smart Waste Segregator"
-            stock="12 units"
-            price="$89.00"
-            status="LOW STOCK"
-            statusColor="#F59E0B"
-            image="https://images.unsplash.com/photo-1618220179428-22790b461013"
-          />
-
-          <Product
-            title="Organic Liquid Detergent"
-            stock="0 units"
-            price="$12.50"
-            status="SOLD OUT"
-            statusColor="#9CA3AF"
-            image="https://images.unsplash.com/photo-1626806819282-2c1dc01a5e0c"
-            faded
-          />
-
-          <Product
-            title="All-Purpose Bio-Cleaner"
-            stock="120 units"
-            price="$15.00"
-            status="UNDER REVIEW"
-            statusColor="#3B82F6"
-            image="https://images.unsplash.com/photo-1600585154340-be6161a56a0c"
-          />
+          {/* LOADING STATE */}
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <MaterialIcons name="refresh" size={32} color="#3B82F6" />
+              <Text style={styles.loadingText}>Loading products...</Text>
+            </View>
+          ) : products.length > 0 ? (
+            /* PRODUCTS LIST */
+            products.map((item) => <Product key={item.id} {...item} />)
+          ) : (
+            /* EMPTY STATE */
+            <View style={styles.emptyState}>
+              <MaterialIcons name="inventory-2" size={48} color="#6B7280" />
+              <Text style={styles.emptyText}>No products yet</Text>
+              <Text style={styles.emptySubtext}>
+                Register your first product to get started
+              </Text>
+            </View>
+          )}
         </ScrollView>
 
         {/* BOTTOM TAB */}
@@ -163,11 +232,7 @@ const PaymentScreen: React.FC = () => {
    COMPONENTS
    ======================= */
 
-const Stat: React.FC<StatProps> = ({
-  title,
-  value,
-  color = "#FFFFFF",
-}) => (
+const Stat: React.FC<StatProps> = ({ title, value, color = "#FFFFFF" }) => (
   <View style={styles.statCard}>
     <Text style={[styles.statTitle, { color }]}>{title}</Text>
     <Text style={styles.statValue}>{value}</Text>
@@ -182,55 +247,40 @@ const Product: React.FC<ProductProps> = ({
   statusColor,
   image,
   faded = false,
+  brand,
 }) => (
   <View style={[styles.productCard, faded && { opacity: 0.6 }]}>
     <Image source={{ uri: image }} style={styles.productImage} />
 
     <View style={styles.productContent}>
-      <Text style={styles.productTitle} numberOfLines={2}>
+      <Text style={styles.productTitle} numberOfLines={1}>
         {title}
       </Text>
-
+      {brand && <Text style={styles.productBrand}>{brand}</Text>}
       <Text style={styles.productSub}>
         Stock: {stock} • {price}
       </Text>
 
       <View style={styles.statusRow}>
-        <View
-          style={[styles.statusDot, { backgroundColor: statusColor }]}
-        />
+        <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
         <Text style={[styles.statusText, { color: statusColor }]}>
           {status}
         </Text>
       </View>
     </View>
 
-    <MaterialIcons
-      name="more-vert"
-      size={22}
-      color="#9CA3AF"
-      style={{ marginTop: 6 }}
-    />
+    <MaterialIcons name="more-vert" size={22} color="#9CA3AF" />
   </View>
 );
 
-const Tab: React.FC<TabProps> = ({
-  icon,
-  label,
-  active = false,
-}) => (
+const Tab: React.FC<TabProps> = ({ icon, label, active = false }) => (
   <View style={styles.tabItem}>
     <MaterialIcons
       name={icon}
       size={22}
       color={active ? "#3B82F6" : "#9CA3AF"}
     />
-    <Text
-      style={[
-        styles.tabLabel,
-        active && { color: "#3B82F6" },
-      ]}
-    >
+    <Text style={[styles.tabLabel, active && { color: "#3B82F6" }]}>
       {label}
     </Text>
   </View>
@@ -243,212 +293,109 @@ export default PaymentScreen;
    ======================= */
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: "#0B1220",
-  },
-
-  container: {
-    flex: 1,
-  },
-
-  /* HEADER */
+  safe: { flex: 1, backgroundColor: "#0B1220" },
+  container: { flex: 1 },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    padding: 16,
   },
-
-  headerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-
+  headerLeft: { flexDirection: "row", gap: 12 },
   avatar: {
     width: 42,
     height: 42,
     borderRadius: 21,
     backgroundColor: "#1E3A8A",
-    justifyContent: "center",
     alignItems: "center",
+    justifyContent: "center",
   },
-
-  headerSubtitle: {
-    color: "#9CA3AF",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-
-  headerTitle: {
-    color: "#FFFFFF",
-    fontSize: 18,
-    fontWeight: "800",
-  },
-
-  headerActions: {
-    flexDirection: "row",
-    gap: 14,
-  },
-
-  /* CONTENT */
-  content: {
-    padding: 16,
-    paddingBottom: 120,
-  },
-
+  headerSubtitle: { color: "#9CA3AF", fontSize: 12 },
+  headerTitle: { color: "#FFF", fontSize: 18, fontWeight: "800" },
+  headerActions: { flexDirection: "row", gap: 14 },
+  content: { padding: 16, paddingBottom: 120 },
   primaryBtn: {
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
     height: 56,
-    borderRadius: 14,
     backgroundColor: "#2563EB",
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 8,
     marginBottom: 16,
   },
-
-  primaryBtnText: {
-    color: "#FFFFFF",
-    fontWeight: "700",
-    fontSize: 16,
-  },
-
+  primaryBtnText: { color: "#FFF", fontWeight: "700" },
   searchBox: {
     flexDirection: "row",
-    alignItems: "center",
-    height: 48,
-    borderRadius: 12,
     backgroundColor: "#1F2937",
-    paddingHorizontal: 12,
+    borderRadius: 12,
+    padding: 12,
     marginBottom: 16,
   },
-
-  searchPlaceholder: {
-    flex: 1,
-    color: "#9CA3AF",
-    marginLeft: 8,
-  },
-
-  /* STATS */
-  statsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
-
+  searchPlaceholder: { flex: 1, color: "#9CA3AF", marginLeft: 8 },
+  statsRow: { flexDirection: "row", marginBottom: 16 },
   statCard: {
     flex: 1,
     backgroundColor: "#1F2937",
     marginHorizontal: 4,
-    borderRadius: 14,
     padding: 14,
+    borderRadius: 14,
   },
-
-  statTitle: {
-    fontSize: 11,
-    fontWeight: "700",
-  },
-
-  statValue: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: "#FFFFFF",
-  },
-
-  /* LIST */
+  statTitle: { fontSize: 11, fontWeight: "700" },
+  statValue: { fontSize: 22, color: "#FFF", fontWeight: "800" },
   listHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 12,
   },
-
-  listTitle: {
-    color: "#FFFFFF",
-    fontSize: 18,
-    fontWeight: "800",
-  },
-
-  viewAll: {
-    color: "#3B82F6",
-    fontWeight: "700",
-  },
-
-  /* PRODUCT CARD (ENLARGED & PROFESSIONAL) */
+  listTitle: { color: "#FFF", fontSize: 18, fontWeight: "800" },
+  viewAll: { color: "#3B82F6", fontWeight: "700" },
   productCard: {
     flexDirection: "row",
-    alignItems: "flex-start",
     backgroundColor: "#1F2937",
     borderRadius: 20,
     padding: 16,
     marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#111827",
   },
-
-  productImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 14,
-    marginRight: 16,
+  productImage: { width: 80, height: 80, borderRadius: 14 },
+  productContent: { flex: 1, marginLeft: 16 },
+  productTitle: { color: "#FFF", fontWeight: "800", fontSize: 15 },
+  productBrand: { color: "#60A5FA", fontSize: 12, marginTop: 2 },
+  productSub: { color: "#9CA3AF", marginTop: 6, fontSize: 13 },
+  statusRow: { flexDirection: "row", marginTop: 10, gap: 8, alignItems: "center" },
+  statusDot: { width: 9, height: 9, borderRadius: 4.5 },
+  statusText: { fontSize: 11, fontWeight: "800" },
+  loadingContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 40,
   },
-
-  productContent: {
-    flex: 1,
-    paddingTop: 2,
+  loadingText: {
+    color: "#9CA3AF",
+    fontSize: 14,
+    marginTop: 12,
   },
-
-  productTitle: {
-    color: "#FFFFFF",
+  emptyState: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 60,
+  },
+  emptyText: {
+    color: "#FFF",
     fontSize: 16,
-    fontWeight: "800",
+    fontWeight: "600",
+    marginTop: 12,
   },
-
-  productSub: {
+  emptySubtext: {
     color: "#9CA3AF",
     fontSize: 13,
-    marginTop: 6,
+    marginTop: 4,
   },
-
-  statusRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 10,
-    gap: 8,
-  },
-
-  statusDot: {
-    width: 9,
-    height: 9,
-    borderRadius: 4.5,
-  },
-
-  statusText: {
-    fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 0.5,
-  },
-
-  /* BOTTOM TAB */
   bottomTab: {
     flexDirection: "row",
     justifyContent: "space-around",
     paddingVertical: 10,
-    borderTopWidth: 1,
-    borderTopColor: "#1F2937",
     backgroundColor: "#0F172A",
   },
-
-  tabItem: {
-    alignItems: "center",
-  },
-
-  tabLabel: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: "#9CA3AF",
-    marginTop: 2,
-  },
+  tabItem: { alignItems: "center" },
+  tabLabel: { fontSize: 10, color: "#9CA3AF" },
 });

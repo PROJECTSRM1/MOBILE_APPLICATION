@@ -213,7 +213,7 @@ const Landing = () => {
 <View style={styles.trendingHeader}>
   <Text style={styles.sectionTitle}>Trending Near You</Text>
   <TouchableOpacity
-  onPress={() => navigation.navigate("SwachifyMarketplace")}
+  onPress={() => navigation.navigate("Marketplace")}
 >
   <Text style={styles.viewAll}>View All</Text>
 </TouchableOpacity>
