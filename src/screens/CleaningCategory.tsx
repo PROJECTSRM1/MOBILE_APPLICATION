@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
 
   cardsWrapper: {
     marginTop:0,
-    marginBottom:340,
+    marginBottom:150,
     flex: 1,
     paddingHorizontal: 16,
     justifyContent: "center",
