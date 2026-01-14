@@ -16,6 +16,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+
 interface UserProfile {
   firstName: string;
   lastName: string;
@@ -48,15 +49,15 @@ const EducationHome = () => {
   const categories = [
     {
       icon: "school",
-      title: "Colleges",
+      title: "Students",
       color: "#3b82f6",
-      screen: "CollegeListing",
+      screen: "StudentListing",
     },
     {
       icon: "work",
       title: "Internships",
       color: "#8b5cf6",
-      screen: "Internship",
+      screen: "InternshipList",
     },
     {
       icon: "apartment",

@@ -7,18 +7,31 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
-  Image,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../../App";
+import { Internship } from './InternshipList';
+
+type InternshipDetailRouteProp = RouteProp<RootStackParamList, 'Internship'>;
+type InternshipDetailNavProp = NativeStackNavigationProp<RootStackParamList, 'Internship'>;
 
 const InternshipDetailsScreen: React.FC = () => {
+  const navigation = useNavigation<InternshipDetailNavProp>();
+  const route = useRoute<InternshipDetailRouteProp>();
+  const { internship } = route.params;
+
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="light-content" backgroundColor="#101622" />
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.iconBtn}>
+        <TouchableOpacity 
+          style={styles.iconBtn}
+          onPress={() => navigation.goBack()}
+        >
           <Icon name="arrow-back-ios-new" size={20} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Internship Details</Text>
@@ -28,25 +41,27 @@ const InternshipDetailsScreen: React.FC = () => {
       <ScrollView contentContainerStyle={styles.container}>
         {/* Company Section */}
         <View style={styles.companyRow}>
-          <Image
-            source={{
-              uri: 'https://dummyimage.com/200x200/1f2937/ffffff&text=LOGO',
-            }}
-            style={styles.logo}
-          />
+          <View style={[styles.logo, { backgroundColor: internship.logoColor }]}>
+            <Text style={styles.logoText}>
+              {internship.company.charAt(0)}
+            </Text>
+          </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.role}>UX/UI Design Intern</Text>
+            <Text style={styles.role}>{internship.title}</Text>
 
             <View style={styles.inline}>
               <Icon name="business" size={16} color="#3b82f6" />
-              <Text style={styles.subText}> TechSolutions Inc.</Text>
+              <Text style={styles.subText}> {internship.company}</Text>
             </View>
 
             <View style={styles.inline}>
-              <Icon name="location-on" size={14} color="#9ca3af" />
+              <Icon 
+                name={internship.isRemote ? 'public' : 'location-on'} 
+                size={14} 
+                color="#9ca3af" 
+              />
               <Text style={styles.subText}>
-                {' '}
-                San Francisco, CA (Remote)
+                {' '}{internship.location}{internship.isRemote ? ' (Remote)' : ''}
               </Text>
             </View>
           </View>
@@ -54,27 +69,24 @@ const InternshipDetailsScreen: React.FC = () => {
 
         {/* Info Cards */}
         <View style={styles.grid}>
-          {infoCard('calendar-month', 'Duration', '6 Months', '#3b82f6')}
-          {infoCard('payments', 'Stipend', '$25/hr', '#22c55e')}
-          {infoCard('public', 'Location', 'Remote', '#a855f7')}
-          {infoCard('work-history', 'Type', 'Full-time', '#f97316')}
+          {infoCard('calendar-month', 'Duration', internship.duration, '#3b82f6')}
+          {internship.type && infoCard('payments', 'Stipend', internship.type, '#22c55e')}
+          {infoCard('public', 'Location', internship.isRemote ? 'Remote' : 'On-site', '#a855f7')}
+          {infoCard('category', 'Category', internship.category.charAt(0).toUpperCase() + internship.category.slice(1), '#f97316')}
         </View>
 
         {/* About */}
         <Text style={styles.sectionTitle}>About the role</Text>
         <Text style={styles.paragraph}>
-          We are looking for a creative intern to join our design team. You will
-          work closely with product managers and developers to create intuitive
-          user experiences. You'll have the opportunity to contribute to
-          real-world projects and learn from experienced designers.
+          {internship.description}
         </Text>
 
         {/* Requirements */}
         <Text style={styles.sectionTitle}>Requirements</Text>
-        {requirement('Proficiency in Figma and Adobe Creative Suite')}
-        {requirement('Understanding of user-centered design principles')}
-        {requirement('Ability to create wireframes and prototypes')}
-        {requirement('Strong communication and collaboration skills')}
+        {requirement('Strong understanding of ' + internship.category + ' principles')}
+        {requirement('Excellent communication and collaboration skills')}
+        {requirement('Ability to work in a fast-paced environment')}
+        {requirement('Portfolio demonstrating relevant experience')}
 
         {/* Alert */}
         <View style={styles.alert}>
@@ -134,7 +146,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#101622',
   },
   header: {
-    height:100,
+    height: 100,
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
@@ -164,7 +176,15 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 16,
-    backgroundColor: '#1f2937',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#374151',
+  },
+  logoText: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#ffffff',
   },
   role: {
     color: '#fff',
