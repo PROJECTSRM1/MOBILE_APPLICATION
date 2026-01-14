@@ -24,6 +24,7 @@ import SellItem from "./src/screens/SellItem";
 import ProductScreen from "./src/screens/ProductScreen";
 import SwachifyMarketScreen from "./src/screens/SwachifyMarketScreen";
 import ProductRegistration from "./src/screens/ProductRegistration";
+import TransportComingSoon from "./src/screens/TransportComingSoon";
 
 
 
@@ -93,6 +94,7 @@ export default function App(): React.ReactElement {
         <Stack.Screen name="ProductScreen" component={ProductScreen} />
         <Stack.Screen name="SwachifyMarketScreen" component={SwachifyMarketScreen} />
         <Stack.Screen name="ProductRegistration" component={ProductRegistration} />
+        <Stack.Screen name="Transport" component={TransportComingSoon} />
       </Stack.Navigator>
     </NavigationContainer>
   );
