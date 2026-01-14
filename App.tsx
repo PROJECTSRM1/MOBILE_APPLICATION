@@ -12,7 +12,6 @@ import AuthScreen from "./src/screens/AuthScreen";
 import CleaningServicesScreen from "./src/screens/CleaningServicesScreen";
 import EmployeeAllocation from "./src/screens/EmployeeAllocation";
 import EducationHome from "./src/screens/EducationHome";
-import Collegelisting from "./src/screens/Collegelisting";
 import Cleaning from "./src/screens/Cleaning";
 import InternshipDetailsScreen from "./src/screens/Intership";
 import CleaningCategorySelectScreen from "./src/screens/CleaningCategory";
@@ -24,7 +23,10 @@ import SellItem from "./src/screens/SellItem";
 import ProductScreen from "./src/screens/ProductScreen";
 import SwachifyMarketScreen from "./src/screens/SwachifyMarketScreen";
 import ProductRegistration from "./src/screens/ProductRegistration";
-import TransportComingSoon from "./src/screens/TransportComingSoon";
+import Studentlisting from "./src/screens/Studentlisting";
+import InternshipList from "./src/screens/InternshipList";
+import type { Internship } from "./src/screens/InternshipList";
+import Transport from "./src/screens/Transport";
 import Freelancer from "./src/screens/Freelancer";
 
 
@@ -32,9 +34,9 @@ export type RootStackParamList = {
   Splash: undefined;
   Onboarding: undefined;
   Landing: { isLoggedIn?: boolean } | undefined;
-  Internship: undefined;
+  Internship: { internship: Internship };
   WelcomeOne: undefined;
-  CollegeListing: undefined;
+  StudentListing: undefined;
   Cleaning: undefined;
   CleaningCategory: undefined;
   Login: { role?: "customer" | "user"; prefilledEmail?: string; prefilledPassword?: string } | undefined;
@@ -64,6 +66,7 @@ export type RootStackParamList = {
   ProductScreen: undefined;
   SwachifyMarketScreen: undefined;
   ProductRegistration: undefined;
+  InternshipList: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -75,13 +78,14 @@ export default function App(): React.ReactElement {
         <Stack.Screen name="Splash" component={Splash} />
         <Stack.Screen name="Onboarding" component={Onboarding} />
         <Stack.Screen name="Internship" component={InternshipDetailsScreen} />
+        <Stack.Screen name="InternshipList" component={InternshipList} />
         <Stack.Screen name="Landing" component={Landing} />
         <Stack.Screen name="Cleaning" component={Cleaning} />
         <Stack.Screen name="CleaningCategory" component={CleaningCategorySelectScreen} />
         <Stack.Screen name="PaymentScreen" component={PaymentScreen} />
         <Stack.Screen name="BookCleaning" component={BookCleaningScreen} />
         <Stack.Screen name="Notifications" component={NotificationsScreen} />
-        <Stack.Screen name="CollegeListing" component={Collegelisting} />
+        <Stack.Screen name="StudentListing" component={Studentlisting} />
         <Stack.Screen name="EducationHome" component={EducationHome} />
         <Stack.Screen name="AuthScreen" component={AuthScreen} />
         <Stack.Screen name="ProfileInformation" component={ProfileInformation} />
