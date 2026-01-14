@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   Image,
   Dimensions,
-  SafeAreaView,
   StatusBar,
   Platform,
   RefreshControl,
@@ -16,6 +15,7 @@ import {
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Geolocation from 'react-native-geolocation-service';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { PERMISSIONS, RESULTS, request } from 'react-native-permissions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -328,7 +328,7 @@ const getCurrentLocation = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="light-content" backgroundColor="#0a0c10" />
       
       <View style={styles.header}>
