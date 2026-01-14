@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -7,7 +7,6 @@ import {
   ScrollView,
   Image,
   TextInput,
-//   SafeAreaView,
   StatusBar,
   Dimensions,
 } from "react-native";
@@ -15,11 +14,63 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+interface UserProfile {
+  firstName: string;
+  lastName: string;
+  email: string;
+  avatar?: string;
+}
 
 const { width } = Dimensions.get("window");
 
 const EducationHome = () => {
   const navigation = useNavigation<any>();
+  const [user, setUser] = useState<UserProfile | null>(null);
+
+  /* ===== LOAD USER FROM STORAGE ===== */
+  useEffect(() => {
+    loadUser();
+  }, []);
+  
+  const loadUser = async () => {
+    try {
+      const storedUser = await AsyncStorage.getItem("userProfile");
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+    } catch (error) {
+      console.log("Failed to load user", error);
+    }
+  };
+
+  const categories = [
+    {
+      icon: "school",
+      title: "Colleges",
+      color: "#3b82f6",
+      screen: "CollegeListing",
+    },
+    {
+      icon: "work",
+      title: "Internships",
+      color: "#8b5cf6",
+      screen: "Internship",
+    },
+    {
+      icon: "apartment",
+      title: "Companies",
+      color: "#f97316",
+      screen: "CompaniesListingScreen",
+    },
+    {
+      icon: "explore",
+      title: "Training",
+      color: "#10b981",
+      screen: null,
+    },
+  ];
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -36,7 +87,9 @@ const EducationHome = () => {
             />
             <View>
               <Text style={styles.welcome}>Welcome back,</Text>
-              <Text style={styles.username}>Alex Johnson</Text>
+              <Text style={styles.username}>
+                {user ? `${user.firstName} ${user.lastName}` : "User"}
+              </Text>
             </View>
           </View>
           <TouchableOpacity style={styles.bell}>
@@ -85,61 +138,36 @@ const EducationHome = () => {
             </View>
           </View>
 
-          {/* CATEGORIES */}
+          {/* CATEGORIES - UPDATED ICON GRID LAYOUT */}
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Explore Categories</Text>
             <Text style={styles.viewAll}>View All</Text>
           </View>
 
-          {[
-            {
-              icon: "school",
-              title: "Colleges",
-              sub: "Browse 500+ Universities",
-              color: "#1a5cff",
-            },
-            {
-              icon: "work",
-              title: "Internships",
-              sub: "Kickstart your career",
-              color: "#a855f7",
-            },
-            {
-              icon: "apartment",
-              title: "Companies",
-              sub: "Top global recruiters",
-              color: "#fb923c",
-            },
-          ].map((item, index) => (
-            <TouchableOpacity
-              key={index}
-              style={styles.categoryCard}
-              activeOpacity={0.8}
-              onPress={() => {
-  if (item.title === "Colleges") {
-    navigation.navigate("CollegeListing");
-  } else if (item.title === "Internships") {
-    navigation.navigate("Internship"); 
-  }if (item.title === "Companies") { 
-    navigation.navigate("CompaniesListingScreen");  
-}}}
-
-            >
-              <View
-                style={[
-                  styles.categoryIcon,
-                  { backgroundColor: item.color + "30" },
-                ]}
+          <View style={styles.categoriesGrid}>
+            {categories.map((item, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.categoryIconCard}
+                activeOpacity={0.7}
+                onPress={() => {
+                  if (item.screen) {
+                    navigation.navigate(item.screen);
+                  }
+                }}
               >
-                <Icon name={item.icon} size={22} color={item.color} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.categoryTitle}>{item.title}</Text>
-                <Text style={styles.categorySub}>{item.sub}</Text>
-              </View>
-              <Icon name="chevron-right" size={22} color="#9da6b9" />
-            </TouchableOpacity>
-          ))}
+                <View
+                  style={[
+                    styles.categoryIconCircle,
+                    { backgroundColor: item.color },
+                  ]}
+                >
+                  <Icon name={item.icon} size={24} color="#fff" />
+                </View>
+                <Text style={styles.categoryIconTitle}>{item.title}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
           {/* TRENDING */}
           <Text style={styles.trendingTitle}>Trending Now</Text>
@@ -211,7 +239,6 @@ const EducationHome = () => {
 
 export default EducationHome;
 
-/* styles unchanged */
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#0d1321" },
   container: { flex: 1 },
@@ -274,7 +301,12 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
   featuredTagText: { color: "#fff", fontSize: 11, fontWeight: "700" },
-  featuredTitle: { color: "#fff", fontSize: 20, fontWeight: "700", marginTop: 8 },
+  featuredTitle: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: "700",
+    marginTop: 8,
+  },
   featuredSub: { color: "#d1d5db", fontSize: 13, marginTop: 4 },
   featuredLink: { color: "#fff", fontSize: 14, marginTop: 8 },
 
@@ -282,30 +314,37 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginHorizontal: 16,
-    marginBottom: 8,
+    marginBottom: 16,
   },
   sectionTitle: { color: "#fff", fontSize: 20, fontWeight: "700" },
   viewAll: { color: "#1a5cff", fontSize: 14 },
 
-  categoryCard: {
+  // NEW: Category Icon Grid Styles
+  categoriesGrid: {
     flexDirection: "row",
-    alignItems: "center",
+    flexWrap: "wrap",
     marginHorizontal: 16,
-    marginVertical: 6,
-    padding: 14,
-    backgroundColor: "#1c1f27",
-    borderRadius: 16,
-    gap: 12,
+    marginBottom: 8,
+    gap: 20,
   },
-  categoryIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  categoryIconCard: {
+    alignItems: "center",
+    width: (width - 32 - 60) / 4, // 4 items per row with gaps
+  },
+  categoryIconCircle: {
+    width: 50,
+    height: 50,
+    borderRadius: 28,
     alignItems: "center",
     justifyContent: "center",
+    marginBottom: 8,
   },
-  categoryTitle: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  categorySub: { color: "#9da6b9", fontSize: 13 },
+  categoryIconTitle: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "500",
+    textAlign: "center",
+  },
 
   trendingTitle: {
     color: "#fff",
@@ -353,18 +392,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     paddingBottom: 12,
   },
-   headerSafe: {
-    // marginTop: StatusBar.currentHeight,
-
-  backgroundColor: "#0d1321",
-},
-
+  headerSafe: {
+    backgroundColor: "#0d1321",
+  },
   navItem: {
     flex: 1,
     alignItems: "center",
     justifyContent: "flex-end",
     gap: 4,
   },
-
   navText: { color: "#9da6b9", fontSize: 11 },
 });
