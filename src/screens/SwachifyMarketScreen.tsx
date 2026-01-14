@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -13,12 +13,10 @@ import {
   Modal,
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useFocusEffect } from "@react-navigation/native";
 
-/* ---------------- INITIAL DATA ---------------- */
+/* ---------------- DATA ---------------- */
 
-const INITIAL_PRODUCTS = [
+const PRODUCTS = [
   {
     id: 1,
     title: "Bamboo Toothbrush Set",
@@ -76,42 +74,9 @@ export default function SwachifyMarketScreen() {
   const [search, setSearch] = useState("");
   const [cartCount, setCartCount] = useState(0);
   const [showToast, setShowToast] = useState(false);
-  const [allProducts, setAllProducts] = useState(INITIAL_PRODUCTS);
-  const [loading, setLoading] = useState(true);
-
-  // Load products from AsyncStorage
-  const loadProducts = async () => {
-    try {
-      const registeredProductsJson = await AsyncStorage.getItem("@registered_products");
-      const registeredProducts = registeredProductsJson
-        ? JSON.parse(registeredProductsJson)
-        : [];
-
-      // Combine initial products with registered products
-      const combined = [...INITIAL_PRODUCTS, ...registeredProducts];
-      setAllProducts(combined);
-    } catch (error) {
-      console.error("Error loading products:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Load products when screen comes into focus
-  useFocusEffect(
-    useCallback(() => {
-      loadProducts();
-    }, [])
-  );
-
-  // Get available categories dynamically
-  const availableCategories = useMemo(() => {
-    const categories = new Set(allProducts.map((p) => p.category));
-    return Array.from(categories);
-  }, [allProducts]);
 
   const filteredProducts = useMemo(() => {
-    return allProducts.filter((p) => {
+    return PRODUCTS.filter((p) => {
       const matchesCategory =
         activeFilter === "all" || p.category === activeFilter;
 
@@ -121,7 +86,7 @@ export default function SwachifyMarketScreen() {
 
       return matchesCategory && matchesSearch;
     });
-  }, [activeFilter, search, allProducts]);
+  }, [activeFilter, search]);
 
   const addToCart = () => {
     setCartCount((prev) => prev + 1);
@@ -131,16 +96,6 @@ export default function SwachifyMarketScreen() {
       setShowToast(false);
     }, 1500);
   };
-
-  if (loading) {
-    return (
-      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
-        <StatusBar barStyle="light-content" backgroundColor="#101622" />
-        <MaterialIcons name="refresh" size={32} color="#135bec" />
-        <Text style={{ color: "#fff", fontSize: 16, marginTop: 12 }}>Loading products...</Text>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
@@ -183,56 +138,33 @@ export default function SwachifyMarketScreen() {
         {/* FILTERS */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chips}>
           <Filter label="All Products" value="all" active={activeFilter} setActive={setActiveFilter} />
-          
-          {availableCategories.includes("sustainable") && (
-            <Filter label="Sustainable" value="sustainable" icon="eco" active={activeFilter} setActive={setActiveFilter} />
-          )}
-          
-          {availableCategories.includes("recycled") && (
-            <Filter label="Recycled" value="recycled" icon="recycling" active={activeFilter} setActive={setActiveFilter} />
-          )}
-          
-          {availableCategories.includes("cleaners") && (
-            <Filter label="Cleaners" value="cleaners" icon="sanitizer" active={activeFilter} setActive={setActiveFilter} />
-          )}
+          <Filter label="Sustainable" value="sustainable" icon="eco" active={activeFilter} setActive={setActiveFilter} />
+          <Filter label="Recycled" value="recycled" icon="recycling" active={activeFilter} setActive={setActiveFilter} />
+          <Filter label="Cleaners" value="cleaners" icon="sanitizer" active={activeFilter} setActive={setActiveFilter} />
         </ScrollView>
 
         {/* PRODUCTS */}
-        {filteredProducts.length > 0 ? (
-          <View style={styles.grid}>
-            {filteredProducts.map((item) => (
-              <View key={item.id} style={styles.card}>
-                <ImageBackground
-                  source={{ uri: item.image }}
-                  style={styles.cardImage}
-                  imageStyle={{ borderRadius: 18 }}
-                >
-                  <Text style={styles.tag}>{item.tag}</Text>
+        <View style={styles.grid}>
+          {filteredProducts.map((item) => (
+            <View key={item.id} style={styles.card}>
+              <ImageBackground
+                source={{ uri: item.image }}
+                style={styles.cardImage}
+                imageStyle={{ borderRadius: 18 }}
+              >
+                <Text style={styles.tag}>{item.tag}</Text>
 
-                  <TouchableOpacity style={styles.addBtn} onPress={addToCart}>
-                    <MaterialIcons name="add-shopping-cart" size={18} color="#fff" />
-                  </TouchableOpacity>
-                </ImageBackground>
+                <TouchableOpacity style={styles.addBtn} onPress={addToCart}>
+                  <MaterialIcons name="add-shopping-cart" size={18} color="#fff" />
+                </TouchableOpacity>
+              </ImageBackground>
 
-                <Text style={styles.cardTitle} numberOfLines={2}>
-                  {item.title}
-                </Text>
-                <Text style={styles.cardBrand} numberOfLines={1}>
-                  {item.brand}
-                </Text>
-                <Text style={styles.cardPrice}>{item.price}</Text>
-              </View>
-            ))}
-          </View>
-        ) : (
-          <View style={styles.emptyState}>
-            <MaterialIcons name="inventory-2" size={48} color="#6b7280" />
-            <Text style={styles.emptyText}>No products found</Text>
-            <Text style={styles.emptySubtext}>
-              Try adjusting your filters or search
-            </Text>
-          </View>
-        )}
+              <Text style={styles.cardTitle}>{item.title}</Text>
+              <Text style={styles.cardBrand}>{item.brand}</Text>
+              <Text style={styles.cardPrice}>{item.price}</Text>
+            </View>
+          ))}
+        </View>
 
         {/* ENTREPRENEURS */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.avatarRow}>
@@ -275,7 +207,7 @@ const Filter = ({ label, value, icon, active, setActive }: any) => (
     onPress={() => setActive(value)}
     style={[styles.chip, active === value && styles.chipActive]}
   >
-    {icon && <MaterialIcons name={icon} size={16} color={active === value ? "#fff" : "#9da6b9"} />}
+    {icon && <MaterialIcons name={icon} size={16} color="#9da6b9" />}
     <Text style={[styles.chipText, active === value && { color: "#fff" }]}>
       {label}
     </Text>
@@ -333,7 +265,7 @@ const styles = StyleSheet.create({
   },
   searchInput: { flex: 1, color: "#fff", marginLeft: 6 },
 
-  chips: { paddingHorizontal: 16, marginBottom: 10 },
+  chips: { paddingHorizontal: 16 },
   chip: {
     flexDirection: "row",
     alignItems: "center",
@@ -361,7 +293,6 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   tag: {
-    alignSelf: "flex-start",
     backgroundColor: "rgba(255,255,255,0.9)",
     fontSize: 10,
     fontWeight: "700",
@@ -377,25 +308,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   cardTitle: { color: "#fff", fontSize: 13, fontWeight: "700", marginTop: 6 },
-  cardBrand: { color: "#9da6b9", fontSize: 11, marginTop: 2 },
-  cardPrice: { color: "#135bec", fontSize: 14, fontWeight: "800", marginTop: 2 },
-
-  emptyState: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 60,
-  },
-  emptyText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-    marginTop: 12,
-  },
-  emptySubtext: {
-    color: "#9da6b9",
-    fontSize: 13,
-    marginTop: 4,
-  },
+  cardBrand: { color: "#9da6b9", fontSize: 11 },
+  cardPrice: { color: "#135bec", fontSize: 14, fontWeight: "800" },
 
   avatarRow: { paddingHorizontal: 16, marginTop: 12 },
   avatarItem: { alignItems: "center", marginRight: 16 },
