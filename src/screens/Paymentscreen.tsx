@@ -438,7 +438,6 @@ const PaymentScreen = ({ navigation }: any) => {
       <View style={styles.footer}>
         <TouchableOpacity
           style={styles.checkoutBtn}
-          onPress={() => navigation.navigate("EmployeeAllocation")}
         >
           <Text style={styles.checkoutText}>Checkout for Payment $147.50</Text>
         </TouchableOpacity>

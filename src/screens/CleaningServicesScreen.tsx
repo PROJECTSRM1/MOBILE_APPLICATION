@@ -359,6 +359,7 @@ type Service = {
   id: string;
   title: string;
   price: string;
+  category: "Home" | "Apartment" | "Commercial" | "Vehicle";
   image: ImageSourcePropType;
 };
 
@@ -368,61 +369,77 @@ const SERVICES: Service[] = [
     id: "1",
     title: "Plumbing",
     price: "From $20",
-     image: require("../../assets/pack1.jpg"),
+    category: "Home",
+    image: require("../../assets/pack1.jpg"),
   },
   {
     id: "2",
     title: "Painting",
     price: "From $30",
-     image: require("../../assets/pack2.jpg"),
+    category: "Home",
+    image: require("../../assets/pack2.jpg"),
   },
   {
     id: "3",
     title: "Electrician",
     price: "From $25",
-     image: require("../../assets/pack3.jpg"),
+    category: "Home",
+    image: require("../../assets/pack3.jpg"),
   },
   {
     id: "4",
     title: "Kitchen",
     price: "From $15",
-     image: require("../../assets/pack5.jpg"),
+    category: "Apartment",
+    image: require("../../assets/pack5.jpg"),
   },
   {
     id: "5",
-    title: "Ac Repair",
+    title: "AC Repair",
     price: "From $28",
+    category: "Apartment",
     image: require("../../assets/pack6.jpg"),
   },
   {
     id: "6",
-    title: "Carpentary",
+    title: "Office Cleaning",
     price: "From $35",
-     image: require("../../assets/pack7.jpg"),
+    category: "Commercial",
+    image: require("../../assets/pack7.jpg"),
   },
 ];
+
 
 // const navigation = useNavigation<any>();
 
 const CleaningServicesScreen = () => {
     const navigation=useNavigation<any>();
-  const [selected, setSelected] = useState<string[]>([]);
-const selectedServices = SERVICES
-  .filter(s => selected.includes(s.id))
-  .map(s => s.title);
+const [selectedServices, setSelectedServices] = useState<Service[]>([]);
 
-  const toggleSelect = (id: string) => {
-    setSelected((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
-  };
+
+
+ const toggleSelect = (service: Service) => {
+  setSelectedServices(prev => {
+    const exists = prev.find(s => s.id === service.id);
+
+    if (exists) {
+      return prev.filter(s => s.id !== service.id);
+    }
+
+    // ⬅️ THIS LINE PRESERVES CLICK ORDER
+    return [...prev, service];
+  });
+};
+
 
   const renderItem = ({ item }: { item: Service }) => {
-    const isSelected = selected.includes(item.id);
+const isSelected = selectedServices.some(s => s.id === item.id);
+
     return (
       <TouchableOpacity
         activeOpacity={0.9}
-        onPress={() => toggleSelect(item.id)}
+        onPress={() => toggleSelect(item)}
+
         style={[styles.card, isSelected && styles.cardSelected]}
       >
         <View style={styles.imageWrapper}>
@@ -487,7 +504,7 @@ const selectedServices = SERVICES
 
         <View style={styles.ctaWrapper}>
   <TouchableOpacity
-    disabled={selected.length === 0}
+    disabled={selectedServices.length === 0}
     activeOpacity={0.8}
     onPress={() =>
   navigation.navigate("BookCleaning", {
@@ -501,11 +518,11 @@ const selectedServices = SERVICES
       colors={["#1a5cff", "#0f4ae0"]}
       style={[
         styles.ctaButton,
-        selected.length === 0 && styles.ctaDisabled,
+        selectedServices.length === 0 && styles.ctaDisabled,
       ]}
     >
       <Text style={styles.ctaText}>
-        Continue ({selected.length} Selected)
+        Continue ({selectedServices.length} Selected)
       </Text>
       <Icon name="arrow-forward" size={20} color="#fff" />
     </LinearGradient>

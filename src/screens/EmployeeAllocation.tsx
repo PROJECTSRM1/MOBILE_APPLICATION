@@ -1,27 +1,34 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  FlatList,
   Image,
   SafeAreaView,
   StatusBar,
+  Dimensions,
+  ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
-type AllocationMethod = "manual" | "auto";
+const { width } = Dimensions.get("window");
+const CARD_WIDTH = width - 64;
+const CARD_MARGIN = 16;
 
 type Professional = {
   id: string;
   name: string;
   role: string;
   rating: string;
+  ratingValue: number;
   distance: string;
   image: any;
   verified?: boolean;
+  mobileNumber: string;
 };
 
 const PROFESSIONALS: Professional[] = [
@@ -30,102 +37,121 @@ const PROFESSIONALS: Professional[] = [
     name: "Sarah Jenkins",
     role: "Deep Cleaner",
     rating: "4.9 (124)",
+    ratingValue: 4.9,
     distance: "0.8 mi",
     image: { uri: "https://randomuser.me/api/portraits/women/44.jpg" },
     verified: true,
+    mobileNumber: "xxxx456",
   },
   {
     id: "2",
     name: "David Okon",
     role: "Standard Cleaner",
     rating: "4.7 (89)",
+    ratingValue: 4.7,
     distance: "1.2 mi",
     image: { uri: "https://randomuser.me/api/portraits/men/32.jpg" },
+    mobileNumber: "xxxx789",
   },
   {
     id: "3",
     name: "Maria Garcia",
     role: "Deep Cleaner",
     rating: "4.8 (210)",
+    ratingValue: 4.8,
     distance: "2.0 mi",
     image: { uri: "https://randomuser.me/api/portraits/women/65.jpg" },
+    mobileNumber: "xxxx321",
   },
   {
     id: "4",
     name: "James Wilson",
     role: "Window Specialist",
     rating: "4.5 (56)",
+    ratingValue: 4.5,
     distance: "5.4 mi",
     image: { uri: "https://randomuser.me/api/portraits/men/45.jpg" },
+    mobileNumber: "xxxx654",
   },
 ];
 
 const EmployeeAllocation = () => {
-  const [allocationMethod, setAllocationMethod] =
-    useState<AllocationMethod>("manual");
-  const [selectedId, setSelectedId] = useState<string | null>("1");
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const navigation = useNavigation<any>();
+  const route = useRoute<any>();
+  const scrollViewRef = useRef<ScrollView>(null);
 
-  const isAuto = allocationMethod === "auto";
+  const [selectedId, setSelectedId] = useState<string>("1");
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isAutoAllocating, setIsAutoAllocating] = useState(false);
 
-  const renderItem = ({ item }: { item: Professional }) => {
-    const selected = selectedId === item.id;
+  // Check if coming from booking with auto-allocation
+  const isAutoAllocation = route.params?.isAutoAllocation || false;
 
-    return (
-      <TouchableOpacity
-        activeOpacity={0.85}
-        disabled={isAuto}
-        onPress={() => setSelectedId(item.id)}
-        style={[
-          styles.card,
-          selected && !isAuto && styles.cardSelected,
-          isAuto && styles.cardDisabled,
-        ]}
-      >
-        <View style={styles.cardRow}>
-          <View style={styles.leftRow}>
-            <View>
-              <Image source={item.image} style={styles.avatar} />
-              {item.verified && (
-                <View style={styles.verified}>
-                  <Icon name="verified" size={14} color="#facc15" />
-                </View>
-              )}
-            </View>
+  useEffect(() => {
+    if (isAutoAllocation) {
+      handleAutoAllocation();
+    }
+  }, [isAutoAllocation]);
 
-            <View>
-              <Text style={styles.name}>{item.name}</Text>
-              <Text
-                style={[
-                  styles.role,
-                  selected && !isAuto && { color: "#1a5cff" },
-                ]}
-              >
-                {item.role}
-              </Text>
+  const handleAutoAllocation = () => {
+    setIsAutoAllocating(true);
 
-              <View style={styles.metaRow}>
-                <Icon name="star" size={14} color="#facc15" />
-                <Text style={styles.meta}>{item.rating}</Text>
-                <View style={styles.dot} />
-                <Icon name="near-me" size={14} color="#9da6b9" />
-                <Text style={styles.meta}>{item.distance}</Text>
-              </View>
-            </View>
-          </View>
+    // Find employee with highest rating
+    setTimeout(() => {
+      const sortedByRating = [...PROFESSIONALS].sort(
+        (a, b) => b.ratingValue - a.ratingValue
+      );
+      const topEmployee = sortedByRating[0];
 
-          <View
-            style={[
-              styles.radio,
-              selected && !isAuto && styles.radioSelected,
-            ]}
-          >
-            {selected && !isAuto && <View style={styles.radioInner} />}
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
+      setIsAutoAllocating(false);
+      navigation.navigate("BookCleaning", {
+        allocatedEmployee: topEmployee,
+      });
+    }, 2500);
   };
+
+  const handleScroll = (event: any) => {
+    const scrollPosition = event.nativeEvent.contentOffset.x;
+    const index = Math.round(scrollPosition / (CARD_WIDTH + CARD_MARGIN * 2));
+    setCurrentIndex(index);
+
+    if (PROFESSIONALS[index]) {
+      setSelectedId(PROFESSIONALS[index].id);
+    }
+  };
+
+  const scrollToIndex = (index: number) => {
+    scrollViewRef.current?.scrollTo({
+      x: index * (CARD_WIDTH + CARD_MARGIN * 2),
+      animated: true,
+    });
+  };
+
+  const handleConfirm = () => {
+    const selectedEmployee = PROFESSIONALS.find((p) => p.id === selectedId);
+    if (selectedEmployee) {
+      navigation.navigate("BookCleaning", {
+        allocatedEmployee: selectedEmployee,
+      });
+    }
+  };
+
+  if (isAutoAllocating) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <StatusBar barStyle="light-content" />
+        <LinearGradient colors={["#0d1321", "#101622"]} style={styles.container}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#1a5cff" />
+            <Text style={styles.loadingText}>Allocating best professional for you...</Text>
+            <Text style={styles.loadingSubtext}>
+              Finding the highest rated professional in your area
+            </Text>
+          </View>
+        </LinearGradient>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -134,62 +160,11 @@ const EmployeeAllocation = () => {
       <LinearGradient colors={["#0d1321", "#101622"]} style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
             <Icon name="arrow-back-ios-new" size={22} color="#fff" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Select Professional</Text>
           <View style={{ width: 24 }} />
-        </View>
-
-        {/* Allocation Method */}
-        <View style={styles.section}>
-          <Text style={styles.label}>Allocation Method</Text>
-
-          <TouchableOpacity
-            activeOpacity={0.8}
-            style={styles.dropdown}
-            onPress={() => setDropdownOpen(!dropdownOpen)}
-          >
-            <Text style={styles.dropdownText}>
-              {allocationMethod === "manual"
-                ? "Manual Selection"
-                : "Auto Allocation"}
-            </Text>
-            <Icon
-              name={dropdownOpen ? "expand-less" : "expand-more"}
-              size={22}
-              color="#9da6b9"
-            />
-          </TouchableOpacity>
-
-          {dropdownOpen && (
-            <View style={styles.dropdownMenu}>
-              <TouchableOpacity
-                style={styles.dropdownItem}
-                onPress={() => {
-                  setAllocationMethod("manual");
-                  setDropdownOpen(false);
-                }}
-              >
-                <Text style={styles.dropdownItemText}>
-                  Manual Selection
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.dropdownItem}
-                onPress={() => {
-                  setAllocationMethod("auto");
-                  setSelectedId(null);
-                  setDropdownOpen(false);
-                }}
-              >
-                <Text style={styles.dropdownItemText}>
-                  Auto Allocation
-                </Text>
-              </TouchableOpacity>
-            </View>
-          )}
         </View>
 
         {/* List Header */}
@@ -198,14 +173,94 @@ const EmployeeAllocation = () => {
           <Text style={styles.sortText}>Sorted by: Location</Text>
         </View>
 
-        {/* List */}
-        <FlatList
-          data={PROFESSIONALS}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingBottom: 260 }}
-          showsVerticalScrollIndicator={false}
-        />
+        {/* Horizontal Scrolling Cards */}
+        <ScrollView
+          ref={scrollViewRef}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          decelerationRate="fast"
+          snapToInterval={CARD_WIDTH + CARD_MARGIN * 2}
+          snapToAlignment="center"
+          contentContainerStyle={styles.scrollContent}
+        >
+          {PROFESSIONALS.map((item, index) => {
+            const selected = selectedId === item.id;
+
+            return (
+              <TouchableOpacity
+                key={item.id}
+                activeOpacity={0.95}
+                onPress={() => {
+                  setSelectedId(item.id);
+                  scrollToIndex(index);
+                }}
+                style={[styles.card, selected && styles.cardSelected]}
+              >
+                {/* Professional Image */}
+                <View style={styles.imageContainer}>
+                  <Image source={item.image} style={styles.avatar} />
+                  {item.verified && (
+                    <View style={styles.verified}>
+                      <Icon name="verified" size={20} color="#facc15" />
+                    </View>
+                  )}
+                </View>
+
+                {/* Professional Info */}
+                <View style={styles.infoContainer}>
+                  <Text style={styles.name}>{item.name}</Text>
+                  <Text style={[styles.role, selected && { color: "#1a5cff" }]}>
+                    {item.role}
+                  </Text>
+
+                  {/* Rating & Distance */}
+                  <View style={styles.metaContainer}>
+                    <View style={styles.metaRow}>
+                      <View style={styles.ratingBox}>
+                        <Icon name="star" size={16} color="#facc15" />
+                        <Text style={styles.meta}>{item.rating}</Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.metaRow}>
+                      <View style={styles.distanceBox}>
+                        <Icon name="near-me" size={16} color="#1a5cff" />
+                        <Text style={styles.meta}>{item.distance}</Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* Mobile Number */}
+                  <View style={styles.mobileContainer}>
+                    <Text style={styles.mobileLabel}>Mobile Number</Text>
+                    <Text style={styles.mobileNumber}>{item.mobileNumber}</Text>
+                  </View>
+                </View>
+
+                {/* Selection Indicator */}
+                <View style={styles.selectionContainer}>
+                  <View style={[styles.radio, selected && styles.radioSelected]}>
+                    {selected && <View style={styles.radioInner} />}
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+
+        {/* Pagination Dots */}
+        <View style={styles.pagination}>
+          {PROFESSIONALS.map((_, index) => (
+            <TouchableOpacity
+              key={index}
+              onPress={() => scrollToIndex(index)}
+              style={[styles.dot, currentIndex === index && styles.dotActive]}
+            />
+          ))}
+        </View>
 
         {/* Footer */}
         <View style={styles.footer}>
@@ -220,13 +275,15 @@ const EmployeeAllocation = () => {
             </View>
           </View>
 
-          <LinearGradient
-            colors={["#1a5cff", "#0f4ae0"]}
-            style={styles.confirmBtn}
-          >
-            <Text style={styles.confirmText}>Confirm Allocation</Text>
-            <Icon name="check" size={20} color="#fff" />
-          </LinearGradient>
+          <TouchableOpacity onPress={handleConfirm}>
+            <LinearGradient
+              colors={["#1a5cff", "#0f4ae0"]}
+              style={styles.confirmBtn}
+            >
+              <Text style={styles.confirmText}>Confirm Allocation</Text>
+              <Icon name="check" size={20} color="#fff" />
+            </LinearGradient>
+          </TouchableOpacity>
         </View>
       </LinearGradient>
     </SafeAreaView>
@@ -254,54 +311,12 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 
-  section: {
-    padding: 16,
-    zIndex: 10,
-  },
-  label: {
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: "500",
-    marginBottom: 8,
-  },
-
-  dropdown: {
-    height: 56,
-    borderRadius: 14,
-    backgroundColor: "#1c1f27",
-    borderWidth: 1,
-    borderColor: "#3b4354",
-    paddingHorizontal: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  dropdownText: {
-    color: "#fff",
-    fontSize: 16,
-  },
-  dropdownMenu: {
-    marginTop: 8,
-    borderRadius: 14,
-    backgroundColor: "#1c1f27",
-    borderWidth: 1,
-    borderColor: "#3b4354",
-    overflow: "hidden",
-  },
-  dropdownItem: {
-    padding: 16,
-  },
-  dropdownItemText: {
-    color: "#fff",
-    fontSize: 15,
-  },
-
   listHeader: {
     paddingHorizontal: 16,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
+    marginVertical: 16,
   },
   listTitle: {
     color: "#fff",
@@ -313,102 +328,178 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
 
+  scrollContent: {
+    paddingHorizontal: 32,
+    paddingVertical: 20,
+  },
+
   card: {
-    marginHorizontal: 16,
-    marginVertical: 8,
-    padding: 16,
-    borderRadius: 16,
+    width: CARD_WIDTH,
+    marginHorizontal: CARD_MARGIN,
+    padding: 24,
+    borderRadius: 24,
     backgroundColor: "#1c1f27",
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: "#3b4354",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 10,
   },
   cardSelected: {
     borderColor: "#1a5cff",
     backgroundColor: "rgba(26,92,255,0.12)",
-  },
-  cardDisabled: {
-    opacity: 0.5,
+    shadowColor: "#1a5cff",
+    shadowOpacity: 0.4,
   },
 
-  cardRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+  imageContainer: {
     alignItems: "center",
-  },
-  leftRow: {
-    flexDirection: "row",
-    gap: 16,
-    alignItems: "center",
+    marginBottom: 20,
   },
 
   avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 3,
+    borderColor: "#1a5cff",
   },
+
   verified: {
     position: "absolute",
-    bottom: -2,
-    right: -2,
+    bottom: 0,
+    right: "35%",
     backgroundColor: "#1c1f27",
-    borderRadius: 10,
-    padding: 2,
+    borderRadius: 16,
+    padding: 4,
+    borderWidth: 2,
+    borderColor: "#facc15",
+  },
+
+  infoContainer: {
+    alignItems: "center",
   },
 
   name: {
     color: "#fff",
-    fontSize: 17,
+    fontSize: 24,
     fontWeight: "700",
+    marginBottom: 4,
   },
+
   role: {
     color: "#9da6b9",
-    fontSize: 14,
-    marginTop: 2,
+    fontSize: 16,
+    marginBottom: 16,
+  },
+
+  metaContainer: {
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 20,
   },
 
   metaRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    marginTop: 6,
   },
+
+  ratingBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "rgba(250, 204, 21, 0.1)",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+  },
+
+  distanceBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "rgba(26, 92, 255, 0.1)",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+  },
+
   meta: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+
+  mobileContainer: {
+    width: "100%",
+    backgroundColor: "#101622",
+    borderRadius: 12,
+    padding: 16,
+    alignItems: "center",
+  },
+
+  mobileLabel: {
     color: "#9da6b9",
     fontSize: 12,
+    marginBottom: 4,
   },
-  dot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: "#3b4354",
-    marginHorizontal: 4,
+
+  mobileNumber: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "700",
+  },
+
+  selectionContainer: {
+    position: "absolute",
+    top: 24,
+    right: 24,
   },
 
   radio: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     borderWidth: 2,
     borderColor: "#3b4354",
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "#1c1f27",
   },
   radioSelected: {
     borderColor: "#1a5cff",
     backgroundColor: "#1a5cff",
   },
   radioInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
     backgroundColor: "#fff",
   },
 
+  pagination: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 8,
+    marginVertical: 20,
+  },
+
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#3b4354",
+  },
+
+  dotActive: {
+    width: 24,
+    backgroundColor: "#1a5cff",
+  },
+
   footer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
     padding: 16,
     backgroundColor: "#111318",
     borderTopWidth: 1,
@@ -449,5 +540,27 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "700",
+  },
+
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 40,
+  },
+
+  loadingText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "700",
+    marginTop: 24,
+    textAlign: "center",
+  },
+
+  loadingSubtext: {
+    color: "#9da6b9",
+    fontSize: 14,
+    marginTop: 8,
+    textAlign: "center",
   },
 });
