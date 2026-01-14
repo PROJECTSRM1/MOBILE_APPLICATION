@@ -235,7 +235,10 @@ const Landing = () => {
       setShowMoreOptions(false);
       navigation.navigate("Marketplace");
       break;
-
+    case "Freelance":
+      setShowMoreOptions(false);
+      navigation.navigate("Freelancer");
+      break;
     default:
       break;
   }
