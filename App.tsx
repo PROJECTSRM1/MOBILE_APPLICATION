@@ -26,6 +26,8 @@ import ProductRegistration from "./src/screens/ProductRegistration";
 import Studentlisting from "./src/screens/Studentlisting";
 import InternshipList from "./src/screens/InternshipList";
 import type { Internship } from "./src/screens/InternshipList";
+import Transport from "./src/screens/Transport";
+import Freelancer from "./src/screens/Freelancer";
 
 
 export type RootStackParamList = {
@@ -96,6 +98,8 @@ export default function App(): React.ReactElement {
         <Stack.Screen name="ProductScreen" component={ProductScreen} />
         <Stack.Screen name="SwachifyMarketScreen" component={SwachifyMarketScreen} />
         <Stack.Screen name="ProductRegistration" component={ProductRegistration} />
+        <Stack.Screen name="Transport" component={TransportComingSoon} />
+         <Stack.Screen name="Freelancer" component={Freelancer} />
       </Stack.Navigator>
     </NavigationContainer>
   );

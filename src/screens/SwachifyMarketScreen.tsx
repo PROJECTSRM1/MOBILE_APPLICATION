@@ -16,7 +16,8 @@ import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 
 /* ---------------- DATA ---------------- */
 
-const PRODUCTS = [
+
+const PRODUCTS= [
   {
     id: 1,
     title: "Bamboo Toothbrush Set",
@@ -26,6 +27,9 @@ const PRODUCTS = [
     tag: "Company",
     image:
       "https://lh3.googleusercontent.com/aida-public/AB6AXuDTjnndcFoBFEs9X3YCwzAmDLIdttJ2XEd9Q3Og4WG0_pbVHbyQlfRvWfFPDVzuGf36wDpmMgPI1XAqt2YarKVEVX2IDqLo1PiAo-RXdalyAEUkeqHDzxDtdeqkE2Si-UiTis-5-hFMcjfoXdnvIkQP8i78yP5jcRR0qf4AvECL_HF8K4BbacxiVoAPI43-amqKVfH0q-vvOB1l5UqdiYykvTOyHyayP5anKPUu7TNrcNweMnEXB0lpYE1cpjyjj96md7WdC8rHOoU",
+    distance: 5,          
+    rating: 4.6,            
+    createdAt: "2025-01-12"  
   },
   {
     id: 2,
@@ -36,6 +40,10 @@ const PRODUCTS = [
     tag: "Entrepreneur",
     image:
       "https://lh3.googleusercontent.com/aida-public/AB6AXuAyEE_IXez6Mzm0Vo6uF1E-43UkENnT4Ew4x1xhNChk36YydT5XZZrvpzoh1VIsWaehiT99TIfMJ_uAHDUnYtQDwxhXe0ucjHaS175CdUuOZQ1JyF23MFGLCa6dGVoxD73w68FcVDUDTqUI9omZRM81_zqNiPFPGFZzfFJ888m4rZT_rVtUierDgNv8KSAVhnUjedJozODVN394P_qtYpqxau0nDcU6j3GftP1fdyae6dP2WKLh9qyxXwXiaaSo3map2dOmre_nS2Q",
+    distance: 12,
+    rating: 4.1,
+    createdAt: "2025-01-08"
+  
   },
   {
     id: 3,
@@ -46,6 +54,9 @@ const PRODUCTS = [
     tag: "Company",
     image:
       "https://lh3.googleusercontent.com/aida-public/AB6AXuCFrspr-ttnFY_zCp_Tw9Brsin5KfhyyTQN3U4bCjwTnriUaq3cmQam5q3K0ta-GVIazXuzGE6jx4obdQH6UkUWvwyt40tYbiP9ecKzG7fJmSPzZBpaaEzvjluiFBtdCDAmqWIUuEXeNZapM3XO0YNLca8KCZYIxhUWlJOpIRLJkFnZ9_B4ShTRPDBU6LJ1qqzOiz8u2bZtxEL8PS2X0SxiVr8ChZlqi31RyJ0BW37DAH7Ek_HaYnwduaY3FTRhtqHl8ZiWKWA6PpQ",
+    distance: 22,
+    rating: 3.9,
+    createdAt: "2025-01-05"  
   },
   {
     id: 4,
@@ -56,6 +67,9 @@ const PRODUCTS = [
     tag: "Entrepreneur",
     image:
       "https://lh3.googleusercontent.com/aida-public/AB6AXuCKTUN_up43-VnVCcymv3mLFr3rZZ96SfCFH8AesLT_ziSJUTGu6TCMH9yXsKxUeficpBINztBa2wJyysrCXvoPyX01D4oWULxQJrTmfLlEqO_pDDhGrRVUG4iIcPBadNqwWW-nRvmNqYoSPcwpXDd7PyKOnVGU6s-lygh6D_Qp6XV-hc5RqmkGk7YhnHlLemB0DyRbM4_QpzY0sDnfM3e5vKlWHt5PBal1QQ8L2LBhdvOCIeVsPjhnIV9E1A2gIEnXFvxE-W77Of4",
+    distance: 45,
+    rating: 4.8,
+    createdAt: "2025-01-14"  
   },
 ];
 
@@ -74,6 +88,15 @@ export default function SwachifyMarketScreen() {
   const [search, setSearch] = useState("");
   const [cartCount, setCartCount] = useState(0);
   const [showToast, setShowToast] = useState(false);
+//   const [distanceFilter, setDistanceFilter] = useState(null); 
+// const [ratingSort, setRatingSort] = useState(null);
+// type RatingSort = "low-high" | "high-low" | null;
+// type DistanceFilter = "0-10" | "10-20" | "20-40" | "40+" | null;
+
+// const [ratingSort, setRatingSort] = useState<RatingSort>(null);
+// const [distanceFilter, setDistanceFilter] = useState<DistanceFilter>(null);
+
+
 
   const filteredProducts = useMemo(() => {
     return PRODUCTS.filter((p) => {
@@ -87,6 +110,47 @@ export default function SwachifyMarketScreen() {
       return matchesCategory && matchesSearch;
     });
   }, [activeFilter, search]);
+
+  // const filteredProducts = useMemo(() => {
+//   let data = PRODUCTS.filter((p) => {
+//     const matchesCategory =
+//       activeFilter === "all" || p.category === activeFilter;
+
+//     const matchesSearch =
+//       p.title.toLowerCase().includes(search.toLowerCase()) ||
+//       p.brand.toLowerCase().includes(search.toLowerCase());
+
+//     return matchesCategory && matchesSearch;
+//   });
+
+//   // 📍 Distance filter
+//   if (distanceFilter) {
+//     data = data.filter((p) => {
+//       if (distanceFilter === "0-10") return p.distance <= 10;
+//       if (distanceFilter === "10-20") return p.distance > 10 && p.distance <= 20;
+//       if (distanceFilter === "20-40") return p.distance > 20 && p.distance <= 40;
+//       if (distanceFilter === "40+") return p.distance > 40;
+//       return true;
+//     });
+//   }
+
+//   //  Rating sort
+//   if (ratingSort === "low-high") {
+//     data = [...data].sort((a, b) => a.rating - b.rating);
+//   }
+
+//   if (ratingSort === "high-low") {
+//     data = [...data].sort((a, b) => b.rating - a.rating);
+//   }
+
+//   //  Recently added first
+//   data = [...data].sort(
+//     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+//   );
+
+//   return data;
+// }, [activeFilter, search, distanceFilter, ratingSort]);
+
 
   const addToCart = () => {
     setCartCount((prev) => prev + 1);

@@ -32,6 +32,8 @@ const Landing = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [userLocation, setUserLocation] = useState<string>("New York, NY");
   const [userName, setUserName] = useState<string>("");
+  const [showMoreOptions, setShowMoreOptions] = useState(false);
+
 
   /* ================= LOAD USER DATA ================= */
   useEffect(() => {
@@ -169,32 +171,79 @@ const Landing = () => {
                 key={i}
                 style={styles.gridItem}
                 activeOpacity={0.8}
-                onPress={() => {
-                  if (!isLoggedIn) {
-                    navigation.navigate("AuthScreen");
-                    return;
-                  }
+  //               onPress={() => {
+  //                 if (!isLoggedIn) {
+  //                   navigation.navigate("AuthScreen");
+  //                   return;
+  //                 }
 
-                  switch (item.name) {
-                    case "Housing / Cleaning":
-                      navigation.navigate("CleaningCategory");
-                      break;
+  //                 switch (item.name) {
+  //                   case "Housing / Cleaning":
+  //                     navigation.navigate("CleaningCategory");
+  //                     break;
 
-                    case "Education":
-                      navigation.navigate("EducationHome");
-                      break;
-                    case "Swachify Products":
-                      navigation.navigate("ProductScreen");     
-                      break;
+  //                   case "Education":
+  //                     navigation.navigate("EducationHome");
+  //                     break;
+  //                   case "Swachify Products":
+  //                     navigation.navigate("ProductScreen");     
+  //                     break;
                       
-                    case "Buy/Sell":
-                      navigation.navigate("Marketplace");
-                      break;
+  //                   case "Buy/Sell":
+  //                     navigation.navigate("Marketplace");
+  //                     break;
 
-                    default:
-                      break;
-                  }
-                }}
+  //                   case "More":
+  // setShowMoreOptions((prev) => !prev);
+  // break;
+  
+
+  //                   default:
+  //                     break;
+  //                 }
+  //               }}
+  onPress={() => {
+  //  Allow "More" even if not logged in
+  if (item.name === "More") {
+    setShowMoreOptions((prev) => !prev);
+    return;
+  }
+
+  //  Other items still require login
+  if (!isLoggedIn) {
+    navigation.navigate("AuthScreen");
+    return;
+  }
+
+  switch (item.name) {
+    case "Housing / Cleaning":
+      setShowMoreOptions(false);
+      navigation.navigate("CleaningCategory");
+      break;
+
+    case "Education":
+      setShowMoreOptions(false);
+      navigation.navigate("EducationHome");
+      break;
+
+    case "Swachify Products":
+      setShowMoreOptions(false);
+      navigation.navigate("ProductScreen");
+      break;
+
+    case "Buy/Sell":
+      setShowMoreOptions(false);
+      navigation.navigate("Marketplace");
+      break;
+    case "Freelance":
+      setShowMoreOptions(false);
+      navigation.navigate("Freelancer");
+      break;
+    default:
+      break;
+  }
+}}
+
               >
                 <View style={styles.gridIcon}>
                   <MaterialIcons name={item.icon} size={28} color="#3b82f6" />
@@ -204,6 +253,41 @@ const Landing = () => {
             );
           })}
         </View>
+        {showMoreOptions && (
+  <View style={styles.moreGrid}>
+    <TouchableOpacity style={styles.gridItem}
+      onPress={() => {
+        if (!isLoggedIn) {
+          navigation.navigate("AuthScreen");
+          return;
+        }
+        setShowMoreOptions(false);
+        navigation.navigate("RawMaterials");
+      }}
+    >
+      <View style={styles.gridIcon}>
+        <MaterialIcons name="factory" size={28} color="#3b82f6" />
+      </View>
+      <Text style={styles.gridText}>Raw Materials</Text>
+    </TouchableOpacity>
+
+    <TouchableOpacity style={styles.gridItem}
+    onPress={() => {
+        if (!isLoggedIn) {
+          navigation.navigate("AuthScreen");
+          return;
+        }
+        setShowMoreOptions(false);
+        navigation.navigate("Transport");
+      }}>
+      <View style={styles.gridIcon}>
+        <MaterialIcons name="local-shipping" size={28} color="#3b82f6" />
+      </View>
+      <Text style={styles.gridText}>Transport</Text>
+    </TouchableOpacity>
+  </View>
+)}
+
 
         {/* ================= TRENDING ================= */}
         {/* <View style={styles.trendingHeader}>
@@ -222,7 +306,7 @@ const Landing = () => {
 <ScrollView
   ref={verticalScrollRef}
   showsVerticalScrollIndicator={false}
-  style={{ height: 380 }}   // THIS isolates scrolling
+  style={{ height: 380 }}   
 >
 
 
@@ -575,4 +659,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     paddingVertical: 12,
   },
+  moreGrid: {
+  flexDirection: "row",
+  justifyContent: "space-around",
+  marginTop: 10,
+  marginBottom: 20,
+},
+
 });
