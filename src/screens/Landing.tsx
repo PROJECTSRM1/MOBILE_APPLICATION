@@ -262,7 +262,7 @@ const Landing = () => {
           return;
         }
         setShowMoreOptions(false);
-        navigation.navigate("RawMaterials");
+        navigation.navigate("RawMaterial");
       }}
     >
       <View style={styles.gridIcon}>

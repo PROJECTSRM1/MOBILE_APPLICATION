@@ -26,8 +26,9 @@ import ProductRegistration from "./src/screens/ProductRegistration";
 import Studentlisting from "./src/screens/Studentlisting";
 import InternshipList from "./src/screens/InternshipList";
 import type { Internship } from "./src/screens/InternshipList";
-import Transport from "./src/screens/Transport";
 import Freelancer from "./src/screens/Freelancer";
+import TransportComingSoon from "./src/screens/TransportComingSoon";
+import RawMaterial from "./src/screens/RawMaterial";
 
 
 export type RootStackParamList = {
@@ -67,6 +68,7 @@ export type RootStackParamList = {
   SwachifyMarketScreen: undefined;
   ProductRegistration: undefined;
   InternshipList: undefined;
+  RawMaterial: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -100,6 +102,7 @@ export default function App(): React.ReactElement {
         <Stack.Screen name="ProductRegistration" component={ProductRegistration} />
         <Stack.Screen name="Transport" component={TransportComingSoon} />
          <Stack.Screen name="Freelancer" component={Freelancer} />
+         <Stack.Screen name="RawMaterial" component={RawMaterial} />
       </Stack.Navigator>
     </NavigationContainer>
   );
