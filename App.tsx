@@ -29,6 +29,13 @@ import type { Internship } from "./src/screens/InternshipList";
 import Freelancer from "./src/screens/Freelancer";
 import TransportComingSoon from "./src/screens/TransportComingSoon";
 import RawMaterial from "./src/screens/RawMaterial";
+import HomeSub from "./src/screens/HomeSub";
+import HomeSubCat from "./src/screens/HomeSubCat";
+import CommercialSub from "./src/screens/CommercialSub";
+import VehicleSub from "./src/screens/VehicleSub";
+
+
+
 import EmployeeHomeScreen from "./src/screens/EmployeeHomeScreen";
 import CartScreen from "./src/screens/CartScreen";
 import CandidateProfile from "./src/screens/CandidateProfile";
@@ -81,6 +88,10 @@ export type RootStackParamList = {
   ProductRegistration: undefined;
   InternshipList: undefined;
   RawMaterial: undefined;
+  HomeSub: undefined;
+  HomeSubCat: undefined;
+  CommercialSub: undefined;
+  VehicleSub: undefined;
   EmployeeHomeScreen: undefined;
   Cart: undefined;
   CandidateProfile: undefined;
@@ -133,6 +144,11 @@ export default function App(): React.ReactElement {
         <Stack.Screen name="Transport" component={TransportComingSoon} />
          <Stack.Screen name="Freelancer" component={Freelancer} />
          <Stack.Screen name="RawMaterial" component={RawMaterial} />
+         <Stack.Screen name="HomeSub" component={HomeSub} />
+         <Stack.Screen name="HomeSubCat" component={HomeSubCat} />
+<Stack.Screen name="CommercialSub" component={CommercialSub} />
+<Stack.Screen name="VehicleSub" component={VehicleSub} />
+
          <Stack.Screen name="EmployeeHomeScreen" component={EmployeeHomeScreen} />
          <Stack.Screen name="Cart" component={CartScreen} />
         <Stack.Screen name="Training" component={TrainingScreen} />
