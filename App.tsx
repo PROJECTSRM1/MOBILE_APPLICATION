@@ -29,6 +29,8 @@ import type { Internship } from "./src/screens/InternshipList";
 import Freelancer from "./src/screens/Freelancer";
 import TransportComingSoon from "./src/screens/TransportComingSoon";
 import RawMaterial from "./src/screens/RawMaterial";
+import EmployeeHomeScreen from "./src/screens/EmployeeHomeScreen";
+import CartScreen from "./src/screens/CartScreen";
 import CandidateProfile from "./src/screens/CandidateProfile";
 import ReviewApplication from "./src/screens/ReviewApplication";
 import TrainingScreen from "./src/screens/TrainingScreen";
@@ -79,6 +81,8 @@ export type RootStackParamList = {
   ProductRegistration: undefined;
   InternshipList: undefined;
   RawMaterial: undefined;
+  EmployeeHomeScreen: undefined;
+  Cart: undefined;
   CandidateProfile: undefined;
   Training: undefined;
   TrainingDetails: undefined;
@@ -129,6 +133,8 @@ export default function App(): React.ReactElement {
         <Stack.Screen name="Transport" component={TransportComingSoon} />
          <Stack.Screen name="Freelancer" component={Freelancer} />
          <Stack.Screen name="RawMaterial" component={RawMaterial} />
+         <Stack.Screen name="EmployeeHomeScreen" component={EmployeeHomeScreen} />
+         <Stack.Screen name="Cart" component={CartScreen} />
         <Stack.Screen name="Training" component={TrainingScreen} />
         <Stack.Screen name="ApplicationSuccess" component={ApplicationSuccessScreen} />
         <Stack.Screen name="TrainingDetails" component={TrainingDetailsScreen} />

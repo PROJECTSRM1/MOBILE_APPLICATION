@@ -343,6 +343,15 @@ const ListHeader = () => (
   </View>
 )}
 
+    <Dropdown
+      label="Internship"
+      value={selectedInternship}
+      options={internshipFilters}
+      onSelect={setSelectedInternship}
+    />
+  </View>
+)}
+
   </View>
 );
 
@@ -459,7 +468,6 @@ const renderStudent = ({ item }: { item: Student }) => (
       </View>
     </SafeAreaView>
   );
-  
 };
 
 export default Collegelisting;
@@ -676,5 +684,20 @@ candidateId: {
   fontWeight: "600",
 },
 
+filterPillTextActive: {
+  color: "#fff",
+  fontWeight: "700",
+},
+nameRow: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+},
+
+candidateId: {
+  color: "#9ca3af",
+  fontSize: 12,
+  fontWeight: "600",
+},
 
 });
