@@ -29,6 +29,10 @@ import type { Internship } from "./src/screens/InternshipList";
 import Freelancer from "./src/screens/Freelancer";
 import TransportComingSoon from "./src/screens/TransportComingSoon";
 import RawMaterial from "./src/screens/RawMaterial";
+import DoctorListScreen from "./src/screens/Healthcare";
+import ConsultationRequestScreen from './src/screens/Healthform';
+import TelemedicineConsultation from "./src/screens/TelemedicineConsultation";
+import FacilitiesScreen from "./src/screens/FacilitiesScreen";
 
 
 export type RootStackParamList = {
@@ -69,6 +73,9 @@ export type RootStackParamList = {
   ProductRegistration: undefined;
   InternshipList: undefined;
   RawMaterial: undefined;
+  Health: undefined;
+  Form:undefined;
+  Telecom:undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -102,8 +109,11 @@ export default function App(): React.ReactElement {
         <Stack.Screen name="ProductRegistration" component={ProductRegistration} />
         <Stack.Screen name="Transport" component={TransportComingSoon} />
          <Stack.Screen name="Freelancer" component={Freelancer} />
-         <Stack.Screen name="RawMaterial" component={RawMaterial} />
+         <Stack.Screen name="Health" component={DoctorListScreen} />
+        <Stack.Screen name="Form" component={ConsultationRequestScreen} />
+         {/* <Stack.Screen name="Health" component={DoctorListScreen} /> */}
+         <Stack.Screen name="Telecom" component={FacilitiesScreen} />
       </Stack.Navigator>
     </NavigationContainer>
-  );
+  );  
 }

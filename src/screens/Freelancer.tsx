@@ -1,4 +1,4 @@
-// App.tsx
+
 import { Navigation } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
@@ -15,8 +15,6 @@ import {
   useColorScheme,
 } from 'react-native';
 import Svg, { Path, Circle, Rect, Line } from 'react-native-svg';
-
-
 
 
 
@@ -55,6 +53,16 @@ const BackIcon = ({ size = 24, color = "#000" }) => (
       strokeLinecap="round"
       strokeLinejoin="round"
     />
+  </Svg>
+);
+
+const BuildingIcon = ({ size = 16, color = "#64748b" }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Rect x="4" y="2" width="16" height="20" rx="2" stroke={color} strokeWidth="2" />
+    <Path d="M8 6h.01M12 6h.01M16 6h.01" stroke={color} strokeWidth="2" strokeLinecap="round" />
+    <Path d="M8 10h.01M12 10h.01M16 10h.01" stroke={color} strokeWidth="2" strokeLinecap="round" />
+    <Path d="M8 14h.01M12 14h.01M16 14h.01" stroke={color} strokeWidth="2" strokeLinecap="round" />
+    <Path d="M10 22v-4h4v4" stroke={color} strokeWidth="2" strokeLinecap="round" />
   </Svg>
 );
 
@@ -146,6 +154,11 @@ const ProfileIcon = ({ size = 24, color = "#64748b", filled = false }) => (
   </Svg>
 );
 
+interface OrganisationDetails {
+  orgName: string;
+  gstin: string;
+}
+
 interface ServiceProvider {
   id: string;
   name: string;
@@ -155,7 +168,15 @@ interface ServiceProvider {
   skills: string[];
   hourlyRate: number;
   image: string;
+
+  // NEW FLAGS
+  isActive: boolean;
+  isEnrolled: boolean;
+
+  // Only if freelancer belongs to company (bulk)
+  organisation?: OrganisationDetails;
 }
+
 
 const serviceProviders: ServiceProvider[] = [
   {
@@ -167,6 +188,8 @@ const serviceProviders: ServiceProvider[] = [
     skills: ['Pipe Fitting', 'Drainage'],
     hourlyRate: 350,
     image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+      isActive: true,
+      isEnrolled: true,
   },
   {
     id: '2',
@@ -177,6 +200,8 @@ const serviceProviders: ServiceProvider[] = [
     skills: ['Deep Cleaning', 'Sanitization'],
     hourlyRate: 250,
     image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+      isActive: false,
+      isEnrolled: true,
   },
   {
     id: '3',
@@ -187,6 +212,12 @@ const serviceProviders: ServiceProvider[] = [
     skills: ['Wiring', 'Repair'],
     hourlyRate: 400,
     image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
+    isActive: true,
+  isEnrolled: true,
+  organisation: {
+    orgName: "Sparkle Cleaning Pvt Ltd",
+    gstin: "29ABCDE1234F1Z5"
+  }
   },
   {
     id: '4',
@@ -197,6 +228,8 @@ const serviceProviders: ServiceProvider[] = [
     skills: ['Machine Wash', 'Dry Cleaning'],
     hourlyRate: 200,
     image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+     isActive: false,
+      isEnrolled: true,
   },
   {
     id: '5',
@@ -207,6 +240,8 @@ const serviceProviders: ServiceProvider[] = [
     skills: ['Installation', 'Maintenance'],
     hourlyRate: 320,
     image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
+     isActive: true,
+      isEnrolled: false,
   },
   {
     id: '6',
@@ -217,6 +252,8 @@ const serviceProviders: ServiceProvider[] = [
     skills: ['Home Cleaning', 'Kitchen'],
     hourlyRate: 280,
     image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400',
+      isActive: true,
+      isEnrolled: false,
   },
   {
     id: '7',
@@ -227,6 +264,12 @@ const serviceProviders: ServiceProvider[] = [
     skills: ['Smart Home', 'Installation'],
     hourlyRate: 450,
     image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
+      isActive: false,
+  isEnrolled: true,
+  organisation: {
+    orgName: "Sparkle Cleaning Pvt Ltd",
+    gstin: "29ABCDE1234F1Z5"
+  }
   },
   {
     id: '8',
@@ -237,8 +280,205 @@ const serviceProviders: ServiceProvider[] = [
     skills: ['Laundry', 'Ironing'],
     hourlyRate: 220,
     image: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400',
+    isActive: true,
+  isEnrolled: true,
+  organisation: {
+    orgName: "Sparkle Cleaning Pvt Ltd",
+    gstin: "29ABCDE1234F1Z5"
+  }
   },
-];
+    {
+  id: '9',
+  name: 'Mohit Verma',
+  service: 'Plumber',
+  rating: 4.5,
+  reviews: 76,
+  skills: ['Leak Fixing', 'Bathroom Fitting'],
+  hourlyRate: 300,
+  image: 'https://source.unsplash.com/400x400/?plumber,man&sig=9',
+  isActive: true,
+  isEnrolled: true,
+},
+{
+  id: '10',
+  name: 'Sneha Iyer',
+  service: 'Cleaner',
+  rating: 4.9,
+  reviews: 221,
+  skills: ['Office Cleaning', 'Floor Polishing'],
+  hourlyRate: 270,
+  image: 'https://source.unsplash.com/400x400/?cleaner,woman&sig=10',
+  isActive: true,
+  isEnrolled: true,
+},
+{
+  id: '11',
+  name: 'Arjun Singh',
+  service: 'Electrician',
+  rating: 4.6,
+  reviews: 110,
+  skills: ['Appliance Repair', 'Fan Installation'],
+  hourlyRate: 380,
+  image: 'https://source.unsplash.com/400x400/?electrician,man&sig=11',
+  isActive: false,
+  isEnrolled: true,
+},
+{
+  id: '12',
+  name: 'Pooja Nair',
+  service: 'Washer',
+  rating: 4.8,
+  reviews: 164,
+  skills: ['Steam Ironing', 'Fabric Care'],
+  hourlyRate: 230,
+  image: 'https://source.unsplash.com/400x400/?laundry,woman&sig=12',
+  isActive: true,
+  isEnrolled: true,
+},
+{
+  id: '13',
+  name: 'Rahul Das',
+  service: 'Plumber',
+  rating: 4.4,
+  reviews: 59,
+  skills: ['Motor Repair', 'Tank Cleaning'],
+  hourlyRate: 310,
+  image: 'https://source.unsplash.com/400x400/?plumber,worker&sig=13',
+  isActive: false,
+  isEnrolled: false,
+},
+{
+  id: '14',
+  name: 'Neha Kapoor',
+  service: 'Cleaner',
+  rating: 5.0,
+  reviews: 287,
+  skills: ['Villa Cleaning', 'Move-out Cleaning'],
+  hourlyRate: 320,
+  image: 'https://source.unsplash.com/400x400/?housekeeping,woman&sig=14',
+  isActive: true,
+  isEnrolled: true,
+  organisation: {
+    orgName: "UrbanCare Services",
+    gstin: "27ABCDE4321K9Z2"
+  }
+},
+{
+  id: '15',
+  name: 'Imran Khan',
+  service: 'Electrician',
+  rating: 4.7,
+  reviews: 143,
+  skills: ['Inverter Setup', 'CCTV Install'],
+  hourlyRate: 420,
+  image: 'https://source.unsplash.com/400x400/?technician,man&sig=15',
+  isActive: true,
+  isEnrolled: true,
+},
+{
+  id: '16',
+  name: 'Kavya Joshi',
+  service: 'Washer',
+  rating: 4.6,
+  reviews: 92,
+  skills: ['Curtain Wash', 'Delicate Clothes'],
+  hourlyRate: 210,
+  image: 'https://source.unsplash.com/400x400/?laundry,person&sig=16',
+  isActive: false,
+  isEnrolled: true,
+},
+{
+  id: '17',
+  name: 'Sanjay Patel',
+  service: 'Plumber',
+  rating: 4.9,
+  reviews: 198,
+  skills: ['Pipeline Design', 'Commercial Plumbing'],
+  hourlyRate: 500,
+  image: 'https://source.unsplash.com/400x400/?plumbing,man&sig=17',
+  isActive: true,
+  isEnrolled: true,
+  organisation: {
+    orgName: "AquaFlow Solutions",
+    gstin: "24AAQCA1122P1Z8"
+  }
+},
+{
+  id: '18',
+  name: 'Aditi Roy',
+  service: 'Cleaner',
+  rating: 4.7,
+  reviews: 134,
+  skills: ['Bathroom Deep Clean', 'Balcony Cleaning'],
+  hourlyRate: 260,
+  image: 'https://source.unsplash.com/400x400/?cleaning,woman&sig=18',
+  isActive: true,
+  isEnrolled: false,
+},
+{
+  id: '19',
+  name: 'Naveen Kumar',
+  service: 'Electrician',
+  rating: 4.3,
+  reviews: 48,
+  skills: ['Switch Board Repair', 'Short Circuit Fix'],
+  hourlyRate: 340,
+  image: 'https://source.unsplash.com/400x400/?electrician,technician&sig=19',
+  isActive: false,
+  isEnrolled: true,
+},
+{
+  id: '20',
+  name: 'Ritu Malhotra',
+  service: 'Washer',
+  rating: 5.0,
+  reviews: 312,
+  skills: ['Premium Laundry', 'Dry Iron Finish'],
+  hourlyRate: 280,
+  image: 'https://source.unsplash.com/400x400/?laundry,woman,portrait&sig=20',
+  isActive: true,
+  isEnrolled: true,
+},
+{
+  id: '21',
+  name: 'Balaji N',
+  service: 'Plumber',
+  rating: 4.6,
+  reviews: 121,
+  skills: ['Sink Repair', 'Water Heater Install'],
+  hourlyRate: 360,
+  image: 'https://source.unsplash.com/400x400/?maintenance,man&sig=21',
+  isActive: true,
+  isEnrolled: false,
+},
+{
+  id: '22',
+  name: 'Fatima Shaikh',
+  service: 'Cleaner',
+  rating: 4.8,
+  reviews: 177,
+  skills: ['Kitchen Deep Clean', 'Dust Removal'],
+  hourlyRate: 290,
+  image: 'https://source.unsplash.com/400x400/?maid,cleaner,woman&sig=22',
+  isActive: true,
+  isEnrolled: true,
+  organisation: {
+    orgName: "CleanPro India",
+    gstin: "30BBBCD9988M1Z1"
+  }
+},
+{
+  id: '23',
+  name: 'Rohit Shetty',
+  service: 'Electrician',
+  rating: 4.9,
+  reviews: 204,
+  skills: ['Home Automation', 'Panel Upgrade'],
+  hourlyRate: 480,
+  image: 'https://source.unsplash.com/400x400/?engineer,technician&sig=23',
+  isActive: true,
+  isEnrolled: true,
+},];
 
 const categories = ['All', 'Plumber', 'Cleaner', 'Electrician', 'Washer'];
 
@@ -248,14 +488,29 @@ const navigation = useNavigation();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('services');
+  const [showOnlyActive, setShowOnlyActive] = useState(false);
 
-  const filteredProviders = serviceProviders.filter(provider => {
-    const matchesCategory = selectedCategory === 'All' || provider.service === selectedCategory;
-    const matchesSearch = provider.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         provider.service.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         provider.skills.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesCategory && matchesSearch;
-  });
+
+const filteredProviders = serviceProviders.filter(provider => {
+  const matchesCategory = selectedCategory === 'All' || provider.service === selectedCategory;
+
+  const matchesSearch =
+    provider.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    provider.service.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    provider.skills.some(skill =>
+      skill.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+  const matchesActive = showOnlyActive ? provider.isActive : true;
+
+  return (
+    matchesCategory &&
+    matchesSearch &&
+    provider.isEnrolled &&
+    matchesActive
+  );
+});
+
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? '#101622' : '#f6f6f8',
@@ -296,9 +551,15 @@ const navigation = useNavigation();
               onChangeText={setSearchQuery}
             />
           </View>
-          <TouchableOpacity style={styles.filterButton}>
-            <FilterIcon size={20} color="#fff" />
-          </TouchableOpacity>
+          <TouchableOpacity
+              style={[
+                styles.filterButton,
+                showOnlyActive && { backgroundColor: '#22c55e' } // green when active
+              ]}
+              onPress={() => setShowOnlyActive(prev => !prev)}
+            >
+              <FilterIcon size={20} color="#fff" />
+            </TouchableOpacity>
         </View>
       </View>
 
@@ -353,9 +614,33 @@ const navigation = useNavigation();
               <View style={styles.cardContent}>
                 <View style={styles.cardHeader}>
                   <View>
-                    <Text style={[styles.providerName, isDarkMode && styles.textWhite]}>
-                      {provider.name}
-                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Text style={[styles.providerName, isDarkMode && styles.textWhite]}>
+                        {provider.name}
+                      </Text>
+
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+  <View
+    style={{
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: provider.isActive ? '#22c55e' : '#ef4444',
+    }}
+  />
+  <Text
+    style={{
+      fontSize: 12,
+      color: provider.isActive ? '#22c55e' : '#ef4444',
+      fontWeight: '600',
+    }}
+  >
+    {provider.isActive ? 'Active' : 'Inactive'}
+  </Text>
+</View>
+
+                    </View>
+
                     <Text style={styles.providerService}>
                       {provider.service}
                     </Text>
@@ -368,7 +653,20 @@ const navigation = useNavigation();
                     <Text style={styles.reviewCount}>({provider.reviews})</Text>
                   </View>
                 </View>
+                {provider.organisation && (
+                    <View style={{ marginTop: 6 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <BuildingIcon size={14} color="#64748b" />
+                        <Text style={{ fontSize: 12, color: '#64748b' }}>
+                          {provider.organisation.orgName}
+                        </Text>
+                      </View>
 
+                      <Text style={{ fontSize: 10, color: '#94a3b8', marginLeft: 20 }}>
+                        GSTIN: {provider.organisation.gstin}
+                      </Text>
+                    </View>
+                  )}
                 <View style={styles.skillsContainer}>
                   {provider.skills.map((skill, index) => (
                     <View key={index} style={styles.skillBadge}>

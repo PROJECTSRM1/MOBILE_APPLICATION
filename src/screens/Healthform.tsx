@@ -1,0 +1,634 @@
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  StatusBar,
+  SafeAreaView,
+  StyleSheet,
+  Modal,
+} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useNavigation } from '@react-navigation/native';
+
+const ConsultationRequestScreen = () => {
+    const navigation = useNavigation<any>();
+  const [selectedDoctor, setSelectedDoctor] = useState<number | null>(null);
+  const [selectedTime, setSelectedTime] = useState<string>('09:00 AM');
+  const [description, setDescription] = useState<string>('');
+  const [selectedDoctorType, setSelectedDoctorType] = useState<string>('General Practitioner');
+  const [showDoctorTypePicker, setShowDoctorTypePicker] = useState<boolean>(false);
+
+  const doctorTypes = [
+    'General Practitioner',
+    'Cardiologist',
+    'Dermatologist',
+    'Psychiatrist',
+    'Ophthalmologist',
+  ];
+
+  const allDoctors = [
+    {
+      id: 1,
+      name: 'Dr. James Wilson',
+      type: 'General Practitioner',
+      experience: '12 years experience',
+      rating: 4.9,
+      status: 'AVAILABLE NOW',
+      statusColor: '#2d7576',
+      image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=400&fit=crop',
+    },
+    {
+      id: 2,
+      name: 'Dr. Sarah Miller',
+      type: 'General Practitioner',
+      experience: '8 years experience',
+      rating: 4.8,
+      status: 'STARTS IN 30 MIN',
+      statusColor: '#2d7576',
+      image: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=400&h=400&fit=crop',
+    },
+    {
+      id: 3,
+      name: 'Dr. Michael Roberts',
+      type: 'Cardiologist',
+      experience: '15 years experience',
+      rating: 4.9,
+      status: 'AVAILABLE NOW',
+      statusColor: '#2d7576',
+      image: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&h=400&fit=crop',
+    },
+    {
+      id: 4,
+      name: 'Dr. Emily Chen',
+      type: 'Cardiologist',
+      experience: '10 years experience',
+      rating: 4.7,
+      status: 'STARTS IN 1 HR',
+      statusColor: '#2d7576',
+      image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=400&fit=crop',
+    },
+    {
+      id: 5,
+      name: 'Dr. David Park',
+      type: 'Dermatologist',
+      experience: '9 years experience',
+      rating: 4.8,
+      status: 'AVAILABLE NOW',
+      statusColor: '#2d7576',
+      image: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=400&h=400&fit=crop',
+    },
+    {
+      id: 6,
+      name: 'Dr. Lisa Anderson',
+      type: 'Psychiatrist',
+      experience: '11 years experience',
+      rating: 5.0,
+      status: 'AVAILABLE NOW',
+      statusColor: '#2d7576',
+      image: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=400&h=400&fit=crop',
+    },
+    {
+      id: 7,
+      name: 'Dr. Robert Lee',
+      type: 'Ophthalmologist',
+      experience: '14 years experience',
+      rating: 4.9,
+      status: 'STARTS IN 45 MIN',
+      statusColor: '#2d7576',
+      image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=400&fit=crop',
+    },
+  ];
+
+  // Filter doctors based on selected type
+  const doctors = allDoctors.filter(doctor => doctor.type === selectedDoctorType);
+
+  const timeSlots = [
+    '09:00 AM',
+    '10:30 AM',
+    '11:15 AM',
+    '02:00 PM',
+    '03:30 PM',
+  ];
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton}>
+          <Icon name="arrow-back" size={24} color="#131616" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Consultation Request</Text>
+        <TouchableOpacity style={styles.infoButton}>
+          <Icon name="info" size={24} color="#ffffff" />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false} style={styles.content}>
+        {/* Doctor Type Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>DOCTOR TYPE</Text>
+          <TouchableOpacity 
+            style={styles.dropdown}
+            onPress={() => setShowDoctorTypePicker(true)}
+          >
+            <Text style={styles.dropdownText}>{selectedDoctorType}</Text>
+            <Icon name="unfold-more" size={24} color="#9ca3af" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Description Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>DESCRIPTION</Text>
+          <TextInput
+            style={styles.textArea}
+            placeholder="Describe your symptoms or health concerns in detail..."
+            placeholderTextColor="#cbd5e1"
+            multiline
+            numberOfLines={6}
+            textAlignVertical="top"
+            value={description}
+            onChangeText={setDescription}
+          />
+        </View>
+
+        {/* Available Specialists Section */}
+        <View style={styles.specialistsHeader}>
+          <Text style={styles.specialistsTitle}>Available Specialists</Text>
+          <View style={styles.nearbyBadge}>
+            <Text style={styles.nearbyText}>{doctors.length} Nearby</Text>
+          </View>
+        </View>
+
+        {/* Doctor Cards */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.doctorsScroll}
+          contentContainerStyle={styles.doctorsScrollContent}
+        >
+          {doctors.length > 0 ? (
+            doctors.map((doctor) => (
+              <TouchableOpacity
+                key={doctor.id}
+                style={[
+                  styles.doctorCard,
+                  selectedDoctor === doctor.id && styles.doctorCardSelected,
+                ]}
+                onPress={() => setSelectedDoctor(doctor.id)}
+              >
+                <Image source={{ uri: doctor.image }} style={styles.doctorImage} />
+                <View style={styles.ratingBadge}>
+                  <Icon name="star" size={16} color="#eab308" />
+                  <Text style={styles.ratingText}>{doctor.rating}</Text>
+                </View>
+                <View style={styles.doctorCardContent}>
+                  <Text style={styles.doctorName}>{doctor.name}</Text>
+                  <Text style={styles.doctorExperience}>{doctor.experience}</Text>
+                  <View style={styles.statusBadge}>
+                    <Icon name="check-circle" size={16} color={doctor.statusColor} />
+                    <Text style={[styles.statusText, { color: doctor.statusColor }]}>
+                      {doctor.status}
+                    </Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))
+          ) : (
+            <View style={styles.noDoctorsContainer}>
+              <Icon name="info-outline" size={48} color="#cbd5e1" />
+              <Text style={styles.noDoctorsText}>No specialists available</Text>
+              <Text style={styles.noDoctorsSubtext}>
+                Please select a different doctor type
+              </Text>
+            </View>
+          )}
+        </ScrollView>
+
+        {/* Appointment Time Section */}
+        <View style={styles.appointmentSection}>
+          <View style={styles.appointmentHeader}>
+            <Icon name="calendar-today" size={24} color="#2d7576" />
+            <Text style={styles.appointmentTitle}>Select Appointment Time</Text>
+          </View>
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.timeSlotsScroll}
+            contentContainerStyle={styles.timeSlotsContent}
+          >
+            {timeSlots.map((time) => (
+              <TouchableOpacity
+                key={time}
+                style={[
+                  styles.timeSlot,
+                  selectedTime === time && styles.timeSlotSelected,
+                ]}
+                onPress={() => setSelectedTime(time)}
+              >
+                <Text
+                  style={[
+                    styles.timeSlotText,
+                    selectedTime === time && styles.timeSlotTextSelected,
+                  ]}
+                >
+                  {time}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* Bottom Padding */}
+        <View style={{ height: 100 }} />
+      </ScrollView>
+
+      {/* Connect Button */}
+      <View style={styles.bottomContainer}>
+        <TouchableOpacity style={styles.connectButton} onPress={()=>{
+                navigation.navigate("Telecom")
+        }}>
+          <Icon name="videocam" size={24} color="#ffffff" />
+          <Text style={styles.connectButtonText}>Connect Online Now</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Doctor Type Picker Modal */}
+      <Modal
+        visible={showDoctorTypePicker}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowDoctorTypePicker(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowDoctorTypePicker(false)}
+        >
+          <View style={styles.pickerContainer}>
+            <View style={styles.pickerHeader}>
+              <Text style={styles.pickerTitle}>Select Doctor Type</Text>
+              <TouchableOpacity onPress={() => setShowDoctorTypePicker(false)}>
+                <Icon name="close" size={24} color="#131616" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.pickerOptions}>
+              {doctorTypes.map((type, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.pickerOption,
+                    selectedDoctorType === type && styles.pickerOptionSelected,
+                  ]}
+                  onPress={() => {
+                    setSelectedDoctorType(type);
+                    setShowDoctorTypePicker(false);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.pickerOptionText,
+                      selectedDoctorType === type && styles.pickerOptionTextSelected,
+                    ]}
+                  >
+                    {type}
+                  </Text>
+                  {selectedDoctorType === type && (
+                    <Icon name="check" size={20} color="#2d7576" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+  },
+  backButton: {
+    padding: 4,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#131616',
+    flex: 1,
+    textAlign: 'center',
+    marginHorizontal: 16,
+  },
+  infoButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#2d7576',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  content: {
+    flex: 1,
+  },
+  section: {
+    paddingHorizontal: 24,
+    paddingTop: 24,
+  },
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#2d7576',
+    letterSpacing: 1,
+    marginBottom: 12,
+  },
+  dropdown: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  dropdownText: {
+    fontSize: 16,
+    color: '#131616',
+    fontWeight: '500',
+  },
+  textArea: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    fontSize: 15,
+    color: '#131616',
+    minHeight: 140,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  specialistsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingTop: 32,
+    paddingBottom: 16,
+  },
+  specialistsTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#131616',
+  },
+  nearbyBadge: {
+    backgroundColor: '#d1fae5',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  nearbyText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#2d7576',
+  },
+  doctorsScroll: {
+    paddingLeft: 24,
+  },
+  doctorsScrollContent: {
+    paddingRight: 24,
+    gap: 16,
+  },
+  doctorCard: {
+    width: 280,
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginRight: 16,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  doctorCardSelected: {
+    borderColor: '#2d7576',
+  },
+  doctorImage: {
+    width: '100%',
+    height: 200,
+    backgroundColor: '#2d7576',
+  },
+  ratingBadge: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
+    gap: 4,
+  },
+  ratingText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#131616',
+  },
+  doctorCardContent: {
+    padding: 16,
+  },
+  doctorName: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#131616',
+    marginBottom: 4,
+  },
+  doctorExperience: {
+    fontSize: 14,
+    color: '#64748b',
+    fontStyle: 'italic',
+    marginBottom: 12,
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  statusText: {
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  appointmentSection: {
+    paddingHorizontal: 24,
+    paddingTop: 32,
+  },
+  appointmentHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 16,
+  },
+  appointmentTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#131616',
+  },
+  timeSlotsScroll: {
+    marginTop: 8,
+  },
+  timeSlotsContent: {
+    gap: 12,
+  },
+  timeSlot: {
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 24,
+    borderWidth: 2,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#ffffff',
+    marginRight: 12,
+  },
+  timeSlotSelected: {
+    backgroundColor: '#2d7576',
+    borderColor: '#2d7576',
+  },
+  timeSlotText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#131616',
+  },
+  timeSlotTextSelected: {
+    color: '#ffffff',
+  },
+  bottomContainer: {
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    backgroundColor: '#ffffff',
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9',
+  },
+  connectButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#2d7576',
+    paddingVertical: 16,
+    borderRadius: 16,
+    gap: 12,
+    shadowColor: '#2d7576',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  connectButtonText: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  pickerContainer: {
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '70%',
+    paddingBottom: 20,
+  },
+  pickerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+  },
+  pickerTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#131616',
+  },
+  pickerOptions: {
+    paddingHorizontal: 20,
+  },
+  pickerOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+  },
+  pickerOptionSelected: {
+    backgroundColor: '#f0fdf4',
+  },
+  pickerOptionText: {
+    fontSize: 16,
+    color: '#131616',
+    fontWeight: '500',
+  },
+  pickerOptionTextSelected: {
+    color: '#2d7576',
+    fontWeight: '700',
+  },
+  noDoctorsContainer: {
+    width: 280,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+  },
+  noDoctorsText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#64748b',
+    marginTop: 12,
+  },
+  noDoctorsSubtext: {
+    fontSize: 14,
+    color: '#94a3b8',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+});
+
+export default ConsultationRequestScreen;

@@ -163,7 +163,7 @@ const Landing = () => {
             { name: "Education", icon: "school" },
             { name: "Freelance", icon: "work" },
             { name: "Buy/Sell", icon: "shopping-bag" },
-            { name: "Swachify Products", icon: "shopping-bag" },
+            { name: "Swachify Products", icon: "shopping-bag" }, 
             { name: "More", icon: "grid-view" },
           ].map((item, i) => {
             return (
@@ -228,7 +228,7 @@ const Landing = () => {
 
     case "Swachify Products":
       setShowMoreOptions(false);
-      navigation.navigate("ProductScreen");
+      navigation.navigate("Health");
       break;
 
     case "Buy/Sell":
@@ -238,12 +238,11 @@ const Landing = () => {
     case "Freelance":
       setShowMoreOptions(false);
       navigation.navigate("Freelancer");
-      break;
+      break;     
     default:
       break;
   }
 }}
-
               >
                 <View style={styles.gridIcon}>
                   <MaterialIcons name={item.icon} size={28} color="#3b82f6" />
