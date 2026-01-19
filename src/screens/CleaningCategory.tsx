@@ -66,12 +66,13 @@ const CleaningCategorySelectScreen = () => {
             style={styles.bigCard}
             onPress={() => navigation.navigate("CleaningServiceScreen")} // ✅ ADDED
           >
-            <Image
-              source={{
-                uri: "https://images.unsplash.com/photo-1581090700227-1e37b190418e?w=900",
-              }}
-              style={styles.cardImage}
-            />
+<Image
+  source={{
+    uri: "https://images.unsplash.com/photo-1618220179428-22790b461013?auto=format&fit=crop&w=800&q=80",
+  }}
+  style={styles.cardImage}
+/>
+
             <View style={styles.cardOverlay} />
             <View style={styles.cardContent}>
               <Text style={styles.cardTitle}>Home Services</Text>

@@ -29,7 +29,8 @@ import type { Internship } from "./src/screens/InternshipList";
 import Freelancer from "./src/screens/Freelancer";
 import TransportComingSoon from "./src/screens/TransportComingSoon";
 import RawMaterial from "./src/screens/RawMaterial";
-
+import ServiceDetailsScreen from "./src/screens/ServiceDetailsScreen";
+import PaymentSuccessDetailsScreen from "./src/screens/PaymentSuccessDetailsScreen";
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -69,7 +70,25 @@ export type RootStackParamList = {
   ProductRegistration: undefined;
   InternshipList: undefined;
   RawMaterial: undefined;
+
+  // ✅ ADD ONLY THIS
+  ServiceDetails: {
+    service: {
+      id: string;
+      title: string;
+      price?: string;
+      category?: string;
+      image?: any;
+    };
+  };
+  PaymentSuccessDetails: {
+    addons: Array<{
+      id: number; name: string; price: number; quantity: number;
+    }>;
+    floorArea: string;  
+  };
 };
+
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -82,6 +101,12 @@ export default function App(): React.ReactElement {
         <Stack.Screen name="Internship" component={InternshipDetailsScreen} />
         <Stack.Screen name="InternshipList" component={InternshipList} />
         <Stack.Screen name="Landing" component={Landing} />
+        <Stack.Screen name="ServiceDetails" component={ServiceDetailsScreen} />
+        <Stack.Screen
+  name="PaymentSuccessDetails"
+  component={PaymentSuccessDetailsScreen}
+/>
+
         <Stack.Screen name="Cleaning" component={Cleaning} />
         <Stack.Screen name="CleaningCategory" component={CleaningCategorySelectScreen} />
         <Stack.Screen name="PaymentScreen" component={PaymentScreen} />
