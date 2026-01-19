@@ -36,8 +36,18 @@ export default function RegisterProductModal({
   const [shopAddress, setShopAddress] = useState("");
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [showImageOptions, setShowImageOptions] = useState(false);
+  const [productsAdded, setProductsAdded] = useState(0);
 
   const resetForm = () => {
+    setProductName("");
+    setDescription("");
+    setPrice("");
+    setCategory("sustainable");
+    setSelectedImages([]);
+    // Note: We don't reset companyName and shopAddress as they're likely same for multiple products
+  };
+
+  const resetAllFields = () => {
     setCompanyName("");
     setProductName("");
     setDescription("");
@@ -45,6 +55,7 @@ export default function RegisterProductModal({
     setCategory("sustainable");
     setShopAddress("");
     setSelectedImages([]);
+    setProductsAdded(0);
   };
 
   const requestCameraPermission = async () => {
@@ -130,13 +141,8 @@ export default function RegisterProductModal({
     setSelectedImages(updatedImages);
   };
 
-  const handleSubmit = () => {
-    if (!companyName || !productName || !price || !shopAddress) {
-      Alert.alert("Error", "Please fill in all required fields including shop address");
-      return;
-    }
-
-    const newProduct = {
+  const createProductObject = () => {
+    return {
       title: productName,
       brand: companyName,
       price: price,
@@ -149,9 +155,64 @@ export default function RegisterProductModal({
       images: selectedImages,
       description: description,
     };
+  };
 
+  const handleSubmit = () => {
+    if (!companyName || !productName || !price || !shopAddress) {
+      Alert.alert("Error", "Please fill in all required fields");
+      return;
+    }
+
+    const newProduct = createProductObject();
     onSubmit(newProduct);
+    resetAllFields();
+  };
+
+  const handleSaveAndAddAnother = () => {
+    if (!companyName || !productName || !price || !shopAddress) {
+      Alert.alert("Error", "Please fill in all required fields");
+      return;
+    }
+
+    const newProduct = createProductObject();
+    onSubmit(newProduct);
+    
+    const currentCount = productsAdded + 1;
+    setProductsAdded(currentCount);
+    
+    // Show success message
+    Alert.alert(
+      "Success", 
+      `Product ${currentCount} added! Add another product or click "Done" to finish.`,
+      [{ text: "OK" }]
+    );
+    
     resetForm();
+  };
+
+  const handleClose = () => {
+    if (productsAdded > 0 || companyName || productName || price) {
+      Alert.alert(
+        "Confirm Exit",
+        productsAdded > 0 
+          ? `You have added ${productsAdded} product(s). Any unsaved changes will be lost. Exit anyway?`
+          : "You have unsaved changes. Exit anyway?",
+        [
+          { text: "Cancel", style: "cancel" },
+          { 
+            text: "Exit", 
+            style: "destructive",
+            onPress: () => {
+              resetAllFields();
+              onClose();
+            }
+          }
+        ]
+      );
+    } else {
+      resetAllFields();
+      onClose();
+    }
   };
 
   return (
@@ -161,11 +222,16 @@ export default function RegisterProductModal({
 
         <SafeAreaView>
           <View style={styles.header}>
-            <TouchableOpacity onPress={onClose} style={styles.backButton}>
+            <TouchableOpacity onPress={handleClose} style={styles.backButton}>
               <MaterialIcons name="arrow-back-ios" size={20} color="#fff" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Register Product</Text>
-            <View style={{ width: 40 }} />
+            {productsAdded > 0 && (
+              <View style={styles.counterBadge}>
+                <Text style={styles.counterText}>{productsAdded}</Text>
+              </View>
+            )}
+            {productsAdded === 0 && <View style={{ width: 40 }} />}
           </View>
         </SafeAreaView>
 
@@ -175,6 +241,15 @@ export default function RegisterProductModal({
             <Text style={styles.subtitle}>
               Enter the details of your Swachify product below to list it on the platform.
             </Text>
+
+            {productsAdded > 0 && (
+              <View style={styles.successBanner}>
+                <MaterialIcons name="check-circle" size={20} color="#10b981" />
+                <Text style={styles.successText}>
+                  {productsAdded} product{productsAdded > 1 ? 's' : ''} added successfully!
+                </Text>
+              </View>
+            )}
 
             <View style={styles.formSection}>
               <Text style={styles.label}>Company / Entrepreneur Name *</Text>
@@ -306,14 +381,24 @@ export default function RegisterProductModal({
               )}
             </View>
 
-            <View style={{ height: 100 }} />
+            <View style={{ height: 140 }} />
           </View>
         </ScrollView>
 
         <View style={styles.footer}>
+          <TouchableOpacity 
+            style={styles.saveAndAddButton} 
+            onPress={handleSaveAndAddAnother}
+          >
+            <MaterialIcons name="add-circle-outline" size={20} color="#135bec" />
+            <Text style={styles.saveAndAddButtonText}>Save & Add Another</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-            <MaterialIcons name="app-registration" size={20} color="#fff" />
-            <Text style={styles.submitButtonText}>Register Product</Text>
+            <MaterialIcons name="check" size={20} color="#fff" />
+            <Text style={styles.submitButtonText}>
+              {productsAdded > 0 ? 'Done' : 'Register Product'}
+            </Text>
           </TouchableOpacity>
           <View style={styles.homeIndicator} />
         </View>
@@ -392,10 +477,41 @@ const styles = StyleSheet.create({
   },
   backButton: { width: 40, height: 40, justifyContent: "center", alignItems: "center" },
   headerTitle: { color: "#fff", fontSize: 18, fontWeight: "700" },
+  counterBadge: {
+    backgroundColor: "#10b981",
+    borderRadius: 12,
+    minWidth: 24,
+    height: 24,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 8,
+  },
+  counterText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "700",
+  },
   scrollView: { flex: 1 },
   content: { padding: 16 },
   mainTitle: { color: "#fff", fontSize: 28, fontWeight: "700", marginTop: 8 },
   subtitle: { color: "#9da6b9", fontSize: 14, marginTop: 8, lineHeight: 20 },
+  successBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "rgba(16, 185, 129, 0.1)",
+    borderWidth: 1,
+    borderColor: "#10b981",
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 16,
+  },
+  successText: {
+    color: "#10b981",
+    fontSize: 14,
+    fontWeight: "600",
+    flex: 1,
+  },
   formSection: { marginTop: 24 },
   label: { color: "#fff", fontSize: 14, fontWeight: "600", marginBottom: 8, marginLeft: 4 },
   input: {
@@ -487,6 +603,23 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(16, 22, 34, 0.95)",
     borderTopWidth: 1,
     borderTopColor: "#1c212e",
+  },
+  saveAndAddButton: {
+    height: 56,
+    backgroundColor: "rgba(19, 91, 236, 0.1)",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#135bec",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    marginBottom: 12,
+  },
+  saveAndAddButtonText: {
+    color: "#135bec",
+    fontSize: 16,
+    fontWeight: "700",
   },
   submitButton: {
     height: 56,
