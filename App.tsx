@@ -29,8 +29,11 @@ import type { Internship } from "./src/screens/InternshipList";
 import Freelancer from "./src/screens/Freelancer";
 import TransportComingSoon from "./src/screens/TransportComingSoon";
 import RawMaterial from "./src/screens/RawMaterial";
-
-
+import CandidateProfile from "./src/screens/CandidateProfile";
+import ReviewApplication from "./src/screens/ReviewApplication";
+import TrainingScreen from "./src/screens/TrainingScreen";
+import TrainingDetailsScreen from "./src/screens/trainingDetailsScreen";
+import ApplicationSuccessScreen from "./src/screens/ApplicationSuccessScreen";
 export type RootStackParamList = {
   Splash: undefined;
   Onboarding: undefined;
@@ -69,6 +72,12 @@ export type RootStackParamList = {
   ProductRegistration: undefined;
   InternshipList: undefined;
   RawMaterial: undefined;
+  CandidateProfile: undefined;
+  Training: undefined;
+  TrainingDetails: undefined;
+  ApplicationSuccess: undefined;
+  // ReviewApplication: undefined;
+   ReviewApplication: { internship: Internship };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -88,6 +97,7 @@ export default function App(): React.ReactElement {
         <Stack.Screen name="BookCleaning" component={BookCleaningScreen} />
         <Stack.Screen name="Notifications" component={NotificationsScreen} />
         <Stack.Screen name="StudentListing" component={Studentlisting} />
+        <Stack.Screen name="CandidateProfile" component={CandidateProfile} />
         <Stack.Screen name="EducationHome" component={EducationHome} />
         <Stack.Screen name="AuthScreen" component={AuthScreen} />
         <Stack.Screen name="ProfileInformation" component={ProfileInformation} />
@@ -103,6 +113,10 @@ export default function App(): React.ReactElement {
         <Stack.Screen name="Transport" component={TransportComingSoon} />
          <Stack.Screen name="Freelancer" component={Freelancer} />
          <Stack.Screen name="RawMaterial" component={RawMaterial} />
+        <Stack.Screen name="Training" component={TrainingScreen} />
+        <Stack.Screen name="ApplicationSuccess" component={ApplicationSuccessScreen} />
+        <Stack.Screen name="TrainingDetails" component={TrainingDetailsScreen} />
+        <Stack.Screen name="ReviewApplication" component={ReviewApplication} />
       </Stack.Navigator>
     </NavigationContainer>
   );
