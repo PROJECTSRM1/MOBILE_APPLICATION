@@ -31,6 +31,10 @@ import TransportComingSoon from "./src/screens/TransportComingSoon";
 import RawMaterial from "./src/screens/RawMaterial";
 import ServiceDetailsScreen from "./src/screens/ServiceDetailsScreen";
 import PaymentSuccessDetailsScreen from "./src/screens/PaymentSuccessDetailsScreen";
+import ProductDetailScreen from "./src/screens/ProductDetailScreen";
+import RegisterProductModal from "./src/screens/RegisterProductModal";
+import BuyerPage from "./src/screens/BuyerPage";
+
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -70,23 +74,8 @@ export type RootStackParamList = {
   ProductRegistration: undefined;
   InternshipList: undefined;
   RawMaterial: undefined;
-
-  // ✅ ADD ONLY THIS
-  ServiceDetails: {
-    service: {
-      id: string;
-      title: string;
-      price?: string;
-      category?: string;
-      image?: any;
-    };
-  };
-  PaymentSuccessDetails: {
-    addons: Array<{
-      id: number; name: string; price: number; quantity: number;
-    }>;
-    floorArea: string;  
-  };
+  ProductDetail: undefined;
+  BuyerPage: undefined;
 };
 
 
@@ -128,6 +117,9 @@ export default function App(): React.ReactElement {
         <Stack.Screen name="Transport" component={TransportComingSoon} />
          <Stack.Screen name="Freelancer" component={Freelancer} />
          <Stack.Screen name="RawMaterial" component={RawMaterial} />
+        <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
+        <Stack.Screen name="BuyerPage" component={BuyerPage} />
+
       </Stack.Navigator>
     </NavigationContainer>
   );
