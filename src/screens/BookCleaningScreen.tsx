@@ -20,6 +20,8 @@ import {  PERMISSIONS, RESULTS, request } from "react-native-permissions";
 import { useRoute } from "@react-navigation/native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useNavigation } from "@react-navigation/native";
+import { launchCamera, launchImageLibrary, Asset } from "react-native-image-picker";
+
 
 /* =======================
    TYPES
@@ -77,6 +79,8 @@ const ADDON_PRICE = 25;
 
 const BookCleaningScreen: React.FC = () => {
   const route = useRoute<any>();
+  const consultationCharge = route.params?.consultationCharge || 0;
+
   const navigation = useNavigation<any>();
 
   const [locationType, setLocationType] = useState<"default" | "other">("default");
@@ -85,10 +89,19 @@ const BookCleaningScreen: React.FC = () => {
   const [floorArea, setFloorArea] = useState("");
   const [date, setDate] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [time, setTime] = useState("10:00 AM");
+
+const [extraHours, setExtraHours] = useState(0);
+
+const [reason, setReason] = useState("");
+const [reasonError, setReasonError] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const [contactNumber, setContactNumber] = useState("");
   const [locationDetails, setLocationDetails] = useState("");
+  const [images, setImages] = useState<Asset[]>([]);
+
   const [selectedServices, setSelectedServices] = useState<Service[]>(() => {
     const incoming = route.params?.selectedServices || [];
 
@@ -118,7 +131,12 @@ const BookCleaningScreen: React.FC = () => {
     (service) => !selectedServices.some((s) => s.id === service.id)
   );
 
-  const totalPrice = (mainService ? BASE_PRICE : 0) + addonServices.length * ADDON_PRICE;
+ const servicePrice =
+  (mainService ? BASE_PRICE : 0) +
+  addonServices.length * ADDON_PRICE;
+
+const totalPrice = servicePrice + consultationCharge;
+
 
   // Check if employee was allocated from EmployeeAllocation screen
   useEffect(() => {
@@ -240,6 +258,19 @@ const BookCleaningScreen: React.FC = () => {
     }
   };
 
+  const onTimeChange = (_event: any, selectedTimeValue?: Date) => {
+  setShowTimePicker(false);
+
+  if (selectedTimeValue) {
+    const formattedTime = selectedTimeValue.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    setTime(formattedTime);
+  }
+};
+
+
   const handleAllocationTypeChange = (value: "auto" | "manual") => {
     setAllocationType(value);
 
@@ -257,6 +288,35 @@ const BookCleaningScreen: React.FC = () => {
       });
     }
   };
+
+  const handleTakePhoto = async () => {
+  const result = await launchCamera({
+    mediaType: "photo",
+    quality: 0.7,
+    saveToPhotos: true,
+  });
+
+  if (!result.didCancel && result.assets) {
+    setImages((prev) => [...prev, ...result.assets!]);
+  }
+};
+
+const handlePickFromGallery = async () => {
+  const result = await launchImageLibrary({
+    mediaType: "photo",
+    selectionLimit: 0, // multiple
+    quality: 0.7,
+  });
+
+  if (!result.didCancel && result.assets) {
+    setImages((prev) => [...prev, ...result.assets!]);
+  }
+};
+
+const removeImage = (index: number) => {
+  setImages((prev) => prev.filter((_, i) => i !== index));
+};
+
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
@@ -420,84 +480,184 @@ const BookCleaningScreen: React.FC = () => {
           </View>
         )}
 
-        {/* FLOOR AREA & DATE */}
-        <View style={styles.row}>
-          <View style={styles.halfInput}>
-            <Text style={styles.label}>Floor Area (Sqft)</Text>
-            <View style={styles.inputWithSuffix}>
+        {/* Floor Area */}
+          <View style={styles.section}>
+            <Text style={styles.label}>FLOOR AREA (SQFT)</Text>
+            <View style={styles.floorInput}>
               <TextInput
-                placeholder="e.g. 1200"
-                placeholderTextColor="#9CA3AF"
-                style={styles.inputFlex}
+                style={styles.floorField}
+                placeholder="1400"
+                placeholderTextColor="#a0a0a0"
                 keyboardType="numeric"
                 value={floorArea}
                 onChangeText={setFloorArea}
               />
-              <Text style={styles.suffixText}>sqft</Text>
+              <Text style={styles.sqftLabel}>SQFT</Text>
             </View>
           </View>
 
-          <View style={styles.halfInput}>
-            <Text style={styles.label}>Date</Text>
-            <View style={styles.inputWithIcon}>
-              <TextInput
-                placeholder="DD/MM/YYYY"
-                placeholderTextColor="#9CA3AF"
-                style={styles.inputFlex}
-                value={date}
-                editable={false}
-              />
+{/* Date and Time */}
+<View style={styles.dateTimeRow}>
+  {/* DATE */}
+  <View style={styles.dateSection}>
+    <Text style={styles.label}>DATE</Text>
+    <TouchableOpacity
+      style={styles.dateInput}
+      onPress={() => setShowDatePicker(true)}
+      activeOpacity={0.8}
+    >
+      <MaterialIcons name="calendar-today" size={20} color="#9CA3AF" />
+      <Text style={styles.dateText}>
+        {date || "Select Date"}
+      </Text>
+    </TouchableOpacity>
+  </View>
 
-              <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-                <MaterialIcons name="calendar-today" size={18} color="#9CA3AF" />
-              </TouchableOpacity>
-            </View>
-          </View>
+  {/* TIME */}
+  <View style={styles.timeSection}>
+    <Text style={styles.label}>START TIME</Text>
+    <TouchableOpacity
+      style={styles.timeInput}
+      onPress={() => setShowTimePicker(true)}
+      activeOpacity={0.8}
+    >
+      <MaterialIcons name="access-time" size={20} color="#9CA3AF" />
+      <Text style={styles.timeText}>
+        {time || "Select Time"}
+      </Text>
+    </TouchableOpacity>
+  </View>
+</View>
+
+          {/* DATE PICKER */}
+{showDatePicker && (
+  <DateTimePicker
+    value={selectedDate || new Date()}
+    mode="date"
+    display={Platform.OS === "ios" ? "spinner" : "default"}
+    minimumDate={new Date()}
+    onChange={onDateChange}
+  />
+)}
+
+{/* TIME PICKER */}
+{showTimePicker && (
+  <DateTimePicker
+    value={new Date()}
+    mode="time"
+    display={Platform.OS === "ios" ? "spinner" : "default"}
+    onChange={onTimeChange}
+  />
+)}
+
+
+    {/* Extra Hours Card */}
+<View style={styles.extraHoursCard}>
+  <View style={styles.extraHoursHeader}>
+    <View>
+      <Text style={styles.extraHoursTitle}>Extra Hours</Text>
+      <Text style={styles.extraHoursSubtitle}>Deep cleaning requirement</Text>
+    </View>
+
+    <View style={styles.counterContainer}>
+      <TouchableOpacity
+        style={styles.counterButton}
+        onPress={() => setExtraHours(Math.max(0, extraHours - 1))}
+      >
+        <Text style={styles.counterIcon}>−</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.counterText}>+{extraHours} hr</Text>
+
+      <TouchableOpacity
+        style={styles.counterButtonPlus}
+        onPress={() => setExtraHours(extraHours + 1)}
+      >
+        <Text style={styles.counterIcon}>+</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+
+  {/* IMPORTANT REASON SECTION */}
+  {extraHours > 0 && (
+    <View style={styles.reasonSection}>
+      <View style={styles.reasonHeader}>
+        <MaterialIcons name="warning" size={16} color="#F59E0B" />
+        <Text style={styles.reasonLabel}>
+          Reason for Add-on Work <Text style={styles.required}>*</Text>
+        </Text>
+      </View>
+
+      <TextInput
+        style={[
+          styles.textarea,
+          styles.importantTextarea,
+          reasonError && styles.textareaError,
+        ]}
+        placeholder="Explain why additional hours are required"
+        placeholderTextColor="#9CA3AF"
+        multiline
+        numberOfLines={4}
+        value={reason}
+        onChangeText={(text) => {
+          setReason(text);
+          setReasonError(false);
+        }}
+      />
+
+      {reasonError && (
+        <View style={styles.errorMessage}>
+          <MaterialIcons name="error-outline" size={18} color="#EF4444" />
+          <Text style={styles.errorText}>
+            This field is required when extra hours are added
+          </Text>
         </View>
-        {showDatePicker && (
-          <DateTimePicker
-            value={selectedDate || new Date()}
-            mode="date"
-            display="calendar"
-            onChange={onDateChange}
-            minimumDate={new Date()}
-          />
-        )}
+      )}
+    </View>
+  )}
+</View>
 
-        {/* DIVIDER */}
-        <View style={styles.sectionDivider} />
+ {/* Upload Photos */}
+<View style={styles.section}>
+  <Text style={styles.label}>UPLOAD PHOTOS OF AREA</Text>
 
-        {/* START TIME */}
-        <View style={styles.timeHeader}>
-          <Text style={styles.sectionTitle}>Select Start Time</Text>
-          <Text style={styles.subText}>1 Hour Duration</Text>
-        </View>
+  <View style={styles.photoContainer}>
+    {/* TAKE PHOTO */}
+    <TouchableOpacity
+      style={styles.photoBoxDashed}
+      onPress={handleTakePhoto}
+      activeOpacity={0.8}
+    >
+      <MaterialIcons name="photo-camera" size={28} color="#135BEC" />
+      <Text style={styles.photoText}>Take Photo</Text>
+    </TouchableOpacity>
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.timeScroll}
+    {/* GALLERY */}
+    <TouchableOpacity
+      style={styles.photoBoxDashed}
+      onPress={handlePickFromGallery}
+      activeOpacity={0.8}
+    >
+      <MaterialIcons name="photo-library" size={28} color="#135BEC" />
+      <Text style={styles.photoText}>Gallery</Text>
+    </TouchableOpacity>
+
+    {/* IMAGE PREVIEWS */}
+    {images.map((img, index) => (
+      <View key={index} style={styles.photoPreview}>
+        <Image source={{ uri: img.uri }} style={styles.photoImage} />
+
+        <TouchableOpacity
+          style={styles.removePhoto}
+          onPress={() => removeImage(index)}
         >
-          {TIME_SLOTS.map((time) => (
-            <TouchableOpacity
-              key={time}
-              style={[
-                styles.timeChip,
-                selectedTime === time && styles.timeChipActive,
-              ]}
-              onPress={() => setSelectedTime(time)}
-            >
-              <Text
-                style={[
-                  styles.timeText,
-                  selectedTime === time && styles.timeTextActive,
-                ]}
-              >
-                {time}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+          <MaterialIcons name="close" size={14} color="#fff" />
+        </TouchableOpacity>
+      </View>
+    ))}
+  </View>
+</View>
+
 
         {/* DIVIDER */}
         <View style={styles.thinDivider} />
@@ -573,17 +733,31 @@ const BookCleaningScreen: React.FC = () => {
         )}
 
         {/* COST SUMMARY */}
-        <View style={styles.summary}>
-          <SummaryRow
-            label={`Add-ons (${addonServices.length})`}
-            value={`$${(addonServices.length * ADDON_PRICE).toFixed(2)}`}
-          />
-          <View style={styles.summaryDivider} />
-          <View style={styles.summaryTotal}>
-            <Text style={styles.summaryTotalLabel}>Estimated Cost</Text>
-            <Text style={styles.summaryTotalValue}>${totalPrice.toFixed(2)}</Text>
-          </View>
-        </View>
+{/* COST SUMMARY */}
+<View style={styles.summary}>
+  <SummaryRow
+    label={`Add-ons (${addonServices.length})`}
+    value={`$${(addonServices.length * ADDON_PRICE).toFixed(2)}`}
+  />
+
+  {/* 👇 ADD THIS BLOCK */}
+  {consultationCharge > 0 && (
+    <SummaryRow
+      label="Consultation Charge"
+      value={`$${consultationCharge.toFixed(2)}`}
+    />
+  )}
+
+  <View style={styles.summaryDivider} />
+
+  <View style={styles.summaryTotal}>
+    <Text style={styles.summaryTotalLabel}>Estimated Cost</Text>
+    <Text style={styles.summaryTotalValue}>
+      ${totalPrice.toFixed(2)}
+    </Text>
+  </View>
+</View>
+
 
         {/* BOTTOM SPACING */}
         <View style={{ height: 140 }} />
@@ -594,8 +768,19 @@ const BookCleaningScreen: React.FC = () => {
         <TouchableOpacity
           style={styles.ctaBtn}
           activeOpacity={0.8}
-          onPress={() => navigation.navigate("PaymentScreen")}
-        >
+          onPress={() =>
+        navigation.navigate("PaymentScreen", {
+          allocatedEmployee,
+          consultationCharge,
+          totalAmount: totalPrice,
+          bookingDetails: {
+            serviceName: selectedServices[0]?.title,
+            date,
+            time,
+            address: currentAddress,
+          },
+        })
+      }>
           <MaterialIcons name="shopping-bag" size={22} color="#fff" />
           <Text style={styles.ctaText}>Add to Cart and Checkout</Text>
         </TouchableOpacity>
@@ -1239,6 +1424,267 @@ detectedLocationText: {
 detectedLocationPlaceholder: {
   color: "#9CA3AF",
   fontSize: 14,
+},
+
+ section: {
+    marginBottom: 24,
+  },
+
+  floorInput: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1C1F27',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#3B4354',
+    paddingHorizontal: 16,
+    height: 56,
+    marginBottom: 16,
+  },
+
+  floorField: {
+    flex: 1,
+    color: '#fff',
+    fontSize: 16,
+  },
+
+  sqftLabel: {
+    color: '#9CA3AF',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+
+  // Missing styles for Date and Time section
+  dateTimeRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 24,
+  },
+
+  dateSection: {
+    flex: 1,
+  },
+
+  timeSection: {
+    flex: 1,
+  },
+
+  dateInput: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1C1F27',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#3B4354',
+    paddingHorizontal: 16,
+    height: 56,
+    gap: 10,
+  },
+
+  timeInput: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1C1F27',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#3B4354',
+    paddingHorizontal: 16,
+    height: 56,
+    gap: 10,
+  },
+
+  dateIcon: {
+    fontSize: 20,
+  },
+
+  timeIcon: {
+    fontSize: 20,
+  },
+
+  dateText: {
+    color: '#fff',
+    fontSize: 15,
+  },
+
+  // Missing styles for Extra Hours Card
+  extraHoursCard: {
+    backgroundColor: '#1C1F27',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#3B4354',
+    padding: 20,
+    marginBottom: 24,
+  },
+
+  extraHoursHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+
+  extraHoursTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#fff',
+    marginBottom: 4,
+  },
+
+  extraHoursSubtitle: {
+    fontSize: 13,
+    color: '#9CA3AF',
+  },
+
+  counterContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#101622',
+    borderRadius: 30,
+    padding: 6,
+    gap: 12,
+  },
+
+  counterButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#282E39',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  counterButtonPlus: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#135BEC',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  counterIcon: {
+    fontSize: 18,
+    color: '#fff',
+    fontWeight: '700',
+  },
+
+  counterText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
+    minWidth: 50,
+    textAlign: 'center',
+  },
+
+  reasonSection: {
+    marginTop: 20,
+  },
+
+  reasonLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1,
+    color: '#135BEC',
+    marginBottom: 12,
+  },
+
+  textarea: {
+    backgroundColor: '#101622',
+    borderWidth: 2,
+    borderColor: '#3B4354',
+    borderRadius: 12,
+    padding: 16,
+    color: '#fff',
+    fontSize: 14,
+    minHeight: 100,
+    textAlignVertical: 'top',
+  },
+
+  textareaError: {
+    borderColor: '#ef4444',
+  },
+
+  errorMessage: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 12,
+  },
+
+  errorIcon: {
+    fontSize: 18,
+  },
+
+  errorText: {
+    fontSize: 13,
+    color: '#ef4444',
+  },
+reasonHeader: {
+  flexDirection: "row",
+  alignItems: "center",
+  gap: 6,
+  marginBottom: 10,
+},
+
+required: {
+  color: "#EF4444",
+  fontWeight: "700",
+},
+
+importantTextarea: {
+  borderColor: "#F59E0B",
+  backgroundColor: "#0F172A",
+},
+
+ photoContainer: {
+  flexDirection: "row",
+  flexWrap: "wrap",
+  gap: 12,
+},
+
+photoBoxDashed: {
+  width: 90,
+  height: 90,
+  borderRadius: 16,
+  borderWidth: 2,
+  borderStyle: "dashed",
+  borderColor: "#3B4354",
+  alignItems: "center",
+  justifyContent: "center",
+  backgroundColor: "transparent",
+},
+
+photoText: {
+  color: "#9CA3AF",
+  fontSize: 11,
+  marginTop: 6,
+  textAlign: "center",
+},
+
+photoPreview: {
+  width: 90,
+  height: 90,
+  borderRadius: 16,
+  overflow: "hidden",
+  backgroundColor: "#252835",
+},
+
+photoImage: {
+  width: "100%",
+  height: "100%",
+},
+
+removePhoto: {
+  position: "absolute",
+  top: -6,
+  right: -6,
+  width: 22,
+  height: 22,
+  borderRadius: 11,
+  backgroundColor: "#EF4444",
+  alignItems: "center",
+  justifyContent: "center",
+  elevation: 4,
 },
 
 });

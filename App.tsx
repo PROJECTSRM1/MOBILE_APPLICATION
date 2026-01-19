@@ -29,6 +29,8 @@ import type { Internship } from "./src/screens/InternshipList";
 import Freelancer from "./src/screens/Freelancer";
 import TransportComingSoon from "./src/screens/TransportComingSoon";
 import RawMaterial from "./src/screens/RawMaterial";
+import ServiceDetailsScreen from "./src/screens/ServiceDetailsScreen";
+import PaymentSuccessDetailsScreen from "./src/screens/PaymentSuccessDetailsScreen";
 import ProductDetailScreen from "./src/screens/ProductDetailScreen";
 import RegisterProductModal from "./src/screens/RegisterProductModal";
 import BuyerPage from "./src/screens/BuyerPage";
@@ -76,6 +78,7 @@ export type RootStackParamList = {
   BuyerPage: undefined;
 };
 
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App(): React.ReactElement {
@@ -87,6 +90,12 @@ export default function App(): React.ReactElement {
         <Stack.Screen name="Internship" component={InternshipDetailsScreen} />
         <Stack.Screen name="InternshipList" component={InternshipList} />
         <Stack.Screen name="Landing" component={Landing} />
+        <Stack.Screen name="ServiceDetails" component={ServiceDetailsScreen} />
+        <Stack.Screen
+  name="PaymentSuccessDetails"
+  component={PaymentSuccessDetailsScreen}
+/>
+
         <Stack.Screen name="Cleaning" component={Cleaning} />
         <Stack.Screen name="CleaningCategory" component={CleaningCategorySelectScreen} />
         <Stack.Screen name="PaymentScreen" component={PaymentScreen} />
