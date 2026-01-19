@@ -102,6 +102,8 @@ export type RootStackParamList = {
    ReviewApplication: { internship: Internship };
   ProductDetail: undefined;
   BuyerPage: undefined;
+  ServiceDetails: undefined;
+  PaymentSuccessDetails: undefined;
 };
 
 
@@ -117,11 +119,7 @@ export default function App(): React.ReactElement {
         <Stack.Screen name="InternshipList" component={InternshipList} />
         <Stack.Screen name="Landing" component={Landing} />
         <Stack.Screen name="ServiceDetails" component={ServiceDetailsScreen} />
-        <Stack.Screen
-  name="PaymentSuccessDetails"
-  component={PaymentSuccessDetailsScreen}
-/>
-
+        <Stack.Screen name="PaymentSuccessDetails" component={PaymentSuccessDetailsScreen} />
         <Stack.Screen name="Cleaning" component={Cleaning} />
         <Stack.Screen name="CleaningCategory" component={CleaningCategorySelectScreen} />
         <Stack.Screen name="PaymentScreen" component={PaymentScreen} />
