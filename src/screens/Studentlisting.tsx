@@ -38,7 +38,6 @@ interface Student {
    DATA (12 STUDENTS)
 ======================= */
 
-
 const studentsData: Student[] = [
   {
     id: 2045,
@@ -661,6 +660,21 @@ rightCol: {
   height: 90,
 },
 
+filterPillTextActive: {
+  color: "#fff",
+  fontWeight: "700",
+},
+nameRow: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+},
+
+candidateId: {
+  color: "#9ca3af",
+  fontSize: 12,
+  fontWeight: "600",
+},
 
 
 });
