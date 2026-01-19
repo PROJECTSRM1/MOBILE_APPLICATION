@@ -196,7 +196,7 @@ const Dropdown = ({
 /* =======================
    SCREEN
 ======================= */
-const Collegelisting = () => {
+const Studentlisting = () => {
   const navigation = useNavigation<any>();
   const [activeTab, setActiveTab] = useState("All Students");
   const [selectedCert, setSelectedCert] = useState<string | null>(null);
@@ -308,7 +308,10 @@ const ListHeader = () => (
             style={[styles.tabPill, active && styles.tabPillActive]}
           >
             <Text
-              style={[styles.tabPillText, active && styles.tabPillTextActive]}
+              style={[
+                styles.tabPillText,
+                active && styles.tabPillTextActive,
+              ]}
             >
               {item}
             </Text>
@@ -317,41 +320,31 @@ const ListHeader = () => (
       })}
     </View>
 
-    {/* 🔥 DROPDOWNS ONLY FOR ALL STUDENTS */}
-   {activeTab === "All Students" && (
-  <View style={styles.dropdownRow}>
-    <Dropdown
-      label="Aggregate"
-      value={selectedAggregate}
-      options={aggregateFilters}
-      onSelect={setSelectedAggregate}
-    />
+    {/* DROPDOWNS ONLY FOR ALL STUDENTS */}
+    {activeTab === "All Students" && (
+      <View style={styles.dropdownRow}>
+        <Dropdown
+          label="Aggregate"
+          value={selectedAggregate}
+          options={aggregateFilters}
+          onSelect={setSelectedAggregate}
+        />
 
-    <Dropdown
-      label="Cert"
-      value={selectedCert}
-      options={certFilters}
-      onSelect={setSelectedCert}
-    />
+        <Dropdown
+          label="Cert"
+          value={selectedCert}
+          options={certFilters}
+          onSelect={setSelectedCert}
+        />
 
-    <Dropdown
-      label="Internship"
-      value={selectedInternship}
-      options={internshipFilters}
-      onSelect={setSelectedInternship}
-    />
-  </View>
-)}
-
-    <Dropdown
-      label="Internship"
-      value={selectedInternship}
-      options={internshipFilters}
-      onSelect={setSelectedInternship}
-    />
-  </View>
-)}
-
+        <Dropdown
+          label="Internship"
+          value={selectedInternship}
+          options={internshipFilters}
+          onSelect={setSelectedInternship}
+        />
+      </View>
+    )}
   </View>
 );
 
@@ -470,7 +463,7 @@ const renderStudent = ({ item }: { item: Student }) => (
   );
 };
 
-export default Collegelisting;
+export default Studentlisting;
 
 /* =======================
    STYLES (UNCHANGED PREMIUM)
@@ -668,36 +661,26 @@ rightCol: {
   height: 90,
 },
 
-filterPillTextActive: {
-  color: "#fff",
-  fontWeight: "700",
-},
-nameRow: {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-},
+// filterPillTextActive: {
+//   color: "#fff",
+//   fontWeight: "700",
+// },
+// nameRow: {
+//   flexDirection: "row",
+//   justifyContent: "space-between",
+//   alignItems: "center",
+// },
 
-candidateId: {
-  color: "#9ca3af",
-  fontSize: 12,
-  fontWeight: "600",
-},
+// candidateId: {
+//   color: "#9ca3af",
+//   fontSize: 12,
+//   fontWeight: "600",
+// },
 
-filterPillTextActive: {
-  color: "#fff",
-  fontWeight: "700",
-},
-nameRow: {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-},
+// filterPillTextActive: {
+//   color: "#fff",
+//   fontWeight: "700",
+// },
 
-candidateId: {
-  color: "#9ca3af",
-  fontSize: 12,
-  fontWeight: "600",
-},
 
 });
