@@ -55,6 +55,7 @@ const Marketplace = ({ navigation }: any) => {
   const [location, setLocation] = useState('Near New York, NY');
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [showListingTypeModal, setShowListingTypeModal] = useState(false);
   const [showPropertyTypeModal, setShowPropertyTypeModal] = useState(false);
   const [showDateModal, setShowDateModal] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
@@ -157,54 +158,56 @@ const Marketplace = ({ navigation }: any) => {
       console.warn('Error requesting location permission:', error);
     }
   };
-const getCurrentLocation = () => {
-  Geolocation.getCurrentPosition(
-    async (position) => {
-      const { latitude, longitude } = position.coords;
 
-      try {
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
-          {
-            headers: {
-              'User-Agent': 'MarketplaceApp/1.0',
-              'Accept': 'application/json',
-            },
-          }
-        );
+  const getCurrentLocation = () => {
+    Geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
 
-        const data = await response.json();
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
+            {
+              headers: {
+                'User-Agent': 'MarketplaceApp/1.0',
+                'Accept': 'application/json',
+              },
+            }
+          );
 
-        console.log('Geocode data:', data); // 👈 useful debug
+          const data = await response.json();
 
-        const city =
-          data?.address?.city ||
-          data?.address?.town ||
-          data?.address?.village ||
-          data?.address?.suburb ||
-          'Your Area';
+          console.log('Geocode data:', data);
 
-        const state = data?.address?.state || '';
+          const city =
+            data?.address?.city ||
+            data?.address?.town ||
+            data?.address?.village ||
+            data?.address?.suburb ||
+            'Your Area';
 
-        setLocation(`Near ${city}, ${state}`);
-      } catch (error) {
-        console.log('Geocode error:', error);
-        setLocation('Location detected');
+          const state = data?.address?.state || '';
+
+          setLocation(`Near ${city}, ${state}`);
+        } catch (error) {
+          console.log('Geocode error:', error);
+          setLocation('Location detected');
+        }
+      },
+      (error) => {
+        console.log('Location error:', error);
+        setLocation('Location unavailable');
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 20000,
+        maximumAge: 0,
+        forceRequestLocation: true,
+        showLocationDialog: true,
       }
-    },
-    (error) => {
-      console.log('Location error:', error);
-      setLocation('Location unavailable');
-    },
-    {
-      enableHighAccuracy: true,
-      timeout: 20000,
-      maximumAge: 0,
-      forceRequestLocation: true,
-      showLocationDialog: true,
-    }
-  );
-};
+    );
+  };
+
   const filteredProperties = properties.filter((property) => {
     const matchesTab = property.listingType === activeTab;
     
@@ -256,6 +259,8 @@ const getCurrentLocation = () => {
     { id: 'House', icon: 'home', label: 'House' },
     { id: 'Commercial', icon: 'business', label: 'Commercial' },
   ];
+
+  const listingTypeOptions = ['Buy', 'Rent'];
 
   const propertyTypeOptions = [
     'All',
@@ -332,25 +337,6 @@ const getCurrentLocation = () => {
       <StatusBar barStyle="light-content" backgroundColor="#0a0c10" />
       
       <View style={styles.header}>
-        <View style={styles.tabContainer}>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'buy' && styles.activeTab]}
-            onPress={() => setActiveTab('buy')}
-          >
-            <Text style={[styles.tabText, activeTab === 'buy' && styles.activeTabText]}>
-              Buy
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'rent' && styles.activeTab]}
-            onPress={() => setActiveTab('rent')}
-          >
-            <Text style={[styles.tabText, activeTab === 'rent' && styles.activeTabText]}>
-              Rent
-            </Text>
-          </TouchableOpacity>
-        </View>
-
         <Text style={styles.headerTitle}>Marketplace</Text>
 
         <TouchableOpacity
@@ -364,6 +350,15 @@ const getCurrentLocation = () => {
 
       <View style={styles.filterContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <TouchableOpacity 
+            style={styles.filterPill}
+            onPress={() => setShowListingTypeModal(true)}
+          >
+            <Text style={styles.filterText}>
+              {activeTab === 'buy' ? 'Buy' : 'Rent'}
+            </Text>
+            <MaterialIcons name="expand-more" size={14} color="#fff" />
+          </TouchableOpacity>
           <TouchableOpacity 
             style={styles.filterPill}
             onPress={() => setShowPropertyTypeModal(true)}
@@ -556,6 +551,15 @@ const getCurrentLocation = () => {
       </View>
 
       <FilterModal
+        visible={showListingTypeModal}
+        onClose={() => setShowListingTypeModal(false)}
+        options={listingTypeOptions}
+        selectedValue={activeTab === 'buy' ? 'Buy' : 'Rent'}
+        onSelect={(value: string) => setActiveTab(value.toLowerCase() as 'buy' | 'rent')}
+        title="Select Listing Type"
+      />
+
+      <FilterModal
         visible={showPropertyTypeModal}
         onClose={() => setShowPropertyTypeModal(false)}
         options={propertyTypeOptions}
@@ -598,28 +602,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#1e293b',
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#1e293b',
-    borderRadius: 8,
-    padding: 4,
-  },
-  tab: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  activeTab: {
-    backgroundColor: '#fff',
-  },
-  tabText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#64748b',
-  },
-  activeTabText: {
-    color: '#0a0c10',
   },
   headerTitle: {
     fontSize: 16,

@@ -29,6 +29,8 @@ import type { Internship } from "./src/screens/InternshipList";
 import Freelancer from "./src/screens/Freelancer";
 import TransportComingSoon from "./src/screens/TransportComingSoon";
 import RawMaterial from "./src/screens/RawMaterial";
+import ProductDetailScreen from "./src/screens/ProductDetailScreen";
+import RegisterProductModal from "./src/screens/RegisterProductModal";
 
 
 export type RootStackParamList = {
@@ -69,6 +71,7 @@ export type RootStackParamList = {
   ProductRegistration: undefined;
   InternshipList: undefined;
   RawMaterial: undefined;
+  ProductDetail: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -103,6 +106,7 @@ export default function App(): React.ReactElement {
         <Stack.Screen name="Transport" component={TransportComingSoon} />
          <Stack.Screen name="Freelancer" component={Freelancer} />
          <Stack.Screen name="RawMaterial" component={RawMaterial} />
+        <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
