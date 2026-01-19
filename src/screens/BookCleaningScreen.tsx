@@ -79,6 +79,8 @@ const ADDON_PRICE = 25;
 
 const BookCleaningScreen: React.FC = () => {
   const route = useRoute<any>();
+  const consultationCharge = route.params?.consultationCharge || 0;
+
   const navigation = useNavigation<any>();
 
   const [locationType, setLocationType] = useState<"default" | "other">("default");
@@ -129,7 +131,12 @@ const [reasonError, setReasonError] = useState(false);
     (service) => !selectedServices.some((s) => s.id === service.id)
   );
 
-  const totalPrice = (mainService ? BASE_PRICE : 0) + addonServices.length * ADDON_PRICE;
+ const servicePrice =
+  (mainService ? BASE_PRICE : 0) +
+  addonServices.length * ADDON_PRICE;
+
+const totalPrice = servicePrice + consultationCharge;
+
 
   // Check if employee was allocated from EmployeeAllocation screen
   useEffect(() => {
@@ -726,17 +733,31 @@ const removeImage = (index: number) => {
         )}
 
         {/* COST SUMMARY */}
-        <View style={styles.summary}>
-          <SummaryRow
-            label={`Add-ons (${addonServices.length})`}
-            value={`$${(addonServices.length * ADDON_PRICE).toFixed(2)}`}
-          />
-          <View style={styles.summaryDivider} />
-          <View style={styles.summaryTotal}>
-            <Text style={styles.summaryTotalLabel}>Estimated Cost</Text>
-            <Text style={styles.summaryTotalValue}>${totalPrice.toFixed(2)}</Text>
-          </View>
-        </View>
+{/* COST SUMMARY */}
+<View style={styles.summary}>
+  <SummaryRow
+    label={`Add-ons (${addonServices.length})`}
+    value={`$${(addonServices.length * ADDON_PRICE).toFixed(2)}`}
+  />
+
+  {/* 👇 ADD THIS BLOCK */}
+  {consultationCharge > 0 && (
+    <SummaryRow
+      label="Consultation Charge"
+      value={`$${consultationCharge.toFixed(2)}`}
+    />
+  )}
+
+  <View style={styles.summaryDivider} />
+
+  <View style={styles.summaryTotal}>
+    <Text style={styles.summaryTotalLabel}>Estimated Cost</Text>
+    <Text style={styles.summaryTotalValue}>
+      ${totalPrice.toFixed(2)}
+    </Text>
+  </View>
+</View>
+
 
         {/* BOTTOM SPACING */}
         <View style={{ height: 140 }} />
@@ -747,8 +768,19 @@ const removeImage = (index: number) => {
         <TouchableOpacity
           style={styles.ctaBtn}
           activeOpacity={0.8}
-          onPress={() => navigation.navigate("PaymentScreen")}
-        >
+          onPress={() =>
+        navigation.navigate("PaymentScreen", {
+          allocatedEmployee,
+          consultationCharge,
+          totalAmount: totalPrice,
+          bookingDetails: {
+            serviceName: selectedServices[0]?.title,
+            date,
+            time,
+            address: currentAddress,
+          },
+        })
+      }>
           <MaterialIcons name="shopping-bag" size={22} color="#fff" />
           <Text style={styles.ctaText}>Add to Cart and Checkout</Text>
         </TouchableOpacity>

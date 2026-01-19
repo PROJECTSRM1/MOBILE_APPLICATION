@@ -30,6 +30,8 @@ const SellItem = ({ navigation }: any) => {
   const [distance, setDistance] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
   const [price, setPrice] = useState('');
+  const [itemCondition, setItemCondition] = useState('New Item');
+  const [showConditionPicker, setShowConditionPicker] = useState(false);
 
   const propertyTypes = [
     'Apartment', 'Villa', 'Independent House', 'Land', 'Bike', 'Car',
@@ -37,6 +39,7 @@ const SellItem = ({ navigation }: any) => {
   ];
   const bhkOptions = ['1 BHK', '2 BHK', '3 BHK', '4 BHK', '5 BHK'];
   const landTypeOptions = ['Agriculture', 'Commercial'];
+  const conditionOptions = ['New Item', 'Old Item'];
 
   const isHouse = ['Apartment', 'Villa', 'Independent House'].includes(propertyType);
   const isLand = propertyType === 'Land';
@@ -114,6 +117,7 @@ const SellItem = ({ navigation }: any) => {
       year: isVehicle ? year : null,
       distance: isVehicle ? distance : null,
       mobileNumber: isVehicle ? mobileNumber : null,
+      itemCondition,
       createdAt: new Date().toISOString(),
     };
 
@@ -223,6 +227,16 @@ const SellItem = ({ navigation }: any) => {
           <TouchableOpacity onPress={() => setShowPropertyPicker(true)}>
             <View style={styles.pickerContainer} pointerEvents="none">
               <TextInput style={styles.picker} value={propertyType} editable={false} />
+              <MaterialIcons name="expand-more" size={24} color="#94a3b8" style={styles.pickerIcon} />
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.label}>ITEM CONDITION</Text>
+          <TouchableOpacity onPress={() => setShowConditionPicker(true)}>
+            <View style={styles.pickerContainer} pointerEvents="none">
+              <TextInput style={styles.picker} value={itemCondition} editable={false} />
               <MaterialIcons name="expand-more" size={24} color="#94a3b8" style={styles.pickerIcon} />
             </View>
           </TouchableOpacity>
@@ -428,6 +442,8 @@ const SellItem = ({ navigation }: any) => {
         options={bhkOptions} selectedValue={bhk} onSelect={setBhk} title="Select BHK" />
       <PickerModal visible={showLandTypePicker} onClose={() => setShowLandTypePicker(false)}
         options={landTypeOptions} selectedValue={landType} onSelect={setLandType} title="Select Land Type" />
+      <PickerModal visible={showConditionPicker} onClose={() => setShowConditionPicker(false)}
+        options={conditionOptions} selectedValue={itemCondition} onSelect={setItemCondition} title="Select Item Condition" />
     </SafeAreaView>
   );
 };

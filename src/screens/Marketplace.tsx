@@ -47,6 +47,7 @@ interface Property {
   year?: string;
   mobileNumber?: string;
   createdAt?: string;
+  itemCondition?: string;
 }
 
 const Marketplace = ({ navigation }: any) => {
@@ -55,6 +56,7 @@ const Marketplace = ({ navigation }: any) => {
   const [location, setLocation] = useState('Near New York, NY');
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [showListingTypeModal, setShowListingTypeModal] = useState(false);
   const [showPropertyTypeModal, setShowPropertyTypeModal] = useState(false);
   const [showDateModal, setShowDateModal] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
@@ -123,6 +125,7 @@ const Marketplace = ({ navigation }: any) => {
             year: listing.year,
             mobileNumber: listing.mobileNumber,
             createdAt: listing.createdAt,
+            itemCondition: listing.itemCondition,
           };
         });
 
@@ -157,58 +160,59 @@ const Marketplace = ({ navigation }: any) => {
       console.warn('Error requesting location permission:', error);
     }
   };
-const getCurrentLocation = () => {
-  Geolocation.getCurrentPosition(
-    async (position) => {
-      const { latitude, longitude } = position.coords;
 
-      try {
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
-          {
-            headers: {
-              'User-Agent': 'MarketplaceApp/1.0',
-              'Accept': 'application/json',
-            },
-          }
-        );
+  const getCurrentLocation = () => {
+    Geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
 
-        const data = await response.json();
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
+            {
+              headers: {
+                'User-Agent': 'MarketplaceApp/1.0',
+                'Accept': 'application/json',
+              },
+            }
+          );
 
-        console.log('Geocode data:', data); // 👈 useful debug
+          const data = await response.json();
 
-        const city =
-          data?.address?.city ||
-          data?.address?.town ||
-          data?.address?.village ||
-          data?.address?.suburb ||
-          'Your Area';
+          console.log('Geocode data:', data);
 
-        const state = data?.address?.state || '';
+          const city =
+            data?.address?.city ||
+            data?.address?.town ||
+            data?.address?.village ||
+            data?.address?.suburb ||
+            'Your Area';
 
-        setLocation(`Near ${city}, ${state}`);
-      } catch (error) {
-        console.log('Geocode error:', error);
-        setLocation('Location detected');
+          const state = data?.address?.state || '';
+
+          setLocation(`Near ${city}, ${state}`);
+        } catch (error) {
+          console.log('Geocode error:', error);
+          setLocation('Location detected');
+        }
+      },
+      (error) => {
+        console.log('Location error:', error);
+        setLocation('Location unavailable');
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 20000,
+        maximumAge: 0,
+        forceRequestLocation: true,
+        showLocationDialog: true,
       }
-    },
-    (error) => {
-      console.log('Location error:', error);
-      setLocation('Location unavailable');
-    },
-    {
-      enableHighAccuracy: true,
-      timeout: 20000,
-      maximumAge: 0,
-      forceRequestLocation: true,
-      showLocationDialog: true,
-    }
-  );
-};
+    );
+  };
+
   const filteredProperties = properties.filter((property) => {
     const matchesTab = property.listingType === activeTab;
     
-    // Category filter
     const matchesCategory = selectedCategory === 'All' ? true : 
       selectedCategory === 'Land' ? property.propertyType === 'Land' :
       selectedCategory === 'Apartment' ? property.propertyType === 'Apartment' :
@@ -216,10 +220,8 @@ const getCurrentLocation = () => {
       selectedCategory === 'House' ? ['Villa', 'Independent House'].includes(property.propertyType || '') :
       selectedCategory === 'Commercial' ? ['Office', 'Hospital', 'Commercial Space'].includes(property.propertyType || '') : true;
     
-    // Property type filter
     const matchesPropertyType = selectedPropertyType === 'All' ? true : property.propertyType === selectedPropertyType;
     
-    // Date filter
     let matchesDate = true;
     if (property.createdAt && selectedDateFilter !== 'All Time') {
       const propertyDate = new Date(property.createdAt);
@@ -233,14 +235,12 @@ const getCurrentLocation = () => {
       else if (selectedDateFilter === 'Last 3 Months') matchesDate = diffDays <= 90;
     }
     
-    // Rating filter
     let matchesRating = true;
     if (selectedRatingFilter !== 'All Ratings' && property.rating) {
       const minRating = parseFloat(selectedRatingFilter.split('+')[0]);
       matchesRating = property.rating >= minRating;
     }
     
-    // Search filter
     const matchesSearch = property.title?.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          property.area?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          property.location?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -256,6 +256,8 @@ const getCurrentLocation = () => {
     { id: 'House', icon: 'home', label: 'House' },
     { id: 'Commercial', icon: 'business', label: 'Commercial' },
   ];
+
+  const listingTypeOptions = ['Buy', 'Rent'];
 
   const propertyTypeOptions = [
     'All',
@@ -332,26 +334,18 @@ const getCurrentLocation = () => {
       <StatusBar barStyle="light-content" backgroundColor="#0a0c10" />
       
       <View style={styles.header}>
-        <View style={styles.tabContainer}>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'buy' && styles.activeTab]}
-            onPress={() => setActiveTab('buy')}
+        <View style={styles.headerLeft}>
+          <Text style={styles.headerTitle}>Marketplace</Text>
+          <TouchableOpacity 
+            style={styles.listingTypeDropdown}
+            onPress={() => setShowListingTypeModal(true)}
           >
-            <Text style={[styles.tabText, activeTab === 'buy' && styles.activeTabText]}>
-              Buy
+            <Text style={styles.listingTypeText}>
+              {activeTab === 'buy' ? 'Buy' : 'Rent'}
             </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'rent' && styles.activeTab]}
-            onPress={() => setActiveTab('rent')}
-          >
-            <Text style={[styles.tabText, activeTab === 'rent' && styles.activeTabText]}>
-              Rent
-            </Text>
+            <MaterialIcons name="expand-more" size={16} color="#fff" />
           </TouchableOpacity>
         </View>
-
-        <Text style={styles.headerTitle}>Marketplace</Text>
 
         <TouchableOpacity
           style={styles.sellButton}
@@ -487,8 +481,17 @@ const getCurrentLocation = () => {
           </View>
         ) : (
           <View style={styles.grid}>
-            {filteredProperties.map((property) => (
-              <TouchableOpacity key={property.id} style={styles.card}>
+              {filteredProperties.map((property) => (
+                <TouchableOpacity
+                  key={property.id}
+                  style={styles.card}
+                  activeOpacity={0.85}
+                  onPress={() =>
+                    navigation.navigate('BuyerPage', {
+                      property: property, // pass full property
+                    })
+                  }
+                >
                 <View style={styles.cardImage}>
                   <Image source={{ uri: property.image }} style={styles.image} />
                   {property.isFavorite && (
@@ -496,11 +499,27 @@ const getCurrentLocation = () => {
                       <MaterialIcons name="favorite" size={18} color="#fff" />
                     </View>
                   )}
-                  {property.isNew && (
-                    <View style={styles.newBadge}>
-                      <Text style={styles.newBadgeText}>NEW</Text>
-                    </View>
-                  )}
+                  <View style={styles.topBadgesContainer}>
+                    {property.listingType === 'buy' ? (
+                      <View style={styles.saleBadge}>
+                        <Text style={styles.saleBadgeText}>FOR SALE</Text>
+                      </View>
+                    ) : (
+                      <View style={styles.rentBadge}>
+                        <Text style={styles.rentBadgeText}>FOR RENT</Text>
+                      </View>
+                    )}
+                    {property.itemCondition && (
+                      <View style={[
+                        styles.conditionBadge,
+                        property.itemCondition === 'New Item' ? styles.newConditionBadge : styles.oldConditionBadge
+                      ]}>
+                        <Text style={styles.conditionBadgeText}>
+                          {property.itemCondition === 'New Item' ? 'NEW' : 'USED'}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
                   <View style={styles.ratingBadge}>
                     <MaterialIcons name="star" size={12} color="#fbbf24" />
                     <Text style={styles.ratingText}>{property.rating?.toFixed(1)}</Text>
@@ -511,6 +530,22 @@ const getCurrentLocation = () => {
                     {property.title}
                   </Text>
                   <Text style={styles.cardPrice}>{property.price}</Text>
+                  {property.location && (
+                    <View style={styles.locationRow}>
+                      <MaterialIcons name="location-on" size={12} color="#64748b" />
+                      <Text style={styles.locationDetailText} numberOfLines={1}>
+                        {property.location}
+                      </Text>
+                    </View>
+                  )}
+                  {property.area && (
+                    <View style={styles.areaRow}>
+                      <MaterialIcons name="place" size={12} color="#64748b" />
+                      <Text style={styles.areaDetailText} numberOfLines={1}>
+                        {property.area}
+                      </Text>
+                    </View>
+                  )}
                   <View style={styles.cardDetails}>
                     {property.sqft && (
                       <View style={styles.detailItem}>
@@ -556,6 +591,15 @@ const getCurrentLocation = () => {
       </View>
 
       <FilterModal
+        visible={showListingTypeModal}
+        onClose={() => setShowListingTypeModal(false)}
+        options={listingTypeOptions}
+        selectedValue={activeTab === 'buy' ? 'Buy' : 'Rent'}
+        onSelect={(value: string) => setActiveTab(value.toLowerCase() as 'buy' | 'rent')}
+        title="Select Listing Type"
+      />
+
+      <FilterModal
         visible={showPropertyTypeModal}
         onClose={() => setShowPropertyTypeModal(false)}
         options={propertyTypeOptions}
@@ -599,31 +643,30 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#1e293b',
   },
-  tabContainer: {
+  headerLeft: {
     flexDirection: 'row',
-    backgroundColor: '#1e293b',
-    borderRadius: 8,
-    padding: 4,
-  },
-  tab: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  activeTab: {
-    backgroundColor: '#fff',
-  },
-  tabText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#64748b',
-  },
-  activeTabText: {
-    color: '#0a0c10',
+    alignItems: 'center',
+    gap: 12,
   },
   headerTitle: {
     fontSize: 16,
     fontWeight: '800',
+    color: '#fff',
+  },
+  listingTypeDropdown: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#161b26',
+    borderWidth: 1,
+    borderColor: '#232936',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    gap: 4,
+  },
+  listingTypeText: {
+    fontSize: 12,
+    fontWeight: '700',
     color: '#fff',
   },
   sellButton: {
@@ -805,175 +848,244 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingBottom: 100,
   },
-  card: {
-    width: (width - 48) / 2,
-    margin: 8,
-  },
-  cardImage: {
-    width: '100%',
-    aspectRatio: 4 / 5,
-    borderRadius: 16,
-    overflow: 'hidden',
-    position: 'relative',
-    marginBottom: 8,
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
-  favoriteButton: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    padding: 6,
-    borderRadius: 20,
-  },
-  newBadge: {
-    position: 'absolute',
-    top: 8,
-    left: 8,
-    backgroundColor: '#10b981',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  newBadgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#fff',
-    letterSpacing: 1,
-  },
-  ratingBadge: {
-    position: 'absolute',
-    bottom: 8,
-    left: 8,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    gap: 4,
-  },
-  ratingText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  cardContent: {
-    paddingHorizontal: 4,
-  },
-  cardTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: 4,
-  },
-  cardPrice: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#135bec',
-    marginBottom: 4,
-  },
-  cardDetails: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 4,
-  },
-  detailItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  detailText: {
-    fontSize: 10,
-    fontWeight: '500',
-    color: '#64748b',
-  },
-  distanceContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  distanceText: {
-    fontSize: 10,
-    fontWeight: '500',
-    color: '#64748b',
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: 'rgba(10, 12, 16, 0.95)',
-    borderTopWidth: 1,
-    borderTopColor: '#1e293b',
-    paddingTop: 12,
-    paddingBottom: 24,
-  },
-  navItem: {
-    alignItems: 'center',
-    gap: 4,
-  },
-  navText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#64748b',
-  },
-  activeNavText: {
-    color: '#135bec',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: '#161b26',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: '70%',
-    paddingBottom: 24,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#232936',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  optionsList: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-  },
-  optionItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#232936',
-  },
-  selectedOption: {
-    backgroundColor: 'rgba(19, 91, 236, 0.1)',
-  },
-  optionText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#fff',
-  },
-  selectedOptionText: {
-    color: '#135bec',
-    fontWeight: '600',
-  },
+card: {
+width: (width - 48) / 2,
+margin: 8,
+},
+cardImage: {
+width: '100%',
+aspectRatio: 4 / 5,
+borderRadius: 16,
+overflow: 'hidden',
+position: 'relative',
+marginBottom: 8,
+},
+image: {
+width: '100%',
+height: '100%',
+},
+favoriteButton: {
+position: 'absolute',
+top: 8,
+right: 8,
+backgroundColor: 'rgba(255, 255, 255, 0.2)',
+padding: 6,
+borderRadius: 20,
+},
+topBadgesContainer: {
+position: 'absolute',
+top: 8,
+left: 8,
+flexDirection: 'column',
+gap: 4,
+},
+newBadge: {
+backgroundColor: '#10b981',
+paddingHorizontal: 8,
+paddingVertical: 2,
+borderRadius: 4,
+},
+newBadgeText: {
+fontSize: 10,
+fontWeight: '700',
+color: '#fff',
+letterSpacing: 1,
+},
+saleBadge: {
+backgroundColor: '#3b82f6',
+paddingHorizontal: 8,
+paddingVertical: 2,
+borderRadius: 4,
+},
+saleBadgeText: {
+fontSize: 9,
+fontWeight: '700',
+color: '#fff',
+letterSpacing: 0.5,
+},
+rentBadge: {
+backgroundColor: '#f59e0b',
+paddingHorizontal: 8,
+paddingVertical: 2,
+borderRadius: 4,
+},
+rentBadgeText: {
+fontSize: 9,
+fontWeight: '700',
+color: '#fff',
+letterSpacing: 0.5,
+},
+conditionBadge: {
+paddingHorizontal: 8,
+paddingVertical: 2,
+borderRadius: 4,
+},
+newConditionBadge: {
+backgroundColor: '#8b5cf6',
+},
+oldConditionBadge: {
+backgroundColor: '#6b7280',
+},
+conditionBadgeText: {
+fontSize: 9,
+fontWeight: '700',
+color: '#fff',
+letterSpacing: 0.5,
+},
+ratingBadge: {
+position: 'absolute',
+bottom: 8,
+left: 8,
+backgroundColor: 'rgba(0, 0, 0, 0.4)',
+flexDirection: 'row',
+alignItems: 'center',
+paddingHorizontal: 8,
+paddingVertical: 4,
+borderRadius: 6,
+gap: 4,
+},
+ratingText: {
+fontSize: 10,
+fontWeight: '700',
+color: '#fff',
+},
+cardContent: {
+paddingHorizontal: 4,
+},
+cardTitle: {
+fontSize: 14,
+fontWeight: '700',
+color: '#fff',
+marginBottom: 4,
+},
+cardPrice: {
+fontSize: 16,
+fontWeight: '800',
+color: '#135bec',
+marginBottom: 6,
+},
+locationRow: {
+flexDirection: 'row',
+alignItems: 'center',
+gap: 4,
+marginBottom: 3,
+},
+locationDetailText: {
+fontSize: 10,
+fontWeight: '500',
+color: '#64748b',
+flex: 1,
+},
+areaRow: {
+flexDirection: 'row',
+alignItems: 'center',
+gap: 4,
+marginBottom: 6,
+},
+areaDetailText: {
+fontSize: 10,
+fontWeight: '500',
+color: '#64748b',
+flex: 1,
+},
+cardDetails: {
+flexDirection: 'row',
+gap: 12,
+marginBottom: 4,
+},
+detailItem: {
+flexDirection: 'row',
+alignItems: 'center',
+gap: 4,
+},
+detailText: {
+fontSize: 10,
+fontWeight: '500',
+color: '#64748b',
+},
+distanceContainer: {
+flexDirection: 'row',
+alignItems: 'center',
+gap: 4,
+},
+distanceText: {
+fontSize: 10,
+fontWeight: '500',
+color: '#64748b',
+},
+bottomNav: {
+flexDirection: 'row',
+justifyContent: 'space-around',
+alignItems: 'center',
+backgroundColor: 'rgba(10, 12, 16, 0.95)',
+borderTopWidth: 1,
+borderTopColor: '#1e293b',
+paddingTop: 12,
+paddingBottom: 24,
+},
+navItem: {
+alignItems: 'center',
+gap: 4,
+},
+navText: {
+fontSize: 10,
+fontWeight: '700',
+color: '#64748b',
+},
+activeNavText: {
+color: '#135bec',
+},
+modalOverlay: {
+flex: 1,
+backgroundColor: 'rgba(0, 0, 0, 0.7)',
+justifyContent: 'flex-end',
+},
+modalContent: {
+backgroundColor: '#161b26',
+borderTopLeftRadius: 24,
+borderTopRightRadius: 24,
+maxHeight: '70%',
+paddingBottom: 24,
+},
+modalHeader: {
+flexDirection: 'row',
+justifyContent: 'space-between',
+alignItems: 'center',
+paddingHorizontal: 20,
+paddingVertical: 16,
+borderBottomWidth: 1,
+borderBottomColor: '#232936',
+},
+modalTitle: {
+fontSize: 18,
+fontWeight: '700',
+color: '#fff',
+},
+optionsList: {
+paddingHorizontal: 16,
+paddingTop: 8,
+},
+optionItem: {
+flexDirection: 'row',
+justifyContent: 'space-between',
+alignItems: 'center',
+paddingVertical: 16,
+paddingHorizontal: 12,
+borderBottomWidth: 1,
+borderBottomColor: '#232936',
+},
+selectedOption: {
+backgroundColor: 'rgba(19, 91, 236, 0.1)',
+},
+optionText: {
+fontSize: 16,
+fontWeight: '500',
+color: '#fff',
+},
+selectedOptionText: {
+color: '#135bec',
+fontWeight: '600',
+},
 });
 
 export default Marketplace;
