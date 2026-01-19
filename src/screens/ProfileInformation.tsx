@@ -14,12 +14,15 @@ import {
   Platform,
   UIManager,
   Alert,
+  Dimensions,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import DateTimePicker from '@react-native-community/datetimepicker';
+
+const { width } = Dimensions.get('window');
 
 /* Enable layout animation on Android */
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -53,6 +56,31 @@ interface UserProfile {
   availableHoursTo?: string;
 }
 
+interface MarketplaceListing {
+  id: string;
+  type: 'buy' | 'rent';
+  propertyType: string;
+  price: string;
+  images?: string[];
+  area?: string;
+  bhk?: string;
+  sqft?: string;
+  landType?: string;
+  brand?: string;
+  model?: string;
+  year?: string;
+  createdAt?: string;
+}
+
+interface SwachifyProduct {
+  id: string;
+  title: string;
+  price: string;
+  image?: string;
+  category: string;
+  createdAt?: string;
+}
+
 type RootStackParamList = {
   AuthScreen: undefined;
   ProfileInformation: undefined;
@@ -63,6 +91,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 const ProfileInformation: React.FC = () => {
   /* ================= NAVIGATION ================= */
   const navigation = useNavigation<NavigationProp>();
+  
   /* ================= STATE ================= */
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -72,6 +101,8 @@ const ProfileInformation: React.FC = () => {
   const [openCertificates, setOpenCertificates] = useState<boolean>(false);
   const [openNoc, setOpenNoc] = useState<boolean>(false);
   const [openExpertise, setOpenExpertise] = useState<boolean>(false);
+  const [openMarketplace, setOpenMarketplace] = useState<boolean>(false);
+  const [openSwachify, setOpenSwachify] = useState<boolean>(false);
 
   const [phone, setPhone] = useState<string>('');
   const [location, setLocation] = useState<string>('');
@@ -97,17 +128,28 @@ const ProfileInformation: React.FC = () => {
   const [showFromPicker, setShowFromPicker] = useState<boolean>(false);
   const [showToPicker, setShowToPicker] = useState<boolean>(false);
 
+  // Marketplace & Swachify
+  const [marketplaceListings, setMarketplaceListings] = useState<MarketplaceListing[]>([]);
+  const [swachifyProducts, setSwachifyProducts] = useState<SwachifyProduct[]>([]);
+
   const [services, setServices] = useState<{
     housing: boolean;
     education: boolean;
+    marketplace: boolean;
+    swachify: boolean;
   }>({
     housing: true,
     education: true,
+    marketplace: true,
+    swachify: true,
   });
 
   /* ================= LOAD USER DATA ================= */
   useEffect(() => {
     loadUserFromStorage();
+    loadMarketplaceListings();
+    loadSwachifyProducts();
+    loadServicePreferences();
   }, []);
 
   const loadUserFromStorage = async () => {
@@ -159,6 +201,41 @@ const ProfileInformation: React.FC = () => {
     }
   };
 
+  const loadMarketplaceListings = async () => {
+    try {
+      const storedListings = await AsyncStorage.getItem('marketplace_listings');
+      if (storedListings) {
+        const listings = JSON.parse(storedListings);
+        setMarketplaceListings(listings);
+      }
+    } catch (error) {
+      console.error('Error loading marketplace listings:', error);
+    }
+  };
+
+  const loadSwachifyProducts = async () => {
+    try {
+      const storedProducts = await AsyncStorage.getItem('swachify_products');
+      if (storedProducts) {
+        const products = JSON.parse(storedProducts);
+        setSwachifyProducts(products);
+      }
+    } catch (error) {
+      console.error('Error loading swachify products:', error);
+    }
+  };
+
+  const loadServicePreferences = async () => {
+    try {
+      const storedServices = await AsyncStorage.getItem('service_preferences');
+      if (storedServices) {
+        setServices(JSON.parse(storedServices));
+      }
+    } catch (error) {
+      console.error('Error loading service preferences:', error);
+    }
+  };
+
   /* ================= SAVE USER DATA ================= */
   const saveUserData = async () => {
     if (!user) return;
@@ -187,11 +264,62 @@ const ProfileInformation: React.FC = () => {
 
       await AsyncStorage.setItem('userProfile', JSON.stringify(updatedUser));
       setUser(updatedUser);
-      Alert.alert('Success', 'Profile Edited successfully!');
+      Alert.alert('Success', 'Profile updated successfully!');
     } catch (err) {
       console.log('Save error:', err);
       Alert.alert('Error', 'Failed to save profile data.');
     }
+  };
+
+  /* ================= DELETE FUNCTIONS ================= */
+  const deleteMarketplaceListing = async (id: string) => {
+    Alert.alert(
+      'Delete Listing',
+      'Are you sure you want to delete this listing?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const updatedListings = marketplaceListings.filter(item => item.id !== id);
+              await AsyncStorage.setItem('marketplace_listings', JSON.stringify(updatedListings));
+              setMarketplaceListings(updatedListings);
+              Alert.alert('Success', 'Listing deleted successfully!');
+            } catch (error) {
+              console.error('Error deleting listing:', error);
+              Alert.alert('Error', 'Failed to delete listing.');
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  const deleteSwachifyProduct = async (id: string) => {
+    Alert.alert(
+      'Delete Product',
+      'Are you sure you want to delete this product?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const updatedProducts = swachifyProducts.filter(item => item.id !== id);
+              await AsyncStorage.setItem('swachify_products', JSON.stringify(updatedProducts));
+              setSwachifyProducts(updatedProducts);
+              Alert.alert('Success', 'Product deleted successfully!');
+            } catch (error) {
+              console.error('Error deleting product:', error);
+              Alert.alert('Error', 'Failed to delete product.');
+            }
+          },
+        },
+      ],
+    );
   };
 
   /* ================= HELPERS ================= */
@@ -202,8 +330,17 @@ const ProfileInformation: React.FC = () => {
     setter((prev: boolean) => !prev);
   };
 
-  const toggleService = (key: keyof typeof services) => {
-    setServices(prev => ({ ...prev, [key]: !prev[key] }));
+  const toggleService = async (key: keyof typeof services) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    const newServices = { ...services, [key]: !services[key] };
+    setServices(newServices);
+    
+    // Save preferences to AsyncStorage
+    try {
+      await AsyncStorage.setItem('service_preferences', JSON.stringify(newServices));
+    } catch (error) {
+      console.error('Error saving service preferences:', error);
+    }
   };
 
   const addService = () => {
@@ -224,6 +361,18 @@ const ProfileInformation: React.FC = () => {
       minute: '2-digit',
       hour12: true 
     });
+  };
+
+  const getListingTitle = (listing: MarketplaceListing): string => {
+    if (['Apartment', 'Villa', 'Independent House'].includes(listing.propertyType)) {
+      return `${listing.bhk || ''} ${listing.propertyType} in ${listing.area || 'Unknown'}`;
+    } else if (listing.propertyType === 'Land') {
+      return `${listing.landType || ''} Land in ${listing.area || 'Unknown'}`;
+    } else if (['Bike', 'Car', 'Lorry', 'Auto', 'Bus'].includes(listing.propertyType)) {
+      return `${listing.brand || ''} ${listing.model || ''} ${listing.year || ''}`.trim();
+    } else {
+      return `${listing.propertyType} in ${listing.area || 'Unknown'}`;
+    }
   };
 
   const handleLogout = async () => {
@@ -575,6 +724,36 @@ const ProfileInformation: React.FC = () => {
                 </View>
               </View>
             </Field>
+
+            {showFromPicker && (
+              <DateTimePicker
+                value={availableHoursFrom}
+                mode="time"
+                is24Hour={false}
+                display="default"
+                onChange={(event, selectedDate) => {
+                  setShowFromPicker(false);
+                  if (selectedDate) {
+                    setAvailableHoursFrom(selectedDate);
+                  }
+                }}
+              />
+            )}
+
+            {showToPicker && (
+              <DateTimePicker
+                value={availableHoursTo}
+                mode="time"
+                is24Hour={false}
+                display="default"
+                onChange={(event, selectedDate) => {
+                  setShowToPicker(false);
+                  if (selectedDate) {
+                    setAvailableHoursTo(selectedDate);
+                  }
+                }}
+              />
+            )}
           </Card>
         )}
 
@@ -600,215 +779,336 @@ const ProfileInformation: React.FC = () => {
           value={services.education}
           onToggle={() => toggleService('education')}
         />
+        
+        {/* MARKETPLACE SERVICE ITEM */}
+        <ServiceItem
+          icon="store"
+          title="Marketplace"
+          value={services.marketplace}
+          onToggle={() => toggleService('marketplace')}
+        />
 
-        {/* GENERAL */}
-        <View style={styles.sectionHeaderNoIcon}>
-          <Text style={styles.sectionTitle}>General</Text>
-        </View>
-        <Card noPadding>
-          <GeneralItem icon="person" label="Account Information" />
-          <GeneralItem icon="notifications" label="Notifications" />
-        </Card>
+        {/* MARKETPLACE LISTINGS - Only show when marketplace is enabled */}
+        {services.marketplace && (
+          <>
+            <SectionHeader
+              title={`My Marketplace Listings (${marketplaceListings.length})`}
+              open={openMarketplace}
+              onPress={() => toggleSection(setOpenMarketplace)}
+            />
+            {openMarketplace && (
+              <Card>
+                {marketplaceListings.length === 0 ? (
+                  <View style={styles.emptyContainer}>
+                    <Icon name="store" size={48} color="#374151" />
+                    <Text style={styles.emptyText}>No listings yet</Text>
+                    <Text style={styles.emptySubtext}>Your marketplace posts will appear here</Text>
+                  </View>
+                ) : (
+                  <View style={styles.listingsGrid}>
+                    {marketplaceListings.map((listing) => (
+                      <View key={listing.id} style={styles.listingCard}>
+                        <Image 
+                          source={{ uri: listing.images?.[0] || 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=500' }} 
+                          style={styles.listingImage}
+                        />
+                        <View style={styles.listingContent}>
+                          <View style={styles.listingBadge}>
+                            <Text style={styles.listingBadgeText}>
+                              {listing.type.toUpperCase()}
+                            </Text>
+                          </View>
+                          <Text style={styles.listingTitle} numberOfLines={1}>
+                            {getListingTitle(listing)}
+                          </Text>
+                          <Text style={styles.listingPrice}>
+                            ₹{parseFloat(listing.price).toLocaleString('en-IN')}
+                          </Text>
+                          <View style={styles.listingDetails}>
+                            {listing.sqft && (
+                              <View style={styles.listingDetail}>
+                                <Icon name="square-foot" size={12} color="#6b7280" />
+                                <Text style={styles.listingDetailText}>{listing.sqft} sqft</Text>
+                              </View>
+                            )}
+                            {listing.bhk && (
+                              <View style={styles.listingDetail}>
+                                <Icon name="bed" size={12} color="#6b7280" />
+                                <Text style={styles.listingDetailText}>{listing.bhk}</Text>
+                              </View>
+                            )}
+                          </View>
+                          <TouchableOpacity 
+                            style={styles.deleteButton}
+                            onPress={() => deleteMarketplaceListing(listing.id)}
+                          >
+                            <Icon name="delete" size={18} color="#ef4444" />
+                            <Text style={styles.deleteButtonText}>Delete</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </Card>
+            )}
+          </>
+        )}
 
-        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-          <Text style={styles.logoutText}>Log Out</Text>
+        {/* SWACHIFY SERVICE ITEM */}
+        <ServiceItem
+          icon="eco"
+          title="Swachify"
+          value={services.swachify}
+          onToggle={() => toggleService('swachify')}
+        />
+
+        {/* SWACHIFY PRODUCTS - Only show when swachify is enabled */}
+        {services.swachify && (
+          <>
+            <SectionHeader
+              title={`My Swachify Products (${swachifyProducts.length})`}
+              open={openSwachify}
+              onPress={() => toggleSection(setOpenSwachify)}
+            />
+            {openSwachify && (
+              <Card>
+                {swachifyProducts.length === 0 ? (
+                  <View style={styles.emptyContainer}>
+                    <Icon name="eco" size={48} color="#374151" />
+                    <Text style={styles.emptyText}>No products yet</Text>
+                    <Text style={styles.emptySubtext}>Your Swachify products will appear here</Text>
+                  </View>
+                ) : (
+                  <View style={styles.listingsGrid}>
+                    {swachifyProducts.map((product) => (
+  <View key={product.id} style={styles.listingCard}>
+    <Image 
+      source={{ uri: product.image || 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=500' }} 
+      style={styles.listingImage}
+    />
+    <View style={styles.listingContent}>
+      <View style={[styles.listingBadge, styles.swachifyBadge]}>
+        <Text style={styles.listingBadgeText}>
+          {product.category.toUpperCase()}
+        </Text>
+      </View>
+      <Text style={styles.listingTitle} numberOfLines={2}>
+        {product.title}
+      </Text>
+      <Text style={styles.listingPrice}>
+        {product.price && !isNaN(parseFloat(product.price)) 
+          ? parseFloat(product.price).toLocaleString('en-IN')
+          : product.price || '0'}
+      </Text>
+                          <TouchableOpacity 
+                            style={styles.deleteButton}
+                            onPress={() => deleteSwachifyProduct(product.id)}
+                          >
+                            <Icon name="delete" size={18} color="#ef4444" />
+                            <Text style={styles.deleteButtonText}>Delete</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </Card>
+            )}
+          </>
+        )}
+
+        <Divider />
+
+        {/* LOGOUT BUTTON */}
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Icon name="logout" size={20} color="#ef4444" />
+          <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
 
-        <Text style={styles.version}>Version 2.4.0 (Build 1042)</Text>
+        <View style={{ height: 40 }} />
       </ScrollView>
-
-      {/* TIME PICKERS */}
-      {showFromPicker && (
-        <DateTimePicker
-          value={availableHoursFrom}
-          mode="time"
-          is24Hour={false}
-          display="default"
-          onChange={(event, selectedDate) => {
-            setShowFromPicker(false);
-            if (selectedDate) {
-              setAvailableHoursFrom(selectedDate);
-            }
-          }}
-        />
-      )}
-
-      {showToPicker && (
-        <DateTimePicker
-          value={availableHoursTo}
-          mode="time"
-          is24Hour={false}
-          display="default"
-          onChange={(event, selectedDate) => {
-            setShowToPicker(false);
-            if (selectedDate) {
-              setAvailableHoursTo(selectedDate);
-            }
-          }}
-        />
-      )}
     </SafeAreaView>
   );
 };
 
-/* ================= PURE UI COMPONENTS ================= */
+/* ================= HELPER COMPONENTS ================= */
+const Divider: React.FC = () => <View style={styles.divider} />;
 
-const Divider = () => <View style={styles.divider} />;
-
-const SectionHeader: React.FC<{
+interface SectionHeaderProps {
   title: string;
   open: boolean;
   onPress: () => void;
-}> = ({ title, open, onPress }) => (
+}
+
+const SectionHeader: React.FC<SectionHeaderProps> = ({ title, open, onPress }) => (
   <TouchableOpacity style={styles.sectionHeader} onPress={onPress}>
     <Text style={styles.sectionTitle}>{title}</Text>
-    <Icon name={open ? 'remove' : 'add'} size={22} color="#3b82f6" />
+    <Icon name={open ? 'keyboard-arrow-up' : 'keyboard-arrow-down'} size={24} color="#d1d5db" />
   </TouchableOpacity>
 );
 
-const Card: React.FC<{ children: React.ReactNode; noPadding?: boolean }> = ({
-  children,
-  noPadding,
-}) => (
-  <View style={[styles.card, noPadding && styles.noPadding]}>{children}</View>
+const Card: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <View style={styles.card}>{children}</View>
 );
 
-const Field: React.FC<{ label: string; children: React.ReactNode }> = ({
-  label,
-  children,
-}) => (
+interface FieldProps {
+  label: string;
+  children: React.ReactNode;
+}
+
+const Field: React.FC<FieldProps> = ({ label, children }) => (
   <View style={styles.field}>
-    <Text style={styles.label}>{label}</Text>
+    <Text style={styles.fieldLabel}>{label}</Text>
     {children}
   </View>
 );
 
-const ServiceItem: React.FC<{
+interface ServiceItemProps {
   icon: string;
   title: string;
   value: boolean;
   onToggle: () => void;
-}> = ({ icon, title, value, onToggle }) => (
-  <View style={styles.serviceCard}>
-    <View style={styles.serviceIcon}>
-      <Icon name={icon} size={22} color="#3b82f6" />
+}
+
+const ServiceItem: React.FC<ServiceItemProps> = ({ icon, title, value, onToggle }) => (
+  <View style={styles.serviceItem}>
+    <View style={styles.serviceLeft}>
+      <Icon name={icon} size={24} color="#3b82f6" />
+      <Text style={styles.serviceTitle}>{title}</Text>
     </View>
-    <Text style={styles.serviceTitle}>{title}</Text>
     <Switch
       value={value}
       onValueChange={onToggle}
-      trackColor={{
-        false: '#374151',
-        true: '#2563eb',
-      }}
-      thumbColor={value ? '#ffffff' : '#9ca3af'}
-      ios_backgroundColor="#374151"
+      trackColor={{ false: '#374151', true: '#3b82f680' }}
+      thumbColor={value ? '#3b82f6' : '#9ca3af'}
     />
   </View>
 );
 
-const GeneralItem: React.FC<{ icon: string; label: string }> = ({
-  icon,
-  label,
-}) => (
-  <TouchableOpacity style={styles.generalItem}>
-    <View style={styles.generalLeft}>
-      <Icon name={icon} size={20} color="#9ca3af" />
-      <Text style={styles.generalText}>{label}</Text>
-    </View>
-    <Icon name="chevron-right" size={22} color="#6b7280" />
-  </TouchableOpacity>
-);
-
 /* ================= STYLES ================= */
-
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#101622' },
-  flexOne: { flex: 1 },
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#0a0e1a',
+  },
   loadingText: {
     color: '#fff',
-    textAlign: 'center',
-    marginTop: 60,
     fontSize: 16,
+    textAlign: 'center',
+    marginTop: 100,
   },
-
   header: {
-    height: 56 + STATUS_BAR_HEIGHT,
-    paddingTop: STATUS_BAR_HEIGHT,
-    paddingHorizontal: H_PADDING,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingHorizontal: H_PADDING,
+    paddingVertical: 16,
+    backgroundColor: '#101622',
+    borderBottomWidth: 1,
+    borderBottomColor: '#1f2937',
   },
-  headerIcon: { width: 40 },
-  headerTitle: { color: '#fff', fontSize: 18, fontWeight: '700' },
-
+  headerIcon: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#fff',
+  },
   profileRow: {
     flexDirection: 'row',
-    padding: H_PADDING,
     alignItems: 'center',
+    padding: H_PADDING,
+    backgroundColor: '#101622',
   },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 2,
-    borderColor: '#2563eb',
+    width: 70,
+    height: 70,
+    borderRadius: 35,
     marginRight: 16,
   },
-  name: { color: '#fff', fontSize: 18, fontWeight: '700' },
-  email: { color: '#9ca3af', fontSize: 13 },
-  edit: { color: '#3b82f6', marginTop: 6, fontWeight: '600' },
-
-  divider: {
-    height: 1,
-    backgroundColor: '#1f2937',
-    marginHorizontal: H_PADDING,
-    marginVertical: 16,
+  flexOne: {
+    flex: 1,
   },
-
+  name: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#fff',
+    marginBottom: 4,
+  },
+  email: {
+    fontSize: 14,
+    color: '#9ca3af',
+    marginBottom: 8,
+  },
+  edit: {
+    fontSize: 14,
+    color: '#3b82f6',
+    fontWeight: '500',
+  },
+  divider: {
+    height: 8,
+    backgroundColor: '#0a0e1a',
+  },
   sectionHeader: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: H_PADDING,
-    marginTop: 24,
-    alignItems: 'center',
+    paddingVertical: 16,
+    backgroundColor: '#101622',
   },
   sectionHeaderNoIcon: {
     paddingHorizontal: H_PADDING,
-    marginTop: 24,
-    marginBottom: 8,
+    paddingTop: 16,
+    paddingBottom: 8,
+    backgroundColor: '#101622',
   },
-  sectionTitle: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  sectionDesc: {
-    color: '#9ca3af',
-    fontSize: 12,
-    paddingHorizontal: H_PADDING,
-    marginBottom: 12,
-  },
-
-  card: {
-    backgroundColor: '#1c2333',
-    borderRadius: 14,
-    padding: 16,
-    marginHorizontal: H_PADDING,
-  },
-  noPadding: { padding: 0 },
-
-  field: { marginBottom: 14 },
-  label: { color: '#9ca3af', fontSize: 12, marginBottom: 6 },
-  input: {
-    backgroundColor: '#111827',
-    borderRadius: 10,
-    padding: 12,
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
     color: '#fff',
   },
+  sectionDesc: {
+    fontSize: 13,
+    color: '#9ca3af',
+    paddingHorizontal: H_PADDING,
+    paddingBottom: 12,
+    backgroundColor: '#101622',
+  },
+  card: {
+    backgroundColor: '#101622',
+    paddingHorizontal: H_PADDING,
+    paddingBottom: 16,
+  },
+  field: {
+    marginBottom: 20,
+  },
+  fieldLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#9ca3af',
+    marginBottom: 8,
+    letterSpacing: 0.5,
+  },
+  input: {
+    backgroundColor: '#1f2937',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: '#fff',
+    borderWidth: 1,
+    borderColor: '#374151',
+  },
   textArea: {
-    height: 100,
+    minHeight: 100,
     paddingTop: 12,
   },
-
-  // Services with expertise
   servicesContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -817,47 +1117,51 @@ const styles = StyleSheet.create({
   serviceChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+    backgroundColor: '#1f2937',
+    borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 8,
     gap: 6,
+    borderWidth: 1,
+    borderColor: '#3b82f6',
   },
   serviceChipText: {
-    color: '#3b82f6',
-    fontSize: 13,
-  },
-  addServiceBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    gap: 4,
-  },
-  addServiceText: {
-    color: '#3b82f6',
-    fontSize: 13,
+    color: '#fff',
+    fontSize: 14,
   },
   addServiceInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#111827',
+    backgroundColor: '#1f2937',
+    borderRadius: 20,
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingVertical: 4,
     gap: 8,
-    flex: 1,
+    borderWidth: 1,
+    borderColor: '#3b82f6',
   },
   addServiceInput: {
-    flex: 1,
     color: '#fff',
-    fontSize: 13,
-    padding: 0,
+    fontSize: 14,
+    minWidth: 100,
+    padding: 4,
   },
-
-  // Radio buttons
+  addServiceBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1f2937',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    gap: 4,
+    borderWidth: 1,
+    borderColor: '#374151',
+    borderStyle: 'dashed',
+  },
+  addServiceText: {
+    color: '#3b82f6',
+    fontSize: 14,
+  },
   radioGroup: {
     flexDirection: 'row',
     gap: 24,
@@ -884,10 +1188,8 @@ const styles = StyleSheet.create({
   },
   radioText: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 15,
   },
-
-  // Time inputs
   timeRow: {
     flexDirection: 'row',
     gap: 12,
@@ -896,98 +1198,159 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   timeLabel: {
-    color: '#9ca3af',
-    fontSize: 10,
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#6b7280',
     marginBottom: 6,
+    letterSpacing: 0.5,
   },
-  // ⚠️ NOTHING REMOVED — ONLY COMPLETED
-
   timeInput: {
+    backgroundColor: '#1f2937',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: '#374151',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#111827',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
   },
   timeText: {
     color: '#fff',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-
-  /* ================= CUSTOMIZE DASHBOARD ================= */
-
-  serviceCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1c2333',
-    marginHorizontal: H_PADDING,
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 12,
-  },
-  serviceIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(59,130,246,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  serviceTitle: {
-    flex: 1,
-    color: '#fff',
     fontSize: 15,
-    fontWeight: '600',
   },
-
-  /* ================= GENERAL ================= */
-
-  generalItem: {
+  serviceItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: H_PADDING,
+    paddingVertical: 16,
+    backgroundColor: '#101622',
     borderBottomWidth: 1,
     borderBottomColor: '#1f2937',
   },
-  generalLeft: {
+  serviceLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
-  generalText: {
+  serviceTitle: {
+    fontSize: 15,
     color: '#fff',
-    fontSize: 14,
     fontWeight: '500',
   },
-
-  /* ================= LOGOUT ================= */
-
-  logoutBtn: {
-    backgroundColor: 'rgba(239,68,68,0.15)',
-    marginHorizontal: H_PADDING,
-    borderRadius: 14,
-    paddingVertical: 14,
+  emptyContainer: {
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 48,
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#9ca3af',
+    marginTop: 16,
+  },
+  emptySubtext: {
+    fontSize: 13,
+    color: '#6b7280',
+    marginTop: 4,
+  },
+  listingsGrid: {
+    gap: 16,
+  },
+  listingCard: {
+    backgroundColor: '#1f2937',
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#374151',
+  },
+  listingImage: {
+    width: '100%',
+    height: 300,
+    backgroundColor: '#374151',
+  },
+  listingContent: {
+    padding: 12,
+  },
+  listingBadge: {
+    backgroundColor: '#3b82f620',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    alignSelf: 'flex-start',
+    marginBottom: 8,
+  },
+  swachifyBadge: {
+    backgroundColor: '#10b98120',
+  },
+  listingBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#3b82f6',
+    letterSpacing: 0.5,
+  },
+  listingTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#fff',
+    marginBottom: 6,
+  },
+  listingPrice: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#3b82f6',
+    marginBottom: 8,
+  },
+  listingDetails: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 12,
+  },
+  listingDetail: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  listingDetailText: {
+    fontSize: 12,
+    color: '#9ca3af',
+  },
+  deleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#ef444420',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ef444440',
+  },
+  deleteButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#ef4444',
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginHorizontal: H_PADDING,
     marginTop: 24,
+    paddingVertical: 14,
+    backgroundColor: '#1f2937',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#ef444440',
   },
   logoutText: {
-    color: '#ef4444',
     fontSize: 15,
-    fontWeight: '700',
-  },
-
-  version: {
-    color: '#6b7280',
-    fontSize: 11,
-    textAlign: 'center',
-    marginTop: 14,
-    marginBottom: 30,
+    fontWeight: '600',
+    color: '#ef4444',
   },
 });
-export default ProfileInformation;
+
+export default ProfileInformation

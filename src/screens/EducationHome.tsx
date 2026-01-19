@@ -15,6 +15,7 @@ import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import TrainingScreen from "./TrainingScreen";
 
 
 interface UserProfile {
@@ -69,7 +70,7 @@ const EducationHome = () => {
       icon: "explore",
       title: "Training",
       color: "#10b981",
-      screen: null,
+      screen: "Training",
     },
   ];
 

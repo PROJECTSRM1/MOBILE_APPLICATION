@@ -31,6 +31,16 @@ import TransportComingSoon from "./src/screens/TransportComingSoon";
 import RawMaterial from "./src/screens/RawMaterial";
 import EmployeeHomeScreen from "./src/screens/EmployeeHomeScreen";
 import CartScreen from "./src/screens/CartScreen";
+import CandidateProfile from "./src/screens/CandidateProfile";
+import ReviewApplication from "./src/screens/ReviewApplication";
+import TrainingScreen from "./src/screens/TrainingScreen";
+import TrainingDetailsScreen from "./src/screens/trainingDetailsScreen";
+import ApplicationSuccessScreen from "./src/screens/ApplicationSuccessScreen";
+import ServiceDetailsScreen from "./src/screens/ServiceDetailsScreen";
+import PaymentSuccessDetailsScreen from "./src/screens/PaymentSuccessDetailsScreen";
+import ProductDetailScreen from "./src/screens/ProductDetailScreen";
+import RegisterProductModal from "./src/screens/RegisterProductModal";
+import BuyerPage from "./src/screens/BuyerPage";
 
 
 export type RootStackParamList = {
@@ -73,7 +83,16 @@ export type RootStackParamList = {
   RawMaterial: undefined;
   EmployeeHomeScreen: undefined;
   Cart: undefined;
+  CandidateProfile: undefined;
+  Training: undefined;
+  TrainingDetails: undefined;
+  ApplicationSuccess: undefined;
+  // ReviewApplication: undefined;
+   ReviewApplication: { internship: Internship };
+  ProductDetail: undefined;
+  BuyerPage: undefined;
 };
+
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -86,12 +105,19 @@ export default function App(): React.ReactElement {
         <Stack.Screen name="Internship" component={InternshipDetailsScreen} />
         <Stack.Screen name="InternshipList" component={InternshipList} />
         <Stack.Screen name="Landing" component={Landing} />
+        <Stack.Screen name="ServiceDetails" component={ServiceDetailsScreen} />
+        <Stack.Screen
+  name="PaymentSuccessDetails"
+  component={PaymentSuccessDetailsScreen}
+/>
+
         <Stack.Screen name="Cleaning" component={Cleaning} />
         <Stack.Screen name="CleaningCategory" component={CleaningCategorySelectScreen} />
         <Stack.Screen name="PaymentScreen" component={PaymentScreen} />
         <Stack.Screen name="BookCleaning" component={BookCleaningScreen} />
         <Stack.Screen name="Notifications" component={NotificationsScreen} />
         <Stack.Screen name="StudentListing" component={Studentlisting} />
+        <Stack.Screen name="CandidateProfile" component={CandidateProfile} />
         <Stack.Screen name="EducationHome" component={EducationHome} />
         <Stack.Screen name="AuthScreen" component={AuthScreen} />
         <Stack.Screen name="ProfileInformation" component={ProfileInformation} />
@@ -109,6 +135,13 @@ export default function App(): React.ReactElement {
          <Stack.Screen name="RawMaterial" component={RawMaterial} />
          <Stack.Screen name="EmployeeHomeScreen" component={EmployeeHomeScreen} />
          <Stack.Screen name="Cart" component={CartScreen} />
+        <Stack.Screen name="Training" component={TrainingScreen} />
+        <Stack.Screen name="ApplicationSuccess" component={ApplicationSuccessScreen} />
+        <Stack.Screen name="TrainingDetails" component={TrainingDetailsScreen} />
+        <Stack.Screen name="ReviewApplication" component={ReviewApplication} />
+        <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
+        <Stack.Screen name="BuyerPage" component={BuyerPage} />
+
       </Stack.Navigator>
     </NavigationContainer>
   );

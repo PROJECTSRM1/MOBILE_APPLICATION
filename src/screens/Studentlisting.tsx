@@ -17,6 +17,7 @@ import {
 } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { useNavigation } from "@react-navigation/native";
 
 /* =======================
    TYPES
@@ -196,6 +197,7 @@ const Dropdown = ({
    SCREEN
 ======================= */
 const Collegelisting = () => {
+  const navigation = useNavigation<any>();
   const [activeTab, setActiveTab] = useState("All Students");
   const [selectedCert, setSelectedCert] = useState<string | null>(null);
   const [selectedAggregate, setSelectedAggregate] = useState<string | null>(null);
@@ -341,6 +343,15 @@ const ListHeader = () => (
   </View>
 )}
 
+    <Dropdown
+      label="Internship"
+      value={selectedInternship}
+      options={internshipFilters}
+      onSelect={setSelectedInternship}
+    />
+  </View>
+)}
+
   </View>
 );
 
@@ -349,48 +360,67 @@ const ListHeader = () => (
   /* =======================
      STUDENT CARD
   ======================= */
-  const renderStudent = ({ item }: { item: Student }) => (
+const renderStudent = ({ item }: { item: Student }) => (
+  <TouchableOpacity
+    activeOpacity={0.85}
+    onPress={() =>
+      navigation.navigate("CandidateProfile", {
+        student: item,
+      })
+    }
+  >
     <View style={styles.card}>
       <View style={styles.topRow}>
         <Image source={{ uri: item.avatar }} style={styles.avatar} />
-        <View style={{ flex: 1 }}>
-  <View style={styles.nameRow}>
-    <Text style={styles.name}>{item.name}</Text>
-    <Text style={styles.candidateId}>ID: {item.id}</Text>
-  </View>
 
-  <Text style={styles.program}>{item.program}</Text>
-  <Text style={styles.attendance}>{item.attendance}% Attendance</Text>
-</View>
+        <View style={styles.infoCol}>
+          <Text style={styles.name}>{item.name}</Text>
+          <Text style={styles.program}>{item.program}</Text>
+          <Text style={styles.attendance}>
+            {item.attendance}% Attendance
+          </Text>
 
-        <View style={styles.rating}>
-          <Star size={14} color="#facc15" fill="#facc15" />
-          <Text style={styles.ratingText}>{item.rating}</Text>
+          <View style={styles.shift}>
+            <Clock size={14} color="#9ca3af" />
+            <Text style={styles.shiftText}>{item.shift}</Text>
+          </View>
         </View>
-      </View>
-      <View style={styles.bottomRow}>
-        <View style={styles.shift}>
-          <Clock size={14} color="#9ca3af" />
-          <Text style={styles.shiftText}>{item.shift}</Text>
-        </View>
-        <View
-          style={[
-            styles.statusPill,
-            item.status === "active" ? styles.activePill : styles.completedPill,
-          ]}
-        >
-          <Text
+
+        <View style={styles.rightCol}>
+          <View style={styles.rating}>
+            <Star size={14} color="#facc15" fill="#facc15" />
+            <Text style={styles.ratingText}>{item.rating}</Text>
+          </View>
+
+          <Text style={styles.candidateId}>ID: {item.id}</Text>
+
+          <View
             style={[
-              styles.statusText,
-              item.status === "active" ? styles.activeText : styles.completedText,
+              styles.statusPill,
+              item.status === "active"
+                ? styles.activePill
+                : styles.completedPill,
             ]}
           >
-            {item.status.toUpperCase()}
-          </Text>
+            <Text
+              style={[
+                styles.statusText,
+                item.status === "active"
+                  ? styles.activeText
+                  : styles.completedText,
+              ]}
+            >
+              {item.status.toUpperCase()}
+            </Text>
+          </View>
         </View>
       </View>
     </View>
-  );
+  </TouchableOpacity>
+);
+
+
+
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -610,6 +640,48 @@ filterPillActive: {
 filterPillText: {
   color: "#9ca3af",
   fontSize: 12,
+},
+
+filterPillTextActive: {
+  color: "#fff",
+  fontWeight: "700",
+},
+nameRow: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+},
+
+candidateId: {
+  color: "#9ca3af",
+  fontSize: 12,
+  fontWeight: "600",
+},
+infoCol: {
+  flex: 1,
+  gap: 4,
+},
+
+rightCol: {
+  alignItems: "flex-end",
+  justifyContent: "space-between",
+  height: 90,
+},
+
+filterPillTextActive: {
+  color: "#fff",
+  fontWeight: "700",
+},
+nameRow: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+},
+
+candidateId: {
+  color: "#9ca3af",
+  fontSize: 12,
+  fontWeight: "600",
 },
 
 filterPillTextActive: {
