@@ -9,245 +9,311 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import LinearGradient from "react-native-linear-gradient";
+import { useTheme } from "../context/ThemeContext";
 
 const { width } = Dimensions.get("window");
 
 const ApplicationSuccessScreen: React.FC = () => {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
+
   return (
     <SafeAreaView style={styles.safe}>
+      {/* Gradient Background */}
       <LinearGradient
-        colors={["#0b1220", "#0e1627", "#0b1220"]}
+        colors={[
+          colors.background,
+          colors.surface,
+          colors.background,
+        ]}
         style={styles.container}
       >
         {/* Success Icon */}
         <View style={styles.iconWrapper}>
           <View style={styles.iconCircle}>
-            <Icon name="check" size={42} color="#ffffff" />
+            <Icon
+              name="check"
+              size={42}
+              color="#ffffff"
+            />
           </View>
         </View>
 
         {/* Title */}
-        <Text style={styles.title}>Congratulations, Alex!</Text>
+        <Text style={styles.title}>
+          Congratulations, Alex!
+        </Text>
+
         <Text style={styles.subtitle}>
           Your application for the{" "}
-          <Text style={styles.boldText}>UI/UX Design Internship</Text> has been
-          submitted successfully.
+          <Text style={styles.boldText}>
+            UI/UX Design Internship
+          </Text>{" "}
+          has been submitted successfully.
         </Text>
 
         {/* Application Details Card */}
         <View style={styles.card}>
-          <Text style={styles.cardHeader}>APPLICATION DETAILS</Text>
+          <Text style={styles.cardHeader}>
+            APPLICATION DETAILS
+          </Text>
 
+          {/* Position */}
           <View style={styles.detailRow}>
             <View style={styles.detailIcon}>
-              <Icon name="work-outline" size={20} color="#3b82f6" />
+              <Icon
+                name="work-outline"
+                size={20}
+                color={colors.primary}
+              />
             </View>
             <View>
               <Text style={styles.label}>Position</Text>
-              <Text style={styles.value}>UI/UX Design Intern</Text>
+              <Text style={styles.value}>
+                UI/UX Design Intern
+              </Text>
             </View>
           </View>
 
+          {/* Company */}
           <View style={styles.detailRow}>
             <View style={styles.detailIcon}>
-              <Icon name="business" size={20} color="#3b82f6" />
+              <Icon
+                name="business"
+                size={20}
+                color={colors.primary}
+              />
             </View>
             <View>
               <Text style={styles.label}>Company</Text>
-              <Text style={styles.value}>TechVision Studio</Text>
+              <Text style={styles.value}>
+                TechVision Studio
+              </Text>
             </View>
           </View>
 
           <View style={styles.divider} />
 
+          {/* Bottom Row */}
           <View style={styles.bottomRow}>
             <View>
-              <Text style={styles.appIdLabel}>APPLICATION ID</Text>
-              <Text style={styles.appId}>#INT-2024-8832</Text>
+              <Text style={styles.appIdLabel}>
+                APPLICATION ID
+              </Text>
+              <Text style={styles.appId}>
+                #INT-2024-8832
+              </Text>
             </View>
 
             <View style={styles.statusBadge}>
-              <Text style={styles.statusText}>RECEIVED</Text>
+              <Text style={styles.statusText}>
+                RECEIVED
+              </Text>
             </View>
           </View>
         </View>
 
         {/* Primary Button */}
-        <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.85}>
-          <Text style={styles.primaryText}>View Application Status →</Text>
+        <TouchableOpacity
+          style={styles.primaryBtn}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.primaryText}>
+            View Application Status →
+          </Text>
         </TouchableOpacity>
 
         {/* Secondary Button */}
-        <TouchableOpacity style={styles.secondaryBtn} activeOpacity={0.85}>
-          <Text style={styles.secondaryText}>Explore More Internships</Text>
+        <TouchableOpacity
+          style={styles.secondaryBtn}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.secondaryText}>
+            Explore More Internships
+          </Text>
         </TouchableOpacity>
       </LinearGradient>
     </SafeAreaView>
   );
 };
-
 export default ApplicationSuccessScreen;
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: "#0b1220",
-  },
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    /* Safe Area */
+    safe: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
-  container: {
-    flex: 1,
-    padding: 20,
-    justifyContent: "center",
-  },
+    container: {
+      flex: 1,
+      padding: 20,
+      justifyContent: "center",
+      backgroundColor: colors.background,
+    },
 
-  /* Success Icon */
-  iconWrapper: {
-    alignItems: "center",
-    marginBottom: 28,
-  },
+    /* Success Icon */
+    iconWrapper: {
+      alignItems: "center",
+      marginBottom: 28,
+    },
 
-  iconCircle: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: "#2563eb",
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 10,
-    shadowColor: "#2563eb",
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-  },
+    iconCircle: {
+      width: 96,
+      height: 96,
+      borderRadius: 48,
+      backgroundColor: colors.primary,
+      justifyContent: "center",
+      alignItems: "center",
+      elevation: 10,
+      shadowColor: colors.primary,
+      shadowOpacity: 0.4,
+      shadowRadius: 16,
+      shadowOffset: { width: 0, height: 8 },
+    },
 
-  /* Text */
-  title: {
-    color: "#ffffff",
-    fontSize: 26,
-    fontWeight: "800",
-    textAlign: "center",
-    marginBottom: 12,
-  },
+    /* Text */
+    title: {
+      color: colors.text,
+      fontSize: 26,
+      fontWeight: "800",
+      textAlign: "center",
+      marginBottom: 12,
+    },
 
-  subtitle: {
-    color: "#9ca3af",
-    fontSize: 15,
-    lineHeight: 22,
-    textAlign: "center",
-    paddingHorizontal: 10,
-    marginBottom: 28,
-  },
+    subtitle: {
+      color: colors.subText,
+      fontSize: 15,
+      lineHeight: 22,
+      textAlign: "center",
+      paddingHorizontal: 10,
+      marginBottom: 28,
+    },
 
-  boldText: {
-    color: "#ffffff",
-    fontWeight: "700",
-  },
+    boldText: {
+      color: colors.text,
+      fontWeight: "700",
+    },
 
-  /* Card */
-  card: {
-    backgroundColor: "#121b2f",
-    borderRadius: 20,
-    padding: 18,
-    marginBottom: 28,
-  },
+    /* Card */
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: 20,
+      padding: 18,
+      marginBottom: 28,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
 
-  cardHeader: {
-    color: "#6b7280",
-    fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: 1,
-    marginBottom: 16,
-  },
+    cardHeader: {
+      color: colors.subText,
+      fontSize: 12,
+      fontWeight: "700",
+      letterSpacing: 1,
+      marginBottom: 16,
+    },
 
-  detailRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 18,
-  },
+    detailRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 18,
+    },
 
-  detailIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    backgroundColor: "#1e293b",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 14,
-  },
+    detailIcon: {
+      width: 44,
+      height: 44,
+      borderRadius: 14,
+      backgroundColor: colors.card,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 14,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
 
-  label: {
-    color: "#9ca3af",
-    fontSize: 12,
-  },
+    label: {
+      color: colors.subText,
+      fontSize: 12,
+    },
 
-  value: {
-    color: "#ffffff",
-    fontSize: 15,
-    fontWeight: "700",
-    marginTop: 2,
-  },
+    value: {
+      color: colors.text,
+      fontSize: 15,
+      fontWeight: "700",
+      marginTop: 2,
+    },
 
-  divider: {
-    height: 1,
-    backgroundColor: "#1f2937",
-    marginVertical: 14,
-  },
+    divider: {
+      height: 1,
+      backgroundColor: colors.border,
+      marginVertical: 14,
+    },
 
-  bottomRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
+    bottomRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
 
-  appIdLabel: {
-    color: "#6b7280",
-    fontSize: 11,
-  },
+    appIdLabel: {
+      color: colors.subText,
+      fontSize: 11,
+    },
 
-  appId: {
-    color: "#3b82f6",
-    fontWeight: "700",
-    fontSize: 14,
-    marginTop: 4,
-  },
+    appId: {
+      color: colors.primary,
+      fontWeight: "700",
+      fontSize: 14,
+      marginTop: 4,
+    },
 
-  statusBadge: {
-    backgroundColor: "rgba(16,185,129,0.15)",
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
+    statusBadge: {
+      backgroundColor: colors.success + "20",
+      paddingHorizontal: 14,
+      paddingVertical: 6,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: colors.success + "40",
+    },
 
-  statusText: {
-    color: "#10b981",
-    fontSize: 12,
-    fontWeight: "700",
-  },
+    statusText: {
+      color: colors.success,
+      fontSize: 12,
+      fontWeight: "700",
+    },
 
-  /* Buttons */
-  primaryBtn: {
-    backgroundColor: "#2563eb",
-    paddingVertical: 16,
-    borderRadius: 18,
-    alignItems: "center",
-    marginBottom: 14,
-    elevation: 6,
-  },
+    /* Buttons */
+    primaryBtn: {
+      backgroundColor: colors.primary,
+      paddingVertical: 16,
+      borderRadius: 18,
+      alignItems: "center",
+      marginBottom: 14,
+      elevation: 6,
+      shadowColor: colors.primary,
+      shadowOpacity: 0.3,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 6 },
+    },
 
-  primaryText: {
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "700",
-  },
+    primaryText: {
+      color: colors.onPrimary ?? "#ffffff",
+      fontSize: 16,
+      fontWeight: "700",
+    },
 
-  secondaryBtn: {
-    backgroundColor: "#1e293b",
-    paddingVertical: 16,
-    borderRadius: 18,
-    alignItems: "center",
-  },
+    secondaryBtn: {
+      backgroundColor: colors.card,
+      paddingVertical: 16,
+      borderRadius: 18,
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
 
-  secondaryText: {
-    color: "#e5e7eb",
-    fontSize: 15,
-    fontWeight: "600",
-  },
-});
+    secondaryText: {
+      color: colors.text,
+      fontSize: 15,
+      fontWeight: "600",
+    },
+  });
