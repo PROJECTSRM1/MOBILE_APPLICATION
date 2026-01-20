@@ -54,6 +54,9 @@ import DoctorListScreen from "./src/screens/Healthcare";
 import ConsultationRequestScreen from "./src/screens/Healthform";
 import TelemedicineConsultation from "./src/screens/TelemedicineConsultation";
 import FacilitiesScreen from "./src/screens/FacilitiesScreen";
+import ParcelView from "./src/screens/ParcelView";
+import MetroView from "./src/screens/MetroView";
+import ScootyView from "./src/screens/ScootyView";
 
 
 export type RootStackParamList = {
@@ -116,6 +119,10 @@ export type RootStackParamList = {
   Form:undefined;
   Telecom:undefined;
   Facility:undefined;
+  DoctorListScreen:undefined;
+  ParcelView: undefined;
+  MetroView: undefined;
+  ScootyView: undefined;
 };
 
 
@@ -173,6 +180,9 @@ export default function App(): React.ReactElement {
         <Stack.Screen name="Form" component={ConsultationRequestScreen} />
          <Stack.Screen name="Telecom" component={TelemedicineConsultation} />
          <Stack.Screen name="Facility" component={FacilitiesScreen} />
+         <Stack.Screen name="ParcelView" component={ParcelView} />
+         <Stack.Screen name="MetroView" component={MetroView} />
+         <Stack.Screen name="ScootyView" component={ScootyView} />
 
       </Stack.Navigator>
     </NavigationContainer>
