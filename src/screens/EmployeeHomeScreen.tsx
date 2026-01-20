@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import { useTheme } from "../context/ThemeContext";
 
 /* ================= DUMMY DATA ================= */
 
@@ -80,6 +81,9 @@ const initialRequests = [
 /* ================= SCREEN ================= */
 
 const EmployeeHomeScreen = () => {
+      const { colors } = useTheme();
+    const styles = getStyles(colors);
+    
   const [requests, setRequests] = useState(initialRequests);
   const [activeJobs, setActiveJobs] = useState<any[]>([]);
   const [history, setHistory] = useState<any[]>([]);
@@ -216,160 +220,181 @@ export default EmployeeHomeScreen;
 
 /* ================= STYLES ================= */
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#0f172a",
-    padding: 16,
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+      padding: 16,
+    },
+
+    /* ================= HEADER ================= */
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 16,
+    },
+
+    headerTitle: {
+      color: colors.text,
+      fontSize: 20,
+      fontWeight: "700",
+    },
+
+    sectionTitle: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: "600",
+      marginBottom: 10,
+    },
+
+    emptyText: {
+      color: colors.subText,
+      marginBottom: 12,
+      fontSize: 14,
+    },
+
+    /* ================= CARDS ================= */
+    card: {
+      backgroundColor: colors.card,
+      borderRadius: 18,
+      padding: 16,
+      marginBottom: 14,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    activeCard: {
+      backgroundColor: colors.surface,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 12,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      borderWidth: 1,
+      borderColor: colors.primary,
+    },
+
+    historyCard: {
+      backgroundColor: colors.surface,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 12,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      borderWidth: 1,
+      borderColor: colors.border,
+      opacity: 0.95,
+    },
+
+    cardHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 10,
+    },
+
+    service: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: "600",
+      flex: 1,
+      marginRight: 8,
+    },
+
+    /* ================= BADGES ================= */
+    badge: {
+      backgroundColor: colors.primary + "22",
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 20,
+    },
+
+    urgentBadge: {
+      backgroundColor: colors.danger + "22",
+    },
+
+    badgeText: {
+      color: colors.primary,
+      fontSize: 11,
+      fontWeight: "700",
+    },
+
+    /* ================= META ================= */
+    metaText: {
+      color: colors.subText,
+      fontSize: 13,
+      marginBottom: 2,
+    },
+
+    earningsRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginTop: 10,
+      alignItems: "center",
+    },
+
+    earningsLabel: {
+      color: colors.subText,
+      fontSize: 13,
+    },
+
+    earningsValue: {
+      color: colors.success,
+      fontSize: 15,
+      fontWeight: "700",
   },
 
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
+   acceptBtn: {
+      marginTop: 14,
+      backgroundColor: colors.primary,
+      paddingVertical: 12,
+      borderRadius: 14,
+      alignItems: "center",
+    },
 
-  headerTitle: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "bold",
-  },
+    acceptText: {
+      color: "#ffffff",
+      fontWeight: "600",
+      fontSize: 14,
+    },
 
-  sectionTitle: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 10,
-  },
+    activeActions: {
+      justifyContent: "center",
+      gap: 10,
+    },
 
-  emptyText: {
-    color: "#9ca3af",
-    marginBottom: 12,
-  },
+    completeBtn: {
+      backgroundColor: colors.success,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      borderRadius: 12,
+    },
 
-  card: {
-    backgroundColor: "#1e293b",
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 14,
-  },
+    completeText: {
+      color: "#ffffff",
+      fontWeight: "700",
+      fontSize: 13,
+    },
 
-  activeCard: {
-    backgroundColor: "#020617",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
+    cancelBtn: {
+      backgroundColor: colors.danger,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      borderRadius: 12,
+    },
 
-  historyCard: {
-    backgroundColor: "#020617",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
+    cancelText: {
+      color: "#ffffff",
+      fontWeight: "700",
+      fontSize: 13,
+    },
 
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 10,
-  },
-
-  service: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-
-  badge: {
-    backgroundColor: "#2563eb33",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-  },
-
-  urgentBadge: {
-    backgroundColor: "#dc262633",
-  },
-
-  badgeText: {
-    color: "#38bdf8",
-    fontSize: 11,
-    fontWeight: "700",
-  },
-
-  metaText: {
-    color: "#cbd5f5",
-    fontSize: 13,
-    marginBottom: 2,
-  },
-
-  earningsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 10,
-  },
-
-  earningsLabel: {
-    color: "#9ca3af",
-    fontSize: 13,
-  },
-
-  earningsValue: {
-    color: "#22c55e",
-    fontSize: 15,
-    fontWeight: "700",
-  },
-
-  acceptBtn: {
-    marginTop: 14,
-    backgroundColor: "#2563eb",
-    paddingVertical: 10,
-    borderRadius: 14,
-    alignItems: "center",
-  },
-
-  acceptText: {
-    color: "#fff",
-    fontWeight: "600",
-  },
-
-  activeActions: {
-    justifyContent: "center",
-    gap: 8,
-  },
-
-  completeBtn: {
-    backgroundColor: "#22c55e",
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 12,
-  },
-
-  completeText: {
-    color: "#022c22",
-    fontWeight: "700",
-  },
-
-  cancelBtn: {
-    backgroundColor: "#dc2626",
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 12,
-  },
-
-  cancelText: {
-    color: "#fff",
-    fontWeight: "700",
-  },
-
-  completedText: {
-    color: "#22c55e",
-    fontSize: 12,
-    fontWeight: "700",
-    marginTop: 4,
-  },
-});
+    completedText: {
+      color: colors.success,
+      fontSize: 12,
+      fontWeight: "700",
+      marginTop: 4,
+    },
+  });
