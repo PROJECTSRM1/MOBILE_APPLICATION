@@ -458,7 +458,17 @@ const removeImage = (index: number) => {
             <View style={styles.allocatedContent}>
               <View style={styles.allocatedLeft}>
                 <View>
-                  <Image source={allocatedEmployee.image} style={styles.allocatedAvatar} />
+                  <Image
+  source={
+    typeof allocatedEmployee?.image === "number"
+      ? allocatedEmployee.image              // local require()
+      : allocatedEmployee?.image
+      ? { uri: allocatedEmployee.image }     // URL
+      : undefined
+  }
+  style={styles.allocatedAvatar}
+/>
+
                   {allocatedEmployee.verified && (
                     <View style={styles.verifiedBadge}>
                       <MaterialIcons name="verified" size={14} color="#facc15" />
@@ -796,10 +806,15 @@ const removeImage = (index: number) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
             <View style={styles.modalAvatarContainer}>
-              <Image
-                source={allocatedEmployee?.image}
-                style={styles.modalAvatar}
-              />
+            <Image
+  source={
+    typeof allocatedEmployee?.image === "number"
+      ? allocatedEmployee.image
+      : { uri: allocatedEmployee?.image }
+  }
+  style={styles.modalAvatar}
+/>
+
               {allocatedEmployee?.verified && (
                 <View style={styles.modalVerifiedBadge}>
                   <MaterialIcons name="verified" size={18} color="#facc15" />

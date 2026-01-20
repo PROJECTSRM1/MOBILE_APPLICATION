@@ -479,8 +479,9 @@ const trendingServices = [
               break;
 
             case "Just Ride":
-              navigation.navigate("Transport");
-              break;
+  navigation.navigate("JustRideMultiStop");
+  break;
+
 
             case "Health Care":
               // future screen

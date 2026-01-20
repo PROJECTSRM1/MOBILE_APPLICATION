@@ -48,6 +48,8 @@ import PaymentSuccessDetailsScreen from "./src/screens/PaymentSuccessDetailsScre
 import ProductDetailScreen from "./src/screens/ProductDetailScreen";
 import RegisterProductModal from "./src/screens/RegisterProductModal";
 import BuyerPage from "./src/screens/BuyerPage";
+import JustrideMultiStop from "./src/screens/JustRideMultiStop";
+import JustrideApp from "./src/screens/JustrideApp";
 
 
 export type RootStackParamList = {
@@ -104,6 +106,8 @@ export type RootStackParamList = {
   BuyerPage: undefined;
   ServiceDetails: undefined;
   PaymentSuccessDetails: undefined;
+  JustRideMultiStop: undefined;
+  JustrideApp: undefined;
 };
 
 
@@ -155,6 +159,8 @@ export default function App(): React.ReactElement {
         <Stack.Screen name="ReviewApplication" component={ReviewApplication} />
         <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
         <Stack.Screen name="BuyerPage" component={BuyerPage} />
+        <Stack.Screen name="JustRideMultiStop" component={JustrideMultiStop} />
+        <Stack.Screen name= "JustrideApp" component={JustrideApp} />
 
       </Stack.Navigator>
     </NavigationContainer>
