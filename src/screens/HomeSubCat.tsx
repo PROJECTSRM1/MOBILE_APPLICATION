@@ -117,6 +117,17 @@ export default function HomeSubCat() {
     }));
   };
 
+  const getSelectedServiceTitles = () => {
+  const result: string[] = [];
+
+  if (services.standard) result.push("Floor Cleaning");
+  if (services.deep) result.push("Deep Cleaning");
+  if (services.sanitization) result.push("Sanitization");
+  if (services.window) result.push("Window Cleaning");
+
+  return result;
+};
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#101c22" />
@@ -316,18 +327,18 @@ export default function HomeSubCat() {
           </View>
 <TouchableOpacity
   style={styles.continueButton}
-onPress={() =>
-  navigation.navigate("BookCleaning", {
-    propertyType,
-    selectedServices: services,
-    windowCount,
-    totalPrice: calculateTotal(),
-  })
-}
-
+  onPress={() =>
+    navigation.navigate("BookCleaning", {
+      propertyType,
+      selectedServices: getSelectedServiceTitles(),
+      windowCount,
+      totalPrice: calculateTotal(),
+    })
+  }
 >
   <Text style={styles.continueButtonText}>Continue</Text>
 </TouchableOpacity>
+
 
         </View>
 
