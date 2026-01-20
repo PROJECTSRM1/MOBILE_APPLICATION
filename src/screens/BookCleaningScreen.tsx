@@ -22,6 +22,9 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { useNavigation } from "@react-navigation/native";
 import { launchCamera, launchImageLibrary, Asset } from "react-native-image-picker";
 
+import { useAppTheme } from "../themes/useAppTheme";
+
+
 
 /* =======================
    TYPES
@@ -80,7 +83,7 @@ const ADDON_PRICE = 25;
 const BookCleaningScreen: React.FC = () => {
   const route = useRoute<any>();
   const consultationCharge = route.params?.consultationCharge || 0;
-
+const colors = useAppTheme();
   const navigation = useNavigation<any>();
 
   const [locationType, setLocationType] = useState<"default" | "other">("default");
@@ -863,7 +866,7 @@ export default BookCleaningScreen;
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: "#101622",
+    
   },
 
   header: {

@@ -16,8 +16,8 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Animated } from "react-native";
-
-
+import ThemeToggleIcon from "./ThemeToggleIcon";
+import { useThemeMode } from "./ThemeContext";
 interface UserProfile {
   firstName: string;
   lastName: string;
@@ -31,6 +31,8 @@ const Landing = () => {
   const route = useRoute<any>();
   const verticalScrollRef = useRef<ScrollView>(null);
   const scrollY = useRef(new Animated.Value(0)).current;
+const { mode } = useThemeMode();
+const isDark = mode === "dark";
 
 
   /* ================= STATE ================= */
@@ -175,42 +177,28 @@ const trendingServices = [
     action: "Call",
     image: "https://images.unsplash.com/photo-1581090700227-1e37b190418e?w=600",
   },
-  // {
-  //   id: "4",
-  //   title: "AC Gas Refill",
-  //   category: "Housing / Cleaning",
-  //   distance: "1.1 km away",
-  //   price: "₹1,299",
-  //   action: "Book",
-  //   image: "https://images.unsplash.com/photo-1597007097974-31b78c71c0e4?w=600",
-  // },
-  // {
-  //   id: "5",
-  //   title: "Second-hand Refrigerator",
-  //   category: "Buy / Sell",
-  //   distance: "1.8 km away",
-  //   price: "₹6,500",
-  //   action: "View",
-  //   image: "https://images.unsplash.com/photo-1581574208520-6a6a1d7c6b2c?w=600",
-  // },
-  // {
-  //   id: "6",
-  //   title: "Physiotherapy Home Visit",
-  //   category: "Health Care",
-  //   distance: "0.9 km away",
-  //   price: "₹1,200",
-  //   action: "Book",
-  //   image: "https://images.unsplash.com/photo-1580281658629-1e0c8c8b72c7?w=600",
-  // },
 ];
-
-// const scrollY = useRef(new Animated.Value(0)).current;
-
+const colors = {
+  background: isDark ? "#0f172a" : "#ffffff",
+  headerBg: isDark ? "#0f172a" : "#ffffff",
+  cardBg: isDark ? "#1e293b" : "#f1f5f9",
+  textPrimary: isDark ? "#ffffff" : "#0f172a",
+  textSecondary: isDark ? "#9ca3af" : "#475569",
+  icon: isDark ? "#3b82f6" : "#2563eb",
+  searchBg: isDark ? "#1e293b" : "#e5e7eb",
+    iconBg: isDark ? "#1e293b" : "#e5e7eb",   
+  footerBg: isDark ? "#020617" : "#ffffff" 
+};
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+
       {/* ================= HEADER ================= */}
-      <SafeAreaView edges={["top"]} style={styles.safeHeader}></SafeAreaView>
+      <SafeAreaView
+  edges={["top"]}
+  style={{ backgroundColor: colors.headerBg }}
+/>
+
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           {/* PROFILE + TOOLTIP */}
@@ -247,54 +235,40 @@ const trendingServices = [
             <Text style={styles.locationLabel}>Current Location</Text>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               <MaterialIcons name="location-on" size={16} color="#3b82f6" />
-              <Text style={styles.locationText}> {userLocation}</Text>
+              <Text style={[styles.locationText, { color: colors.textPrimary }]}>
+  {userLocation}
+</Text>
+
             </View>
           </View>
         </View>
 
-        {/* BELL */}
-        {/* <TouchableOpacity
-          style={styles.notificationWrapper}
-          onPress={() => navigation.navigate("Notifications")}
-          activeOpacity={0.7}
-        >
-          <MaterialIcons name="notifications" size={24} color="#fff" />
-          {!isLoggedIn && <View style={styles.notificationDot} />}
-        </TouchableOpacity> */}
+
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
 
-  {/* ROLE DROPDOWN ICON */}
-  {/* <TouchableOpacity
-    onPress={() => setShowRoleMenu((prev) => !prev)}
-    activeOpacity={0.7}
-  >
-    <MaterialIcons name="expand-more" size={26} color="#fff" />
-  </TouchableOpacity> */}
-
-  {/* <TouchableOpacity onPress={() => navigation.navigate("Cart")}>
-  <MaterialIcons name="shopping-cart" size={24} color="#fff" />
-</TouchableOpacity> */}
+  <ThemeToggleIcon />
 
   <TouchableOpacity
   onPress={() => setShowRoleMenu((prev) => !prev)}
   activeOpacity={0.7}
   style={{ flexDirection: "row", alignItems: "center" }}
 >
-  <Text
-    style={{
-      color: "#fff",
-      fontSize: 13,
-      marginRight: 2,
-      fontWeight: "500",
-    }}
-  >
-    Select Type
-  </Text>
-  <MaterialIcons name="expand-more" size={26} color="#fff" />
+<Text
+  style={{
+    color: colors.textPrimary,
+    fontSize: 13,
+    marginRight: 2,
+    fontWeight: "500",
+  }}
+>
+  Select Type
+</Text>
+
+ <MaterialIcons name="expand-more" size={26} color={colors.textPrimary} />
 </TouchableOpacity>
 
 <TouchableOpacity onPress={() => navigation.navigate("Cart")}>
-  <MaterialIcons name="shopping-cart" size={24} color="#fff" />
+<MaterialIcons name="shopping-cart" size={24} color={colors.textPrimary} />
 </TouchableOpacity>
 
   {/* BELL */}
@@ -303,7 +277,7 @@ const trendingServices = [
       onPress={() => navigation.navigate("Notifications")}
       activeOpacity={0.7}
     >
-      <MaterialIcons name="notifications" size={24} color="#fff" />
+<MaterialIcons name="notifications" size={24} color={colors.textPrimary} />
       {!isLoggedIn && <View style={styles.notificationDot} />}
     </TouchableOpacity>
   </View>
@@ -334,7 +308,8 @@ const trendingServices = [
       </View>
 
       {/* ================= SEARCH ================= */}
-      <View style={styles.searchBox}>
+      <View style={[styles.searchBox, { backgroundColor: colors.searchBg }]}>
+
         <MaterialIcons name="search" size={20} color="#3b82f6" />
         <TextInput
           placeholder="Find services, jobs, or homes..."
@@ -344,8 +319,6 @@ const trendingServices = [
         <MaterialIcons name="mic" size={20} color="#3b82f6" />
       </View>
 
-      {/* <ScrollView showsVerticalScrollIndicator={false}>
-       */}
 
        <Animated.ScrollView
   showsVerticalScrollIndicator={false}
@@ -356,23 +329,6 @@ const trendingServices = [
   scrollEventThrottle={16}
 >
 
-        {/* ================= BANNER ================= */}
-
-        {/* <ScrollView
-  horizontal
-  showsHorizontalScrollIndicator={false}
-  ref={scrollRef}
->
-  {banners.map((item) => (
-    <View key={item.id} style={styles.banner}>
-      <Text style={styles.badge}>{item.badge}</Text>
-      <Text style={styles.bannerTitle}>{item.title}</Text>
-      <TouchableOpacity style={styles.bannerBtn}>
-        <Text style={styles.bannerBtnText}>{item.action}</Text>
-      </TouchableOpacity>
-    </View>
-  ))}
-</ScrollView> */}
 
 <ScrollView
   horizontal
@@ -423,12 +379,10 @@ const trendingServices = [
   ))}
 </ScrollView>
 
-
-
-        {/* ================= CORE SERVICES ================= */}
-        {/* <Text style={styles.sectionTitle}>Core Services</Text> */}
         <View style={styles.sectionHeader}>
-  <Text style={styles.sectionTitle}>Core Services</Text>
+  <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+  Core Services
+</Text>
 </View>
 
         <View style={styles.grid}>
@@ -491,10 +445,15 @@ const trendingServices = [
           }
         }}
       >
-        <View style={styles.gridIcon}>
-          <MaterialIcons name={item.icon} size={28} color="#3b82f6" />
+        <View style={[styles.gridIcon, { backgroundColor: colors.iconBg }]}>
+
+      <MaterialIcons name={item.icon} size={28} color={colors.icon} />
+
         </View>
-        <Text style={styles.gridText}>{item.name}</Text>
+        <Text style={[styles.gridText, { color: colors.textSecondary }]}>
+  {item.name}
+</Text>
+
       </TouchableOpacity>
     );
   })}
@@ -504,7 +463,10 @@ const trendingServices = [
         {/* ================= TRENDING ================= */}
 
 <View style={styles.sectionHeader}>
-  <Text style={styles.sectionTitle}>Trending Near You</Text>
+  <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+  Trending Near You
+</Text>
+
   <TouchableOpacity
   onPress={() => navigation.navigate("Marketplace")}
 >
@@ -533,16 +495,17 @@ const trendingServices = [
   });
 
   return (
-    <Animated.View
-      key={item.id}
-      style={[
-        styles.card,
-        {
-          opacity,
-          transform: [{ translateY }],
-        },
-      ]}
-    >
+  <Animated.View
+  style={[
+    styles.card,
+    {
+      backgroundColor: colors.cardBg,
+      opacity,
+      transform: [{ translateY }],
+    },
+  ]}
+>
+
      <Image 
   source={
     typeof item.image === 'string' 
@@ -553,14 +516,28 @@ const trendingServices = [
 />
 
       <View style={{ flex: 1 }}>
-        <Text style={styles.cardTitle}>{item.title}</Text>
-        <Text style={styles.cardSub}>
-          {item.category} • {item.distance}
-        </Text>
+        <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>
+  {item.title}
+</Text>
+
+        <Text style={[styles.cardSub, { color: colors.textSecondary }]}>
+  {item.category} • {item.distance}
+</Text>
 
         <View style={styles.cardFooter}>
-          <Text style={styles.price}>{item.price}</Text>
-          <TouchableOpacity style={styles.cardBtn}>
+          <Text style={[styles.price, { color: colors.icon }]}>
+  {item.price}
+</Text>
+
+          <TouchableOpacity
+  style={[
+    styles.cardBtn,
+    {
+      backgroundColor: isDark ? "#2563eb33" : "#dbeafe",
+    },
+  ]}
+>
+
             <Text style={styles.cardBtnText}>{item.action}</Text>
           </TouchableOpacity>
         </View>
@@ -572,7 +549,15 @@ const trendingServices = [
 
     
         {/* ================= REFER & EARN ================= */}
-        <View style={styles.referBox}>
+    <View
+  style={[
+    styles.referBox,
+    {
+      backgroundColor: isDark ? "#2563eb" : "#2563eb",
+    },
+  ]}
+>
+
           <View>
             <Text style={styles.referTitle}>Refer & Earn</Text>
             <Text style={styles.referSub}>Invite friends to earn rewards</Text>
@@ -589,7 +574,13 @@ const trendingServices = [
       </Animated.ScrollView>
 
       {/* ================= BOTTOM TAB ================= */}
-      <View style={styles.bottomTab}>
+     <View
+  style={[
+    styles.bottomTab,
+    { backgroundColor: colors.footerBg },
+  ]}
+>
+
         {["home", "calendar-month", "account-balance-wallet", "chat", "person"].map(
           (icon, i) => (
             <TouchableOpacity
@@ -607,7 +598,8 @@ const trendingServices = [
               <MaterialIcons
                 name={icon}
                 size={26}
-                color={i === 0 ? "#3b82f6" : "#9ca3af"}
+                color={i === 0 ? colors.icon : colors.textSecondary}
+
               />
             </TouchableOpacity>
           )
@@ -620,7 +612,7 @@ const trendingServices = [
 
 export default Landing;
 
-/* ================= STYLES ================= */
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#0f172a" },
@@ -714,6 +706,7 @@ const styles = StyleSheet.create({
   },
 
   searchInput: { flex: 1, color: "#fff" },
+  
 
   /* BANNER */
   banner: {
@@ -785,16 +778,6 @@ const styles = StyleSheet.create({
   lineHeight: 14,
   height: 28,          
 },
-
-
-  /* TRENDING */
-  // trendingHeader: {
-  //   flexDirection: "row",
-  //   justifyContent: "space-between",
-  //   paddingHorizontal: 16,
-  // },
-
-  // viewAll: { color: "#3b82f6", marginTop: 18 },
 
   card: {
     flexDirection: "row",
