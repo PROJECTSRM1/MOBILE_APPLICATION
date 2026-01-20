@@ -112,12 +112,9 @@ function AppNavigator() {
         <Stack.Screen name="Health" component={DoctorListScreen} />
         <Stack.Screen name="Form" component={ConsultationRequestScreen} />
          <Stack.Screen name="Telecom" component={TelemedicineConsultation} />
-         <Stack.Screen name="Facility" component={FacilitiesScreen} />
          <Stack.Screen name="ParcelView" component={ParcelView} />
          <Stack.Screen name="MetroView" component={MetroView} />
          <Stack.Screen name="ScootyView" component={ScootyView} />
-
-        <Stack.Screen name="Telecom" component={TelemedicineConsultation} />
         <Stack.Screen name="Facility" component={FacilitiesScreen} />
         <Stack.Screen name="enrollmentDetails" component={EnrollmentDetailsScreen} />
       </Stack.Navigator>
