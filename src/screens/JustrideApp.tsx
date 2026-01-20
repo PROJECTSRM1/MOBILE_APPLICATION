@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,34 +7,52 @@ import {
   TouchableOpacity,
   StyleSheet,
   StatusBar,
-  SafeAreaView,
+  Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Path } from 'react-native-svg';
 
-interface MaterialIconProps {
-  name: string;
-  size?: number;
-  color?: string;
-  style?: any;
-}
-
-const MaterialIcon: React.FC<MaterialIconProps> = ({
-  name,
-  size = 24,
-  color = '#fff',
-  style,
-}) => (
-  <Text style={[{ fontSize: size, color }, style]}>{name}</Text>
+// Material Icons Components
+const ArrowLeft = ({ size = 24, color = '#fff' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M19 12H5M12 19l-7-7 7-7" />
+  </Svg>
 );
 
+const Menu = ({ size = 24, color = '#fff' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M3 12h18M3 6h18M3 18h18" />
+  </Svg>
+);
+
+const Search = ({ size = 24, color = '#fff' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.35-4.35" />
+  </Svg>
+);
+
+const MapPin = ({ size = 24, color = '#fff' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+    <Path d="M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+  </Svg>
+);
+
+const Navigation = ({ size = 24, color = '#fff' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M3 11l19-9-9 19-2-8-8-2z" />
+  </Svg>
+);
 
 const JustrideApp = () => {
   const [fromLocation, setFromLocation] = useState('Grand Central Terminal, NY');
   const [toLocation, setToLocation] = useState('Empire State Building');
   const [selectedCategory, setSelectedCategory] = useState('All Services');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const categories = ['All Services', 'Commute', 'Delivery', 'Luxury'];
 
-  const services = [
+  const allServices = [
     {
       id: 1,
       name: 'Metro Ticket',
@@ -44,6 +62,8 @@ const JustrideApp = () => {
       availabilityColor: '#135bec',
       price: '$2.75',
       distance: '0.5 km',
+      category: 'Commute',
+      priceValue: 2.75,
     },
     {
       id: 2,
@@ -54,6 +74,8 @@ const JustrideApp = () => {
       availabilityColor: '#9da6b9',
       price: 'From $5',
       distance: 'Instant pick',
+      category: 'Delivery',
+      priceValue: 5,
     },
     {
       id: 3,
@@ -64,6 +86,8 @@ const JustrideApp = () => {
       availabilityColor: '#135bec',
       price: '$3.20',
       distance: '1.2 km',
+      category: 'Commute',
+      priceValue: 3.20,
     },
     {
       id: 4,
@@ -74,6 +98,8 @@ const JustrideApp = () => {
       availabilityColor: '#135bec',
       price: '$2.50',
       distance: '0.8 km',
+      category: 'Commute',
+      priceValue: 2.50,
     },
     {
       id: 5,
@@ -84,6 +110,8 @@ const JustrideApp = () => {
       availabilityColor: '#9da6b9',
       price: '$8.00',
       distance: '2.1 km',
+      category: 'Commute',
+      priceValue: 8.00,
     },
     {
       id: 6,
@@ -94,6 +122,8 @@ const JustrideApp = () => {
       availabilityColor: '#135bec',
       price: '$4.50',
       distance: '0.3 km',
+      category: 'Commute',
+      priceValue: 4.50,
     },
     {
       id: 7,
@@ -104,6 +134,8 @@ const JustrideApp = () => {
       availabilityColor: '#9da6b9',
       price: '$15.50',
       distance: '1.5 km',
+      category: 'Luxury',
+      priceValue: 15.50,
     },
     {
       id: 8,
@@ -114,6 +146,8 @@ const JustrideApp = () => {
       availabilityColor: '#135bec',
       price: '$1.20',
       distance: '0.2 km',
+      category: 'Commute',
+      priceValue: 1.20,
     },
     {
       id: 9,
@@ -124,6 +158,8 @@ const JustrideApp = () => {
       availabilityColor: '#9da6b9',
       price: '$0.90',
       distance: '0.1 km',
+      category: 'Commute',
+      priceValue: 0.90,
     },
     {
       id: 10,
@@ -134,6 +170,8 @@ const JustrideApp = () => {
       availabilityColor: '#9da6b9',
       price: '$1.00',
       distance: 'Multiple',
+      category: 'Commute',
+      priceValue: 1.00,
     },
     {
       id: 11,
@@ -144,6 +182,8 @@ const JustrideApp = () => {
       availabilityColor: '#135bec',
       price: '$22.00',
       distance: '3 mins',
+      category: 'Luxury',
+      priceValue: 22.00,
     },
     {
       id: 12,
@@ -154,26 +194,42 @@ const JustrideApp = () => {
       availabilityColor: '#9da6b9',
       price: 'Custom',
       distance: 'Plan trip',
+      category: 'Luxury',
+      priceValue: 0,
     },
   ];
 
+  // Dynamic filtering with useMemo for performance
+  const filteredServices = useMemo(() => {
+    return allServices.filter(service => {
+      const matchesCategory = selectedCategory === 'All Services' || service.category === selectedCategory;
+      const matchesSearch = service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          service.availability.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesCategory && matchesSearch;
+    });
+  }, [selectedCategory, searchQuery]);
+
+  const handleClearFilters = () => {
+    setSelectedCategory('All Services');
+    setSearchQuery('');
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-  
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <StatusBar barStyle="light-content" backgroundColor="#101622" />
       
       {/* Header */}
       <View style={styles.header}>
-  <TouchableOpacity style={[styles.headerButton, styles.leftButton]}>
-    <Text style={styles.headerIcon}>←</Text>
-  </TouchableOpacity>
-
-  <Text style={styles.headerTitle}>Justride</Text>
-
-  <TouchableOpacity style={[styles.headerButton, styles.rightButton]}>
-    <Text style={styles.headerIcon}>⋮</Text>
-  </TouchableOpacity>
-</View>
-
+        <TouchableOpacity style={styles.headerButton}>
+          <ArrowLeft size={24} color="#fff" />
+        </TouchableOpacity>
+        
+        <Text style={styles.headerTitle}>Justride</Text>
+        
+        <TouchableOpacity style={styles.headerButton}>
+          <Menu size={24} color="#fff" />
+        </TouchableOpacity>
+      </View>
 
       {/* Location Fields */}
       <View style={styles.locationContainer}>
@@ -184,26 +240,52 @@ const JustrideApp = () => {
             <View style={[styles.locationDot, styles.locationDotStart]}>
               <View style={styles.locationDotInner} />
             </View>
-            <TextInput
-              style={styles.locationInput}
-              value={fromLocation}
-              onChangeText={setFromLocation}
-              placeholderTextColor="#9da6b9"
-            />
+            <View style={styles.locationInputWrapper}>
+              <TextInput
+                style={styles.locationInput}
+                value={fromLocation}
+                onChangeText={setFromLocation}
+                placeholderTextColor="#9da6b9"
+              />
+              <View style={styles.locationIcon}>
+                <MapPin size={16} color="#9da6b9" />
+              </View>
+            </View>
           </View>
 
           <View style={styles.locationRow}>
             <View style={[styles.locationDot, styles.locationDotEnd]}>
               <View style={styles.locationDotInner} />
             </View>
-            <TextInput
-              style={styles.locationInput}
-              value={toLocation}
-              onChangeText={setToLocation}
-              placeholder="Where to?"
-              placeholderTextColor="#9da6b9"
-            />
+            <View style={styles.locationInputWrapper}>
+              <TextInput
+                style={styles.locationInput}
+                value={toLocation}
+                onChangeText={setToLocation}
+                placeholder="Where to?"
+                placeholderTextColor="#9da6b9"
+              />
+              <View style={styles.locationIcon}>
+                <Navigation size={16} color="#9da6b9" />
+              </View>
+            </View>
           </View>
+        </View>
+      </View>
+
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <View style={styles.searchWrapper}>
+          <View style={styles.searchIcon}>
+            <Search size={18} color="#9da6b9" />
+          </View>
+          <TextInput
+            style={styles.searchInput}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Search services..."
+            placeholderTextColor="#9da6b9"
+          />
         </View>
       </View>
 
@@ -222,6 +304,7 @@ const JustrideApp = () => {
               selectedCategory === category && styles.categoryChipActive,
             ]}
             onPress={() => setSelectedCategory(category)}
+            activeOpacity={0.8}
           >
             <Text
               style={[
@@ -236,35 +319,63 @@ const JustrideApp = () => {
       </ScrollView>
 
       {/* Services List */}
-      <ScrollView style={styles.servicesContainer} showsVerticalScrollIndicator={false}>
-        <Text style={styles.sectionTitle}>AVAILABLE TRANSPORT & DELIVERY</Text>
+      <ScrollView 
+        style={styles.servicesContainer} 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.servicesContent}
+      >
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>AVAILABLE TRANSPORT & DELIVERY</Text>
+          <Text style={styles.serviceCount}>
+            {filteredServices.length} service{filteredServices.length !== 1 ? 's' : ''}
+          </Text>
+        </View>
         
-        {services.map((service) => (
-          <TouchableOpacity
-            key={service.id}
-            style={styles.serviceCard}
-            activeOpacity={0.7}
-          >
-            <View style={styles.serviceLeft}>
-              <View style={[styles.serviceIcon, { backgroundColor: `${service.iconColor}15` }]}>
-                <Text style={styles.serviceIconText}>{service.icon}</Text>
+        {filteredServices.length > 0 ? (
+          filteredServices.map((service) => (
+            <TouchableOpacity
+              key={service.id}
+              style={styles.serviceCard}
+              activeOpacity={0.7}
+            >
+              <View style={styles.serviceLeft}>
+                <View style={[styles.serviceIcon, { backgroundColor: `${service.iconColor}15` }]}>
+                  <Text style={styles.serviceIconText}>{service.icon}</Text>
+                </View>
+                <View style={styles.serviceInfo}>
+                  <Text style={styles.serviceName}>{service.name}</Text>
+                  <Text style={[styles.serviceAvailability, { color: service.availabilityColor }]}>
+                    {service.availability}
+                  </Text>
+                </View>
               </View>
-              <View style={styles.serviceInfo}>
-                <Text style={styles.serviceName}>{service.name}</Text>
-                <Text style={[styles.serviceAvailability, { color: service.availabilityColor }]}>
-                  {service.availability}
-                </Text>
+              <View style={styles.serviceRight}>
+                <Text style={styles.servicePrice}>{service.price}</Text>
+                <Text style={styles.serviceDistance}>{service.distance}</Text>
               </View>
-            </View>
-            <View style={styles.serviceRight}>
-              <Text style={styles.servicePrice}>{service.price}</Text>
-              <Text style={styles.serviceDistance}>{service.distance}</Text>
-            </View>
-          </TouchableOpacity>
-        ))}
+            </TouchableOpacity>
+          ))
+        ) : (
+          <View style={styles.emptyState}>
+            <Search size={48} color="#4b5563" />
+            <Text style={styles.emptyText}>
+              No services found matching your filters
+            </Text>
+            <TouchableOpacity
+              style={styles.clearButton}
+              onPress={handleClearFilters}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.clearButtonText}>Clear Filters</Text>
+            </TouchableOpacity>
+          </View>
+        )}
         
-        <View style={{ height: 100 }} />
+        <View style={{ height: 120 }} />
       </ScrollView>
+
+      {/* Bottom Gradient Overlay */}
+      <View style={styles.bottomGradient} pointerEvents="none" />
 
       {/* Bottom Button */}
       <View style={styles.bottomButtonContainer}>
@@ -282,39 +393,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#101622',
   },
- header: {
-  height: 56,
-  justifyContent: 'center',
-  alignItems: 'center',
-  backgroundColor: '#101622',
-},
-
- headerButton: {
-  position: 'absolute',
-  top: 0,
-  bottom: 0,
-  width: 48,
-  justifyContent: 'center',
-  alignItems: 'center',
-},
-leftButton: {
-  left: 0,
-},
-
-rightButton: {
-  right: 0,
-},
-
-  headerIcon: {
-    fontSize: 24,
-    color: '#fff',
+  header: {
+    height: 56,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    backgroundColor: '#101622',
+  },
+  headerButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   locationContainer: {
     paddingHorizontal: 16,
@@ -360,14 +456,47 @@ rightButton: {
     borderRadius: 3,
     backgroundColor: '#fff',
   },
-  locationInput: {
+  locationInputWrapper: {
     flex: 1,
+    position: 'relative',
+  },
+  locationInput: {
     height: 48,
     backgroundColor: '#1c1f27',
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#3b4354',
     paddingHorizontal: 16,
+    paddingRight: 40,
+    color: '#fff',
+    fontSize: 14,
+  },
+  locationIcon: {
+    position: 'absolute',
+    right: 12,
+    top: 16,
+  },
+  searchContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  searchWrapper: {
+    position: 'relative',
+  },
+  searchIcon: {
+    position: 'absolute',
+    left: 12,
+    top: 11,
+    zIndex: 1,
+  },
+  searchInput: {
+    height: 40,
+    backgroundColor: '#1c1f27',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#3b4354',
+    paddingLeft: 40,
+    paddingRight: 16,
     color: '#fff',
     fontSize: 14,
   },
@@ -377,7 +506,6 @@ rightButton: {
   categoryContainer: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    gap: 12,
   },
   categoryChip: {
     height: 36,
@@ -412,14 +540,27 @@ rightButton: {
     flex: 1,
     marginTop: 8,
   },
+  servicesContent: {
+    paddingBottom: 20,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
   sectionTitle: {
     fontSize: 11,
     fontWeight: '700',
     color: 'rgba(255, 255, 255, 0.6)',
     letterSpacing: 1.5,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
+  },
+  serviceCount: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#135bec',
   },
   serviceCard: {
     flexDirection: 'row',
@@ -474,6 +615,38 @@ rightButton: {
     fontSize: 12,
     color: '#9da6b9',
   },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 64,
+    paddingHorizontal: 16,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: '#9da6b9',
+    textAlign: 'center',
+    marginTop: 16,
+    marginBottom: 16,
+  },
+  clearButton: {
+    backgroundColor: '#135bec',
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  clearButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  bottomGradient: {
+    position: 'absolute',
+    bottom: 88,
+    left: 0,
+    right: 0,
+    height: 96,
+    backgroundColor: 'transparent',
+  },
   bottomButtonContainer: {
     position: 'absolute',
     bottom: 0,
@@ -481,11 +654,8 @@ rightButton: {
     right: 0,
     paddingHorizontal: 16,
     paddingVertical: 16,
-    paddingTop: 40,
-    backgroundColor: 'transparent',
-    
+    backgroundColor: '#101622',
   },
-  
   reviewButton: {
     backgroundColor: '#135bec',
     height: 56,

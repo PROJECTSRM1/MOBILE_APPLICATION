@@ -21,6 +21,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import DateTimePicker from '@react-native-community/datetimepicker';
+// import { getLightMode, setLightMode } from "../utils/theme";
+import { useTheme } from "../context/ThemeContext";
+
+// const { lightMode, toggleTheme } = useTheme();
+
 
 const { width } = Dimensions.get('window');
 
@@ -89,9 +94,77 @@ type RootStackParamList = {
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const ProfileInformation: React.FC = () => {
-  /* ================= NAVIGATION ================= */
   const navigation = useNavigation<NavigationProp>();
-  
+  // const { lightMode, toggleTheme } = useTheme();
+  const { lightMode, toggleTheme, colors } = useTheme();
+  const styles = getStyles(colors);
+  const Divider = () => <View style={styles.divider} />;
+
+  const SectionHeader = ({
+    title,
+    open,
+    onPress,
+  }: {
+    title: string;
+    open: boolean;
+    onPress: () => void;
+  }) => (
+    <TouchableOpacity style={styles.sectionHeader} onPress={onPress}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      <Icon
+        name={open ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+        size={24}
+        color={colors.subText}
+      />
+    </TouchableOpacity>
+  );
+
+  const Card = ({ children }: { children: React.ReactNode }) => (
+    <View style={styles.card}>{children}</View>
+  );
+
+  const Field = ({
+    label,
+    children,
+  }: {
+    label: string;
+    children: React.ReactNode;
+  }) => (
+    <View style={styles.field}>
+      <Text style={styles.fieldLabel}>{label}</Text>
+      {children}
+    </View>
+  );
+
+  const ServiceItem = ({
+    icon,
+    title,
+    value,
+    onToggle,
+  }: {
+    icon: string;
+    title: string;
+    value: boolean;
+    onToggle: () => void;
+  }) => (
+    <View style={styles.serviceItem}>
+      <View style={styles.serviceLeft}>
+        <Icon name={icon} size={24} color={colors.primary} />
+        <Text style={styles.serviceTitle}>{title}</Text>
+      </View>
+      <Switch
+        value={value}
+        onValueChange={onToggle}
+        trackColor={{
+          false: colors.border,
+          true: colors.primary + "80",
+        }}
+        thumbColor={value ? colors.primary : colors.subText}
+      />
+    </View>
+  );
+
+
   /* ================= STATE ================= */
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -143,6 +216,9 @@ const ProfileInformation: React.FC = () => {
     marketplace: true,
     swachify: true,
   });
+
+
+
 
   /* ================= LOAD USER DATA ================= */
   useEffect(() => {
@@ -423,7 +499,7 @@ const ProfileInformation: React.FC = () => {
 
   /* ================= MAIN UI ================= */
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea }>
       <StatusBar barStyle="light-content" backgroundColor="#101622" />
 
       {/* HEADER */}
@@ -919,6 +995,20 @@ const ProfileInformation: React.FC = () => {
         )}
 
         <Divider />
+        <View style={styles.serviceItem}>
+  <View style={styles.serviceLeft}>
+    <Icon name="light-mode" size={24} color="#facc15" />
+    <Text style={styles.serviceTitle}>Light Mode</Text>
+  </View>
+
+  <Switch
+    value={lightMode}
+    onValueChange={toggleTheme}
+    trackColor={{ false: "#374151", true: "#fde68a" }}
+    thumbColor={lightMode ? "#facc15" : "#9ca3af"}
+  />
+</View>
+
 
         {/* LOGOUT BUTTON */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
@@ -933,424 +1023,434 @@ const ProfileInformation: React.FC = () => {
 };
 
 /* ================= HELPER COMPONENTS ================= */
-const Divider: React.FC = () => <View style={styles.divider} />;
 
-interface SectionHeaderProps {
-  title: string;
-  open: boolean;
-  onPress: () => void;
-}
 
-const SectionHeader: React.FC<SectionHeaderProps> = ({ title, open, onPress }) => (
-  <TouchableOpacity style={styles.sectionHeader} onPress={onPress}>
-    <Text style={styles.sectionTitle}>{title}</Text>
-    <Icon name={open ? 'keyboard-arrow-up' : 'keyboard-arrow-down'} size={24} color="#d1d5db" />
-  </TouchableOpacity>
-);
 
-const Card: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <View style={styles.card}>{children}</View>
-);
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
-interface FieldProps {
-  label: string;
-  children: React.ReactNode;
-}
+    loadingText: {
+      color: colors.text,
+      fontSize: 16,
+      textAlign: "center",
+      marginTop: 100,
+    },
 
-const Field: React.FC<FieldProps> = ({ label, children }) => (
-  <View style={styles.field}>
-    <Text style={styles.fieldLabel}>{label}</Text>
-    {children}
-  </View>
-);
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: H_PADDING,
+      paddingVertical: 16,
+      backgroundColor: colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
 
-interface ServiceItemProps {
-  icon: string;
-  title: string;
-  value: boolean;
-  onToggle: () => void;
-}
+    headerIcon: {
+      width: 40,
+      height: 40,
+      alignItems: "center",
+      justifyContent: "center",
+    },
 
-const ServiceItem: React.FC<ServiceItemProps> = ({ icon, title, value, onToggle }) => (
-  <View style={styles.serviceItem}>
-    <View style={styles.serviceLeft}>
-      <Icon name={icon} size={24} color="#3b82f6" />
-      <Text style={styles.serviceTitle}>{title}</Text>
-    </View>
-    <Switch
-      value={value}
-      onValueChange={onToggle}
-      trackColor={{ false: '#374151', true: '#3b82f680' }}
-      thumbColor={value ? '#3b82f6' : '#9ca3af'}
-    />
-  </View>
-);
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: "600",
+      color: colors.text,
+    },
 
-/* ================= STYLES ================= */
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#0a0e1a',
-  },
-  loadingText: {
-    color: '#fff',
-    fontSize: 16,
-    textAlign: 'center',
-    marginTop: 100,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: H_PADDING,
-    paddingVertical: 16,
-    backgroundColor: '#101622',
-    borderBottomWidth: 1,
-    borderBottomColor: '#1f2937',
-  },
-  headerIcon: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  profileRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: H_PADDING,
-    backgroundColor: '#101622',
-  },
-  avatar: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    marginRight: 16,
-  },
-  flexOne: {
-    flex: 1,
-  },
-  name: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 4,
-  },
-  email: {
-    fontSize: 14,
-    color: '#9ca3af',
-    marginBottom: 8,
-  },
-  edit: {
-    fontSize: 14,
-    color: '#3b82f6',
-    fontWeight: '500',
-  },
-  divider: {
-    height: 8,
-    backgroundColor: '#0a0e1a',
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: H_PADDING,
-    paddingVertical: 16,
-    backgroundColor: '#101622',
-  },
-  sectionHeaderNoIcon: {
-    paddingHorizontal: H_PADDING,
-    paddingTop: 16,
-    paddingBottom: 8,
-    backgroundColor: '#101622',
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  sectionDesc: {
-    fontSize: 13,
-    color: '#9ca3af',
-    paddingHorizontal: H_PADDING,
-    paddingBottom: 12,
-    backgroundColor: '#101622',
-  },
-  card: {
-    backgroundColor: '#101622',
-    paddingHorizontal: H_PADDING,
-    paddingBottom: 16,
-  },
-  field: {
-    marginBottom: 20,
-  },
-  fieldLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#9ca3af',
-    marginBottom: 8,
-    letterSpacing: 0.5,
-  },
-  input: {
-    backgroundColor: '#1f2937',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: '#fff',
-    borderWidth: 1,
-    borderColor: '#374151',
-  },
-  textArea: {
-    minHeight: 100,
-    paddingTop: 12,
-  },
-  servicesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  serviceChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1f2937',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    gap: 6,
-    borderWidth: 1,
-    borderColor: '#3b82f6',
-  },
-  serviceChipText: {
-    color: '#fff',
-    fontSize: 14,
-  },
-  addServiceInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1f2937',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    gap: 8,
-    borderWidth: 1,
-    borderColor: '#3b82f6',
-  },
-  addServiceInput: {
-    color: '#fff',
-    fontSize: 14,
-    minWidth: 100,
-    padding: 4,
-  },
-  addServiceBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1f2937',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    gap: 4,
-    borderWidth: 1,
-    borderColor: '#374151',
-    borderStyle: 'dashed',
-  },
-  addServiceText: {
-    color: '#3b82f6',
-    fontSize: 14,
-  },
-  radioGroup: {
-    flexDirection: 'row',
-    gap: 24,
-  },
-  radioOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  radioCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: '#3b82f6',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  radioSelected: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#3b82f6',
-  },
-  radioText: {
-    color: '#fff',
-    fontSize: 15,
-  },
-  timeRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  timeField: {
-    flex: 1,
-  },
-  timeLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#6b7280',
-    marginBottom: 6,
-    letterSpacing: 0.5,
-  },
-  timeInput: {
-    backgroundColor: '#1f2937',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: '#374151',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  timeText: {
-    color: '#fff',
-    fontSize: 15,
-  },
-  serviceItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: H_PADDING,
-    paddingVertical: 16,
-    backgroundColor: '#101622',
-    borderBottomWidth: 1,
-    borderBottomColor: '#1f2937',
-  },
-  serviceLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  serviceTitle: {
-    fontSize: 15,
-    color: '#fff',
-    fontWeight: '500',
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 48,
-  },
-  emptyText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#9ca3af',
-    marginTop: 16,
-  },
-  emptySubtext: {
-    fontSize: 13,
-    color: '#6b7280',
-    marginTop: 4,
-  },
-  listingsGrid: {
-    gap: 16,
-  },
-  listingCard: {
-    backgroundColor: '#1f2937',
-    borderRadius: 12,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#374151',
-  },
-  listingImage: {
-    width: '100%',
-    height: 300,
-    backgroundColor: '#374151',
-  },
-  listingContent: {
-    padding: 12,
-  },
-  listingBadge: {
-    backgroundColor: '#3b82f620',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    alignSelf: 'flex-start',
-    marginBottom: 8,
-  },
-  swachifyBadge: {
-    backgroundColor: '#10b98120',
-  },
-  listingBadgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#3b82f6',
-    letterSpacing: 0.5,
-  },
-  listingTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 6,
-  },
-  listingPrice: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#3b82f6',
-    marginBottom: 8,
-  },
-  listingDetails: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 12,
-  },
-  listingDetail: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  listingDetailText: {
-    fontSize: 12,
-    color: '#9ca3af',
-  },
-  deleteButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: '#ef444420',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ef444440',
-  },
-  deleteButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#ef4444',
-  },
-  logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    marginHorizontal: H_PADDING,
-    marginTop: 24,
-    paddingVertical: 14,
-    backgroundColor: '#1f2937',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#ef444440',
-  },
-  logoutText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#ef4444',
-  },
-});
+    profileRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: H_PADDING,
+      backgroundColor: colors.surface,
+    },
+
+    avatar: {
+      width: 70,
+      height: 70,
+      borderRadius: 35,
+      marginRight: 16,
+    },
+
+    flexOne: {
+      flex: 1,
+    },
+
+    name: {
+      fontSize: 20,
+      fontWeight: "600",
+      color: colors.text,
+      marginBottom: 4,
+    },
+
+    email: {
+      fontSize: 14,
+      color: colors.subText,
+      marginBottom: 8,
+    },
+
+    edit: {
+      fontSize: 14,
+      color: colors.primary,
+      fontWeight: "500",
+    },
+
+    divider: {
+      height: 8,
+      backgroundColor: colors.background,
+    },
+
+    sectionHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: H_PADDING,
+      paddingVertical: 16,
+      backgroundColor: colors.surface,
+    },
+
+    sectionHeaderNoIcon: {
+      paddingHorizontal: H_PADDING,
+      paddingTop: 16,
+      paddingBottom: 8,
+      backgroundColor: colors.surface,
+    },
+
+    sectionTitle: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: colors.text,
+    },
+
+    sectionDesc: {
+      fontSize: 13,
+      color: colors.subText,
+      paddingHorizontal: H_PADDING,
+      paddingBottom: 12,
+      backgroundColor: colors.surface,
+    },
+
+    card: {
+      backgroundColor: colors.surface,
+      paddingHorizontal: H_PADDING,
+      paddingBottom: 16,
+    },
+
+    field: {
+      marginBottom: 20,
+    },
+
+    fieldLabel: {
+      fontSize: 12,
+      fontWeight: "600",
+      color: colors.subText,
+      marginBottom: 8,
+      letterSpacing: 0.5,
+    },
+
+    input: {
+      backgroundColor: colors.card,
+      borderRadius: 8,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      fontSize: 15,
+      color: colors.text,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    textArea: {
+      minHeight: 100,
+      paddingTop: 12,
+    },
+
+    servicesContainer: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 8,
+    },
+
+    serviceChip: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.card,
+      borderRadius: 20,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      gap: 6,
+      borderWidth: 1,
+      borderColor: colors.primary,
+    },
+
+    serviceChipText: {
+      color: colors.text,
+      fontSize: 14,
+    },
+
+    addServiceInputContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.card,
+      borderRadius: 20,
+      paddingHorizontal: 12,
+      paddingVertical: 4,
+      gap: 8,
+      borderWidth: 1,
+      borderColor: colors.primary,
+    },
+
+    addServiceInput: {
+      color: colors.text,
+      fontSize: 14,
+      minWidth: 100,
+      padding: 4,
+    },
+
+    addServiceBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.card,
+      borderRadius: 20,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      gap: 4,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderStyle: "dashed",
+    },
+
+    addServiceText: {
+      color: colors.primary,
+      fontSize: 14,
+    },
+
+    radioGroup: {
+      flexDirection: "row",
+      gap: 24,
+    },
+
+    radioOption: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+
+    radioCircle: {
+      width: 20,
+      height: 20,
+      borderRadius: 10,
+      borderWidth: 2,
+      borderColor: colors.primary,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    radioSelected: {
+      width: 10,
+      height: 10,
+      borderRadius: 5,
+      backgroundColor: colors.primary,
+    },
+
+    radioText: {
+      color: colors.text,
+      fontSize: 15,
+    },
+
+    timeRow: {
+      flexDirection: "row",
+      gap: 12,
+    },
+
+    timeField: {
+      flex: 1,
+    },
+
+    timeLabel: {
+      fontSize: 11,
+      fontWeight: "600",
+      color: colors.subText,
+      marginBottom: 6,
+      letterSpacing: 0.5,
+    },
+
+    timeInput: {
+      backgroundColor: colors.card,
+      borderRadius: 8,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+
+    timeText: {
+      color: colors.text,
+      fontSize: 15,
+    },
+
+    serviceItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: H_PADDING,
+      paddingVertical: 16,
+      backgroundColor: colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+
+    serviceLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+
+    serviceTitle: {
+      fontSize: 15,
+      color: colors.text,
+      fontWeight: "500",
+    },
+
+    emptyContainer: {
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 48,
+    },
+
+    emptyText: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: colors.subText,
+      marginTop: 16,
+    },
+
+    emptySubtext: {
+      fontSize: 13,
+      color: colors.subText,
+      marginTop: 4,
+    },
+
+    listingsGrid: {
+      gap: 16,
+    },
+
+    listingCard: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      overflow: "hidden",
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    listingImage: {
+      width: "100%",
+      height: 300,
+      backgroundColor: colors.border,
+    },
+
+    listingContent: {
+      padding: 12,
+    },
+
+    listingBadge: {
+      backgroundColor: colors.primary + "20",
+      borderRadius: 6,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      alignSelf: "flex-start",
+      marginBottom: 8,
+    },
+
+    swachifyBadge: {
+      backgroundColor: "#10b98120",
+    },
+
+    listingBadgeText: {
+      fontSize: 10,
+      fontWeight: "700",
+      color: colors.primary,
+      letterSpacing: 0.5,
+    },
+
+    listingTitle: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: colors.text,
+      marginBottom: 6,
+    },
+
+    listingPrice: {
+      fontSize: 17,
+      fontWeight: "700",
+      color: colors.primary,
+      marginBottom: 8,
+    },
+
+    listingDetails: {
+      flexDirection: "row",
+      gap: 12,
+      marginBottom: 12,
+    },
+
+    listingDetail: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+    },
+
+    listingDetailText: {
+      fontSize: 12,
+      color: colors.subText,
+    },
+
+    deleteButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      backgroundColor: colors.danger + "20",
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.danger + "40",
+    },
+
+    deleteButtonText: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: colors.danger,
+    },
+
+    logoutButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      marginHorizontal: H_PADDING,
+      marginTop: 24,
+      paddingVertical: 14,
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.danger,
+    },
+
+    logoutText: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: colors.danger,
+    },
+  });
+
 
 export default ProfileInformation

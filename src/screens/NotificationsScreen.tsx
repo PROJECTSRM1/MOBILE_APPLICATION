@@ -8,6 +8,8 @@ import {
   SafeAreaView,
 } from 'react-native';
 
+import { useTheme } from '../context/ThemeContext';
+
 /* ------------------------------------------------------------------
    TYPES
 ------------------------------------------------------------------ */
@@ -27,17 +29,6 @@ export interface Notification {
   unread: boolean;
 }
 
-/* ------------------------------------------------------------------
-   THEME
------------------------------------------------------------------- */
-const colors = {
-  background: '#101622',
-  card: '#161e2c',
-  primary: '#135bec',
-  textPrimary: '#ffffff',
-  textSecondary: '#94a3b8',
-  border: '#1e293b',
-};
 
 /* ------------------------------------------------------------------
    DATA
@@ -77,6 +68,7 @@ const notifications: Notification[] = [
   },
 ];
 
+
 /* ------------------------------------------------------------------
    FILTER CHIPS
 ------------------------------------------------------------------ */
@@ -91,10 +83,13 @@ const filters: FilterType[] = [
 const FilterChips = ({
   activeFilter,
   onChange,
+  styles,
 }: {
   activeFilter: FilterType;
   onChange: (filter: FilterType) => void;
+  styles: any;
 }) => {
+
   return (
     <View style={styles.chipsContainer}>
       {filters.map(filter => {
@@ -132,12 +127,15 @@ const NotificationItem = ({
   desc,
   time,
   unread,
+  styles,
 }: {
   title: string;
   desc: string;
   time: string;
   unread: boolean;
+  styles: any;
 }) => {
+
   return (
     <View style={styles.itemContainer}>
       {unread && <View style={styles.unreadStrip} />}
@@ -158,6 +156,8 @@ const NotificationItem = ({
    MAIN SCREEN
 ------------------------------------------------------------------ */
 const NotificationScreen = () => {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
   const [activeFilter, setActiveFilter] =
     useState<FilterType>('All');
 
@@ -173,25 +173,30 @@ const NotificationScreen = () => {
     );
   }, [activeFilter]);
 
+
   return (
     <SafeAreaView style={styles.screen}>
       <Text style={styles.heading}>Notifications</Text>
 
       <FilterChips
-        activeFilter={activeFilter}
-        onChange={setActiveFilter}
-      />
+  activeFilter={activeFilter}
+  onChange={setActiveFilter}
+  styles={styles}
+/>
+
 
       <FlatList
         data={filteredNotifications}
         keyExtractor={item => item.id.toString()}
         renderItem={({ item }) => (
-          <NotificationItem
-            title={item.title}
-            desc={item.desc}
-            time={item.time}
-            unread={item.unread}
-          />
+         <NotificationItem
+  title={item.title}
+  desc={item.desc}
+  time={item.time}
+  unread={item.unread}
+  styles={styles}
+/>
+
         )}
         contentContainerStyle={{ paddingBottom: 24 }}
       />
@@ -204,79 +209,101 @@ export default NotificationScreen;
 /* ------------------------------------------------------------------
    STYLES
 ------------------------------------------------------------------ */
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  heading: {
-    color: colors.textPrimary,
-    fontSize: 22,
-    fontWeight: '800',
-    padding: 16,
-  },
 
-  /* Chips */
-  chipsContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
-  chip: {
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 8,
-  },
-  activeChip: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  chipText: {
-    color: colors.textSecondary,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  activeChipText: {
-    color: '#ffffff',
-    fontWeight: '700',
-  },
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
-  /* Notification Item */
-  itemContainer: {
-    flexDirection: 'row',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  unreadStrip: {
-    width: 4,
-    backgroundColor: colors.primary,
-    borderRadius: 4,
-    marginRight: 12,
-  },
-  itemContent: {
-    flex: 1,
-  },
-  itemHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  itemTitle: {
-    color: colors.textPrimary,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  itemTime: {
-    color: colors.primary,
-    fontSize: 12,
-  },
-  itemDesc: {
-    marginTop: 4,
-    color: colors.textSecondary,
-    fontSize: 14,
-  },
-});
+    heading: {
+      color: colors.text,
+      fontSize: 22,
+      fontWeight: "800",
+      paddingHorizontal: 16,
+      paddingTop: 16,
+      paddingBottom: 12,
+    },
+
+    /* ================= CHIPS ================= */
+    chipsContainer: {
+      flexDirection: "row",
+      paddingHorizontal: 16,
+      paddingBottom: 12,
+    },
+
+    chip: {
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 999, // smoother pill
+      marginRight: 8,
+    },
+
+    activeChip: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+
+    chipText: {
+      color: colors.subText,
+      fontSize: 13,
+      fontWeight: "600",
+    },
+
+    activeChipText: {
+      color: "#ffffff",
+      fontWeight: "700",
+    },
+
+    /* ================= NOTIFICATION ITEM ================= */
+    itemContainer: {
+      flexDirection: "row",
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      backgroundColor: colors.background,
+    },
+
+    unreadStrip: {
+      width: 4,
+      backgroundColor: colors.primary,
+      borderRadius: 4,
+      marginRight: 12,
+    },
+
+    itemContent: {
+      flex: 1,
+    },
+
+    itemHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+
+    itemTitle: {
+      color: colors.text,
+      fontSize: 15,
+      fontWeight: "700",
+      flex: 1,
+      marginRight: 8,
+    },
+
+    itemTime: {
+      color: colors.primary,
+      fontSize: 12,
+      fontWeight: "600",
+    },
+
+    itemDesc: {
+      marginTop: 6,
+      color: colors.subText,
+      fontSize: 14,
+      lineHeight: 20,
+    },
+  });
