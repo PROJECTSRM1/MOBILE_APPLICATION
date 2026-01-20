@@ -16,6 +16,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Animated } from "react-native";
+import { useTheme } from "../context/ThemeContext";
 
 
 interface UserProfile {
@@ -31,6 +32,9 @@ const Landing = () => {
   const route = useRoute<any>();
   const verticalScrollRef = useRef<ScrollView>(null);
   const scrollY = useRef(new Animated.Value(0)).current;
+  const { colors } = useTheme();
+const styles = getStyles(colors);
+
 
 
   /* ================= STATE ================= */
@@ -100,7 +104,7 @@ const banners = [
     badge: "NEW",
     title: "Swachify Eco Products",
     action: "Shop Now",
-    image: require("../../assets/pack5.jpg"),
+    image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=1200&q=80",
     route: "ProductScreen",
   },
   {
@@ -124,7 +128,7 @@ const banners = [
   badge: "INDUSTRY",
   title: "Raw Materials Marketplace",
   action: "Know More",
-  image: require("../../assets/Raw8.jpg"),
+  image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=1200&q=80",
   route: "RawMaterial",
 },
 
@@ -253,27 +257,8 @@ const trendingServices = [
         </View>
 
         {/* BELL */}
-        {/* <TouchableOpacity
-          style={styles.notificationWrapper}
-          onPress={() => navigation.navigate("Notifications")}
-          activeOpacity={0.7}
-        >
-          <MaterialIcons name="notifications" size={24} color="#fff" />
-          {!isLoggedIn && <View style={styles.notificationDot} />}
-        </TouchableOpacity> */}
+        
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-
-  {/* ROLE DROPDOWN ICON */}
-  {/* <TouchableOpacity
-    onPress={() => setShowRoleMenu((prev) => !prev)}
-    activeOpacity={0.7}
-  >
-    <MaterialIcons name="expand-more" size={26} color="#fff" />
-  </TouchableOpacity> */}
-
-  {/* <TouchableOpacity onPress={() => navigation.navigate("Cart")}>
-  <MaterialIcons name="shopping-cart" size={24} color="#fff" />
-</TouchableOpacity> */}
 
   <TouchableOpacity
   onPress={() => setShowRoleMenu((prev) => !prev)}
@@ -282,7 +267,7 @@ const trendingServices = [
 >
   <Text
     style={{
-      color: "#fff",
+      color: colors.text,
       fontSize: 13,
       marginRight: 2,
       fontWeight: "500",
@@ -290,11 +275,11 @@ const trendingServices = [
   >
     Select Type
   </Text>
-  <MaterialIcons name="expand-more" size={26} color="#fff" />
+  <MaterialIcons name="expand-more" size={26} color={colors.text} />
 </TouchableOpacity>
 
 <TouchableOpacity onPress={() => navigation.navigate("Cart")}>
-  <MaterialIcons name="shopping-cart" size={24} color="#fff" />
+  <MaterialIcons name="shopping-cart" size={24} color={colors.text} />
 </TouchableOpacity>
 
   {/* BELL */}
@@ -303,7 +288,7 @@ const trendingServices = [
       onPress={() => navigation.navigate("Notifications")}
       activeOpacity={0.7}
     >
-      <MaterialIcons name="notifications" size={24} color="#fff" />
+      <MaterialIcons name="notifications" size={24} color={colors.text} />
       {!isLoggedIn && <View style={styles.notificationDot} />}
     </TouchableOpacity>
   </View>
@@ -621,302 +606,371 @@ const trendingServices = [
 
 export default Landing;
 
-/* ================= STYLES ================= */
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    /* ================= ROOT ================= */
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0f172a" },
-
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: 16,
-    alignItems: "center",
-    overflow: "visible",
-  },
-
-  headerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-
-  /* PROFILE */
-  profileWrapper: {
-    position: "relative",
-  },
-
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#374151",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  avatarText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-
-  profileTooltip: {
-    position: "absolute",
-    bottom: -48,
-    left: 0,
-    backgroundColor: "#ffffff",
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 12,
-    minWidth: 180,
-    maxWidth: 240,
-    elevation: 10,
-    zIndex: 999,
-  },
-
-  safeHeader: {
-    backgroundColor: "#0f172a",
-  },
-
-  tooltipText: {
-    color: "#000",
-    fontSize: 12,
-    fontWeight: "500",
-  },
-
-  /* LOCATION */
-  locationLabel: { fontSize: 12, color: "#9ca3af" },
-  locationText: { color: "#fff", fontWeight: "600" },
-
-  /* NOTIFICATION */
-  notificationWrapper: {
-    position: "relative",
-  },
-
-  notificationDot: {
-    position: "absolute",
-    top: -2,
-    right: -2,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "red",
-  },
-
-  /* SEARCH */
-  searchBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#1e293b",
-    margin: 30,
-    borderRadius: 14,
-    paddingHorizontal: 12,
-    gap: 8,
-  },
-
-  searchInput: { flex: 1, color: "#fff" },
-
-  /* BANNER */
-  banner: {
-    width: 300,
-    height: 150,
-    backgroundColor: "#2563eb",
-    borderRadius: 20,
-    padding: 16,
-    marginLeft: 16,
-    justifyContent: "flex-end",
-  },
-
-  badge: {
-    backgroundColor: "#fff",
-    color: "#2563eb",
-    fontSize: 10,
-    paddingHorizontal: 6,
-    borderRadius: 4,
-    alignSelf: "flex-start",
-  },
-
-  bannerTitle: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
-    marginVertical: 6,
-  },
-
-  bannerBtn: {
-    backgroundColor: "#1e40af",
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    borderRadius: 10,
-    alignSelf: "flex-start",
-  },
-
-  bannerBtnText: { color: "#fff", fontSize: 12 },
-
-  /* CORE SERVICES */
-  sectionTitle: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
-    margin: 16,
-  },
-
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-around",
-  },
-
-  gridItem: { alignItems: "center", marginBottom: 20, width: "25%" },
-
-  gridIcon: {
-    width: 56,
-    height: 56,
-    backgroundColor: "#1e293b",
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  gridText: {
-  color: "#e5e7eb",
-  fontSize: 12,
-  marginTop: 6,
-  textAlign: "center",
-  lineHeight: 14,
-  height: 28,          
+    safeHeader: {
+  backgroundColor: colors.surface,
 },
 
 
-  /* TRENDING */
-  // trendingHeader: {
-  //   flexDirection: "row",
-  //   justifyContent: "space-between",
-  //   paddingHorizontal: 16,
-  // },
+    /* ================= HEADER ================= */
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
 
-  // viewAll: { color: "#3b82f6", marginTop: 18 },
+    headerLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
 
-  card: {
-    flexDirection: "row",
-    backgroundColor: "#1e293b",
-    margin: 16,
-    borderRadius: 16,
-    padding: 12,
-    gap: 12,
-  },
+    /* ================= PROFILE ================= */
+    profileWrapper: {
+      position: "relative",
+    },
 
-  cardImage: { width: 80, height: 80, borderRadius: 12 },
+    avatar: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.card,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
 
-  cardTitle: { color: "#fff", fontWeight: "bold" },
-  cardSub: { color: "#9ca3af", fontSize: 12, marginVertical: 4 },
+    avatarText: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: "700",
+    },
 
-  cardFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
+    profileTooltip: {
+      position: "absolute",
+      bottom: -52,
+      left: 0,
+      backgroundColor: colors.surface,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      borderRadius: 14,
+      minWidth: 180,
+      elevation: 12,
+      shadowColor: "#000",
+      shadowOpacity: 0.08,
+      shadowRadius: 10,
+      zIndex: 999,
+    },
 
-  price: { color: "#3b82f6", fontWeight: "bold" },
+    tooltipText: {
+      color: colors.text,
+      fontSize: 12,
+      fontWeight: "500",
+    },
 
-  cardBtn: {
-    backgroundColor: "#2563eb33",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
+    /* ================= LOCATION ================= */
+    locationLabel: {
+      fontSize: 11,
+      color: colors.subText,
+      letterSpacing: 0.5,
+    },
 
-  cardBtnText: { color: "#3b82f6", fontSize: 12 },
+    locationText: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: colors.text,
+    },
 
-  /* REFER */
-  referBox: {
-    margin: 16,
-    padding: 16,
-    borderRadius: 18,
-    backgroundColor: "#2563eb",
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
+    /* ================= NOTIFICATION ================= */
+    notificationWrapper: {
+      position: "relative",
+    },
 
-  referTitle: { color: "#fff", fontWeight: "bold", fontSize: 16 },
-  referSub: { color: "#dbeafe", fontSize: 12 },
+    notificationDot: {
+      position: "absolute",
+      top: -2,
+      right: -2,
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: colors.danger,
+    },
 
-  inviteBtn: {
-    backgroundColor: "#ffffff33",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 10,
-  },
+    /* ================= SEARCH ================= */
+    searchBox: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.surface,
+      marginHorizontal: 16,
+      marginTop: 20,
+      marginBottom: 24,
+      borderRadius: 18,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
 
-  inviteText: { color: "#fff", fontWeight: "bold" },
+    searchInput: {
+      flex: 1,
+      color: colors.text,
+      fontSize: 14,
+    },
 
-  /* BOTTOM TAB */
-  bottomTab: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: "#020617",
-    flexDirection: "row",
-    justifyContent: "space-around",
-    paddingVertical: 12,
-  },
-  moreGrid: {
-  flexDirection: "row",
-  justifyContent: "space-around",
-  marginTop: 10,
-  marginBottom: 20,
-},
+    /* ================= BANNER ================= */
+    banner: {
+      width: 300,
+      height: 160,
+      borderRadius: 24,
+      marginLeft: 16,
+      overflow: "hidden",
+    },
 
-sectionHeader: {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-  marginBottom: 10,
-},
+    bannerImage: {
+      ...StyleSheet.absoluteFillObject,
+      borderRadius: 24,
+    },
 
-viewAllText: {
-  color: "#3b82f6",
-  fontSize: 14,
-  fontWeight: "600",
-  marginRight: 16,
-},
+    bannerOverlay: {
+      flex: 1,
+      justifyContent: "flex-end",
+      padding: 16,
+      backgroundColor: "rgba(0,0,0,0.35)",
+      borderRadius: 24,
+    },
 
-bannerImage: {
-  ...StyleSheet.absoluteFillObject,
-  borderRadius: 20,
-},
+    badge: {
+      backgroundColor: "#ffffff",
+      color: colors.primary,
+      fontSize: 10,
+      fontWeight: "700",
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 6,
+      alignSelf: "flex-start",
+    },
 
-bannerOverlay: {
-  flex: 1,
-  justifyContent: "flex-end",
-  padding: 16,
-  backgroundColor: "rgba(0,0,0,0.45)",
-  borderRadius: 20,
-},
-roleMenu: {
-  position: "absolute",
-  top: 70,
-  right: 16,
-  backgroundColor: "#1e293b",
-  borderRadius: 12,
-  paddingVertical: 8,
-  width: 140,
-  zIndex: 999,
-  elevation: 10,
-},
+    bannerTitle: {
+      color: "#fff",
+      fontSize: 18,
+      fontWeight: "800",
+      marginVertical: 6,
+    },
 
-roleItem: {
-  paddingVertical: 10,
-  paddingHorizontal: 14,
-},
+    bannerBtn: {
+      backgroundColor: colors.primary,
+      paddingVertical: 8,
+      paddingHorizontal: 18,
+      borderRadius: 14,
+      alignSelf: "flex-start",
+    },
 
-roleText: {
-  color: "#fff",
-  fontSize: 14,
-  fontWeight: "500",
-},
+    bannerBtnText: {
+      color: "#fff",
+      fontSize: 12,
+      fontWeight: "700",
+    },
 
+    /* ================= SECTION ================= */
+    sectionTitle: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: "800",
+      marginHorizontal: 16,
+      marginVertical: 12,
+    },
 
+    sectionHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 8,
+    },
 
-});
+    viewAllText: {
+      color: colors.primary,
+      fontSize: 14,
+      fontWeight: "700",
+      marginRight: 16,
+    },
+
+    /* ================= CORE SERVICES ================= */
+    grid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "space-around",
+      marginTop: 8,
+    },
+
+    gridItem: {
+      alignItems: "center",
+      marginBottom: 22,
+      width: "25%",
+    },
+
+    gridIcon: {
+      width: 56,
+      height: 56,
+      backgroundColor: colors.card,
+      borderRadius: 18,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    gridText: {
+      color: colors.subText,
+      fontSize: 12,
+      fontWeight: "600",
+      marginTop: 8,
+      textAlign: "center",
+      lineHeight: 14,
+      height: 28,
+    },
+
+    /* ================= TRENDING CARD ================= */
+    card: {
+      flexDirection: "row",
+      backgroundColor: colors.surface,
+      marginHorizontal: 16,
+      marginBottom: 14,
+      borderRadius: 18,
+      padding: 12,
+      gap: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    cardImage: {
+      width: 80,
+      height: 80,
+      borderRadius: 14,
+    },
+
+    cardTitle: {
+      color: colors.text,
+      fontWeight: "700",
+      fontSize: 14,
+    },
+
+    cardSub: {
+      color: colors.subText,
+      fontSize: 12,
+      marginVertical: 4,
+    },
+
+    cardFooter: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+
+    price: {
+      color: colors.primary,
+      fontWeight: "800",
+      fontSize: 15,
+    },
+
+    cardBtn: {
+      backgroundColor: colors.primary + "15",
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      borderRadius: 12,
+    },
+
+    cardBtnText: {
+      color: colors.primary,
+      fontSize: 12,
+      fontWeight: "700",
+    },
+
+    /* ================= REFER ================= */
+    referBox: {
+      margin: 16,
+      padding: 18,
+      borderRadius: 22,
+      backgroundColor: colors.primary,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+
+    referTitle: {
+      color: "#fff",
+      fontWeight: "800",
+      fontSize: 16,
+    },
+
+    referSub: {
+      color: "#e0e7ff",
+      fontSize: 12,
+      marginTop: 2,
+    },
+
+    inviteBtn: {
+      backgroundColor: "#ffffff33",
+      paddingHorizontal: 18,
+      paddingVertical: 10,
+      borderRadius: 14,
+    },
+
+    inviteText: {
+      color: "#fff",
+      fontWeight: "700",
+    },
+
+    /* ================= BOTTOM TAB ================= */
+    bottomTab: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: colors.surface,
+      flexDirection: "row",
+      justifyContent: "space-around",
+      paddingTop: 12,
+      paddingBottom: 24,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+
+    /* ================= ROLE MENU ================= */
+    roleMenu: {
+      position: "absolute",
+      top: 70,
+      right: 16,
+      backgroundColor: colors.surface,
+      borderRadius: 16,
+      paddingVertical: 8,
+      width: 150,
+      borderWidth: 1,
+      borderColor: colors.border,
+      elevation: 12,
+      zIndex: 999,
+    },
+
+    roleItem: {
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+    },
+
+    roleText: {
+      color: colors.text,
+      fontSize: 14,
+      fontWeight: "600",
+    },
+  });
