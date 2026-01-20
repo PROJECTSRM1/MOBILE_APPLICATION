@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -13,10 +13,14 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 
-
 const DoctorListScreen = () => {
-    const navigation = useNavigation<any>();
+  const navigation = useNavigation<any>();
+  
+  // State for filtering
+  const [selectedCategory, setSelectedCategory] = useState('All');
+
   const categories = [
+    { id: 0, name: 'All', icon: 'grid-view', color: '#64748b', bgColor: '#f1f5f9' },
     { id: 1, name: 'Heart', icon: 'favorite', color: '#2d7576', bgColor: '#e8f4f4' },
     { id: 2, name: 'Skin', icon: 'healing', color: '#ea580c', bgColor: '#ffedd5' },
     { id: 3, name: 'Mental', icon: 'psychology', color: '#2563eb', bgColor: '#dbeafe' },
@@ -24,7 +28,16 @@ const DoctorListScreen = () => {
     { id: 5, name: 'Diet', icon: 'restaurant', color: '#16a34a', bgColor: '#dcfce7' },
   ];
 
-  const doctors = [
+  // Mapping category names to specialty keywords in the doctor data
+  const specialtyMap: { [key: string]: string } = {
+    'Heart': 'Cardiologist',
+    'Skin': 'Dermatologist',
+    'Mental': 'Psychiatrist',
+    'Eyes': 'Ophthalmologist',
+    'Diet': 'Dietitian',
+  };
+
+  const allDoctors = [
     {
       id: 1,
       name: 'Dr. Sarah Jenkins',
@@ -32,7 +45,7 @@ const DoctorListScreen = () => {
       rating: 4.9,
       nextAvailable: '2:00 PM',
       price: 120,
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDefhoSvqKkMBWYVqZmO31qWWnyETobXPIsvpgbpzACIuHiMFEibbVFxBem0oGX3QoB0fhv_F1vxstFtpZ9MZtJrSR0w6C0hWrFdCCM4W9SvwqLpolKvEc-_XcCTQTkxb3ssl0Y2_54wJJhFeAav5jIY1u67UzbCzmwt9ZDmKzDS1B1a0oNg8Bk0UYaIHl3t-4pmKj1J0rBtiCQ166vq6P6-J-EY8t-SLAd_04RsNPEY5nG6FNOxfdVdqN-6THzt-DkVYTRVoyf43-p',
+      image: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=400&h=400&fit=crop',
     },
     {
       id: 2,
@@ -41,18 +54,41 @@ const DoctorListScreen = () => {
       rating: 4.8,
       nextAvailable: '4:30 PM',
       price: 95,
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDZxglrHKMq2uMTcYd1cm6mtfzxS1mY1mpgodoSsZvgEo3YKjv3ywe7slrcDWxhv_7JZYJujIKEXQ9Wk0k3C0kTB-7uKOxGgxJO32Vtygny2g4Mq-OHjSYSclsDnK7DQae1TVtgVgG50NmWJnHhsJC35bRYTkdmjUlo3TqLSJ_YA8tcuZJykmHycmTwRlimQA1t2X778p2trNfkwF66UJkETjd4JWPTCnP9d3PK7LiZ-ZTg6ImvDnQS4p_lhGV49CcvLmQo9GrIDHT8',
+      image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=400&fit=crop',
     },
     {
       id: 3,
       name: 'Dr. Elena Rodriguez',
-      specialty: 'General Practitioner',
+      specialty: 'Psychiatrist',
       rating: 5.0,
       nextAvailable: 'Available Now',
       price: 110,
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD07PPrdJIIL_BVVG0Ju36so7KdlOsmi-K67ouC847RMwRD1yYS-tHGoR3TP7kMVZ7ceepz5vEbGi9hQgCAzaTc8iShTgdIxbChTvIfnUFqQiXjtHLncBOfPynmXFABLYshcwfgQDUiQUNTpW-eQ6shkBwwhzL_hSoTNpMcRdsQLwKOH8lwqvRRq19WrdfiiyFt3Xl451O1geQIf_VrJc3ZRvbcxDmYaVwpVdFj609MY_zUYwjMqB-93ZfuJ7zBGw8XOYoO3r3c1yPa',
+      image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=400&fit=crop',
     },
+    {
+      id: 4,
+      name: 'Dr. James Wilson',
+      specialty: 'Ophthalmologist',
+      rating: 4.7,
+      nextAvailable: '10:00 AM',
+      price: 130,
+      image: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&h=400&fit=crop',
+    },
+    {
+        id: 5,
+        name: 'Dr. Lisa Wong',
+        specialty: 'Dietitian',
+        rating: 4.9,
+        nextAvailable: '3:15 PM',
+        price: 85,
+        image: 'https://images.unsplash.com/photo-1527613426441-4da17471b66d?w=400&h=400&fit=crop',
+      },
   ];
+
+  // Logic to filter doctors based on selection
+  const filteredDoctors = selectedCategory === 'All' 
+    ? allDoctors 
+    : allDoctors.filter(doc => doc.specialty === specialtyMap[selectedCategory]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -70,20 +106,18 @@ const DoctorListScreen = () => {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Primary Action Card */}
         <View style={styles.cardContainer}>
-          <TouchableOpacity style={styles.primaryCard}>
+          <TouchableOpacity 
+            style={styles.primaryCard}
+            onPress={() => navigation.navigate("Form")}
+          >
             <View style={styles.cardContent}>
               <Text style={styles.cardTitle}>Feeling unwell?</Text>
               <Text style={styles.cardSubtitle}>
                 Describe your symptoms for a quick recommendation.
               </Text>
-             <TouchableOpacity 
-                style={styles.cardButton} 
-                onPress={() => {
-                    navigation.navigate("Form");
-                }}
-                >
+              <View style={styles.cardButton}>
                 <Text style={styles.cardButtonText}>Submit your Health Condition</Text>
-              </TouchableOpacity>
+              </View>
             </View>
             <View style={styles.cardDecoration}>
               <Icon name="medical-services" size={120} color="rgba(255,255,255,0.2)" />
@@ -104,6 +138,11 @@ const DoctorListScreen = () => {
           </View>
         </View>
 
+        {/* Categories Section Header - UPDATED TEXT */}
+        <View style={{ paddingHorizontal: 16, paddingTop: 16 }}>
+            <Text style={styles.categoryHeaderLabel}>Select the doctor related to</Text>
+        </View>
+
         {/* Categories */}
         <ScrollView
           horizontal
@@ -111,48 +150,73 @@ const DoctorListScreen = () => {
           style={styles.categoriesContainer}
           contentContainerStyle={styles.categoriesContent}
         >
-          {categories.map((category) => (
-            <TouchableOpacity key={category.id} style={styles.categoryItem}>
-              <View style={[styles.categoryIcon, { backgroundColor: category.bgColor }]}>
-                <Icon name={category.icon} size={28} color={category.color} />
-              </View>
-              <Text style={styles.categoryText}>{category.name}</Text>
-            </TouchableOpacity>
-          ))}
+          {categories.map((category) => {
+            const isActive = selectedCategory === category.name;
+            return (
+              <TouchableOpacity 
+                key={category.id} 
+                style={styles.categoryItem}
+                onPress={() => setSelectedCategory(category.name)}
+              >
+                <View style={[
+                    styles.categoryIcon, 
+                    { backgroundColor: category.bgColor },
+                    isActive && { borderWidth: 2, borderColor: category.color }
+                ]}>
+                  <Icon name={category.icon} size={28} color={category.color} />
+                </View>
+                <Text style={[
+                    styles.categoryText,
+                    isActive && { color: category.color, fontWeight: '800' }
+                ]}>
+                    {category.name}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
 
         {/* Section Header */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Available Doctors</Text>
-          <TouchableOpacity>
+          <Text style={styles.sectionTitle}>
+              {selectedCategory === 'All' ? 'Available Doctors' : `${selectedCategory} Specialists`}
+          </Text>
+          <TouchableOpacity onPress={() => setSelectedCategory('All')}>
             <Text style={styles.seeAllText}>See all</Text>
           </TouchableOpacity>
         </View>
 
         {/* Doctor Cards */}
         <View style={styles.doctorsList}>
-          {doctors.map((doctor) => (
-            <TouchableOpacity key={doctor.id} style={styles.doctorCard}>
-              <Image source={{ uri: doctor.image }} style={styles.doctorImage} />
-              <View style={styles.doctorInfo}>
-                <View style={styles.doctorHeader}>
-                  <Text style={styles.doctorName}>{doctor.name}</Text>
-                  <View style={styles.ratingContainer}>
-                    <Icon name="star" size={14} color="#eab308" />
-                    <Text style={styles.ratingText}>{doctor.rating}</Text>
+          {filteredDoctors.length > 0 ? (
+            filteredDoctors.map((doctor) => (
+              <TouchableOpacity key={doctor.id} style={styles.doctorCard}>
+                <Image source={{ uri: doctor.image }} style={styles.doctorImage} />
+                <View style={styles.doctorInfo}>
+                  <View style={styles.doctorHeader}>
+                    <Text style={styles.doctorName}>{doctor.name}</Text>
+                    <View style={styles.ratingContainer}>
+                      <Icon name="star" size={14} color="#eab308" />
+                      <Text style={styles.ratingText}>{doctor.rating}</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.specialtyText}>{doctor.specialty.toUpperCase()}</Text>
+                  <Text style={styles.availabilityText}>Next available: {doctor.nextAvailable}</Text>
+                  <View style={styles.doctorFooter}>
+                    <Text style={styles.priceText}>${doctor.price}/hr</Text>
+                    <TouchableOpacity style={styles.bookButton} >
+                      <Text style={styles.bookButtonText}>Book Now</Text>
+                    </TouchableOpacity>
                   </View>
                 </View>
-                <Text style={styles.specialtyText}>{doctor.specialty.toUpperCase()}</Text>
-                <Text style={styles.availabilityText}>Next available: {doctor.nextAvailable}</Text>
-                <View style={styles.doctorFooter}>
-                  <Text style={styles.priceText}>${doctor.price}/hr</Text>
-                  <TouchableOpacity style={styles.bookButton} >
-                    <Text style={styles.bookButtonText}>Book Now</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
+              </TouchableOpacity>
+            ))
+          ) : (
+            <View style={styles.emptyContainer}>
+                <Icon name="info-outline" size={40} color="#9ca3af" />
+                <Text style={styles.emptyText}>No doctors found in this category.</Text>
+            </View>
+          )}
         </View>
 
         <View style={{ height: 100 }} />
@@ -206,7 +270,7 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     paddingHorizontal: 16,
-    paddingVertical: 24,
+    paddingVertical: 12,
   },
   primaryCard: {
     backgroundColor: '#2d7576',
@@ -283,8 +347,14 @@ const styles = StyleSheet.create({
   filterIcon: {
     paddingRight: 12,
   },
+  categoryHeaderLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#71717a',
+    letterSpacing: 0.3,
+  },
   categoriesContainer: {
-    paddingVertical: 24,
+    paddingVertical: 12,
   },
   categoriesContent: {
     paddingHorizontal: 16,
@@ -313,6 +383,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
+    paddingTop: 12,
     paddingBottom: 8,
   },
   sectionTitle: {
@@ -407,6 +478,15 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 12,
     fontWeight: '700',
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    padding: 40,
+  },
+  emptyText: {
+    marginTop: 12,
+    color: '#9ca3af',
+    fontSize: 14,
   },
   bottomNav: {
     flexDirection: 'row',
