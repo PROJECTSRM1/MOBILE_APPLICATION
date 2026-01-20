@@ -393,11 +393,14 @@ const trendingServices = [
       }}
     >
       {/* Background Image */}
-      <Image
-        source={{ uri: item.image }}
-        style={styles.bannerImage}
-      />
-
+    <Image
+  source={
+    typeof item.image === 'string' 
+      ? { uri: item.image } 
+      : item.image
+  }
+  style={styles.bannerImage}
+/>
       {/* Overlay */}
       <View style={styles.bannerOverlay}>
         <Text style={styles.badge}>{item.badge}</Text>
@@ -540,7 +543,14 @@ const trendingServices = [
         },
       ]}
     >
-      <Image source={{ uri: item.image }} style={styles.cardImage} />
+     <Image 
+  source={
+    typeof item.image === 'string' 
+      ? { uri: item.image } 
+      : item.image
+  } 
+  style={styles.cardImage} 
+/>
 
       <View style={{ flex: 1 }}>
         <Text style={styles.cardTitle}>{item.title}</Text>
