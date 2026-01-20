@@ -48,6 +48,10 @@ import PaymentSuccessDetailsScreen from "./src/screens/PaymentSuccessDetailsScre
 import ProductDetailScreen from "./src/screens/ProductDetailScreen";
 import RegisterProductModal from "./src/screens/RegisterProductModal";
 import BuyerPage from "./src/screens/BuyerPage";
+import DoctorListScreen from "./src/screens/Healthcare";
+import ConsultationRequestScreen from "./src/screens/Healthform";
+import TelemedicineConsultation from "./src/screens/TelemedicineConsultation";
+import FacilitiesScreen from "./src/screens/FacilitiesScreen";
 
 
 export type RootStackParamList = {
@@ -104,6 +108,10 @@ export type RootStackParamList = {
   BuyerPage: undefined;
   ServiceDetails: undefined;
   PaymentSuccessDetails: undefined;
+  Health:undefined;
+  Form:undefined;
+  Telecom:undefined;
+  Facility:undefined;
 };
 
 
@@ -155,6 +163,10 @@ export default function App(): React.ReactElement {
         <Stack.Screen name="ReviewApplication" component={ReviewApplication} />
         <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
         <Stack.Screen name="BuyerPage" component={BuyerPage} />
+        <Stack.Screen name="Health" component={DoctorListScreen} />
+        <Stack.Screen name="Form" component={ConsultationRequestScreen} />
+         <Stack.Screen name="Telecom" component={TelemedicineConsultation} />
+         <Stack.Screen name="Facility" component={FacilitiesScreen} />
 
       </Stack.Navigator>
     </NavigationContainer>

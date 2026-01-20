@@ -1,4 +1,4 @@
-// App.tsx
+
 import { Navigation } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
@@ -15,8 +15,6 @@ import {
   useColorScheme,
 } from 'react-native';
 import Svg, { Path, Circle, Rect, Line } from 'react-native-svg';
-
-
 
 
 
@@ -55,6 +53,16 @@ const BackIcon = ({ size = 24, color = "#000" }) => (
       strokeLinecap="round"
       strokeLinejoin="round"
     />
+  </Svg>
+);
+
+const BuildingIcon = ({ size = 16, color = "#64748b" }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Rect x="4" y="2" width="16" height="20" rx="2" stroke={color} strokeWidth="2" />
+    <Path d="M8 6h.01M12 6h.01M16 6h.01" stroke={color} strokeWidth="2" strokeLinecap="round" />
+    <Path d="M8 10h.01M12 10h.01M16 10h.01" stroke={color} strokeWidth="2" strokeLinecap="round" />
+    <Path d="M8 14h.01M12 14h.01M16 14h.01" stroke={color} strokeWidth="2" strokeLinecap="round" />
+    <Path d="M10 22v-4h4v4" stroke={color} strokeWidth="2" strokeLinecap="round" />
   </Svg>
 );
 
@@ -146,6 +154,12 @@ const ProfileIcon = ({ size = 24, color = "#64748b", filled = false }) => (
   </Svg>
 );
 
+interface OrganisationDetails {
+  orgName: string;
+  gstin: string;
+  group: Number
+}
+
 interface ServiceProvider {
   id: string;
   name: string;
@@ -155,7 +169,16 @@ interface ServiceProvider {
   skills: string[];
   hourlyRate: number;
   image: string;
+
+  // NEW FLAGS
+  isActive: boolean;
+  isEnrolled: boolean;
+
+  // Only if freelancer belongs to company (bulk)
+  organisation?: OrganisationDetails;
+  cuisineStyle?: 'North' | 'South';
 }
+
 
 const serviceProviders: ServiceProvider[] = [
   {
@@ -166,7 +189,9 @@ const serviceProviders: ServiceProvider[] = [
     reviews: 156,
     skills: ['Pipe Fitting', 'Drainage'],
     hourlyRate: 350,
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+    image: 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=400&h=400&fit=crop',
+    isActive: true,
+    isEnrolled: true,
   },
   {
     id: '2',
@@ -176,7 +201,9 @@ const serviceProviders: ServiceProvider[] = [
     reviews: 203,
     skills: ['Deep Cleaning', 'Sanitization'],
     hourlyRate: 250,
-    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
+    isActive: false,
+    isEnrolled: true,
   },
   {
     id: '3',
@@ -186,7 +213,14 @@ const serviceProviders: ServiceProvider[] = [
     reviews: 98,
     skills: ['Wiring', 'Repair'],
     hourlyRate: 400,
-    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
+    image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop',
+    isActive: true,
+    isEnrolled: true,
+    organisation: {
+      orgName: "Sparkle Cleaning Pvt Ltd",
+      gstin: "29ABCDE1234F1Z5",
+      group: 10
+    }
   },
   {
     id: '4',
@@ -196,7 +230,9 @@ const serviceProviders: ServiceProvider[] = [
     reviews: 142,
     skills: ['Machine Wash', 'Dry Cleaning'],
     hourlyRate: 200,
-    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+    image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop',
+    isActive: false,
+    isEnrolled: true,
   },
   {
     id: '5',
@@ -206,7 +242,9 @@ const serviceProviders: ServiceProvider[] = [
     reviews: 87,
     skills: ['Installation', 'Maintenance'],
     hourlyRate: 320,
-    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
+    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+    isActive: true,
+    isEnrolled: false,
   },
   {
     id: '6',
@@ -216,7 +254,9 @@ const serviceProviders: ServiceProvider[] = [
     reviews: 175,
     skills: ['Home Cleaning', 'Kitchen'],
     hourlyRate: 280,
-    image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400',
+    image: 'https://images.unsplash.com/photo-1531123897727-8f129e16fd3c?w=400&h=400&fit=crop',
+    isActive: true,
+    isEnrolled: false,
   },
   {
     id: '7',
@@ -226,7 +266,14 @@ const serviceProviders: ServiceProvider[] = [
     reviews: 134,
     skills: ['Smart Home', 'Installation'],
     hourlyRate: 450,
-    image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
+    image: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=400&h=400&fit=crop',
+    isActive: false,
+    isEnrolled: true,
+    organisation: {
+      orgName: "Sparkle Cleaning Pvt Ltd",
+      gstin: "29ABCDE1234F1Z5",
+      group: 11,
+    }
   },
   {
     id: '8',
@@ -236,11 +283,252 @@ const serviceProviders: ServiceProvider[] = [
     reviews: 98,
     skills: ['Laundry', 'Ironing'],
     hourlyRate: 220,
-    image: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400',
+    image: 'https://images.unsplash.com/photo-1567532939604-b6c5b0ad2e01?w=400&h=400&fit=crop',
+    isActive: true,
+    isEnrolled: true,
+    organisation: {
+      orgName: "Sparkle Cleaning Pvt Ltd",
+      gstin: "29ABCDE1234F1Z5",
+      group: 12
+    }
+  },
+  {
+    id: '9',
+    name: 'Mohit Verma',
+    service: 'Plumber',
+    rating: 4.5,
+    reviews: 76,
+    skills: ['Leak Fixing', 'Bathroom Fitting'],
+    hourlyRate: 300,
+    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
+    isActive: true,
+    isEnrolled: true,
+  },
+  {
+    id: '10',
+    name: 'Sneha Iyer',
+    service: 'Cleaner',
+    rating: 4.9,
+    reviews: 221,
+    skills: ['Office Cleaning', 'Floor Polishing'],
+    hourlyRate: 270,
+    image: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?w=400&h=400&fit=crop',
+    isActive: true,
+    isEnrolled: true,
+  },
+  {
+    id: '11',
+    name: 'Arjun Singh',
+    service: 'Electrician',
+    rating: 4.6,
+    reviews: 110,
+    skills: ['Appliance Repair', 'Fan Installation'],
+    hourlyRate: 380,
+    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop',
+    isActive: false,
+    isEnrolled: true,
+  },
+  {
+    id: '12',
+    name: 'Pooja Nair',
+    service: 'Washer',
+    rating: 4.8,
+    reviews: 164,
+    skills: ['Steam Ironing', 'Fabric Care'],
+    hourlyRate: 230,
+    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop',
+    isActive: true,
+    isEnrolled: true,
+  },
+  {
+    id: '13',
+    name: 'Rahul Das',
+    service: 'Plumber',
+    rating: 4.4,
+    reviews: 59,
+    skills: ['Motor Repair', 'Tank Cleaning'],
+    hourlyRate: 310,
+    image: 'https://images.unsplash.com/photo-1552058544-f2b08422138a?w=400&h=400&fit=crop',
+    isActive: false,
+    isEnrolled: false,
+  },
+  {
+    id: '14',
+    name: 'Neha Kapoor',
+    service: 'Cleaner',
+    rating: 5.0,
+    reviews: 287,
+    skills: ['Villa Cleaning', 'Move-out Cleaning'],
+    hourlyRate: 320,
+    image: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=400&h=400&fit=crop',
+    isActive: true,
+    isEnrolled: true,
+    organisation: {
+      orgName: "UrbanCare Services",
+      gstin: "27ABCDE4321K9Z2",
+      group: 10,
+    }
+  },
+  {
+    id: '15',
+    name: 'Imran Khan',
+    service: 'Electrician',
+    rating: 4.7,
+    reviews: 143,
+    skills: ['Inverter Setup', 'CCTV Install'],
+    hourlyRate: 420,
+    image: 'https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=400&h=400&fit=crop',
+    isActive: true,
+    isEnrolled: true,
+  },
+  {
+    id: '16',
+    name: 'Kavya Joshi',
+    service: 'Washer',
+    rating: 4.6,
+    reviews: 92,
+    skills: ['Curtain Wash', 'Delicate Clothes'],
+    hourlyRate: 210,
+    image: 'https://images.unsplash.com/photo-1548142813-c348350df52b?w=400&h=400&fit=crop',
+    isActive: false,
+    isEnrolled: true,
+  },
+  {
+    id: '17',
+    name: 'Sanjay Patel',
+    service: 'Plumber',
+    rating: 4.9,
+    reviews: 198,
+    skills: ['Pipeline Design', 'Commercial Plumbing'],
+    hourlyRate: 500,
+    image: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&h=400&fit=crop',
+    isActive: true,
+    isEnrolled: true,
+    organisation: {
+      orgName: "AquaFlow Solutions",
+      gstin: "24AAQCA1122P1Z8",
+      group: 10
+    }
+  },
+  {
+    id: '18',
+    name: 'Aditi Roy',
+    service: 'Cleaner',
+    rating: 4.7,
+    reviews: 134,
+    skills: ['Bathroom Deep Clean', 'Balcony Cleaning'],
+    hourlyRate: 260,
+    image: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400&h=400&fit=crop',
+    isActive: true,
+    isEnrolled: false,
+  },
+  {
+    id: '19',
+    name: 'Naveen Kumar',
+    service: 'Electrician',
+    rating: 4.3,
+    reviews: 48,
+    skills: ['Switch Board Repair', 'Short Circuit Fix'],
+    hourlyRate: 340,
+    image: 'https://images.unsplash.com/photo-1463453091185-61582044d556?w=400&h=400&fit=crop',
+    isActive: false,
+    isEnrolled: true,
+  },
+  {
+    id: '20',
+    name: 'Ritu Malhotra',
+    service: 'Washer',
+    rating: 5.0,
+    reviews: 312,
+    skills: ['Premium Laundry', 'Dry Iron Finish'],
+    hourlyRate: 280,
+    image: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=400&fit=crop',
+    isActive: true,
+    isEnrolled: true,
+  },
+  {
+    id: '21',
+    name: 'Balaji N',
+    service: 'Plumber',
+    rating: 4.6,
+    reviews: 121,
+    skills: ['Sink Repair', 'Water Heater Install'],
+    hourlyRate: 360,
+    image: 'https://images.unsplash.com/photo-1506803682981-6e718a9dd3ee?w=400&h=400&fit=crop',
+    isActive: true,
+    isEnrolled: false,
+  },
+  {
+    id: '22',
+    name: 'Fatima Shaikh',
+    service: 'Cleaner',
+    rating: 4.8,
+    reviews: 177,
+    skills: ['Kitchen Deep Clean', 'Dust Removal'],
+    hourlyRate: 290,
+    image: 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=400&h=400&fit=crop',
+    isActive: true,
+    isEnrolled: true,
+    organisation: {
+      orgName: "CleanPro India",
+      gstin: "30BBBCD9988M1Z1",
+      group: 10
+    }
+  },
+  {
+    id: '23',
+    name: 'Rohit Shetty',
+    service: 'Electrician',
+    rating: 4.9,
+    reviews: 204,
+    skills: ['Home Automation', 'Panel Upgrade'],
+    hourlyRate: 480,
+    image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&h=400&fit=crop',
+    isActive: true,
+    isEnrolled: true,
+  },
+  {
+    id: '24',
+    name: 'Priya Mani',
+    service: 'Chef',
+    cuisineStyle: 'South',
+    rating: 4.9,
+    reviews: 88,
+    skills: ['Andhra Cuisine', 'Meals'],
+    hourlyRate: 500,
+    image: 'https://images.unsplash.com/photo-1623582854588-d60de57fa33f?w=400&h=400&fit=crop',
+    isActive: true,
+    isEnrolled: true,
+  },
+  {
+    id: '25',
+    name: 'Sajid Khan',
+    service: 'Chef',
+    cuisineStyle: 'North',
+    rating: 4.8,
+    reviews: 112,
+    skills: ['Tandoori', 'Mughlai'],
+    hourlyRate: 600,
+    image: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=400&h=400&fit=crop',
+    isActive: true,
+    isEnrolled: true,
+  },
+  {
+    id: '26',
+    name: 'Karthik Raja',
+    service: 'Chef',
+    cuisineStyle: 'South',
+    rating: 4.7,
+    reviews: 45,
+    skills: ['Chettinad', 'Dosa'],
+    hourlyRate: 450,
+    image: 'https://images.unsplash.com/photo-1556157382-97eda2d62296?w=400&h=400&fit=crop',
+    isActive: true,
+    isEnrolled: true,
   },
 ];
 
-const categories = ['All', 'Plumber', 'Cleaner', 'Electrician', 'Washer'];
+const categories = ['All','Chef', 'Plumber', 'Cleaner', 'Electrician', 'Washer'];
 
 const Freelancer = () => {
 const navigation = useNavigation();
@@ -248,14 +536,33 @@ const navigation = useNavigation();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('services');
+  const [showOnlyActive, setShowOnlyActive] = useState(false);
+   const [chefStyle, setChefStyle] = useState<'North' | 'South'>('South');
 
-  const filteredProviders = serviceProviders.filter(provider => {
-    const matchesCategory = selectedCategory === 'All' || provider.service === selectedCategory;
-    const matchesSearch = provider.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         provider.service.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         provider.skills.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesCategory && matchesSearch;
-  });
+
+const filteredProviders = serviceProviders.filter(provider => {
+  const matchesCategory = selectedCategory === 'All' || provider.service === selectedCategory;
+  const matchesChefStyle = selectedCategory === 'Chef' ? provider.cuisineStyle === chefStyle : true;
+
+
+  const matchesSearch =
+    provider.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    provider.service.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    provider.skills.some(skill =>
+      skill.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+  const matchesActive = showOnlyActive ? provider.isActive : true;
+
+  return (
+     matchesCategory &&
+    matchesChefStyle &&
+    matchesSearch &&
+    provider.isEnrolled &&
+    matchesActive
+  );
+});
+
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? '#101622' : '#f6f6f8',
@@ -296,9 +603,15 @@ const navigation = useNavigation();
               onChangeText={setSearchQuery}
             />
           </View>
-          <TouchableOpacity style={styles.filterButton}>
-            <FilterIcon size={20} color="#fff" />
-          </TouchableOpacity>
+          <TouchableOpacity
+              style={[
+                styles.filterButton,
+                showOnlyActive && { backgroundColor: '#22c55e' } // green when active
+              ]}
+              onPress={() => setShowOnlyActive(prev => !prev)}
+            >
+              <FilterIcon size={20} color="#fff" />
+            </TouchableOpacity>
         </View>
       </View>
 
@@ -334,6 +647,26 @@ const navigation = useNavigation();
   </ScrollView>
 </View>
 
+{/* NEW: Chef Style Toggle - Only shows when Chef category is selected */}
+    {selectedCategory === 'Chef' && (
+        <View style={styles.chefToggleContainer}>
+          <View style={[styles.toggleWrapper, isDarkMode && styles.toggleWrapperDark]}>
+            <TouchableOpacity 
+              style={[styles.toggleBtn, chefStyle === 'South' && styles.toggleBtnActive]}
+              onPress={() => setChefStyle('South')}
+            >
+              <Text style={[styles.toggleBtnText, chefStyle === 'South' && styles.toggleBtnTextActive]}>South Style</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.toggleBtn, chefStyle === 'North' && styles.toggleBtnActive]}
+              onPress={() => setChefStyle('North')}
+            >
+              <Text style={[styles.toggleBtnText, chefStyle === 'North' && styles.toggleBtnTextActive]}>North Style</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
       {/* Service Providers List */}
       <ScrollView
         style={styles.listContainer}
@@ -353,9 +686,33 @@ const navigation = useNavigation();
               <View style={styles.cardContent}>
                 <View style={styles.cardHeader}>
                   <View>
-                    <Text style={[styles.providerName, isDarkMode && styles.textWhite]}>
-                      {provider.name}
-                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Text style={[styles.providerName, isDarkMode && styles.textWhite]}>
+                        {provider.name}
+                      </Text>
+
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+  <View
+    style={{
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: provider.isActive ? '#22c55e' : '#ef4444',
+    }}
+  />
+  <Text
+    style={{
+      fontSize: 12,
+      color: provider.isActive ? '#22c55e' : '#ef4444',
+      fontWeight: '600',
+    }}
+  >
+    {provider.isActive ? 'Active' : 'Inactive'}
+  </Text>
+</View>
+
+                    </View>
+
                     <Text style={styles.providerService}>
                       {provider.service}
                     </Text>
@@ -368,7 +725,31 @@ const navigation = useNavigation();
                     <Text style={styles.reviewCount}>({provider.reviews})</Text>
                   </View>
                 </View>
+                {provider.organisation && (
+  <View style={{ marginTop: 6 }}>
+    {/* Organisation Name */}
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+      <BuildingIcon size={14} color="#64748b" />
+      <Text style={{ fontSize: 12, color: '#64748b', fontWeight: '500' }}>
+        {provider.organisation.orgName}
+      </Text>
+    </View>
 
+    {/* GSTIN and Group Info */}
+    <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 20, marginTop: 2, gap: 8 }}>
+      <Text style={{ fontSize: 10, color: '#94a3b8' }}>
+        GSTIN: {provider.organisation.gstin}
+      </Text>
+      
+      {/* Vertical Separator */}
+      <View style={{ width: 1, height: 10, backgroundColor: '#cbd5e1' }} />
+      
+    <Text style={{ fontSize: 10, color: '#94a3b8' }}>
+  Group: {provider.organisation.group.toString()}
+</Text>
+    </View>
+  </View>
+)}
                 <View style={styles.skillsContainer}>
                   {provider.skills.map((skill, index) => (
                     <View key={index} style={styles.skillBadge}>
@@ -786,6 +1167,39 @@ categoriesContainer: {
     color: '#64748b',
     fontWeight: '500',
   },
+  // NEW: Chef Toggle Styles
+  chefToggleContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+  },
+  toggleWrapper: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 4,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  toggleWrapperDark: {
+    backgroundColor: '#1c2433',
+    borderColor: '#334155',
+  },
+  toggleBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  toggleBtnActive: {
+    backgroundColor: '#135bec',
+  },
+  toggleBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748b',
+  },
+  toggleBtnTextActive: {
+    color: '#fff',}
 });
 
 export default Freelancer;

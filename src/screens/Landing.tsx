@@ -483,7 +483,7 @@ const trendingServices = [
               break;
 
             case "Health Care":
-              // future screen
+              navigation.navigate("Health");
               break;
 
             default:
