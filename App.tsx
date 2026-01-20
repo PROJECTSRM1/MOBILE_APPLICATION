@@ -54,8 +54,8 @@ import DoctorListScreen from "./src/screens/Healthcare";
 import ConsultationRequestScreen from "./src/screens/Healthform";
 import TelemedicineConsultation from "./src/screens/TelemedicineConsultation";
 import FacilitiesScreen from "./src/screens/FacilitiesScreen";
-
-
+// import PaymentSuccessDetailsScreen from "./src/screens/PaymentSuccessDetailsScreen";
+import EnrollmentDetailsScreen from "./src/screens/EnrollmentDetailsScreen";
 export type RootStackParamList = {
   Splash: undefined;
   Onboarding: undefined;
@@ -104,6 +104,7 @@ export type RootStackParamList = {
   Training: undefined;
   TrainingDetails: undefined;
   ApplicationSuccess: undefined;
+  enrollmentDetails: undefined;
   // ReviewApplication: undefined;
    ReviewApplication: { internship: Internship };
   ProductDetail: undefined;
@@ -158,7 +159,7 @@ export default function App(): React.ReactElement {
          <Stack.Screen name="HomeSubCat" component={HomeSubCat} />
 <Stack.Screen name="CommercialSub" component={CommercialSub} />
 <Stack.Screen name="VehicleSub" component={VehicleSub} />
-
+<Stack.Screen name="enrollmentDetails" component={EnrollmentDetailsScreen} />
          <Stack.Screen name="EmployeeHomeScreen" component={EmployeeHomeScreen} />
          <Stack.Screen name="Cart" component={CartScreen} />
         <Stack.Screen name="Training" component={TrainingScreen} />
