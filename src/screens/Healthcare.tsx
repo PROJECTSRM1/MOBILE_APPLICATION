@@ -121,6 +121,23 @@ const DoctorListScreen = () => {
           ))}
         </ScrollView>
 
+        {/* Book Ambulance Card */}
+        <View style={styles.ambulanceContainer}>
+          <TouchableOpacity style={styles.ambulanceCard}>
+            <View style={styles.ambulanceIconContainer}>
+              <Icon name="local-hospital" size={32} color="#dc2626" />
+            </View>
+            <View style={styles.ambulanceTextContainer}>
+              <Text style={styles.ambulanceTitle}>Emergency Ambulance</Text>
+              <Text style={styles.ambulanceSubtitle}>Available 24/7 for urgent care</Text>
+            </View>
+            <TouchableOpacity style={styles.ambulanceButton}>
+              <Text style={styles.ambulanceButtonText}>Book Now</Text>
+              <Icon name="arrow-forward" size={16} color="#ffffff" />
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </View>
+
         {/* Section Header */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Available Doctors</Text>
@@ -307,6 +324,61 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#52525b',
+  },
+  ambulanceContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginBottom: 16,
+  },
+  ambulanceCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 2,
+    borderColor: '#dc2626',
+    shadowColor: '#dc2626',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  ambulanceIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#fee2e2',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ambulanceTextContainer: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  ambulanceTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#131616',
+    marginBottom: 2,
+  },
+  ambulanceSubtitle: {
+    fontSize: 12,
+    color: '#71717a',
+  },
+  ambulanceButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#dc2626',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    gap: 4,
+  },
+  ambulanceButtonText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '700',
   },
   sectionHeader: {
     flexDirection: 'row',

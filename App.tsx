@@ -33,6 +33,7 @@ import HomeSub from "./src/screens/HomeSub";
 import HomeSubCat from "./src/screens/HomeSubCat";
 import CommercialSub from "./src/screens/CommercialSub";
 import VehicleSub from "./src/screens/VehicleSub";
+import { ThemeProvider } from "./src/context/ThemeContext";
 
 
 
@@ -54,6 +55,8 @@ import DoctorListScreen from "./src/screens/Healthcare";
 import ConsultationRequestScreen from "./src/screens/Healthform";
 import TelemedicineConsultation from "./src/screens/TelemedicineConsultation";
 import FacilitiesScreen from "./src/screens/FacilitiesScreen";
+import Wishlist from "./src/screens/Wishlist";
+
 
 
 export type RootStackParamList = {
@@ -116,6 +119,8 @@ export type RootStackParamList = {
   Form:undefined;
   Telecom:undefined;
   Facility:undefined;
+  Wishlist: undefined;
+
 };
 
 
@@ -123,6 +128,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App(): React.ReactElement {
   return (
+    <ThemeProvider>  
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={Splash} />
@@ -173,8 +179,11 @@ export default function App(): React.ReactElement {
         <Stack.Screen name="Form" component={ConsultationRequestScreen} />
          <Stack.Screen name="Telecom" component={TelemedicineConsultation} />
          <Stack.Screen name="Facility" component={FacilitiesScreen} />
+         <Stack.Screen name="Wishlist" component={Wishlist} />
+
 
       </Stack.Navigator>
     </NavigationContainer>
+     </ThemeProvider> 
   );
 }
