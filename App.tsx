@@ -50,6 +50,10 @@ import RegisterProductModal from "./src/screens/RegisterProductModal";
 import BuyerPage from "./src/screens/BuyerPage";
 import JustrideMultiStop from "./src/screens/JustRideMultiStop";
 import JustrideApp from "./src/screens/JustrideApp";
+import DoctorListScreen from "./src/screens/Healthcare";
+import ConsultationRequestScreen from "./src/screens/Healthform";
+import TelemedicineConsultation from "./src/screens/TelemedicineConsultation";
+import FacilitiesScreen from "./src/screens/FacilitiesScreen";
 
 
 export type RootStackParamList = {
@@ -108,6 +112,10 @@ export type RootStackParamList = {
   PaymentSuccessDetails: undefined;
   JustRideMultiStop: undefined;
   JustrideApp: undefined;
+  Health:undefined;
+  Form:undefined;
+  Telecom:undefined;
+  Facility:undefined;
 };
 
 
@@ -161,6 +169,10 @@ export default function App(): React.ReactElement {
         <Stack.Screen name="BuyerPage" component={BuyerPage} />
         <Stack.Screen name="JustRideMultiStop" component={JustrideMultiStop} />
         <Stack.Screen name= "JustrideApp" component={JustrideApp} />
+        <Stack.Screen name="Health" component={DoctorListScreen} />
+        <Stack.Screen name="Form" component={ConsultationRequestScreen} />
+         <Stack.Screen name="Telecom" component={TelemedicineConsultation} />
+         <Stack.Screen name="Facility" component={FacilitiesScreen} />
 
       </Stack.Navigator>
     </NavigationContainer>
