@@ -90,11 +90,11 @@ const BuyerPage = ({ route, navigation }: any) => {
       
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <MaterialIcons name="arrow-back-ios" size={20} color="#0a0c10" />
+          <MaterialIcons name="arrow-back-ios" size={20} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Property Details</Text>
         <TouchableOpacity style={styles.favoriteButton}>
-          <MaterialIcons name="favorite-border" size={24} color="#0a0c10" />
+          <MaterialIcons name="favorite-border" size={24} color={colors.text} />
         </TouchableOpacity>
       </View>
 

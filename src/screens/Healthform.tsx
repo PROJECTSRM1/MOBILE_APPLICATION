@@ -7,13 +7,13 @@ import {
   TouchableOpacity,
   Image,
   StatusBar,
-  SafeAreaView,
   StyleSheet,
   Modal,
   Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const ConsultationRequestScreen = () => {
   const navigation = useNavigation<any>();
@@ -28,7 +28,7 @@ const ConsultationRequestScreen = () => {
   const [isBooked, setIsBooked] = useState<boolean>(false);
   const [isPaymentComplete, setIsPaymentComplete] = useState<boolean>(false);
   const [canConnect, setCanConnect] = useState<boolean>(false);
-  const [timeRemaining, setTimeRemaining] = useState<number>(60); // 5 minutes in seconds
+  const [timeRemaining, setTimeRemaining] = useState<number>(5); // 5 minutes in seconds
 
   // Check if all required fields are filled
   const isFormComplete = description.trim() !== '' && 

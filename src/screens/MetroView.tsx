@@ -11,6 +11,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../context/ThemeContext';
 
 
 interface Station {
@@ -98,6 +99,8 @@ const HYDERABAD_STATIONS: Station[] = [
 ];
 
 const MetroView = () => {
+  const { colors } = useTheme();
+  const s = getStyles(colors);
     const insets = useSafeAreaInsets();
   const [currentView, setCurrentView] = useState<AppScreen>(AppScreen.DASHBOARD);
   const [fromStation, setFromStation] = useState<Station | null>(null);
@@ -209,7 +212,7 @@ const MetroView = () => {
       <View style={s.header}>
         <View style={s.headerLeft}>
           <View style={s.logo}>
-           <MaterialIcons name="directions-subway" size={26} color="#FFF" />
+           <MaterialIcons name="directions-subway" size={26} color={colors.text} />
 
           </View>
           <View>
@@ -218,7 +221,7 @@ const MetroView = () => {
           </View>
         </View>
         <TouchableOpacity style={s.histBtn} onPress={() => setCurrentView(AppScreen.DASHBOARD)}>
-        <MaterialIcons name="history" size={24} color="#FFF" />
+        <MaterialIcons name="history" size={24} color={colors.text} />
 
         </TouchableOpacity>
       </View>
@@ -395,73 +398,450 @@ const MetroView = () => {
   );
 };
 
-const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#020617' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20 },
-  headerLeft: { flexDirection: 'row', alignItems: 'center' },
-  logo: { width: 48, height: 48, backgroundColor: '#6366F1', borderRadius: 16, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
-  logoText: { fontSize: 24 },
-  title: { fontSize: 24, fontWeight: '900', color: '#FFF' },
-  subtitle: { fontSize: 9, fontWeight: '700', color: '#64748B', letterSpacing: 2 },
-  histBtn: { width: 48, height: 48, backgroundColor: '#1E293B', borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
-  histText: { fontSize: 24 },
-  main: { flex: 1 },
-  content: { padding: 20, gap: 20 },
-  bookBtn: { backgroundColor: '#6366F1', borderRadius: 32, padding: 32, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  bookTitle: { fontSize: 20, fontWeight: '900', color: '#FFF' },
-  bookSub: { fontSize: 11, fontWeight: '700', color: '#C7D2FE', marginTop: 4 },
-  bookIcon: { fontSize: 32, color: '#FFF' },
-  secTitle: { fontSize: 10, fontWeight: '900', color: '#64748B', letterSpacing: 2, marginTop: 8 },
-  empty: { padding: 40, borderWidth: 2, borderStyle: 'dashed', borderColor: '#334155', borderRadius: 32, alignItems: 'center' },
-  emptyText: { fontSize: 14, color: '#64748B' },
-  histItem: { backgroundColor: '#1E293B', borderRadius: 24, padding: 20 },
-  histRoute: { fontSize: 16, fontWeight: '900', color: '#FFF' },
-  histMeta: { fontSize: 12, color: '#64748B', marginTop: 4 },
-  back: { fontSize: 12, fontWeight: '900', color: '#6366F1', letterSpacing: 2 },
-  planTitle: { fontSize: 32, fontWeight: '900', color: '#FFF' },
-  selCard: { backgroundColor: '#1E293B', borderRadius: 32, padding: 8, gap: 4 },
-  selItem: { padding: 16 },
-  selLabel: { fontSize: 9, fontWeight: '900', color: '#64748B', letterSpacing: 2, marginBottom: 8 },
-  selBtn: { backgroundColor: '#334155', borderRadius: 16, padding: 16 },
-  selText: { fontSize: 16, fontWeight: '700', color: '#FFF' },
-  swap: { alignItems: 'center', paddingVertical: 8 },
-  swapText: { fontSize: 24, color: '#6366F1' },
-  toggle: { flexDirection: 'row', backgroundColor: '#1E293B', borderRadius: 24, padding: 6, gap: 6 },
-  toggleBtn: { flex: 1, padding: 16, borderRadius: 18, alignItems: 'center' },
-  toggleActive: { backgroundColor: '#6366F1' },
-  toggleText: { fontSize: 10, fontWeight: '900', color: '#64748B', letterSpacing: 2 },
-  toggleTextActive: { color: '#FFF' },
-  fareCard: { backgroundColor: '#1E293B', borderRadius: 32, padding: 32, alignItems: 'center' },
-  fareLabel: { fontSize: 10, fontWeight: '900', color: '#6366F1', letterSpacing: 2 },
-  fareAmount: { fontSize: 48, fontWeight: '900', color: '#FFF', marginTop: 8 },
-  payBtn: { backgroundColor: '#6366F1', borderRadius: 28, padding: 24, alignItems: 'center' },
-  payBtnDis: { backgroundColor: '#334155', opacity: 0.5 },
-  payText: { fontSize: 16, fontWeight: '900', color: '#FFF', letterSpacing: 2 },
-  ticket: { backgroundColor: '#FFF', borderRadius: 32, overflow: 'hidden' },
-  tTop: { backgroundColor: '#6366F1', padding: 24, flexDirection: 'row', justifyContent: 'space-between' },
-  tLogo: { fontSize: 14, fontWeight: '900', color: '#FFF' },
-  tId: { fontSize: 10, fontWeight: '900', color: '#FFF', backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 },
-  tRoute: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 24, backgroundColor: '#6366F1' },
-  tLabel: { fontSize: 9, fontWeight: '900', color: '#C7D2FE', letterSpacing: 2 },
-  tStation: { fontSize: 18, fontWeight: '900', color: '#FFF', marginTop: 4 },
-  tArrow: { fontSize: 24, color: '#FFF' },
-  tRight: { alignItems: 'flex-end' },
-  tBody: { padding: 40, alignItems: 'center' },
-  qr: { width: 180, height: 180, backgroundColor: '#F1F5F9', borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
-  qrText: { fontSize: 16, fontWeight: '900', color: '#334155' },
-  scan: { fontSize: 11, fontWeight: '900', color: '#94A3B8', letterSpacing: 3, marginTop: 24 },
-  tMeta: { fontSize: 12, fontWeight: '700', color: '#64748B', marginTop: 16 },
-  doneBtn: { backgroundColor: '#6366F1', borderRadius: 28, padding: 24, alignItems: 'center' },
-  doneText: { fontSize: 18, fontWeight: '900', color: '#FFF' },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: '#1E293B', borderTopLeftRadius: 32, borderTopRightRadius: 32, maxHeight: '80%' },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 24, borderBottomWidth: 1, borderBottomColor: '#334155' },
-  modalTitle: { fontSize: 18, fontWeight: '900', color: '#FFF' },
-  modalClose: { fontSize: 24, color: '#64748B', fontWeight: '700' },
-  stationItem: { flexDirection: 'row', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: '#334155' },
-  lineDot: { width: 12, height: 12, borderRadius: 6, marginRight: 16 },
-  stName: { fontSize: 16, fontWeight: '700', color: '#FFF' },
-  stLine: { fontSize: 11, color: '#64748B', marginTop: 2 },
-});
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    // Container
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    
+    // Header Styles
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: 20,
+    },
+    
+    headerLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    
+    logo: {
+      width: 48,
+      height: 48,
+      backgroundColor: colors.primary,
+      borderRadius: 16,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 12,
+    },
+    
+    logoText: {
+      fontSize: 24,
+    },
+    
+    title: {
+      fontSize: 24,
+      fontWeight: '900',
+      color: colors.text,
+    },
+    
+    subtitle: {
+      fontSize: 9,
+      fontWeight: '700',
+      color: colors.subText,
+      letterSpacing: 2,
+    },
+    
+    histBtn: {
+      width: 48,
+      height: 48,
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    
+    histText: {
+      fontSize: 24,
+    },
+    
+    // Main Content
+    main: {
+      flex: 1,
+    },
+    
+    content: {
+      padding: 20,
+      gap: 20,
+    },
+    
+    // Book Button
+    bookBtn: {
+      backgroundColor: colors.primary,
+      borderRadius: 32,
+      padding: 32,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    
+    bookTitle: {
+      fontSize: 20,
+      fontWeight: '900',
+      color: colors.onPrimary,
+    },
+    
+    bookSub: {
+      fontSize: 11,
+      fontWeight: '700',
+      color: colors.primaryTint,
+      marginTop: 4,
+    },
+    
+    bookIcon: {
+      fontSize: 32,
+      color: colors.onPrimary,
+    },
+    
+    // Section Title
+    secTitle: {
+      fontSize: 10,
+      fontWeight: '900',
+      color: colors.subText,
+      letterSpacing: 2,
+      marginTop: 8,
+    },
+    
+    // Empty State
+    empty: {
+      padding: 40,
+      borderWidth: 2,
+      borderStyle: 'dashed',
+      borderColor: colors.dashedBorder,
+      borderRadius: 32,
+      alignItems: 'center',
+    },
+    
+    emptyText: {
+      fontSize: 14,
+      color: colors.subText,
+    },
+    
+    // History Item
+    histItem: {
+      backgroundColor: colors.card,
+      borderRadius: 24,
+      padding: 20,
+    },
+    
+    histRoute: {
+      fontSize: 16,
+      fontWeight: '900',
+      color: colors.text,
+    },
+    
+    histMeta: {
+      fontSize: 12,
+      color: colors.subText,
+      marginTop: 4,
+    },
+    
+    // Back Button
+    back: {
+      fontSize: 12,
+      fontWeight: '900',
+      color: colors.primary,
+      letterSpacing: 2,
+    },
+    
+    // Plan Title
+    planTitle: {
+      fontSize: 32,
+      fontWeight: '900',
+      color: colors.text,
+    },
+    
+    // Selection Card
+    selCard: {
+      backgroundColor: colors.card,
+      borderRadius: 32,
+      padding: 8,
+      gap: 4,
+    },
+    
+    selItem: {
+      padding: 16,
+    },
+    
+    selLabel: {
+      fontSize: 9,
+      fontWeight: '900',
+      color: colors.subText,
+      letterSpacing: 2,
+      marginBottom: 8,
+    },
+    
+    selBtn: {
+      backgroundColor: colors.cardLight,
+      borderRadius: 16,
+      padding: 16,
+    },
+    
+    selText: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    
+    // Swap Button
+    swap: {
+      alignItems: 'center',
+      paddingVertical: 8,
+    },
+    
+    swapText: {
+      fontSize: 24,
+      color: colors.primary,
+    },
+    
+    // Toggle Styles
+    toggle: {
+      flexDirection: 'row',
+      backgroundColor: colors.card,
+      borderRadius: 24,
+      padding: 6,
+      gap: 6,
+    },
+    
+    toggleBtn: {
+      flex: 1,
+      padding: 16,
+      borderRadius: 18,
+      alignItems: 'center',
+    },
+    
+    toggleActive: {
+      backgroundColor: colors.primary,
+    },
+    
+    toggleText: {
+      fontSize: 10,
+      fontWeight: '900',
+      color: colors.subText,
+      letterSpacing: 2,
+    },
+    
+    toggleTextActive: {
+      color: colors.onPrimary,
+    },
+    
+    // Fare Card
+    fareCard: {
+      backgroundColor: colors.card,
+      borderRadius: 32,
+      padding: 32,
+      alignItems: 'center',
+    },
+    
+    fareLabel: {
+      fontSize: 10,
+      fontWeight: '900',
+      color: colors.primary,
+      letterSpacing: 2,
+    },
+    
+    fareAmount: {
+      fontSize: 48,
+      fontWeight: '900',
+      color: colors.text,
+      marginTop: 8,
+    },
+    
+    // Payment Button
+    payBtn: {
+      backgroundColor: colors.primary,
+      borderRadius: 28,
+      padding: 24,
+      alignItems: 'center',
+    },
+    
+    payBtnDis: {
+      backgroundColor: colors.disabled,
+      opacity: 0.5,
+    },
+    
+    payText: {
+      fontSize: 16,
+      fontWeight: '900',
+      color: colors.onPrimary,
+      letterSpacing: 2,
+    },
+    
+    // Ticket Styles
+    ticket: {
+      backgroundColor: colors.ticketBg,
+      borderRadius: 32,
+      overflow: 'hidden',
+    },
+    
+    tTop: {
+      backgroundColor: colors.primary,
+      padding: 24,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    
+    tLogo: {
+      fontSize: 14,
+      fontWeight: '900',
+      color: colors.onPrimary,
+    },
+    
+    tId: {
+      fontSize: 10,
+      fontWeight: '900',
+      color: colors.onPrimary,
+      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+      paddingHorizontal: 12,
+      paddingVertical: 4,
+      borderRadius: 12,
+    },
+    
+    tRoute: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: 24,
+      backgroundColor: colors.primary,
+    },
+    
+    tLabel: {
+      fontSize: 9,
+      fontWeight: '900',
+      color: colors.primaryTint,
+      letterSpacing: 2,
+    },
+    
+    tStation: {
+      fontSize: 18,
+      fontWeight: '900',
+      color: colors.onPrimary,
+      marginTop: 4,
+    },
+    
+    tArrow: {
+      fontSize: 24,
+      color: colors.onPrimary,
+    },
+    
+    tRight: {
+      alignItems: 'flex-end',
+    },
+    
+    tBody: {
+      padding: 40,
+      alignItems: 'center',
+    },
+    
+    qr: {
+      width: 180,
+      height: 180,
+      backgroundColor: colors.ticketQr,
+      borderRadius: 24,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    
+    qrText: {
+      fontSize: 16,
+      fontWeight: '900',
+      color: colors.ticketQrText,
+    },
+    
+    scan: {
+      fontSize: 11,
+      fontWeight: '900',
+      color: colors.subTextLight,
+      letterSpacing: 3,
+      marginTop: 24,
+    },
+    
+    tMeta: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: colors.subText,
+      marginTop: 16,
+    },
+    
+    doneBtn: {
+      backgroundColor: colors.primary,
+      borderRadius: 28,
+      padding: 24,
+      alignItems: 'center',
+    },
+    
+    doneText: {
+      fontSize: 18,
+      fontWeight: '900',
+      color: colors.onPrimary,
+    },
+    
+    // Modal Styles
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: colors.overlay,
+      justifyContent: 'flex-end',
+    },
+    
+    modalContent: {
+      backgroundColor: colors.card,
+      borderTopLeftRadius: 32,
+      borderTopRightRadius: 32,
+      maxHeight: '80%',
+    },
+    
+    modalHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: 24,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.modalBorder,
+    },
+    
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: '900',
+      color: colors.text,
+    },
+    
+    modalClose: {
+      fontSize: 24,
+      color: colors.subText,
+      fontWeight: '700',
+    },
+    
+    // Station List
+    stationItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 20,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.modalBorder,
+    },
+    
+    lineDot: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      marginRight: 16,
+    },
+    
+    stName: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    
+    stLine: {
+      fontSize: 11,
+      color: colors.subText,
+      marginTop: 2,
+    },
+  });
 
 export default MetroView;
