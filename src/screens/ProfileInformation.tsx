@@ -32,7 +32,7 @@ import { launchImageLibrary } from 'react-native-image-picker';
 
 // import { getLightMode, setLightMode } from "../utils/theme";
 import { useTheme } from "../context/ThemeContext";
-import { RootStackParamList } from "../../App";
+// import { RootStackParamList } from "../../App";
 
 
 // const { lightMode, toggleTheme } = useTheme();
