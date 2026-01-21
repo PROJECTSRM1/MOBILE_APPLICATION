@@ -16,10 +16,7 @@ import {
 } from 'react-native';
 import Svg, { Path, Circle, Rect, Line } from 'react-native-svg';
 
-
-
-
-// SVG Icons
+// SVG Icon
 const SearchIcon = ({ size = 20, color = "#9da6b9" }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
@@ -153,6 +150,22 @@ const ProfileIcon = ({ size = 24, color = "#64748b", filled = false }) => (
     <Circle cx="12" cy="7" r="4" stroke={color} strokeWidth="2" fill={filled ? color : "none"} />
   </Svg>
 );
+const VerifyIcon = ({ size = 12, color = "#135bec" }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <Path d="M9 12l2 2 4-4" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </Svg>
+);
+
+const TaskIcon = ({ size = 14, color = "#64748b" }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" stroke={color} strokeWidth="2" strokeLinecap="round" />
+    <Rect x="8" y="2" width="8" height="4" rx="1" stroke={color} strokeWidth="2" />
+    <Path d="M9 14l2 2 4-4" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </Svg>
+);
+
+type WorkStatus = 'inactive' | 'waiting' | 'assigned';
 
 interface OrganisationDetails {
   orgName: string;
@@ -164,6 +177,10 @@ interface ServiceProvider {
   id: string;
   name: string;
   service: string;
+  role: string;               // Added
+  tasksCompleted: number;    // Added
+  certifications: string[];  // Added
+  workStatus: WorkStatus;    // Changed from isActive
   rating: number;
   reviews: number;
   skills: string[];
@@ -185,6 +202,10 @@ const serviceProviders: ServiceProvider[] = [
     id: '1',
     name: 'Ramesh Kumar',
     service: 'Plumber',
+    role: 'Senior Plumber',
+    tasksCompleted: 156,
+    certifications: ['Licensed Plumber', 'Safety Certified'],
+    workStatus: 'assigned',
     rating: 4.8,
     reviews: 156,
     skills: ['Pipe Fitting', 'Drainage'],
@@ -197,6 +218,10 @@ const serviceProviders: ServiceProvider[] = [
     id: '2',
     name: 'Lakshmi Devi',
     service: 'Cleaner',
+    role: 'Professional Cleaner',
+    tasksCompleted: 203,
+    certifications: ['Hygiene Certified', 'Deep Cleaning Expert'],
+    workStatus: 'inactive',
     rating: 5.0,
     reviews: 203,
     skills: ['Deep Cleaning', 'Sanitization'],
@@ -209,6 +234,10 @@ const serviceProviders: ServiceProvider[] = [
     id: '3',
     name: 'Suresh Reddy',
     service: 'Electrician',
+    role: 'Certified Electrician',
+    tasksCompleted: 98,
+    certifications: ['Electrical License', 'Industrial Wiring'],
+    workStatus: 'waiting',
     rating: 4.7,
     reviews: 98,
     skills: ['Wiring', 'Repair'],
@@ -226,6 +255,10 @@ const serviceProviders: ServiceProvider[] = [
     id: '4',
     name: 'Priya Sharma',
     service: 'Washer',
+    role: 'Laundry Specialist',
+    tasksCompleted: 142,
+    certifications: ['Dry Cleaning Certified'],
+    workStatus: 'inactive',
     rating: 4.9,
     reviews: 142,
     skills: ['Machine Wash', 'Dry Cleaning'],
@@ -238,6 +271,10 @@ const serviceProviders: ServiceProvider[] = [
     id: '5',
     name: 'Vijay Rao',
     service: 'Plumber',
+    role: 'Plumbing Technician',
+    tasksCompleted: 87,
+    certifications: ['Plumbing License'],
+    workStatus: 'waiting',
     rating: 4.6,
     reviews: 87,
     skills: ['Installation', 'Maintenance'],
@@ -250,6 +287,10 @@ const serviceProviders: ServiceProvider[] = [
     id: '6',
     name: 'Anita Patel',
     service: 'Cleaner',
+    role: 'Home Cleaning Expert',
+    tasksCompleted: 175,
+    certifications: ['Kitchen Hygiene Certified'],
+    workStatus: 'assigned',
     rating: 4.8,
     reviews: 175,
     skills: ['Home Cleaning', 'Kitchen'],
@@ -262,6 +303,10 @@ const serviceProviders: ServiceProvider[] = [
     id: '7',
     name: 'Karthik Menon',
     service: 'Electrician',
+    role: 'Smart Home Specialist',
+    tasksCompleted: 134,
+    certifications: ['Smart Home Certified', 'IoT Installation'],
+    workStatus: 'inactive',
     rating: 4.9,
     reviews: 134,
     skills: ['Smart Home', 'Installation'],
@@ -279,6 +324,10 @@ const serviceProviders: ServiceProvider[] = [
     id: '8',
     name: 'Deepa Singh',
     service: 'Washer',
+    role: 'Laundry Professional',
+    tasksCompleted: 98,
+    certifications: ['Fabric Care Expert'],
+    workStatus: 'assigned',
     rating: 4.7,
     reviews: 98,
     skills: ['Laundry', 'Ironing'],
@@ -296,6 +345,10 @@ const serviceProviders: ServiceProvider[] = [
     id: '9',
     name: 'Mohit Verma',
     service: 'Plumber',
+    role: 'Bathroom Specialist',
+    tasksCompleted: 76,
+    certifications: ['Plumbing License'],
+    workStatus: 'waiting',
     rating: 4.5,
     reviews: 76,
     skills: ['Leak Fixing', 'Bathroom Fitting'],
@@ -308,6 +361,10 @@ const serviceProviders: ServiceProvider[] = [
     id: '10',
     name: 'Sneha Iyer',
     service: 'Cleaner',
+    role: 'Commercial Cleaner',
+    tasksCompleted: 221,
+    certifications: ['Office Cleaning Certified', 'Floor Care Expert'],
+    workStatus: 'assigned',
     rating: 4.9,
     reviews: 221,
     skills: ['Office Cleaning', 'Floor Polishing'],
@@ -320,6 +377,10 @@ const serviceProviders: ServiceProvider[] = [
     id: '11',
     name: 'Arjun Singh',
     service: 'Electrician',
+    role: 'Appliance Repair Specialist',
+    tasksCompleted: 110,
+    certifications: ['Electrical License', 'Appliance Repair'],
+    workStatus: 'inactive',
     rating: 4.6,
     reviews: 110,
     skills: ['Appliance Repair', 'Fan Installation'],
@@ -332,6 +393,10 @@ const serviceProviders: ServiceProvider[] = [
     id: '12',
     name: 'Pooja Nair',
     service: 'Washer',
+    role: 'Fabric Care Specialist',
+    tasksCompleted: 164,
+    certifications: ['Steam Ironing Expert', 'Fabric Care'],
+    workStatus: 'assigned',
     rating: 4.8,
     reviews: 164,
     skills: ['Steam Ironing', 'Fabric Care'],
@@ -344,6 +409,10 @@ const serviceProviders: ServiceProvider[] = [
     id: '13',
     name: 'Rahul Das',
     service: 'Plumber',
+    role: 'Motor Technician',
+    tasksCompleted: 59,
+    certifications: ['Motor Repair Certified'],
+    workStatus: 'inactive',
     rating: 4.4,
     reviews: 59,
     skills: ['Motor Repair', 'Tank Cleaning'],
@@ -356,6 +425,10 @@ const serviceProviders: ServiceProvider[] = [
     id: '14',
     name: 'Neha Kapoor',
     service: 'Cleaner',
+    role: 'Premium Cleaning Specialist',
+    tasksCompleted: 287,
+    certifications: ['Villa Cleaning Expert', 'Move-out Specialist'],
+    workStatus: 'assigned',
     rating: 5.0,
     reviews: 287,
     skills: ['Villa Cleaning', 'Move-out Cleaning'],
@@ -373,6 +446,10 @@ const serviceProviders: ServiceProvider[] = [
     id: '15',
     name: 'Imran Khan',
     service: 'Electrician',
+    role: 'Security Systems Expert',
+    tasksCompleted: 143,
+    certifications: ['CCTV Installation', 'Inverter Specialist'],
+    workStatus: 'waiting',
     rating: 4.7,
     reviews: 143,
     skills: ['Inverter Setup', 'CCTV Install'],
@@ -385,6 +462,10 @@ const serviceProviders: ServiceProvider[] = [
     id: '16',
     name: 'Kavya Joshi',
     service: 'Washer',
+    role: 'Delicate Fabric Specialist',
+    tasksCompleted: 92,
+    certifications: ['Delicate Fabric Care'],
+    workStatus: 'inactive',
     rating: 4.6,
     reviews: 92,
     skills: ['Curtain Wash', 'Delicate Clothes'],
@@ -397,6 +478,10 @@ const serviceProviders: ServiceProvider[] = [
     id: '17',
     name: 'Sanjay Patel',
     service: 'Plumber',
+    role: 'Commercial Plumbing Expert',
+    tasksCompleted: 198,
+    certifications: ['Commercial Plumbing', 'Pipeline Design'],
+    workStatus: 'assigned',
     rating: 4.9,
     reviews: 198,
     skills: ['Pipeline Design', 'Commercial Plumbing'],
@@ -414,6 +499,10 @@ const serviceProviders: ServiceProvider[] = [
     id: '18',
     name: 'Aditi Roy',
     service: 'Cleaner',
+    role: 'Deep Cleaning Specialist',
+    tasksCompleted: 134,
+    certifications: ['Bathroom Cleaning Expert'],
+    workStatus: 'waiting',
     rating: 4.7,
     reviews: 134,
     skills: ['Bathroom Deep Clean', 'Balcony Cleaning'],
@@ -426,6 +515,10 @@ const serviceProviders: ServiceProvider[] = [
     id: '19',
     name: 'Naveen Kumar',
     service: 'Electrician',
+    role: 'Repair Technician',
+    tasksCompleted: 48,
+    certifications: ['Electrical License'],
+    workStatus: 'inactive',
     rating: 4.3,
     reviews: 48,
     skills: ['Switch Board Repair', 'Short Circuit Fix'],
@@ -438,6 +531,10 @@ const serviceProviders: ServiceProvider[] = [
     id: '20',
     name: 'Ritu Malhotra',
     service: 'Washer',
+    role: 'Premium Laundry Expert',
+    tasksCompleted: 312,
+    certifications: ['Premium Laundry', 'Dry Iron Specialist'],
+    workStatus: 'assigned',
     rating: 5.0,
     reviews: 312,
     skills: ['Premium Laundry', 'Dry Iron Finish'],
@@ -450,6 +547,10 @@ const serviceProviders: ServiceProvider[] = [
     id: '21',
     name: 'Balaji N',
     service: 'Plumber',
+    role: 'Installation Specialist',
+    tasksCompleted: 121,
+    certifications: ['Water Heater Installation'],
+    workStatus: 'waiting',
     rating: 4.6,
     reviews: 121,
     skills: ['Sink Repair', 'Water Heater Install'],
@@ -462,6 +563,10 @@ const serviceProviders: ServiceProvider[] = [
     id: '22',
     name: 'Fatima Shaikh',
     service: 'Cleaner',
+    role: 'Kitchen Cleaning Expert',
+    tasksCompleted: 177,
+    certifications: ['Kitchen Deep Clean', 'Hygiene Certified'],
+    workStatus: 'assigned',
     rating: 4.8,
     reviews: 177,
     skills: ['Kitchen Deep Clean', 'Dust Removal'],
@@ -479,6 +584,10 @@ const serviceProviders: ServiceProvider[] = [
     id: '23',
     name: 'Rohit Shetty',
     service: 'Electrician',
+    role: 'Home Automation Specialist',
+    tasksCompleted: 204,
+    certifications: ['Home Automation', 'Panel Upgrade Expert'],
+    workStatus: 'assigned',
     rating: 4.9,
     reviews: 204,
     skills: ['Home Automation', 'Panel Upgrade'],
@@ -491,6 +600,10 @@ const serviceProviders: ServiceProvider[] = [
     id: '24',
     name: 'Priya Mani',
     service: 'Chef',
+    role: 'South Indian Chef',
+    tasksCompleted: 88,
+    certifications: ['Culinary Arts', 'Andhra Cuisine Expert'],
+    workStatus: 'waiting',
     cuisineStyle: 'South',
     rating: 4.9,
     reviews: 88,
@@ -504,6 +617,10 @@ const serviceProviders: ServiceProvider[] = [
     id: '25',
     name: 'Sajid Khan',
     service: 'Chef',
+    role: 'North Indian Chef',
+    tasksCompleted: 112,
+    certifications: ['Culinary Arts', 'Tandoori Specialist'],
+    workStatus: 'assigned',
     cuisineStyle: 'North',
     rating: 4.8,
     reviews: 112,
@@ -517,6 +634,10 @@ const serviceProviders: ServiceProvider[] = [
     id: '26',
     name: 'Karthik Raja',
     service: 'Chef',
+    role: 'Chettinad Specialist',
+    tasksCompleted: 45,
+    certifications: ['Culinary Arts', 'South Indian Cuisine'],
+    workStatus: 'waiting',
     cuisineStyle: 'South',
     rating: 4.7,
     reviews: 45,
@@ -538,6 +659,15 @@ const navigation = useNavigation();
   const [activeTab, setActiveTab] = useState('services');
   const [showOnlyActive, setShowOnlyActive] = useState(false);
    const [chefStyle, setChefStyle] = useState<'North' | 'South'>('South');
+
+ const getStatusUI = (status: WorkStatus) => {
+    switch (status) {
+      case 'inactive': return { label: 'Inactive (Not Logged In)', color: '#64748b', bg: '#f1f5f9' };
+      case 'waiting': return { label: 'Waiting for work', color: '#22c55e', bg: '#f0fdf4' };
+      case 'assigned': return { label: 'Work Assigned (In-Progress)', color: '#f59e0b', bg: '#fffbeb' };
+      default: return { label: 'Unknown', color: '#000', bg: '#fff' };
+    }
+  };
 
 
 const filteredProviders = serviceProviders.filter(provider => {
@@ -571,20 +701,14 @@ const filteredProviders = serviceProviders.filter(provider => {
 
   return (
     <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
+      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} backgroundColor={backgroundStyle.backgroundColor} />
       
       {/* Header */}
       <View style={[styles.header, isDarkMode && styles.headerDark]}>
-     <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <BackIcon size={24} color={isDarkMode ? '#fff' : '#000'} />
-            </TouchableOpacity>
-
-        <Text style={[styles.headerTitle, isDarkMode && styles.textWhite]}>
-          Freelancers
-        </Text>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <BackIcon size={24} color={isDarkMode ? '#fff' : '#000'} />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, isDarkMode && styles.textWhite]}>Freelancers</Text>
         <TouchableOpacity style={styles.menuButton}>
           <MenuIcon size={24} color={isDarkMode ? '#fff' : '#000'} />
         </TouchableOpacity>
@@ -604,63 +728,39 @@ const filteredProviders = serviceProviders.filter(provider => {
             />
           </View>
           <TouchableOpacity
-              style={[
-                styles.filterButton,
-                showOnlyActive && { backgroundColor: '#22c55e' } // green when active
-              ]}
+              style={[styles.filterButton, showOnlyActive && { backgroundColor: '#22c55e' }]}
               onPress={() => setShowOnlyActive(prev => !prev)}
             >
               <FilterIcon size={20} color="#fff" />
-            </TouchableOpacity>
+          </TouchableOpacity>
         </View>
       </View>
 
       {/* Categories */}
-     <View>
-  <ScrollView
-    horizontal
-    showsHorizontalScrollIndicator={false}
-    style={styles.categoriesContainer}
-    contentContainerStyle={styles.categoriesContent}
-  >
-    {categories.map((category) => (
-      <TouchableOpacity
-        key={category}
-        style={[
-          styles.categoryChip,
-          selectedCategory === category && styles.categoryChipActive,
-          isDarkMode && selectedCategory !== category && styles.categoryChipDark,
-        ]}
-        onPress={() => setSelectedCategory(category)}
-      >
-        <Text
-          style={[
-            styles.categoryText,
-            selectedCategory === category && styles.categoryTextActive,
-            isDarkMode && selectedCategory !== category && styles.categoryTextDark,
-          ]}
-        >
-          {category}
-        </Text>
-      </TouchableOpacity>
-    ))}
-  </ScrollView>
-</View>
+      <View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesContainer} contentContainerStyle={styles.categoriesContent}>
+          {categories.map((category) => (
+            <TouchableOpacity
+              key={category}
+              style={[styles.categoryChip, selectedCategory === category && styles.categoryChipActive, isDarkMode && selectedCategory !== category && styles.categoryChipDark]}
+              onPress={() => setSelectedCategory(category)}
+            >
+              <Text style={[styles.categoryText, selectedCategory === category && styles.categoryTextActive, isDarkMode && selectedCategory !== category && styles.categoryTextDark]}>
+                {category}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
 
-{/* NEW: Chef Style Toggle - Only shows when Chef category is selected */}
-    {selectedCategory === 'Chef' && (
+      {/* Chef Style Toggle */}
+      {selectedCategory === 'Chef' && (
         <View style={styles.chefToggleContainer}>
           <View style={[styles.toggleWrapper, isDarkMode && styles.toggleWrapperDark]}>
-            <TouchableOpacity 
-              style={[styles.toggleBtn, chefStyle === 'South' && styles.toggleBtnActive]}
-              onPress={() => setChefStyle('South')}
-            >
+            <TouchableOpacity style={[styles.toggleBtn, chefStyle === 'South' && styles.toggleBtnActive]} onPress={() => setChefStyle('South')}>
               <Text style={[styles.toggleBtnText, chefStyle === 'South' && styles.toggleBtnTextActive]}>South Style</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.toggleBtn, chefStyle === 'North' && styles.toggleBtnActive]}
-              onPress={() => setChefStyle('North')}
-            >
+            <TouchableOpacity style={[styles.toggleBtn, chefStyle === 'North' && styles.toggleBtnActive]} onPress={() => setChefStyle('North')}>
               <Text style={[styles.toggleBtnText, chefStyle === 'North' && styles.toggleBtnTextActive]}>North Style</Text>
             </TouchableOpacity>
           </View>
@@ -668,194 +768,130 @@ const filteredProviders = serviceProviders.filter(provider => {
       )}
 
       {/* Service Providers List */}
-      <ScrollView
-        style={styles.listContainer}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView style={styles.listContainer} contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
         {filteredProviders.length > 0 ? (
-          filteredProviders.map((provider) => (
-            <View
-              key={provider.id}
-              style={[styles.card, isDarkMode && styles.cardDark]}
-            >
-              <Image
-                source={{ uri: provider.image }}
-                style={styles.cardImage}
-              />
-              <View style={styles.cardContent}>
-                <View style={styles.cardHeader}>
-                  <View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Text style={[styles.providerName, isDarkMode && styles.textWhite]}>
-                        {provider.name}
-                      </Text>
+          filteredProviders.map((provider) => {
+            const statusUI = getStatusUI(provider.workStatus);
+            
+            return (
+              <View key={provider.id} style={[styles.card, isDarkMode && styles.cardDark]}>
+                <Image source={{ uri: provider.image }} style={styles.cardImage} />
+                
+                <View style={styles.cardContent}>
+                  {/* --- STATUS BADGE --- */}
+                  <View style={[styles.statusBadge, { backgroundColor: statusUI.bg }]}>
+                    <View style={[styles.statusDot, { backgroundColor: statusUI.color }]} />
+                    <Text style={[styles.statusLabel, { color: statusUI.color }]}>{statusUI.label}</Text>
+                  </View>
 
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-  <View
-    style={{
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-      backgroundColor: provider.isActive ? '#22c55e' : '#ef4444',
-    }}
-  />
-  <Text
-    style={{
-      fontSize: 12,
-      color: provider.isActive ? '#22c55e' : '#ef4444',
-      fontWeight: '600',
-    }}
-  >
-    {provider.isActive ? 'Active' : 'Inactive'}
-  </Text>
-</View>
-
+                  {/* Header Row */}
+                  <View style={styles.cardHeader}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.providerName, isDarkMode && styles.textWhite]}>{provider.name}</Text>
+                      {/* --- ROLE --- */}
+                      <Text style={styles.providerRole}>{provider.role}</Text>
                     </View>
+                    <View style={[styles.ratingBadge, isDarkMode && styles.ratingBadgeDark]}>
+                      <StarIcon size={14} color="#facc15" />
+                      <Text style={[styles.ratingText, isDarkMode && styles.ratingTextDark]}>{provider.rating}</Text>
+                      <Text style={styles.reviewCount}>({provider.reviews})</Text>
+                    </View>
+                  </View>
 
-                    <Text style={styles.providerService}>
-                      {provider.service}
-                    </Text>
+                  {/* --- TASKS COMPLETED --- */}
+                  <View style={styles.tasksRow}>
+                    <TaskIcon size={14} color="#64748b" />
+                    <Text style={styles.tasksText}>{provider.tasksCompleted} Tasks Completed</Text>
                   </View>
-                  <View style={[styles.ratingBadge, isDarkMode && styles.ratingBadgeDark]}>
-                    <StarIcon size={14} color="#facc15" />
-                    <Text style={[styles.ratingText, isDarkMode && styles.ratingTextDark]}>
-                      {provider.rating}
-                    </Text>
-                    <Text style={styles.reviewCount}>({provider.reviews})</Text>
-                  </View>
-                </View>
+
+                  {/* --- CERTIFICATIONS --- */}
+                  {provider.certifications && provider.certifications.length > 0 && (
+                    <View style={styles.certContainer}>
+                      {provider.certifications.map((cert, idx) => (
+                        <View key={idx} style={styles.certChip}>
+                          <VerifyIcon size={12} color="#135bec" />
+                          <Text style={styles.certText}>{cert}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+
+                  {/* Organisation Info */}
+                     {/* --- UPDATED ORGANISATION SECTION --- */}
                 {provider.organisation && (
-  <View style={{ marginTop: 6 }}>
-    {/* Organisation Name */}
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-      <BuildingIcon size={14} color="#64748b" />
-      <Text style={{ fontSize: 12, color: '#64748b', fontWeight: '500' }}>
-        {provider.organisation.orgName}
-      </Text>
-    </View>
-
-    {/* GSTIN and Group Info */}
-    <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 20, marginTop: 2, gap: 8 }}>
-      <Text style={{ fontSize: 10, color: '#94a3b8' }}>
-        GSTIN: {provider.organisation.gstin}
-      </Text>
-      
-      {/* Vertical Separator */}
-      <View style={{ width: 1, height: 10, backgroundColor: '#cbd5e1' }} />
-      
-    <Text style={{ fontSize: 10, color: '#94a3b8' }}>
-  Group: {provider.organisation.group.toString()}
-</Text>
-    </View>
-  </View>
-)}
-                <View style={styles.skillsContainer}>
-                  {provider.skills.map((skill, index) => (
-                    <View key={index} style={styles.skillBadge}>
-                      <Text style={styles.skillText}>{skill}</Text>
+                  <View style={styles.orgMainContainer}>
+                    {/* Row 1: Org Name */}
+                    <View style={styles.orgRow}>
+                      <BuildingIcon size={14} color="#64748b" />
+                      <Text style={styles.orgNameText}>{provider.organisation.orgName}</Text>
                     </View>
-                  ))}
-                </View>
-
-                <View style={[styles.divider, isDarkMode && styles.dividerDark]} />
-
-                <View style={styles.cardFooter}>
-                  <View>
-                    <Text style={styles.startingAtText}>STARTING AT</Text>
-                    <Text style={[styles.priceText, isDarkMode && styles.textWhite]}>
-                      ₹{provider.hourlyRate}
-                      <Text style={styles.priceUnit}>/hr</Text>
-                    </Text>
+                    
+                    {/* Row 2: GST & Group Beside it */}
+                    <View style={[styles.orgRow, { marginLeft: 20, marginTop: 2 }]}>
+                      <Text style={styles.orgSubText}>GST: {provider.organisation.gstin}</Text>
+                      <View style={styles.orgVerticalDivider} />
+                      <Text style={styles.orgSubText}>Group: {provider.organisation.group.toString()}</Text>
+                    </View>
                   </View>
-                  <TouchableOpacity style={styles.portfolioButton}>
-                    <Text style={styles.portfolioButtonText}>Book Now</Text>
-                  </TouchableOpacity>
+                )}
+
+                  {/* Skills */}
+                  <View style={styles.skillsContainer}>
+                    {provider.skills.map((skill, index) => (
+                      <View key={index} style={styles.skillBadge}>
+                        <Text style={styles.skillText}>{skill}</Text>
+                      </View>
+                    ))}
+                  </View>
+
+                  <View style={[styles.divider, isDarkMode && styles.dividerDark]} />
+
+                  {/* Footer */}
+                  <View style={styles.cardFooter}>
+                    <View>
+                      <Text style={styles.startingAtText}>STARTING AT</Text>
+                      <Text style={[styles.priceText, isDarkMode && styles.textWhite]}>₹{provider.hourlyRate}<Text style={styles.priceUnit}>/hr</Text></Text>
+                    </View>
+                    <TouchableOpacity 
+                      style={[
+                        styles.portfolioButton, 
+                        provider.workStatus !== 'waiting' && { backgroundColor: '#cbd5e1', shadowOpacity: 0, elevation: 0 }
+                      ]}
+                      disabled={provider.workStatus !== 'waiting'}
+                    >
+                      <Text style={styles.portfolioButtonText}>
+                        {provider.workStatus === 'waiting' ? 'Book Now' : 'Unavailable'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
-            </View>
-          ))
+            );
+          })
         ) : (
           <View style={styles.emptyState}>
-            <Text style={[styles.emptyText, isDarkMode && styles.textWhite]}>
-              No service providers found
-            </Text>
+            <Text style={[styles.emptyText, isDarkMode && styles.textWhite]}>No service providers found</Text>
           </View>
         )}
       </ScrollView>
 
       {/* Bottom Navigation */}
       <View style={[styles.bottomNav, isDarkMode && styles.bottomNavDark]}>
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => setActiveTab('home')}
-        >
-          <HomeIcon 
-            size={24} 
-            color={activeTab === 'home' ? '#135bec' : '#64748b'} 
-            filled={activeTab === 'home'}
-          />
-          <Text style={[
-            styles.navLabel,
-            activeTab === 'home' && styles.navLabelActive,
-            activeTab !== 'home' && styles.navLabelInactive,
-          ]}>
-            Home
-          </Text>
+        <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab('home')}>
+          <HomeIcon size={24} color={activeTab === 'home' ? '#135bec' : '#64748b'} filled={activeTab === 'home'} />
+          <Text style={[styles.navLabel, activeTab === 'home' && styles.navLabelActive]}>Home</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => setActiveTab('services')}
-        >
-          <GroupIcon 
-            size={24} 
-            color={activeTab === 'services' ? '#135bec' : '#64748b'} 
-            filled={activeTab === 'services'}
-          />
-          <Text style={[
-            styles.navLabel,
-            activeTab === 'services' && styles.navLabelActive,
-            activeTab !== 'services' && styles.navLabelInactive,
-          ]}>
-            Services
-          </Text>
+        <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab('services')}>
+          <GroupIcon size={24} color={activeTab === 'services' ? '#135bec' : '#64748b'} filled={activeTab === 'services'} />
+          <Text style={[styles.navLabel, activeTab === 'services' && styles.navLabelActive]}>Services</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => setActiveTab('messages')}
-        >
-          <MessageIcon 
-            size={24} 
-            color={activeTab === 'messages' ? '#135bec' : '#64748b'} 
-            filled={activeTab === 'messages'}
-          />
-          <Text style={[
-            styles.navLabel,
-            activeTab === 'messages' && styles.navLabelActive,
-            activeTab !== 'messages' && styles.navLabelInactive,
-          ]}>
-            Messages
-          </Text>
+        <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab('messages')}>
+          <MessageIcon size={24} color={activeTab === 'messages' ? '#135bec' : '#64748b'} filled={activeTab === 'messages'} />
+          <Text style={[styles.navLabel, activeTab === 'messages' && styles.navLabelActive]}>Messages</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => setActiveTab('profile')}
-        >
-          <ProfileIcon 
-            size={24} 
-            color={activeTab === 'profile' ? '#135bec' : '#64748b'} 
-            filled={activeTab === 'profile'}
-          />
-          <Text style={[
-            styles.navLabel,
-            activeTab === 'profile' && styles.navLabelActive,
-            activeTab !== 'profile' && styles.navLabelInactive,
-          ]}>
-            Profile
-          </Text>
+        <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab('profile')}>
+          <ProfileIcon size={24} color={activeTab === 'profile' ? '#135bec' : '#64748b'} filled={activeTab === 'profile'} />
+          <Text style={[styles.navLabel, activeTab === 'profile' && styles.navLabelActive]}>Profile</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -863,343 +899,81 @@ const filteredProviders = serviceProviders.filter(provider => {
 };
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#f6f6f8',
-  },
-  headerDark: {
-    backgroundColor: '#101622',
-  },
-  backButton: {
-    width: 48,
-    height: 48,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#000',
-    flex: 1,
-    textAlign: 'center',
-  },
-  menuButton: {
-    width: 48,
-    height: 48,
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-  },
-  textWhite: {
-    color: '#fff',
-  },
-  searchContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  searchWrapper: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  searchBar: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    height: 48,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  searchBarDark: {
-    backgroundColor: '#1c2433',
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: '#000',
-    marginLeft: 8,
-  },
-  filterButton: {
-    width: 48,
-    height: 48,
-    backgroundColor: '#135bec',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#135bec',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-categoriesContainer: {
-    // Reduced padding to make it more compact
-    paddingVertical: 8, 
-    flexGrow: 0, 
-  },
-  categoriesContent: {
-    paddingHorizontal: 16, // Move horizontal padding here for better scrolling
-    gap: 8, // Slightly tighter gap
-    alignItems: 'center',
-  },
-  categoryChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 6, // Reduced from 10 to 6
-    borderRadius: 20,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    // Subtle shadow for light mode
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  categoryChipActive: {
-    backgroundColor: '#135bec',
-    borderColor: '#135bec',
-    elevation: 3,
-  },
-  categoryChipDark: {
-    backgroundColor: '#1c2433',
-    borderColor: '#334155',
-  },
-  categoryText: {
-    fontSize: 13, // Slightly smaller font for a cleaner look
-    fontWeight: '500',
-    color: '#64748b',
-  },
-  categoryTextActive: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  categoryTextDark: {
-    color: '#9da6b9',
-  },
-  listContainer: {
-    flex: 1,
-  },
-  listContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 100,
-    gap: 16,
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    overflow: 'hidden',
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
-  },
-  cardDark: {
-    backgroundColor: '#1c2433',
-    borderColor: '#334155',
-  },
-  cardImage: {
-    width: '100%',
-    height: 200,
-    backgroundColor: '#e2e8f0',
-  },
-  cardContent: {
-    padding: 16,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  providerName: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#000',
-  },
-  providerService: {
-    fontSize: 14,
-    color: '#64748b',
-    marginTop: 2,
-  },
-  ratingBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(250, 204, 21, 0.1)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    gap: 2,
-  },
-  ratingBadgeDark: {
-    backgroundColor: 'rgba(250, 204, 21, 0.2)',
-  },
-  ratingText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#ca8a04',
-  },
-  ratingTextDark: {
-    color: '#facc15',
-  },
-  reviewCount: {
-    fontSize: 10,
-    color: '#94a3b8',
-  },
-  skillsContainer: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 12,
-  },
-  skillBadge: {
-    backgroundColor: 'rgba(19, 91, 236, 0.1)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  skillText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#135bec',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#e2e8f0',
-    marginVertical: 12,
-  },
-  dividerDark: {
-    backgroundColor: '#334155',
-  },
-  cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  startingAtText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#94a3b8',
-    letterSpacing: 0.5,
-  },
-  priceText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#000',
-  },
-  priceUnit: {
-    fontSize: 12,
-    fontWeight: '400',
-    color: '#64748b',
-  },
-  portfolioButton: {
-    backgroundColor: '#135bec',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-    minWidth: 120,
-    alignItems: 'center',
-    shadowColor: '#135bec',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  portfolioButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  bottomNav: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    paddingTop: 12,
-    paddingBottom: 32,
-    paddingHorizontal: 24,
-    borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
-  },
-  bottomNavDark: {
-    backgroundColor: 'rgba(16, 22, 34, 0.9)',
-    borderTopColor: '#334155',
-  },
-  navItem: {
-    alignItems: 'center',
-    gap: 4,
-  },
-  navLabel: {
-    fontSize: 10,
-    fontWeight: '500',
-    color: '#64748b',
-  },
-  navLabelActive: {
-    fontWeight: '700',
-    color: '#135bec',
-  },
-  navLabelInactive: {
-    opacity: 0.7,
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 60,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#64748b',
-    fontWeight: '500',
-  },
-  // NEW: Chef Toggle Styles
-  chefToggleContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
-  toggleWrapper: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 4,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-  },
-  toggleWrapperDark: {
-    backgroundColor: '#1c2433',
-    borderColor: '#334155',
-  },
-  toggleBtn: {
-    flex: 1,
-    paddingVertical: 8,
-    alignItems: 'center',
-    borderRadius: 8,
-  },
-  toggleBtnActive: {
-    backgroundColor: '#135bec',
-  },
-  toggleBtnText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#64748b',
-  },
-  toggleBtnTextActive: {
-    color: '#fff',}
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#f6f6f8' },
+  headerDark: { backgroundColor: '#101622' },
+  backButton: { width: 48, height: 48, justifyContent: 'center' },
+  headerTitle: { fontSize: 18, fontWeight: '700', color: '#000', flex: 1, textAlign: 'center' },
+  menuButton: { width: 48, height: 48, justifyContent: 'center', alignItems: 'flex-end' },
+  textWhite: { color: '#fff' },
+  searchContainer: { paddingHorizontal: 16, paddingVertical: 8 },
+  searchWrapper: { flexDirection: 'row', gap: 12 },
+  searchBar: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, paddingHorizontal: 16, height: 48, elevation: 2 },
+  searchBarDark: { backgroundColor: '#1c2433' },
+  searchInput: { flex: 1, fontSize: 16, color: '#000', marginLeft: 8 },
+  filterButton: { width: 48, height: 48, backgroundColor: '#135bec', borderRadius: 12, justifyContent: 'center', alignItems: 'center', elevation: 4 },
+  categoriesContainer: { paddingVertical: 8, flexGrow: 0 },
+  categoriesContent: { paddingHorizontal: 16, gap: 8, alignItems: 'center' },
+  categoryChip: { paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20, backgroundColor: '#fff', borderWidth: 1, borderColor: '#e2e8f0' },
+  categoryChipActive: { backgroundColor: '#135bec', borderColor: '#135bec' },
+  categoryChipDark: { backgroundColor: '#1c2433', borderColor: '#334155' },
+  categoryText: { fontSize: 13, fontWeight: '500', color: '#64748b' },
+  categoryTextActive: { color: '#fff', fontWeight: '600' },
+  categoryTextDark: { color: '#9da6b9' },
+  listContainer: { flex: 1 },
+  listContent: { paddingHorizontal: 16, paddingBottom: 110, gap: 16 },
+  card: { backgroundColor: '#fff', borderRadius: 12, overflow: 'hidden', marginBottom: 16, elevation: 3, borderWidth: 1, borderColor: '#f1f5f9' },
+  cardDark: { backgroundColor: '#1c2433', borderColor: '#334155' },
+  cardImage: { width: '100%', height: 180, backgroundColor: '#e2e8f0' },
+  cardContent: { padding: 16 },
+
+  // --- NEW STYLES ---
+  statusBadge: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, marginBottom: 12, gap: 6 },
+  statusDot: { width: 6, height: 6, borderRadius: 3 },
+  statusLabel: { fontSize: 10, fontWeight: '800', textTransform: 'uppercase' },
+  providerRole: { fontSize: 13, color: '#135bec', fontWeight: '600', marginTop: 1 },
+  tasksRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 },
+  tasksText: { fontSize: 12, color: '#64748b', fontWeight: '500' },
+  certContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
+  certChip: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#eff6ff', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, borderWidth: 1, borderColor: '#dbeafe' },
+  certText: { fontSize: 10, fontWeight: '700', color: '#135bec' },
+  
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  providerName: { fontSize: 18, fontWeight: '700', color: '#000' },
+  ratingBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(250, 204, 21, 0.1)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, gap: 2 },
+  ratingBadgeDark: { backgroundColor: 'rgba(250, 204, 21, 0.2)' },
+  ratingText: { fontSize: 12, fontWeight: '700', color: '#ca8a04' },
+  ratingTextDark: { color: '#facc15' },
+  reviewCount: { fontSize: 10, color: '#94a3b8' },
+  skillsContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
+  skillBadge: { backgroundColor: 'rgba(19, 91, 236, 0.1)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 },
+  skillText: { fontSize: 10, fontWeight: '700', color: '#135bec', textTransform: 'uppercase' },
+  divider: { height: 1, backgroundColor: '#e2e8f0', marginVertical: 16 },
+  dividerDark: { backgroundColor: '#334155' },
+  cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  startingAtText: { fontSize: 10, fontWeight: '700', color: '#94a3b8' },
+  priceText: { fontSize: 16, fontWeight: '700', color: '#000' },
+  priceUnit: { fontSize: 12, fontWeight: '400', color: '#64748b' },
+  portfolioButton: { backgroundColor: '#135bec', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8, minWidth: 120, alignItems: 'center', elevation: 4 },
+  portfolioButtonText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  bottomNav: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-around', backgroundColor: 'rgba(255, 255, 255, 0.95)', paddingTop: 12, paddingBottom: 24, borderTopWidth: 1, borderTopColor: '#e2e8f0' },
+  bottomNavDark: { backgroundColor: 'rgba(16, 22, 34, 0.95)', borderTopColor: '#334155' },
+  navItem: { alignItems: 'center', gap: 4 },
+  navLabel: { fontSize: 10, fontWeight: '500', color: '#64748b' },
+  navLabelActive: { fontWeight: '700', color: '#135bec' },
+  emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 60 },
+  emptyText: { fontSize: 16, color: '#64748b', fontWeight: '500' },
+  chefToggleContainer: { paddingHorizontal: 16, paddingBottom: 12 },
+  toggleWrapper: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: 10, padding: 4, borderWidth: 1, borderColor: '#e2e8f0' },
+  toggleWrapperDark: { backgroundColor: '#1c2433', borderColor: '#334155' },
+  toggleBtn: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 8 },
+  toggleBtnActive: { backgroundColor: '#135bec' },
+  toggleBtnText: { fontSize: 14, fontWeight: '600', color: '#64748b' },
+  toggleBtnTextActive: { color: '#fff' },
+  orgMainContainer: { marginTop: 10 },
+  orgRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  orgNameText: { fontSize: 12, color: '#64748b', fontWeight: '600' },
+  orgSubText: { fontSize: 11, color: '#94a3b8' },
+  orgVerticalDivider: { width: 1, height: 10, backgroundColor: '#cbd5e1', marginHorizontal: 4 },
 });
 
 export default Freelancer;
