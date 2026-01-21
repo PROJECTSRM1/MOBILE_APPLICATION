@@ -19,11 +19,15 @@ import {
 } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRoute, useNavigation } from "@react-navigation/native";
+import { useTheme } from "../context/ThemeContext";
+import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
 /* =========================
    MAIN SCREEN
 ========================= */
 const CandidateProfile = () => {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
 
@@ -66,11 +70,11 @@ const CandidateProfile = () => {
         {/* HEADER */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <ChevronLeft size={22} color="#fff" />
+            <ChevronLeft size={22} color={colors.text} />
           </TouchableOpacity>
 
           <Text style={styles.headerTitle}>Candidate Profile</Text>
-          <Share2 size={20} color="#fff" />
+          <Share2 size={20} color={colors.text} />
         </View>
 
         {/* PROFILE SECTION */}
@@ -170,290 +174,400 @@ export default CandidateProfile;
    REUSABLE COMPONENTS
 ========================= */
 
-const Section = ({ title, children }: any) => (
-  <View style={styles.section}>
-    <Text style={styles.sectionTitle}>{title}</Text>
-    {children}
-  </View>
-);
+// const Section = ({ title, children, styles }: any) => (
+//   <View style={styles.section}>
+//     <Text style={styles.sectionTitle}>{title}</Text>
+//     {children}
+//   </View>
+// );
+const Section = ({ title, children }: any) => {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
 
-const IdentityCard = ({ title, value, icon }: any) => (
-  <View style={styles.identityCard}>
-    <View>
-      <Text style={styles.cardTitle}>{title}</Text>
-      <Text style={styles.cardSub}>{value}</Text>
-
-      {/* <TouchableOpacity style={styles.viewBtn}>
-        <Text style={styles.viewText}>View Document</Text>
-      </TouchableOpacity> */}
+  return (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      {children}
     </View>
+  );
+};
 
-    {icon}
-  </View>
-);
 
-const EducationCard = ({ degree, institute, score, year }: any) => (
-  <View style={styles.eduCard}>
-    <Text style={styles.eduTitle}>{degree}</Text>
-    <Text style={styles.eduSub}>{institute}</Text>
+// const IdentityCard = ({ title, value, icon, styles }: any) => (
+//   <View style={styles.identityCard}>
+//     <View>
+//       <Text style={styles.cardTitle}>{title}</Text>
+//       <Text style={styles.cardSub}>{value}</Text>
 
-    <View style={styles.eduRow}>
+//       {/* <TouchableOpacity style={styles.viewBtn}>
+//         <Text style={styles.viewText}>View Document</Text>
+//       </TouchableOpacity> */}
+//     </View>
+
+//     {icon}
+//   </View>
+// );
+
+const IdentityCard = ({ title, value, icon }: any) => {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
+
+  return (
+    <View style={styles.identityCard}>
       <View>
-        <Text style={styles.eduMeta}>Score</Text>
-        <Text style={styles.eduValue}>{score}</Text>
+        <Text style={styles.cardTitle}>{title}</Text>
+        <Text style={styles.cardSub}>{value}</Text>
       </View>
+      {icon}
+    </View>
+  );
+};
 
-      <View>
-        <Text style={styles.eduMeta}>Passing Year</Text>
-        <Text style={styles.eduValue}>{year}</Text>
+
+// const EducationCard = ({ degree, institute, score, year, styles }: any) => (
+//   <View style={styles.eduCard}>
+//     <Text style={styles.eduTitle}>{degree}</Text>
+//     <Text style={styles.eduSub}>{institute}</Text>
+
+//     <View style={styles.eduRow}>
+//       <View>
+//         <Text style={styles.eduMeta}>Score</Text>
+//         <Text style={styles.eduValue}>{score}</Text>
+//       </View>
+
+//       <View>
+//         <Text style={styles.eduMeta}>Passing Year</Text>
+//         <Text style={styles.eduValue}>{year}</Text>
+//       </View>
+//     </View>
+//   </View>
+// );
+
+const EducationCard = ({ degree, institute, score, year }: any) => {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
+
+  return (
+    <View style={styles.eduCard}>
+      <Text style={styles.eduTitle}>{degree}</Text>
+      <Text style={styles.eduSub}>{institute}</Text>
+
+      <View style={styles.eduRow}>
+        <View>
+          <Text style={styles.eduMeta}>Score</Text>
+          <Text style={styles.eduValue}>{score}</Text>
+        </View>
+
+        <View>
+          <Text style={styles.eduMeta}>Passing Year</Text>
+          <Text style={styles.eduValue}>{year}</Text>
+        </View>
       </View>
     </View>
-  </View>
-);
+  );
+};
 
-const FamilyCard = ({ label, name, phone }: any) => (
-  <View style={styles.familyCard}>
-    <Text style={styles.familyLabel}>{label}</Text>
-    <Text style={styles.familyName}>{name}</Text>
 
-    <View style={styles.phoneRow}>
-      <Phone size={14} color="#60a5fa" />
-      <Text style={styles.phoneText}>{phone}</Text>
+// const FamilyCard = ({ label, name, phone, styles }: any) => (
+//   <View style={styles.familyCard}>
+//     <Text style={styles.familyLabel}>{label}</Text>
+//     <Text style={styles.familyName}>{name}</Text>
+
+//     <View style={styles.phoneRow}>
+//       <Phone size={14} color="#60a5fa" />
+//       <Text style={styles.phoneText}>{phone}</Text>
+//     </View>
+//   </View>
+// );
+
+const FamilyCard = ({ label, name, phone }: any) => {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
+
+  return (
+    <View style={styles.familyCard}>
+      <Text style={styles.familyLabel}>{label}</Text>
+      <Text style={styles.familyName}>{name}</Text>
+
+      <View style={styles.phoneRow}>
+        <Phone size={14} color={colors.primary} />
+        <Text style={styles.phoneText}>{phone}</Text>
+      </View>
     </View>
-  </View>
-);
+  );
+};
+
 
 /* =========================
    STYLES
 ========================= */
 
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#0b1220" },
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: 16,
-    alignItems: "center",
-  },
-  headerTitle: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
-  },
+    /* ================= HEADER ================= */
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      padding: 16,
+      alignItems: "center",
+      backgroundColor: colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
 
-  profileSection: {
-    alignItems: "center",
-    marginVertical: 16,
-  },
-  avatarWrapper: {
-    position: "relative",
-    marginBottom: 10,
-  },
-  avatar: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    borderWidth: 3,
-    borderColor: "#2563eb",
-  },
-  onlineDot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: "#22c55e",
-    position: "absolute",
-    bottom: 4,
-    right: 4,
-  },
+    headerTitle: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: "700",
+    },
 
-  name: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "700",
-  },
+    /* ================= PROFILE ================= */
+    profileSection: {
+      alignItems: "center",
+      marginVertical: 16,
+    },
 
-  idRow: {
-    flexDirection: "row",
-    gap: 6,
-    marginTop: 4,
-    alignItems: "center",
-  },
-  candidateId: {
-    color: "#60a5fa",
-    fontWeight: "600",
-  },
+    avatarWrapper: {
+      position: "relative",
+      marginBottom: 10,
+    },
 
-  subText: {
-    color: "#9ca3af",
-    marginTop: 4,
-  },
+    avatar: {
+      width: 96,
+      height: 96,
+      borderRadius: 48,
+      borderWidth: 3,
+      borderColor: colors.primary,
+    },
 
-  section: {
-    paddingHorizontal: 16,
-    marginTop: 22,
-  },
-  sectionTitle: {
-    color: "#e5e7eb",
-    fontWeight: "700",
-    marginBottom: 12,
-  },
+    onlineDot: {
+      width: 14,
+      height: 14,
+      borderRadius: 7,
+      backgroundColor: "#22c55e",
+      position: "absolute",
+      bottom: 4,
+      right: 4,
+      borderWidth: 2,
+      borderColor: colors.background,
+    },
 
-  identityCard: {
-    backgroundColor: "#1b2538",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
+    name: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: "700",
+    },
 
-  cardTitle: {
-    color: "#fff",
-    fontWeight: "600",
-  },
-  cardSub: {
-    color: "#9ca3af",
-    marginTop: 4,
-  },
+    idRow: {
+      flexDirection: "row",
+      gap: 6,
+      marginTop: 4,
+      alignItems: "center",
+    },
 
-  viewBtn: {
-    backgroundColor: "#2563eb",
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 8,
-    marginTop: 10,
-    alignSelf: "flex-start",
-  },
-  viewText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "600",
-  },
+    candidateId: {
+      color: colors.primary,
+      fontWeight: "600",
+    },
 
-  nocCard: {
-    backgroundColor: "#1b2538",
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
+    subText: {
+      color: colors.subText,
+      marginTop: 4,
+    },
 
-  approvedPill: {
-    flexDirection: "row",
-    gap: 4,
-    backgroundColor: "#0f2f24",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  approvedText: {
-    color: "#22c55e",
-    fontSize: 12,
-    fontWeight: "700",
-  },
+    /* ================= SECTIONS ================= */
+    section: {
+      paddingHorizontal: 16,
+      marginTop: 22,
+    },
 
-  actionRow: {
-    flexDirection: "row",
-    gap: 12,
-    paddingHorizontal: 16,
-    marginTop: 20,
-  },
+    sectionTitle: {
+      color: colors.text,
+      fontWeight: "700",
+      marginBottom: 12,
+    },
 
-  secondaryBtn: {
-    flex: 1,
-    backgroundColor: "#1f2937",
-    borderRadius: 14,
-    padding: 14,
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 6,
-    alignItems: "center",
-  },
+    /* ================= CARDS ================= */
+    identityCard: {
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 12,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
 
-  primaryBtn: {
-    flex: 1,
-    backgroundColor: "#2563eb",
-    borderRadius: 14,
-    padding: 14,
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 6,
-    alignItems: "center",
-  },
+    cardTitle: {
+      color: colors.text,
+      fontWeight: "600",
+    },
 
-  secondaryText: {
-    color: "#fff",
-    fontWeight: "600",
-  },
-  primaryText: {
-    color: "#fff",
-    fontWeight: "700",
-  },
+    cardSub: {
+      color: colors.subText,
+      marginTop: 4,
+    },
 
-  eduCard: {
-    backgroundColor: "#1b2538",
-    borderRadius: 16,
-    padding: 16,
-    marginHorizontal: 16,
-    marginTop: 16,
-  },
+    viewBtn: {
+      backgroundColor: colors.primary,
+      paddingHorizontal: 14,
+      paddingVertical: 6,
+      borderRadius: 8,
+      marginTop: 10,
+      alignSelf: "flex-start",
+    },
 
-  eduTitle: {
-    color: "#fff",
-    fontWeight: "700",
-  },
-  eduSub: {
-    color: "#9ca3af",
-    marginTop: 4,
-  },
+    viewText: {
+      color: "#ffffff",
+      fontSize: 12,
+      fontWeight: "600",
+    },
 
-  eduRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 12,
-  },
+    nocCard: {
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      padding: 16,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
 
-  eduMeta: {
-    color: "#6b7280",
-    fontSize: 12,
-  },
-  eduValue: {
-    color: "#60a5fa",
-    fontWeight: "700",
-    marginTop: 2,
-  },
+    approvedPill: {
+      flexDirection: "row",
+      gap: 4,
+      backgroundColor: "#22c55e20",
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 10,
+      alignItems: "center",
+    },
 
-  familyCard: {
-    backgroundColor: "#1b2538",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-  },
+    approvedText: {
+      color: "#22c55e",
+      fontSize: 12,
+      fontWeight: "700",
+    },
 
-  familyLabel: {
-    color: "#60a5fa",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  familyName: {
-    color: "#fff",
-    fontWeight: "700",
-    marginTop: 4,
-  },
+    /* ================= ACTION BUTTONS ================= */
+    actionRow: {
+      flexDirection: "row",
+      gap: 12,
+      paddingHorizontal: 16,
+      marginTop: 20,
+    },
 
-  phoneRow: {
-    flexDirection: "row",
-    gap: 6,
-    marginTop: 6,
-    alignItems: "center",
-  },
-  phoneText: {
-    color: "#60a5fa",
-    fontWeight: "600",
-  },
-});
+    secondaryBtn: {
+      flex: 1,
+      backgroundColor: colors.surface,
+      borderRadius: 14,
+      padding: 14,
+      flexDirection: "row",
+      justifyContent: "center",
+      gap: 6,
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
 
+    primaryBtn: {
+      flex: 1,
+      backgroundColor: colors.primary,
+      borderRadius: 14,
+      padding: 14,
+      flexDirection: "row",
+      justifyContent: "center",
+      gap: 6,
+      alignItems: "center",
+    },
+
+    secondaryText: {
+      color: colors.text,
+      fontWeight: "600",
+    },
+
+    primaryText: {
+      color: "#ffffff",
+      fontWeight: "700",
+    },
+
+    /* ================= EDUCATION ================= */
+    eduCard: {
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      padding: 16,
+      marginHorizontal: 16,
+      marginTop: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    eduTitle: {
+      color: colors.text,
+      fontWeight: "700",
+    },
+
+    eduSub: {
+      color: colors.subText,
+      marginTop: 4,
+    },
+
+    eduRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginTop: 12,
+    },
+
+    eduMeta: {
+      color: colors.subText,
+      fontSize: 12,
+    },
+
+    eduValue: {
+      color: colors.primary,
+      fontWeight: "700",
+      marginTop: 2,
+    },
+
+    /* ================= FAMILY ================= */
+    familyCard: {
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    familyLabel: {
+      color: colors.primary,
+      fontSize: 12,
+      fontWeight: "600",
+    },
+
+    familyName: {
+      color: colors.text,
+      fontWeight: "700",
+      marginTop: 4,
+    },
+
+    phoneRow: {
+      flexDirection: "row",
+      gap: 6,
+      marginTop: 6,
+      alignItems: "center",
+    },
+
+    phoneText: {
+      color: colors.primary,
+      fontWeight: "600",
+    },
+  });

@@ -440,7 +440,7 @@ const trendingServices = [
 
           switch (item.name) {
             case "Housing / Cleaning":
-              navigation.navigate("CleaningCategory");
+              navigation.navigate("CleaningCategory"); 
               break;
 
             case "Education":

@@ -81,62 +81,69 @@ const styles = getStyles(colors) as any;
   }, [navigation]);
 
   const loadListings = async () => {
-    try {
-      const storedListings = await AsyncStorage.getItem('marketplace_listings');
-      if (storedListings) {
-        const parsedListings = JSON.parse(storedListings);
+  try {
+    const storedListings = await AsyncStorage.getItem('marketplace_listings');
+    if (storedListings) {
+      const parsedListings = JSON.parse(storedListings);
+      
+      // FILTER: Only show items where isVerified is true
+      // This automatically hides Non-Registered land that is still 'pending'
+      const verifiedListings = parsedListings.filter((listing: any) => listing.isVerified === true);
+      
+      const formattedListings = verifiedListings.map((listing: any) => {
+        const isNew = listing.createdAt && 
+          (new Date().getTime() - new Date(listing.createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000;
         
-        const formattedListings = parsedListings.map((listing: any) => {
-          const isNew = listing.createdAt && 
-            (new Date().getTime() - new Date(listing.createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000;
-          
-          let title = '';
-          if (listing.propertyType === 'Apartment' || listing.propertyType === 'Villa' || listing.propertyType === 'Independent House') {
-            title = `${listing.bhk || ''} ${listing.propertyType} in ${listing.area || 'Unknown'}`;
-          } else if (listing.propertyType === 'Land') {
-            title = `${listing.landType || ''} Land in ${listing.area || 'Unknown'}`;
-          } else if (['Bike', 'Car', 'Lorry', 'Auto', 'Bus'].includes(listing.propertyType)) {
-            title = `${listing.brand || ''} ${listing.model || ''} ${listing.year || ''}`.trim();
-          } else {
-            title = `${listing.propertyType} in ${listing.area || 'Unknown'}`;
-          }
+        // Logic for Dynamic Title Generation
+        let title = '';
+        if (listing.propertyType === 'Apartment' || listing.propertyType === 'Villa' || listing.propertyType === 'Independent House') {
+          title = `${listing.bhk || ''} ${listing.propertyType} in ${listing.area || 'Unknown'}`;
+        } else if (listing.propertyType === 'Land') {
+          title = `${listing.landType || ''} Land in ${listing.area || 'Unknown'}`;
+        } else if (['Bike', 'Car', 'Lorry', 'Auto', 'Bus'].includes(listing.propertyType)) {
+          title = `${listing.brand || ''} ${listing.model || ''} ${listing.year || ''}`.trim();
+        } else {
+          title = `${listing.propertyType} in ${listing.area || 'Unknown'}`;
+        }
 
-          return {
-            id: listing.id,
-            title: title || listing.propertyType,
-            price: `₹${parseFloat(listing.price).toLocaleString('en-IN')}`,
-            image: listing.images?.[0] || 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=500',
-            images: listing.images,
-            rating: 4.5 + Math.random() * 0.5,
-            distance: `${(Math.random() * 5).toFixed(1)} km away`,
-            type: listing.propertyType,
-            propertyType: listing.propertyType,
-            listingType: listing.type,
-            isNew,
-            isFavorite: false,
-            description: listing.description,
-            sqft: listing.sqft,
-            bhk: listing.bhk,
-            location: listing.location,
-            area: listing.area,
-            furnishingType: listing.furnishingType,
-            landType: listing.landType,
-            ownerName: listing.ownerName,
-            brand: listing.brand,
-            model: listing.model,
-            year: listing.year,
-            mobileNumber: listing.mobileNumber,
-            createdAt: listing.createdAt,
-            itemCondition: listing.itemCondition,
-          };
-        });
+        return {
+          id: listing.id,
+          title: title || listing.propertyType,
+          price: `₹${parseFloat(listing.price).toLocaleString('en-IN')}`,
+          image: listing.images?.[0] || 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=500',
+          images: listing.images,
+          rating: 4.5 + Math.random() * 0.5,
+          distance: `${(Math.random() * 5).toFixed(1)} km away`,
+          type: listing.propertyType,
+          propertyType: listing.propertyType,
+          listingType: listing.type,
+          isNew,
+          isFavorite: false,
+          description: listing.description,
+          sqft: listing.sqft,
+          bhk: listing.bhk,
+          location: listing.location,
+          area: listing.area,
+          furnishingType: listing.furnishingType,
+          landType: listing.landType,
+          ownerName: listing.ownerName,
+          brand: listing.brand,
+          model: listing.model,
+          year: listing.year,
+          mobileNumber: listing.mobileNumber,
+          createdAt: listing.createdAt,
+          itemCondition: listing.itemCondition,
+          registrationStatus: listing.registrationStatus, // Passed to BuyerPage
+          marketValue: listing.marketValue,             // Passed to BuyerPage
+        };
+      });
 
-        setProperties(formattedListings);
-      }
-    } catch (error) {
-      console.error('Error loading listings:', error);
+      setProperties(formattedListings);
     }
-  };
+  } catch (error) {
+    console.error('Error loading listings:', error);
+  }
+};
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -304,7 +311,7 @@ const styles = getStyles(colors) as any;
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>{title}</Text>
             <TouchableOpacity onPress={onClose}>
-              <MaterialIcons name="close" size={24} color="#fff" />
+              <MaterialIcons name="close" size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
           <ScrollView style={styles.optionsList}>
@@ -345,7 +352,7 @@ const styles = getStyles(colors) as any;
             <Text style={styles.listingTypeText}>
               {activeTab === 'buy' ? 'Buy' : 'Rent'}
             </Text>
-            <MaterialIcons name="expand-more" size={16} color="#fff" />
+            <MaterialIcons name="expand-more" size={16} color={colors.text} />
           </TouchableOpacity>
         </View>
 
@@ -367,7 +374,7 @@ const styles = getStyles(colors) as any;
             <Text style={styles.filterText}>
               {selectedPropertyType === 'All' ? 'Property Type' : selectedPropertyType}
             </Text>
-            <MaterialIcons name="expand-more" size={14} color="#fff" />
+            <MaterialIcons name="expand-more" size={14} color={colors.text} />
           </TouchableOpacity>
           <TouchableOpacity 
             style={styles.filterPill}
@@ -376,7 +383,7 @@ const styles = getStyles(colors) as any;
             <Text style={styles.filterText}>
               {selectedDateFilter === 'All Time' ? 'Updated Date' : selectedDateFilter}
             </Text>
-            <MaterialIcons name="expand-more" size={14} color="#fff" />
+            <MaterialIcons name="expand-more" size={14} color={colors.text} />
           </TouchableOpacity>
           <TouchableOpacity 
             style={styles.filterPill}
@@ -385,7 +392,7 @@ const styles = getStyles(colors) as any;
             <Text style={styles.filterText}>
               {selectedRatingFilter === 'All Ratings' ? 'Ratings' : selectedRatingFilter}
             </Text>
-            <MaterialIcons name="expand-more" size={14} color="#fff" />
+            <MaterialIcons name="expand-more" size={14} color={colors.text} />
           </TouchableOpacity>
         </ScrollView>
       </View>
@@ -727,12 +734,13 @@ const getStyles = (colors: any) =>
     searchContainer: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: colors.card,
+      backgroundColor: colors.surface,
       marginHorizontal: 16,
       marginTop: 16,
       marginBottom: 24,
       borderRadius: 12,
       paddingHorizontal: 12,
+      borderColor: colors.border,
     },
 
     searchIcon: { marginRight: 8 },
@@ -963,4 +971,131 @@ const getStyles = (colors: any) =>
       color: colors.primary,
       fontWeight: "600",
     },
+    grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 8,
+    paddingBottom: 100,
+  },
+  card: {
+    width: (width - 48) / 2,
+    margin: 8,
+  },
+  cardImage: {
+    width: '100%',
+    aspectRatio: 4 / 5,
+    borderRadius: 16,
+    overflow: 'hidden',
+    position: 'relative',
+    marginBottom: 8,
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+  },
+  favoriteButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    padding: 6,
+    borderRadius: 20,
+  },
+  newBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    backgroundColor: '#10b981',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  newBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#fff',
+    letterSpacing: 1,
+  },
+  ratingBadge: {
+    position: 'absolute',
+    bottom: 8,
+    left: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    gap: 4,
+  },
+  ratingText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  cardContent: {
+    paddingHorizontal: 4,
+  },
+  cardTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#fff',
+    marginBottom: 4,
+  },
+  cardPrice: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#135bec',
+    marginBottom: 4,
+  },
+  cardDetails: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 4,
+  },
+  detailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  detailText: {
+    fontSize: 10,
+    fontWeight: '500',
+    color: '#64748b',
+  },
+  distanceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  distanceText: {
+    fontSize: 10,
+    fontWeight: '500',
+    color: '#64748b',
+  },
+  locationRow: {
+flexDirection: 'row',
+alignItems: 'center',
+gap: 4,
+marginBottom: 3,
+},
+locationDetailText: {
+fontSize: 10,
+fontWeight: '500',
+color: '#64748b',
+flex: 1,
+},
+
+areaRow: {
+flexDirection: 'row',
+alignItems: 'center',
+gap: 4,
+marginBottom: 6,
+},
+areaDetailText: {
+fontSize: 10,
+fontWeight: '500',
+color: '#64748b',
+flex: 1,
+},
   });

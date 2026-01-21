@@ -6,13 +6,15 @@ import {
   TouchableOpacity,
   TextInput,
   StyleSheet,
-  SafeAreaView,
+
   StatusBar,
   Dimensions,
   Alert,
 } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 
 const { width } = Dimensions.get('window');
 
