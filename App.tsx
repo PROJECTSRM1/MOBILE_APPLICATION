@@ -57,6 +57,7 @@ import ParcelView from "./src/screens/ParcelView";
 import MetroView from "./src/screens/MetroView";
 import ScootyView from "./src/screens/ScootyView";
 import EnrollmentDetailsScreen from "./src/screens/EnrollmentDetailsScreen";
+import AmbulanceBookingScreen from "./src/screens/Ambulance";
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -119,6 +120,7 @@ export type RootStackParamList = {
   Telecom:undefined;
   Facility:undefined;
   Wishlist: undefined;
+  Ambulance:undefined;
 
 };
 
@@ -184,6 +186,7 @@ function AppNavigator() {
          <Stack.Screen name="MetroView" component={MetroView} />
          <Stack.Screen name="ScootyView" component={ScootyView} />
         <Stack.Screen name="enrollmentDetails" component={EnrollmentDetailsScreen} />
+        <Stack.Screen name="Ambulance" component={AmbulanceBookingScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
