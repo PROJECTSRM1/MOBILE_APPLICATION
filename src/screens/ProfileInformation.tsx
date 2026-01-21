@@ -216,17 +216,24 @@ const ProfileInformation: React.FC = () => {
     marketplace: true,
     swachify: true,
   });
+  const [wishlistItems, setWishlistItems] = useState<any[]>([]);
+const [openWishlist, setOpenWishlist] = useState<boolean>(false);
+
+
+
+
 
 
 
 
   /* ================= LOAD USER DATA ================= */
-  useEffect(() => {
-    loadUserFromStorage();
-    loadMarketplaceListings();
-    loadSwachifyProducts();
-    loadServicePreferences();
-  }, []);
+ useEffect(() => {
+  loadUserFromStorage();
+  loadMarketplaceListings();
+  loadSwachifyProducts();
+  loadServicePreferences();
+  loadWishlist();
+}, []);
 
   const loadUserFromStorage = async () => {
     try {
@@ -311,6 +318,18 @@ const ProfileInformation: React.FC = () => {
       console.error('Error loading service preferences:', error);
     }
   };
+
+  const loadWishlist = async () => {
+  try {
+    const storedWishlist = await AsyncStorage.getItem("wishlist_items");
+    if (storedWishlist) {
+      setWishlistItems(JSON.parse(storedWishlist));
+    }
+  } catch (error) {
+    console.log("Error loading wishlist:", error);
+  }
+};
+
 
   /* ================= SAVE USER DATA ================= */
   const saveUserData = async () => {
@@ -842,6 +861,27 @@ const ProfileInformation: React.FC = () => {
         <Text style={styles.sectionDesc}>
           Toggle the services you want to see on your home screen.
         </Text>
+
+       {/* WISHLIST HEADER */}
+    <TouchableOpacity
+  style={styles.serviceItem}
+  onPress={() => navigation.navigate("Wishlist")}
+>
+  <View style={styles.serviceLeft}>
+    <Icon name="favorite" size={24} color="#ef4444" />
+    <Text style={styles.serviceTitle}>
+      Wishlist ({wishlistItems.length})
+    </Text>
+  </View>
+
+  <Icon
+    name="chevron-right"
+    size={24}
+    color={colors.subText}
+  />
+</TouchableOpacity>
+
+
 
         <ServiceItem
           icon="home"
