@@ -16,6 +16,7 @@ import {
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { launchCamera, launchImageLibrary, ImagePickerResponse } from 'react-native-image-picker';
+import { useTheme } from "../context/ThemeContext";
 
 interface RegisterProductModalProps {
   visible: boolean;
@@ -28,6 +29,8 @@ export default function RegisterProductModal({
   onClose,
   onSubmit,
 }: RegisterProductModalProps) {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
   const [companyName, setCompanyName] = useState("");
   const [productName, setProductName] = useState("");
   const [description, setDescription] = useState("");
@@ -223,7 +226,7 @@ export default function RegisterProductModal({
         <SafeAreaView>
           <View style={styles.header}>
             <TouchableOpacity onPress={handleClose} style={styles.backButton}>
-              <MaterialIcons name="arrow-back-ios" size={20} color="#fff" />
+              <MaterialIcons name="arrow-back-ios" size={20} color={colors.text} />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Register Product</Text>
             {productsAdded > 0 && (
@@ -302,25 +305,28 @@ export default function RegisterProductModal({
             <View style={styles.formSection}>
               <Text style={styles.label}>Category</Text>
               <View style={styles.categoryRow}>
-                <CategoryButton
-                  label="Sustainable"
-                  value="sustainable"
-                  selected={category}
-                  onSelect={setCategory}
-                />
-                <CategoryButton
-                  label="Recycled"
-                  value="recycled"
-                  selected={category}
-                  onSelect={setCategory}
-                />
-                <CategoryButton
-                  label="Cleaners"
-                  value="cleaners"
-                  selected={category}
-                  onSelect={setCategory}
-                />
-              </View>
+                  <CategoryButton
+                    label="Sustainable"
+                    value="sustainable"
+                    selected={category}
+                    onSelect={setCategory}
+                    styles={styles}
+                  />
+                  <CategoryButton
+                    label="Recycled"
+                    value="recycled"
+                    selected={category}
+                    onSelect={setCategory}
+                    styles={styles}
+                  />
+                  <CategoryButton
+                    label="Cleaners"
+                    value="cleaners"
+                    selected={category}
+                    onSelect={setCategory}
+                    styles={styles}
+                  />
+                </View>
             </View>
 
             <View style={styles.formSection}>
@@ -448,7 +454,7 @@ export default function RegisterProductModal({
   );
 }
 
-const CategoryButton = ({ label, value, selected, onSelect }: any) => (
+const CategoryButton = ({ label, value, selected, onSelect, styles }: any) => (
   <TouchableOpacity
     style={[styles.categoryButton, selected === value && styles.categoryButtonActive]}
     onPress={() => onSelect(value)}
@@ -464,229 +470,331 @@ const CategoryButton = ({ label, value, selected, onSelect }: any) => (
   </TouchableOpacity>
 );
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#101622" },
-  header: {
-    height: 56,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#1c212e",
-  },
-  backButton: { width: 40, height: 40, justifyContent: "center", alignItems: "center" },
-  headerTitle: { color: "#fff", fontSize: 18, fontWeight: "700" },
-  counterBadge: {
-    backgroundColor: "#10b981",
-    borderRadius: 12,
-    minWidth: 24,
-    height: 24,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 8,
-  },
-  counterText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  scrollView: { flex: 1 },
-  content: { padding: 16 },
-  mainTitle: { color: "#fff", fontSize: 28, fontWeight: "700", marginTop: 8 },
-  subtitle: { color: "#9da6b9", fontSize: 14, marginTop: 8, lineHeight: 20 },
-  successBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    backgroundColor: "rgba(16, 185, 129, 0.1)",
-    borderWidth: 1,
-    borderColor: "#10b981",
-    borderRadius: 12,
-    padding: 12,
-    marginTop: 16,
-  },
-  successText: {
-    color: "#10b981",
-    fontSize: 14,
-    fontWeight: "600",
-    flex: 1,
-  },
-  formSection: { marginTop: 24 },
-  label: { color: "#fff", fontSize: 14, fontWeight: "600", marginBottom: 8, marginLeft: 4 },
-  input: {
-    height: 56,
-    backgroundColor: "rgba(28, 33, 46, 0.5)",
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#374151",
-    paddingHorizontal: 16,
-    color: "#fff",
-    fontSize: 15,
-  },
-  textArea: { height: 100, paddingTop: 16 },
-  hint: { color: "#6b7280", fontSize: 12, marginTop: 6, marginLeft: 4 },
-  categoryRow: { flexDirection: "row", gap: 10 },
-  categoryButton: {
-    flex: 1,
-    height: 44,
-    backgroundColor: "#1c212e",
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#374151",
-  },
-  categoryButtonActive: { backgroundColor: "#135bec", borderColor: "#135bec" },
-  categoryButtonText: { color: "#9da6b9", fontSize: 13, fontWeight: "600" },
-  categoryButtonTextActive: { color: "#fff" },
-  uploadBox: {
-    height: 176,
-    borderWidth: 2,
-    borderStyle: "dashed",
-    borderColor: "#374151",
-    borderRadius: 16,
-    backgroundColor: "rgba(28, 33, 46, 0.3)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  uploadIconContainer: {
-    backgroundColor: "rgba(19, 91, 236, 0.2)",
-    padding: 12,
-    borderRadius: 50,
-    marginBottom: 12,
-  },
-  uploadText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  uploadHint: {
-    color: "#9da6b9",
-    fontSize: 12,
-    marginTop: 4,
-  },
-  imagePreviewContainer: {
-    marginTop: 16,
-  },
-  imagePreviewWrapper: {
-    position: "relative",
-    marginRight: 12,
-  },
-  imagePreview: {
-    width: 100,
-    height: 100,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#374151",
-  },
-  removeImageButton: {
-    position: "absolute",
-    top: 4,
-    right: 4,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-    borderRadius: 12,
-    padding: 4,
-  },
-  addMoreButton: {
-    width: 100,
-    height: 100,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#374151",
-    backgroundColor: "rgba(28, 33, 46, 0.3)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  footer: {
-    padding: 16,
-    backgroundColor: "rgba(16, 22, 34, 0.95)",
-    borderTopWidth: 1,
-    borderTopColor: "#1c212e",
-  },
-  saveAndAddButton: {
-    height: 56,
-    backgroundColor: "rgba(19, 91, 236, 0.1)",
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#135bec",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    marginBottom: 12,
-  },
-  saveAndAddButtonText: {
-    color: "#135bec",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  submitButton: {
-    height: 56,
-    backgroundColor: "#135bec",
-    borderRadius: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    shadowColor: "#135bec",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  submitButtonText: { color: "#fff", fontSize: 16, fontWeight: "700" },
-  homeIndicator: {
-    width: 128,
-    height: 4,
-    backgroundColor: "#374151",
-    borderRadius: 2,
-    alignSelf: "center",
-    marginTop: 16,
-    marginBottom: 4,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
-    justifyContent: "flex-end",
-  },
-  imageOptionsContainer: {
-    backgroundColor: "#1c212e",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 20,
-    paddingBottom: 40,
-  },
-  imageOptionsTitle: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "700",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  imageOption: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-    padding: 16,
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-  imageOptionText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  cancelOption: {
-    backgroundColor: "transparent",
-    justifyContent: "center",
-    marginTop: 8,
-  },
-  cancelOptionText: {
-    color: "#ff4444",
-    fontSize: 16,
-    fontWeight: "600",
-    textAlign: "center",
-  },
-});
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    container: { 
+      flex: 1, 
+      backgroundColor: colors.background 
+    },
+    
+    header: {
+      height: 56,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    
+    backButton: { 
+      width: 40, 
+      height: 40, 
+      justifyContent: "center", 
+      alignItems: "center" 
+    },
+    
+    headerTitle: { 
+      color: colors.text, 
+      fontSize: 18, 
+      fontWeight: "700" 
+    },
+    
+    counterBadge: {
+      backgroundColor: colors.success ?? "#10b981",
+      borderRadius: 12,
+      minWidth: 24,
+      height: 24,
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: 8,
+    },
+    
+    counterText: {
+      color: colors.onPrimary ?? "#fff",
+      fontSize: 12,
+      fontWeight: "700",
+    },
+    
+    scrollView: { 
+      flex: 1 
+    },
+    
+    content: { 
+      padding: 16 
+    },
+    
+    mainTitle: { 
+      color: colors.text, 
+      fontSize: 28, 
+      fontWeight: "700", 
+      marginTop: 8 
+    },
+    
+    subtitle: { 
+      color: colors.subText, 
+      fontSize: 14, 
+      marginTop: 8, 
+      lineHeight: 20 
+    },
+    
+    successBanner: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      backgroundColor: colors.successBg ?? "rgba(16, 185, 129, 0.1)",
+      borderWidth: 1,
+      borderColor: colors.success ?? "#10b981",
+      borderRadius: 12,
+      padding: 12,
+      marginTop: 16,
+    },
+    
+    successText: {
+      color: colors.success ?? "#10b981",
+      fontSize: 14,
+      fontWeight: "600",
+      flex: 1,
+    },
+    
+    formSection: { 
+      marginTop: 24 
+    },
+    
+    label: { 
+      color: colors.text, 
+      fontSize: 14, 
+      fontWeight: "600", 
+      marginBottom: 8, 
+      marginLeft: 4 
+    },
+    
+    input: {
+      height: 56,
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: 16,
+      color: colors.text,
+      fontSize: 15,
+    },
+    
+    textArea: { 
+      height: 100, 
+      paddingTop: 16 
+    },
+    
+    hint: { 
+      color: colors.subText, 
+      fontSize: 12, 
+      marginTop: 6, 
+      marginLeft: 4 
+    },
+    
+    categoryRow: { 
+      flexDirection: "row", 
+      gap: 10 
+    },
+    
+    categoryButton: {
+      flex: 1,
+      height: 44,
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      justifyContent: "center",
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    
+    categoryButtonActive: { 
+      backgroundColor: colors.primary, 
+      borderColor: colors.primary 
+    },
+    
+    categoryButtonText: { 
+      color: colors.subText, 
+      fontSize: 13, 
+      fontWeight: "600" 
+    },
+    
+    categoryButtonTextActive: { 
+      color: colors.onPrimary ?? "#fff" 
+    },
+    
+    uploadBox: {
+      height: 176,
+      borderWidth: 2,
+      borderStyle: "dashed",
+      borderColor: colors.border,
+      borderRadius: 16,
+      backgroundColor: colors.cardSecondary ?? "rgba(28, 33, 46, 0.3)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    
+    uploadIconContainer: {
+      backgroundColor: colors.primaryBg ?? "rgba(19, 91, 236, 0.2)",
+      padding: 12,
+      borderRadius: 50,
+      marginBottom: 12,
+    },
+    
+    uploadText: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: "600",
+    },
+    
+    uploadHint: {
+      color: colors.subText,
+      fontSize: 12,
+      marginTop: 4,
+    },
+    
+    imagePreviewContainer: {
+      marginTop: 16,
+    },
+    
+    imagePreviewWrapper: {
+      position: "relative",
+      marginRight: 12,
+    },
+    
+    imagePreview: {
+      width: 100,
+      height: 100,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    
+    removeImageButton: {
+      position: "absolute",
+      top: 4,
+      right: 4,
+      backgroundColor: "rgba(0, 0, 0, 0.6)",
+      borderRadius: 12,
+      padding: 4,
+    },
+    
+    addMoreButton: {
+      width: 100,
+      height: 100,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.cardSecondary ?? "rgba(28, 33, 46, 0.3)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    
+    footer: {
+      padding: 16,
+      backgroundColor: colors.background + "F2",
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    
+    saveAndAddButton: {
+      height: 56,
+      backgroundColor: colors.primaryBg ?? "rgba(19, 91, 236, 0.1)",
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: colors.primary,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      marginBottom: 12,
+    },
+    
+    saveAndAddButtonText: {
+      color: colors.primary,
+      fontSize: 16,
+      fontWeight: "700",
+    },
+    
+    submitButton: {
+      height: 56,
+      backgroundColor: colors.primary,
+      borderRadius: 16,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      shadowColor: colors.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 8,
+    },
+    
+    submitButtonText: { 
+      color: colors.onPrimary ?? "#fff", 
+      fontSize: 16, 
+      fontWeight: "700" 
+    },
+    
+    homeIndicator: {
+      width: 128,
+      height: 4,
+      backgroundColor: colors.border,
+      borderRadius: 2,
+      alignSelf: "center",
+      marginTop: 16,
+      marginBottom: 4,
+    },
+    
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0, 0, 0, 0.7)",
+      justifyContent: "flex-end",
+    },
+    
+    imageOptionsContainer: {
+      backgroundColor: colors.card,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      padding: 20,
+      paddingBottom: 40,
+    },
+    
+    imageOptionsTitle: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: "700",
+      marginBottom: 20,
+      textAlign: "center",
+    },
+    
+    imageOption: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 16,
+      padding: 16,
+      backgroundColor: colors.cardSecondary ?? "rgba(255, 255, 255, 0.05)",
+      borderRadius: 12,
+      marginBottom: 12,
+    },
+    
+    imageOptionText: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: "600",
+    },
+    
+    cancelOption: {
+      backgroundColor: "transparent",
+      justifyContent: "center",
+      marginTop: 8,
+    },
+    
+    cancelOptionText: {
+      color: colors.danger ?? "#ff4444",
+      fontSize: 16,
+      fontWeight: "600",
+      textAlign: "center",
+    },
+  });

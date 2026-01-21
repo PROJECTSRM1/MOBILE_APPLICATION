@@ -22,8 +22,8 @@ const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 // ];
 
 const PAGES = [
-  { title: 'Keep it clean', subtitle: 'Expert cleaning tailored to your home/commercials.', image: null },
-  { title: 'Book in seconds', subtitle: 'Easy buying/selling with trusted partners.', image: null },
+  { title: 'One App All Services', subtitle: 'Done in seconds', image: null },
+  { title: 'Book in seconds', subtitle: 'Book any service and get it done in seconds', image: null },
   // { title: 'Sit back & relax', subtitle: 'We handle everything — premium results.', image: IMAGES[2] },
 ];
 

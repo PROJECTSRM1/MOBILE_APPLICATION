@@ -213,8 +213,10 @@ const EmployeeAllocation = () => {
               >
                 {/* Professional Image */}
                 <View style={styles.imageContainer}>
-                  <Image source={{uri:item.image}}
-                  style={styles.avatar}/>
+                  <Image
+  source={{ uri: item.image }}
+  style={styles.avatar}
+/>
                   {item.verified && (
                     <View style={styles.verified}>
                       <Icon name="verified" size={20} color="#facc15" />
