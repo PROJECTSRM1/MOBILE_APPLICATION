@@ -427,7 +427,7 @@ const renderStudent = ({ item }: { item: Student }) => (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <ChevronLeft size={24} color="#fff" />
+          <ChevronLeft size={24} color={colors.text} />
           <Text style={styles.title}>Students</Text>
           <TouchableOpacity
             onPress={() => {
@@ -435,7 +435,7 @@ const renderStudent = ({ item }: { item: Student }) => (
               setTimeout(() => inputRef.current?.focus(), 100);
             }}
           >
-            <Search size={22} color="#fff" />
+            <Search size={22} color={colors.text} />
           </TouchableOpacity>
         </View>
 
