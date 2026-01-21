@@ -13,6 +13,8 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useTheme } from '../context/ThemeContext';
+import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
 // Define your navigation types
 type RootStackParamList = {
@@ -138,6 +140,8 @@ type CompaniesNavProp = NativeStackNavigationProp<
 >;
 
 const CompaniesScreen = () => {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
   const navigation = useNavigation<CompaniesNavProp>();
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedIndustry, setSelectedIndustry] = useState<string>('All');
@@ -235,7 +239,7 @@ const CompaniesScreen = () => {
         <View style={styles.cardHeader}>
           <View style={styles.companyInfo}>
             <View style={[styles.logo, { backgroundColor: company.iconBg }]}>
-              <MaterialIcons name={company.icon} size={24} color="#fff" />
+              <MaterialIcons name={company.icon} size={24} color={colors.text} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.companyName}>{company.name}</Text>
@@ -328,7 +332,7 @@ const CompaniesScreen = () => {
           <View style={styles.dropdownHeader}>
             <Text style={styles.dropdownTitle}>{title}</Text>
             <TouchableOpacity onPress={onClose}>
-              <MaterialIcons name="close" size={24} color="#ffffff" />
+              <MaterialIcons name="close" size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
           <ScrollView style={styles.dropdownList}>
@@ -370,7 +374,7 @@ const CompaniesScreen = () => {
         {/* Top Bar */}
         <View style={styles.topBar}>
           <TouchableOpacity style={styles.iconButton}>
-            <MaterialIcons name="arrow-back" size={24} color="#ffffff" />
+            <MaterialIcons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={styles.pageTitle}>
             {showBookmarks ? 'Bookmarks' : 'Companies'}
@@ -423,7 +427,7 @@ const CompaniesScreen = () => {
               <Text style={styles.filterLabel}>
                 {selectedIndustry === 'All' ? 'Industry' : selectedIndustry}
               </Text>
-              <MaterialIcons name="keyboard-arrow-down" size={20} color="#ffffff" />
+              <MaterialIcons name="keyboard-arrow-down" size={20} color={colors.text} />
             </TouchableOpacity>
             
             <TouchableOpacity 
@@ -433,7 +437,7 @@ const CompaniesScreen = () => {
               <Text style={styles.filterLabel}>
                 {selectedLocation === 'All' ? 'Location' : selectedLocation.length > 10 ? selectedLocation.substring(0, 10) + '...' : selectedLocation}
               </Text>
-              <MaterialIcons name="keyboard-arrow-down" size={20} color="#ffffff" />
+              <MaterialIcons name="keyboard-arrow-down" size={20} color={colors.text} />
             </TouchableOpacity>
             
             <TouchableOpacity 
@@ -443,7 +447,7 @@ const CompaniesScreen = () => {
               <Text style={styles.filterLabel}>
                 {selectedSize === 'All' ? 'Size' : selectedSize}
               </Text>
-              <MaterialIcons name="keyboard-arrow-down" size={20} color="#ffffff" />
+              <MaterialIcons name="keyboard-arrow-down" size={20} color={colors.text} />
             </TouchableOpacity>
           </View>
         )}
@@ -601,304 +605,356 @@ const CompaniesScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#101622',
-  },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#101622',
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 20,
-  },
-  pageTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#ffffff',
-    flex: 1,
-    textAlign: 'center',
-  },
-  bookmarkBadge: {
-    position: 'absolute',
-    top: -4,
-    right: -4,
-    backgroundColor: '#135bec',
-    borderRadius: 10,
-    minWidth: 18,
-    height: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 4,
-  },
-  bookmarkBadgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#ffffff',
-  },
-  searchContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 12,
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1E232E',
-    borderRadius: 12,
-    height: 48,
-    paddingHorizontal: 16,
-    gap: 12,
-  },
-  searchInput: {
-    flex: 1,
-    color: '#ffffff',
-    fontSize: 15,
-  },
-  filtersRow: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    gap: 12,
-  },
-  filterDropdown: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#1E232E',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 8,
-    height: 40,
-  },
-  filterLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#ffffff',
-    flex: 1,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'flex-end',
-  },
-  dropdownModal: {
-    backgroundColor: '#1C222C',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '70%',
-  },
-  dropdownHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#2a3141',
-  },
-  dropdownTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#ffffff',
-  },
-  dropdownList: {
-    maxHeight: 400,
-  },
-  dropdownItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#2a3141',
-  },
-  dropdownItemSelected: {
-    backgroundColor: '#135bec15',
-  },
-  dropdownItemText: {
-    fontSize: 16,
-    color: '#ffffff',
-  },
-  dropdownItemTextSelected: {
-    color: '#135bec',
-    fontWeight: '600',
-  },
-  resultsBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  resultsText: {
-    fontSize: 14,
-    color: '#9da6b9',
-  },
-  sortButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  sortText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#135bec',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  cardsContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 20,
-  },
-  card: {
-    backgroundColor: '#1C222C',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  companyInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    flex: 1,
-  },
-  logo: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  companyName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#ffffff',
-    marginBottom: 2,
-  },
-  industry: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#135bec',
-  },
-  description: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: '#9da6b9',
-    marginBottom: 12,
-  },
-  tagsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 12,
-  },
-  tag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  tagText: {
-    fontSize: 13,
-    color: '#9da6b9',
-  },
-  cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  badgeText: {
-    fontWeight: '600',
-    fontSize: 12,
-  },
-  active: {
-    color: '#9da6b9',
-    fontSize: 12,
-  },
-  loadMoreButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    gap: 6,
-  },
-  loadMoreText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#135bec',
-  },
-  bottomNavContainer: {
-    backgroundColor: '#101622',
-    borderTopWidth: 1,
-    borderTopColor: '#1f2937',
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  navItem: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-  },
-  navLabel: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: '#9da6b9',
-    marginTop: 4,
-  },
-  navLabelActive: {
-    color: '#135bec',
-  },
-  emptyContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 80,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#ffffff',
-    marginTop: 16,
-  },
-  emptySubText: {
-    fontSize: 14,
-    color: '#9da6b9',
-    marginTop: 8,
-    textAlign: 'center',
-    paddingHorizontal: 32,
-  },
-});
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+
+    topBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: colors.background,
+    },
+
+    iconButton: {
+      width: 40,
+      height: 40,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 20,
+    },
+
+    pageTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.text,
+      flex: 1,
+      textAlign: 'center',
+    },
+
+    bookmarkBadge: {
+      position: 'absolute',
+      top: -4,
+      right: -4,
+      backgroundColor: colors.primary,
+      borderRadius: 10,
+      minWidth: 18,
+      height: 18,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 4,
+    },
+
+    bookmarkBadgeText: {
+      fontSize: 10,
+      fontWeight: '700',
+      color: '#ffffff',
+    },
+
+    searchContainer: {
+      paddingHorizontal: 16,
+      paddingTop: 16,
+      paddingBottom: 12,
+    },
+
+    searchBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      height: 48,
+      paddingHorizontal: 16,
+      gap: 12,
+    },
+
+    searchInput: {
+      flex: 1,
+      color: colors.text,
+      fontSize: 15,
+    },
+
+    filtersRow: {
+      flexDirection: 'row',
+      paddingHorizontal: 16,
+      paddingBottom: 12,
+      gap: 12,
+    },
+
+    filterDropdown: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: colors.surface,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      borderRadius: 8,
+      height: 40,
+    },
+
+    filterLabel: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: colors.text,
+      flex: 1,
+    },
+
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.7)',
+      justifyContent: 'flex-end',
+    },
+
+    dropdownModal: {
+      backgroundColor: colors.card,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      maxHeight: '70%',
+    },
+
+    dropdownHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+
+    dropdownTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.text,
+    },
+
+    dropdownList: {
+      maxHeight: 400,
+    },
+
+    dropdownItem: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+
+    dropdownItemSelected: {
+      backgroundColor: colors.primary + '15',
+    },
+
+    dropdownItemText: {
+      fontSize: 16,
+      color: colors.text,
+    },
+
+    dropdownItemTextSelected: {
+      color: colors.primary,
+      fontWeight: '600',
+    },
+
+    resultsBar: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+
+    resultsText: {
+      fontSize: 14,
+      color: colors.subText,
+    },
+
+    sortButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+
+    sortText: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: colors.primary,
+    },
+
+    scrollView: {
+      flex: 1,
+    },
+
+    cardsContainer: {
+      paddingHorizontal: 16,
+      paddingTop: 8,
+      paddingBottom: 20,
+    },
+
+    card: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 16,
+    },
+
+    cardHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: 12,
+    },
+
+    companyInfo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      flex: 1,
+    },
+
+    logo: {
+      width: 48,
+      height: 48,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+
+    companyName: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.text,
+      marginBottom: 2,
+    },
+
+    industry: {
+      fontSize: 13,
+      fontWeight: '500',
+      color: colors.primary,
+    },
+
+    description: {
+      fontSize: 14,
+      lineHeight: 20,
+      color: colors.subText,
+      marginBottom: 12,
+    },
+
+    tagsContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+      marginBottom: 12,
+    },
+
+    tag: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+
+    tagText: {
+      fontSize: 13,
+      color: colors.subText,
+    },
+
+    cardFooter: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+
+    badge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 6,
+    },
+
+    badgeText: {
+      fontSize: 13,
+      fontWeight: '600',
+      marginLeft: 4,
+    },
+
+    active: {
+      color: colors.subText,
+      fontSize: 12,
+    },
+
+    loadMoreButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 16,
+      gap: 6,
+    },
+
+    loadMoreText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.primary,
+    },
+
+    bottomNavContainer: {
+      backgroundColor: colors.background,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+
+    bottomNav: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      alignItems: 'center',
+      paddingVertical: 8,
+    },
+
+    navItem: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 8,
+    },
+
+    navLabel: {
+      fontSize: 11,
+      fontWeight: '500',
+      color: colors.subText,
+      marginTop: 4,
+    },
+
+    navLabelActive: {
+      color: colors.primary,
+    },
+
+    emptyContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 80,
+    },
+
+    emptyText: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+      marginTop: 16,
+    },
+
+    emptySubText: {
+      fontSize: 14,
+      color: colors.subText,
+      marginTop: 8,
+      textAlign: 'center',
+      paddingHorizontal: 32,
+    },
+  });
 
 
 export default CompaniesScreen;

@@ -13,6 +13,8 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../App";
 import { Internship } from './InternshipList';
+import { useTheme } from '../context/ThemeContext';
+import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 
 // -------------------- TYPES --------------------
 type InternshipDetailRouteProp = RouteProp<RootStackParamList, 'Internship'>;
@@ -20,6 +22,8 @@ type InternshipDetailNavProp = NativeStackNavigationProp<RootStackParamList, 'In
 
 // -------------------- COMPONENT --------------------
 const InternshipDetailsScreen: React.FC = () => {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
   const navigation = useNavigation<InternshipDetailNavProp>();
   const route = useRoute<InternshipDetailRouteProp>();
   const { internship } = route.params;
@@ -34,7 +38,7 @@ const InternshipDetailsScreen: React.FC = () => {
           style={styles.iconBtn}
           onPress={() => navigation.goBack()}
         >
-          <Icon name="arrow-back-ios-new" size={20} color="#fff" />
+          <Icon name="arrow-back-ios-new" size={20} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Internship Details</Text>
         <View style={{ width: 40 }} />
@@ -52,7 +56,7 @@ const InternshipDetailsScreen: React.FC = () => {
             <Text style={styles.role}>{internship.title}</Text>
 
             <View style={styles.inline}>
-              <Icon name="business" size={16} color="#3b82f6" />
+              <Icon name="business" size={16} color={colors.text} />
               <Text style={styles.subText}> {internship.company}</Text>
             </View>
 
@@ -71,10 +75,10 @@ const InternshipDetailsScreen: React.FC = () => {
 
         {/* Info Cards */}
         <View style={styles.grid}>
-          {infoCard('calendar-month', 'Duration', internship.duration, '#3b82f6')}
-          {internship.type && infoCard('payments', 'Stipend', internship.type, '#22c55e')}
-          {infoCard('public', 'Location', internship.isRemote ? 'Remote' : 'On-site', '#a855f7')}
-          {infoCard('category', 'Category', internship.category.charAt(0).toUpperCase() + internship.category.slice(1), '#f97316')}
+          {infoCard('calendar-month', 'Duration', internship.duration, '#3b82f6', styles)}
+          {internship.type && infoCard('payments', 'Stipend', internship.type, '#22c55e', styles)}
+          {infoCard('public', 'Location', internship.isRemote ? 'Remote' : 'On-site', '#a855f7', styles)}
+          {infoCard('category', 'Category', internship.category.charAt(0).toUpperCase() + internship.category.slice(1), '#f97316', styles)}
         </View>
 
         {/* About */}
@@ -85,10 +89,10 @@ const InternshipDetailsScreen: React.FC = () => {
 
         {/* Requirements */}
         <Text style={styles.sectionTitle}>Requirements</Text>
-        {requirement('Strong understanding of ' + internship.category + ' principles')}
-        {requirement('Excellent communication and collaboration skills')}
-        {requirement('Ability to work in a fast-paced environment')}
-        {requirement('Portfolio demonstrating relevant experience')}
+        {requirement('Strong understanding of ' + internship.category + ' principles', styles)}
+        {requirement('Excellent communication and collaboration skills', styles)}
+        {requirement('Ability to work in a fast-paced environment', styles)}
+        {requirement('Portfolio demonstrating relevant experience', styles)}
 
         {/* Alert */}
         <View style={styles.alert}>
@@ -123,6 +127,7 @@ const infoCard = (
   label: string,
   value: string,
   color: string,
+  styles: any,
 ) => (
   <View style={styles.card}>
     <View style={styles.cardHeader}>
@@ -135,7 +140,7 @@ const infoCard = (
   </View>
 );
 
-const requirement = (text: string) => (
+const requirement = (text: string, styles: any) => (
   <View style={styles.reqRow}>
     <Icon name="check-circle" size={20} color="#3b82f6" />
     <Text style={styles.reqText}>{text}</Text>
@@ -143,34 +148,209 @@ const requirement = (text: string) => (
 );
 
 // -------------------- STYLES --------------------
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#101622' },
-  header: { height: 100, flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderColor: '#1f2937' },
-  iconBtn: { width: 40 },
-  headerTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 18, fontWeight: '700' },
-  container: { padding: 16, paddingBottom: 140 },
-  companyRow: { flexDirection: 'row', gap: 16, marginBottom: 24 },
-  logo: { width: 80, height: 80, borderRadius: 16, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#374151' },
-  logoText: { fontSize: 32, fontWeight: '700', color: '#ffffff' },
-  role: { color: '#fff', fontSize: 22, fontWeight: '800' },
-  inline: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
-  subText: { color: '#9ca3af', fontSize: 14 },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 28 },
-  card: { width: '48%', backgroundColor: '#1c2333', borderRadius: 16, padding: 16 },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  iconBox: { padding: 6, borderRadius: 8 },
-  cardLabel: { color: '#9ca3af', fontSize: 12, textTransform: 'uppercase' },
-  cardValue: { color: '#fff', fontSize: 18, fontWeight: '700', marginTop: 10 },
-  sectionTitle: { color: '#fff', fontSize: 20, fontWeight: '800', marginBottom: 12 },
-  paragraph: { color: '#9ca3af', fontSize: 15, lineHeight: 22, marginBottom: 24 },
-  reqRow: { flexDirection: 'row', gap: 10, marginBottom: 12, alignItems: 'flex-start' },
-  reqText: { color: '#9ca3af', fontSize: 15, flex: 1 },
-  alert: { flexDirection: 'row', gap: 12, backgroundColor: '#2a1f12', borderRadius: 16, padding: 16, marginTop: 20 },
-  alertTitle: { color: '#fff', fontWeight: '700', marginBottom: 4 },
-  alertText: { color: '#d1d5db', fontSize: 13, lineHeight: 18 },
-  footer: { position: 'absolute', bottom: 0, width: '100%', padding: 16, backgroundColor: '#101622', borderTopWidth: 1, borderColor: '#1f2937' },
-  applyBtn: { backgroundColor: '#135bec', borderRadius: 16, paddingVertical: 14, flexDirection: 'row', justifyContent: 'center', gap: 8, alignItems: 'center' },
-  applyText: { color: '#fff', fontSize: 18, fontWeight: '700' },
-});
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+
+    /* ================= HEADER ================= */
+    header: {
+      height: 96,
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      backgroundColor: colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+
+    iconBtn: {
+      width: 40,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+
+    headerTitle: {
+      flex: 1,
+      textAlign: 'center',
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: '700',
+      paddingRight: 40,
+    },
+
+    /* ================= BODY ================= */
+    container: {
+      padding: 16,
+      paddingBottom: 140,
+    },
+
+    companyRow: {
+      flexDirection: 'row',
+      gap: 16,
+      marginBottom: 24,
+      alignItems: 'center',
+    },
+
+    logo: {
+      width: 80,
+      height: 80,
+      borderRadius: 18,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    logoText: {
+      fontSize: 32,
+      fontWeight: '800',
+      color: colors.text,
+    },
+
+    role: {
+      color: colors.text,
+      fontSize: 22,
+      fontWeight: '800',
+    },
+
+    inline: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 6,
+      gap: 6,
+    },
+
+    subText: {
+      color: colors.subText,
+      fontSize: 14,
+    },
+
+    /* ================= GRID ================= */
+    grid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 12,
+      marginBottom: 28,
+    },
+
+    card: {
+      width: '48%',
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      padding: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    cardHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+
+    iconBox: {
+      padding: 6,
+      borderRadius: 10,
+      backgroundColor: colors.surface,
+    },
+
+    cardLabel: {
+      color: colors.subText,
+      fontSize: 12,
+      fontWeight: '600',
+      textTransform: 'uppercase',
+    },
+
+    cardValue: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: '800',
+      marginTop: 10,
+    },
+
+    /* ================= CONTENT ================= */
+    sectionTitle: {
+      color: colors.text,
+      fontSize: 20,
+      fontWeight: '800',
+      marginBottom: 12,
+    },
+
+    paragraph: {
+      color: colors.subText,
+      fontSize: 15,
+      lineHeight: 22,
+      marginBottom: 24,
+    },
+
+    reqRow: {
+      flexDirection: 'row',
+      gap: 10,
+      marginBottom: 12,
+      alignItems: 'flex-start',
+    },
+
+    reqText: {
+      color: colors.subText,
+      fontSize: 15,
+      flex: 1,
+      lineHeight: 22,
+    },
+
+    /* ================= ALERT ================= */
+    alert: {
+      flexDirection: 'row',
+      gap: 12,
+      backgroundColor: colors.warningBg ?? colors.card,
+      borderRadius: 16,
+      padding: 16,
+      marginTop: 20,
+      borderWidth: 1,
+      borderColor: colors.warningBorder ?? colors.border,
+    },
+
+    alertTitle: {
+      color: colors.text,
+      fontWeight: '700',
+      marginBottom: 4,
+    },
+
+    alertText: {
+      color: colors.subText,
+      fontSize: 13,
+      lineHeight: 18,
+    },
+
+    /* ================= FOOTER ================= */
+    footer: {
+      position: 'absolute',
+      bottom: 0,
+      width: '100%',
+      padding: 16,
+      backgroundColor: colors.surface,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+
+    applyBtn: {
+      backgroundColor: colors.primary,
+      borderRadius: 16,
+      paddingVertical: 14,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: 8,
+      alignItems: 'center',
+    },
+
+    applyText: {
+      color: '#ffffff',
+      fontSize: 18,
+      fontWeight: '700',
+    },
+  });
 
 export default InternshipDetailsScreen;

@@ -178,7 +178,6 @@ function AppNavigator() {
         <Stack.Screen name="Health" component={DoctorListScreen} />
         <Stack.Screen name="Form" component={ConsultationRequestScreen} />
          <Stack.Screen name="Telecom" component={TelemedicineConsultation} />
-         <Stack.Screen name="Facility" component={FacilitiesScreen} />
          <Stack.Screen name="Wishlist" component={Wishlist} />
          <Stack.Screen name="ParcelView" component={ParcelView} />
          <Stack.Screen name="MetroView" component={MetroView} />
@@ -186,6 +185,7 @@ function AppNavigator() {
         <Stack.Screen name="enrollmentDetails" component={EnrollmentDetailsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
+      
   );
 }
 
