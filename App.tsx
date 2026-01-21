@@ -182,7 +182,6 @@ function AppNavigator() {
          <Stack.Screen name="ParcelView" component={ParcelView} />
          <Stack.Screen name="MetroView" component={MetroView} />
          <Stack.Screen name="ScootyView" component={ScootyView} />
-        <Stack.Screen name="Facility" component={FacilitiesScreen} />
         <Stack.Screen name="enrollmentDetails" component={EnrollmentDetailsScreen} />
       </Stack.Navigator>
     </NavigationContainer>

@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTheme } from "../context/ThemeContext";
 
 const { width } = Dimensions.get('window');
 
@@ -43,6 +44,9 @@ interface Property {
 }
 
 const BuyerPage = ({ route, navigation }: any) => {
+
+   const { colors } = useTheme();
+    const styles = getStyles(colors);
   const { property } = route.params as { property: Property };
   
   const [fullName, setFullName] = useState('');
@@ -86,11 +90,11 @@ const BuyerPage = ({ route, navigation }: any) => {
       
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <MaterialIcons name="arrow-back-ios" size={20} color="#fff" />
+          <MaterialIcons name="arrow-back-ios" size={20} color="#0a0c10" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Property Details</Text>
         <TouchableOpacity style={styles.favoriteButton}>
-          <MaterialIcons name="favorite-border" size={24} color="#fff" />
+          <MaterialIcons name="favorite-border" size={24} color="#0a0c10" />
         </TouchableOpacity>
       </View>
 
@@ -364,374 +368,437 @@ const BuyerPage = ({ route, navigation }: any) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0a0c10',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#232936',
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  favoriteButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  content: {
-    flex: 1,
-  },
-  imageSection: {
-    position: 'relative',
-  },
-  propertyImage: {
-    width: width,
-    height: width * 1.1,
-    backgroundColor: '#161b26',
-  },
-  imageIndicatorContainer: {
-    position: 'absolute',
-    bottom: 16,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  imageIndicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  activeImageIndicator: {
-    backgroundColor: '#fff',
-    width: 24,
-  },
-  badgesContainer: {
-    position: 'absolute',
-    top: 16,
-    left: 16,
-    flexDirection: 'column',
-    gap: 6,
-  },
-  saleBadge: {
-    backgroundColor: '#3b82f6',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  rentBadge: {
-    backgroundColor: '#f59e0b',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  conditionBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  newConditionBadge: {
-    backgroundColor: '#8b5cf6',
-  },
-  oldConditionBadge: {
-    backgroundColor: '#6b7280',
-  },
-  badgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#fff',
-    letterSpacing: 0.5,
-  },
-  detailsSection: {
-    padding: 16,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 8,
-  },
-  propertyTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#fff',
-    flex: 1,
-    marginRight: 12,
-  },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#161b26',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-    gap: 4,
-  },
-  ratingText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  propertyPrice: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#135bec',
-    marginBottom: 16,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
-  },
-  infoText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#94a3b8',
-  },
-  detailsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    marginTop: 20,
-    marginBottom: 24,
-  },
-  detailCard: {
-    backgroundColor: '#161b26',
-    borderWidth: 1,
-    borderColor: '#232936',
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    minWidth: (width - 56) / 3,
-    flex: 1,
-  },
-  detailValue: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#fff',
-    marginTop: 8,
-  },
-  detailLabel: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: '#64748b',
-    marginTop: 4,
-  },
-  descriptionSection: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: 12,
-  },
-  descriptionText: {
-    fontSize: 14,
-    fontWeight: '400',
-    color: '#94a3b8',
-    lineHeight: 22,
-  },
-  ownerSection: {
-    marginBottom: 24,
-  },
-  ownerCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#161b26',
-    borderWidth: 1,
-    borderColor: '#232936',
-    borderRadius: 12,
-    padding: 16,
-  },
-  ownerAvatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: 'rgba(19, 91, 236, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  ownerInfo: {
-    flex: 1,
-  },
-  ownerName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: 4,
-  },
-  ownerContact: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#94a3b8',
-  },
-  callButton: {
-    backgroundColor: '#135bec',
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  formSection: {
-    marginBottom: 24,
-  },
-  inputContainer: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#94a3b8',
-    marginBottom: 8,
-    letterSpacing: 1,
-  },
-  input: {
-    backgroundColor: '#161b26',
-    borderWidth: 1,
-    borderColor: '#232936',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#fff',
-  },
-  textArea: {
-    minHeight: 100,
-    textAlignVertical: 'top',
-  },
-  bottomSection: {
-    backgroundColor: 'rgba(10, 12, 16, 0.98)',
-    borderTopWidth: 1,
-    borderTopColor: '#232936',
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 24,
-  },
-  priceContainer: {
-    marginBottom: 12,
-  },
-  bottomPriceLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#64748b',
-    letterSpacing: 1,
-    marginBottom: 4,
-  },
-  bottomPrice: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#135bec',
-  },
-  buyButton: {
-    backgroundColor: '#135bec',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 12,
-    gap: 8,
-  },
-  buyButtonText: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#fff',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.85)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  successModal: {
-    backgroundColor: '#161b26',
-    borderRadius: 24,
-    padding: 32,
-    width: '100%',
-    maxWidth: 400,
-    alignItems: 'center',
-  },
-  successIconContainer: {
-    marginBottom: 20,
-  },
-  successTitle: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#fff',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  successMessage: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#94a3b8',
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 22,
-  },
-  successDetails: {
-    width: '100%',
-    backgroundColor: '#0a0c10',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
-  },
-  successDetailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  successDetailLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#64748b',
-  },
-  successDetailValue: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#fff',
-    flex: 1,
-    textAlign: 'right',
-    marginLeft: 12,
-  },
-  successButton: {
-    backgroundColor: '#135bec',
-    paddingHorizontal: 48,
-    paddingVertical: 14,
-    borderRadius: 12,
-    width: '100%',
-    alignItems: 'center',
-  },
-  successButtonText: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#fff',
-  },
-});
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      backgroundColor: colors.surface,
+    },
+
+    backButton: {
+      width: 40,
+      height: 40,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: colors.text,
+    },
+
+    favoriteButton: {
+      width: 40,
+      height: 40,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+
+    content: {
+      flex: 1,
+    },
+
+    imageSection: {
+      position: "relative",
+    },
+
+    propertyImage: {
+      width,
+      height: width * 1.1,
+      backgroundColor: colors.card,
+    },
+
+    imageIndicatorContainer: {
+      position: "absolute",
+      bottom: 16,
+      left: 0,
+      right: 0,
+      flexDirection: "row",
+      justifyContent: "center",
+      gap: 6,
+    },
+
+    imageIndicator: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: colors.text + "4D",
+    },
+
+    activeImageIndicator: {
+      backgroundColor: colors.text,
+      width: 24,
+    },
+
+    badgesContainer: {
+      position: "absolute",
+      top: 16,
+      left: 16,
+      flexDirection: "column",
+      gap: 6,
+    },
+
+    saleBadge: {
+      backgroundColor: colors.primary,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 6,
+    },
+
+    rentBadge: {
+      backgroundColor: colors.warning,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 6,
+    },
+
+    conditionBadge: {
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 6,
+    },
+
+    newConditionBadge: {
+      backgroundColor: colors.secondary,
+    },
+
+    oldConditionBadge: {
+      backgroundColor: colors.subText,
+    },
+
+    badgeText: {
+      fontSize: 10,
+      fontWeight: "700",
+      color: colors.onPrimary ?? "#ffffff",
+      letterSpacing: 0.5,
+    },
+
+    detailsSection: {
+      padding: 16,
+    },
+
+    titleRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      marginBottom: 8,
+    },
+
+    propertyTitle: {
+      fontSize: 22,
+      fontWeight: "800",
+      color: colors.text,
+      flex: 1,
+      marginRight: 12,
+    },
+
+    ratingContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.card,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 8,
+      gap: 4,
+    },
+
+    ratingText: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: colors.text,
+    },
+
+    propertyPrice: {
+      fontSize: 28,
+      fontWeight: "800",
+      color: colors.primary,
+      marginBottom: 16,
+    },
+
+    infoRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      marginBottom: 8,
+    },
+
+    infoText: {
+      fontSize: 14,
+      fontWeight: "500",
+      color: colors.subText,
+    },
+
+    detailsGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 12,
+      marginTop: 20,
+      marginBottom: 24,
+    },
+
+    detailCard: {
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 12,
+      padding: 16,
+      alignItems: "center",
+      minWidth: (width - 56) / 3,
+      flex: 1,
+    },
+
+    detailValue: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: colors.text,
+      marginTop: 8,
+    },
+
+    detailLabel: {
+      fontSize: 11,
+      fontWeight: "500",
+      color: colors.subText,
+      marginTop: 4,
+    },
+
+    descriptionSection: {
+      marginBottom: 24,
+    },
+
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: colors.text,
+      marginBottom: 12,
+    },
+
+    descriptionText: {
+      fontSize: 14,
+      fontWeight: "400",
+      color: colors.subText,
+      lineHeight: 22,
+    },
+
+    ownerSection: {
+      marginBottom: 24,
+    },
+
+    ownerCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 12,
+      padding: 16,
+    },
+
+    ownerAvatar: {
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: colors.primary + "1A",
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 12,
+    },
+
+    ownerInfo: {
+      flex: 1,
+    },
+
+    ownerName: {
+      fontSize: 16,
+      fontWeight: "700",
+      color: colors.text,
+      marginBottom: 4,
+    },
+
+    ownerContact: {
+      fontSize: 13,
+      fontWeight: "500",
+      color: colors.subText,
+    },
+
+    callButton: {
+      backgroundColor: colors.primary,
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+
+    formSection: {
+      marginBottom: 24,
+    },
+
+    inputContainer: {
+      marginBottom: 16,
+    },
+
+    label: {
+      fontSize: 12,
+      fontWeight: "700",
+      color: colors.subText,
+      marginBottom: 8,
+      letterSpacing: 1,
+    },
+
+    input: {
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      fontSize: 16,
+      fontWeight: "500",
+      color: colors.text,
+    },
+
+    textArea: {
+      minHeight: 100,
+      textAlignVertical: "top",
+    },
+
+    bottomSection: {
+      backgroundColor: colors.background + "FA",
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      paddingHorizontal: 16,
+      paddingTop: 16,
+      paddingBottom: 24,
+    },
+
+    priceContainer: {
+      marginBottom: 12,
+    },
+
+    bottomPriceLabel: {
+      fontSize: 12,
+      fontWeight: "700",
+      color: colors.subText,
+      letterSpacing: 1,
+      marginBottom: 4,
+    },
+
+    bottomPrice: {
+      fontSize: 24,
+      fontWeight: "800",
+      color: colors.primary,
+    },
+
+    buyButton: {
+      backgroundColor: colors.primary,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 16,
+      borderRadius: 12,
+      gap: 8,
+    },
+
+    buyButtonText: {
+      fontSize: 16,
+      fontWeight: "800",
+      color: colors.onPrimary ?? "#ffffff",
+    },
+
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.85)",
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 20,
+    },
+
+    successModal: {
+      backgroundColor: colors.card,
+      borderRadius: 24,
+      padding: 32,
+      width: "100%",
+      maxWidth: 400,
+      alignItems: "center",
+    },
+
+    successIconContainer: {
+      marginBottom: 20,
+    },
+
+    successTitle: {
+      fontSize: 24,
+      fontWeight: "800",
+      color: colors.text,
+      marginBottom: 12,
+      textAlign: "center",
+    },
+
+    successMessage: {
+      fontSize: 14,
+      fontWeight: "500",
+      color: colors.subText,
+      textAlign: "center",
+      marginBottom: 24,
+      lineHeight: 22,
+    },
+
+    successDetails: {
+      width: "100%",
+      backgroundColor: colors.background,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 24,
+    },
+
+    successDetailRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: 12,
+    },
+
+    successDetailLabel: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: colors.subText,
+    },
+
+    successDetailValue: {
+      fontSize: 13,
+      fontWeight: "700",
+      color: colors.text,
+      flex: 1,
+      textAlign: "right",
+      marginLeft: 12,
+    },
+
+    successButton: {
+      backgroundColor: colors.primary,
+      paddingHorizontal: 48,
+      paddingVertical: 14,
+      borderRadius: 12,
+      width: "100%",
+      alignItems: "center",
+    },
+
+    successButtonText: {
+      fontSize: 16,
+      fontWeight: "800",
+      color: colors.onPrimary ?? "#ffffff",
+    },
+  });
 
 export default BuyerPage;
 

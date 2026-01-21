@@ -23,6 +23,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import DateTimePicker from '@react-native-community/datetimepicker';
 // import { getLightMode, setLightMode } from "../utils/theme";
 import { useTheme } from "../context/ThemeContext";
+import { RootStackParamList } from "../../App";
 
 // const { lightMode, toggleTheme } = useTheme();
 
@@ -86,11 +87,6 @@ interface SwachifyProduct {
   createdAt?: string;
 }
 
-type RootStackParamList = {
-  AuthScreen: undefined;
-  ProfileInformation: undefined;
-  Wishlist: undefined;
-};
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
