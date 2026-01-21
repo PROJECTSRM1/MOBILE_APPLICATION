@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   SafeAreaView,
   StyleSheet,
   Modal,
+  Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
@@ -17,17 +18,23 @@ import { useNavigation } from '@react-navigation/native';
 const ConsultationRequestScreen = () => {
   const navigation = useNavigation<any>();
   const [selectedDoctor, setSelectedDoctor] = useState<number | null>(null);
-  const [selectedTime, setSelectedTime] = useState<string>('09:00 AM');
   const [description, setDescription] = useState<string>('');
   const [sufferingDays, setSufferingDays] = useState<string>('');
   const [hasInsurance, setHasInsurance] = useState<boolean | null>(null);
   const [selectedDoctorType, setSelectedDoctorType] = useState<string>('General Practitioner');
   const [showDoctorTypePicker, setShowDoctorTypePicker] = useState<boolean>(false);
+  
+  // Booking flow states
+  const [isBooked, setIsBooked] = useState<boolean>(false);
+  const [isPaymentComplete, setIsPaymentComplete] = useState<boolean>(false);
+  const [canConnect, setCanConnect] = useState<boolean>(false);
+  const [timeRemaining, setTimeRemaining] = useState<number>(60); // 5 minutes in seconds
 
   // Check if all required fields are filled
   const isFormComplete = description.trim() !== '' && 
                          sufferingDays.trim() !== '' && 
-                         hasInsurance !== null;
+                         hasInsurance !== null &&
+                         selectedDoctor !== null;
 
   const doctorTypes = [
     'General Practitioner',
@@ -44,6 +51,7 @@ const ConsultationRequestScreen = () => {
       type: 'General Practitioner',
       experience: '12 years experience',
       rating: 4.9,
+      availableTime: '2:00 PM',
       status: 'AVAILABLE NOW',
       statusColor: '#2d7576',
       image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=400&fit=crop',
@@ -54,6 +62,7 @@ const ConsultationRequestScreen = () => {
       type: 'General Practitioner',
       experience: '8 years experience',
       rating: 4.8,
+      availableTime: '4:30 PM',
       status: 'STARTS IN 30 MIN',
       statusColor: '#2d7576',
       image: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=400&h=400&fit=crop',
@@ -64,6 +73,7 @@ const ConsultationRequestScreen = () => {
       type: 'Cardiologist',
       experience: '15 years experience',
       rating: 4.9,
+      availableTime: '3:00 PM',
       status: 'AVAILABLE NOW',
       statusColor: '#2d7576',
       image: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&h=400&fit=crop',
@@ -74,6 +84,7 @@ const ConsultationRequestScreen = () => {
       type: 'Cardiologist',
       experience: '10 years experience',
       rating: 4.7,
+      availableTime: '5:00 PM',
       status: 'STARTS IN 1 HR',
       statusColor: '#2d7576',
       image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=400&fit=crop',
@@ -84,6 +95,7 @@ const ConsultationRequestScreen = () => {
       type: 'Dermatologist',
       experience: '9 years experience',
       rating: 4.8,
+      availableTime: '1:30 PM',
       status: 'AVAILABLE NOW',
       statusColor: '#2d7576',
       image: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=400&h=400&fit=crop',
@@ -94,6 +106,7 @@ const ConsultationRequestScreen = () => {
       type: 'Psychiatrist',
       experience: '11 years experience',
       rating: 5.0,
+      availableTime: '2:30 PM',
       status: 'AVAILABLE NOW',
       statusColor: '#2d7576',
       image: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=400&h=400&fit=crop',
@@ -104,28 +117,167 @@ const ConsultationRequestScreen = () => {
       type: 'Ophthalmologist',
       experience: '14 years experience',
       rating: 4.9,
+      availableTime: '6:00 PM',
       status: 'STARTS IN 45 MIN',
       statusColor: '#2d7576',
       image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=400&fit=crop',
     },
   ];
 
-  // Filter doctors based on selected type
   const doctors = allDoctors.filter(doctor => doctor.type === selectedDoctorType);
+  const selectedDoctorData = allDoctors.find(doc => doc.id === selectedDoctor);
 
-  const timeSlots = [
-    '09:00 AM',
-    '10:30 AM',
-    '11:15 AM',
-    '02:00 PM',
-    '03:30 PM',
-  ];
+  useEffect(() => {
+    if (isPaymentComplete && !canConnect && timeRemaining > 0) {
+      const timer = setInterval(() => {
+        setTimeRemaining(prev => {
+          if (prev <= 1) {
+            setCanConnect(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [isPaymentComplete, canConnect, timeRemaining]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleBookAppointment = () => {
+    if (!isFormComplete) {
+      Alert.alert('Incomplete Form', 'Please fill all required fields and select a doctor.');
+      return;
+    }
+    
+    Alert.alert(
+      'Payment Required',
+      'Proceed to PhonePe for payment?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Pay Now',
+          onPress: () => {
+            setTimeout(() => {
+              setIsBooked(true);
+              setIsPaymentComplete(true);
+              Alert.alert('Success', 'Payment completed! Your appointment is booked.');
+            }, 1500);
+          },
+        },
+      ]
+    );
+  };
+
+  if (isBooked && isPaymentComplete) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Icon name="arrow-back" size={24} color="#131616" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Appointment Confirmed</Text>
+          <View style={{ width: 40 }} />
+        </View>
+
+        <ScrollView showsVerticalScrollIndicator={false} style={styles.content}>
+          <View style={styles.confirmationCard}>
+            <View style={styles.successIconContainer}>
+              <Icon name="check-circle" size={80} color="#10b981" />
+            </View>
+            <Text style={styles.confirmationTitle}>Appointment Booked!</Text>
+            <Text style={styles.confirmationSubtitle}>Payment completed successfully</Text>
+
+            {selectedDoctorData && (
+              <View style={styles.appointmentDetails}>
+                <Image source={{ uri: selectedDoctorData.image }} style={styles.doctorImageSmall} />
+                <View style={styles.doctorDetailsSmall}>
+                  <Text style={styles.doctorNameSmall}>{selectedDoctorData.name}</Text>
+                  <Text style={styles.doctorSpecialtySmall}>{selectedDoctorType}</Text>
+                  <View style={styles.timeInfoContainer}>
+                    <Icon name="schedule" size={16} color="#2d7576" />
+                    <Text style={styles.appointmentTimeText}>
+                      Scheduled at {selectedDoctorData.availableTime}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            )}
+
+            {!canConnect && (
+              <View style={styles.waitingContainer}>
+                <Text style={styles.waitingText}>Your consultation will start in:</Text>
+                <Text style={styles.timerText}>{formatTime(timeRemaining)}</Text>
+                <Text style={styles.waitingSubtext}>Please wait while we prepare your session</Text>
+              </View>
+            )}
+          </View>
+
+          {/* <View style={styles.specialistsHeader}>
+            <Text style={styles.specialistsTitle}>Specialists</Text>
+            <View style={styles.nearbyBadge}>
+              <Text style={styles.nearbyText}>{doctors.length} Available</Text>
+            </View>
+          </View> */}
+
+          {/* <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.doctorsScroll}
+            contentContainerStyle={styles.doctorsScrollContent}
+          >
+            {doctors.map((doctor) => (
+              <View key={doctor.id} style={styles.doctorCard}>
+                <Image source={{ uri: doctor.image }} style={styles.doctorImage} />
+                <View style={styles.ratingBadge}>
+                  <Icon name="star" size={16} color="#eab308" />
+                  <Text style={styles.ratingText}>{doctor.rating}</Text>
+                </View>
+                <View style={styles.doctorCardContent}>
+                  <Text style={styles.doctorName}>{doctor.name}</Text>
+                  <Text style={styles.doctorExperience}>{doctor.experience}</Text>
+                  <View style={styles.statusBadge}>
+                    <Icon name="schedule" size={16} color={doctor.statusColor} />
+                    <Text style={[styles.statusText, { color: doctor.statusColor }]}>
+                      Available at {doctor.availableTime}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            ))}
+          </ScrollView> */}
+        </ScrollView>
+
+        <View style={styles.bottomContainer}>
+          <TouchableOpacity
+            style={[styles.connectButton, !canConnect && styles.connectButtonDisabled]}
+            disabled={!canConnect}
+            onPress={() => {
+              if (canConnect) {
+                navigation.navigate('Telecom');
+              }
+            }}
+          >
+            <Icon name="videocam" size={24} color="#ffffff" />
+            <Text style={styles.connectButtonText}>
+              {canConnect ? 'Connect Online Now' : 'Please Wait...'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Icon name="arrow-back" size={24} color="#131616" />
@@ -137,9 +289,8 @@ const ConsultationRequestScreen = () => {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} style={styles.content}>
-        {/* Doctor Type Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>DOCTOR TYPE</Text>
+          <Text style={styles.sectionLabel}>DOCTOR SPECIALIZED</Text>
           <TouchableOpacity 
             style={styles.dropdown}
             onPress={() => setShowDoctorTypePicker(true)}
@@ -149,7 +300,6 @@ const ConsultationRequestScreen = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Description Section */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>DESCRIPTION</Text>
           <TextInput
@@ -164,7 +314,6 @@ const ConsultationRequestScreen = () => {
           />
         </View>
 
-        {/* How Many Days Suffering Section */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>HOW MANY DAYS ARE YOU SUFFERING?</Text>
           <TextInput
@@ -177,7 +326,6 @@ const ConsultationRequestScreen = () => {
           />
         </View>
 
-        {/* Health Insurance Section */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>DO YOU HAVE HEALTH INSURANCE?</Text>
           <View style={styles.insuranceContainer}>
@@ -223,18 +371,15 @@ const ConsultationRequestScreen = () => {
           </View>
         </View>
 
-        {/* Show Available Specialists and Appointment Time only after form is complete */}
-        {isFormComplete && (
+        {(description.trim() !== '' && sufferingDays.trim() !== '' && hasInsurance !== null) && (
           <>
-            {/* Available Specialists Section */}
             <View style={styles.specialistsHeader}>
-              <Text style={styles.specialistsTitle}>Available Specialists</Text>
+              <Text style={styles.specialistsTitle}>Specialists</Text>
               <View style={styles.nearbyBadge}>
                 <Text style={styles.nearbyText}>{doctors.length} Nearby</Text>
               </View>
             </View>
 
-            {/* Doctor Cards */}
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -260,9 +405,9 @@ const ConsultationRequestScreen = () => {
                       <Text style={styles.doctorName}>{doctor.name}</Text>
                       <Text style={styles.doctorExperience}>{doctor.experience}</Text>
                       <View style={styles.statusBadge}>
-                        <Icon name="check-circle" size={16} color={doctor.statusColor} />
+                        <Icon name="schedule" size={16} color={doctor.statusColor} />
                         <Text style={[styles.statusText, { color: doctor.statusColor }]}>
-                          {doctor.status}
+                          Available at {doctor.availableTime}
                         </Text>
                       </View>
                     </View>
@@ -278,62 +423,23 @@ const ConsultationRequestScreen = () => {
                 </View>
               )}
             </ScrollView>
-
-            {/* Appointment Time Section */}
-            <View style={styles.appointmentSection}>
-              <View style={styles.appointmentHeader}>
-                <Icon name="calendar-today" size={24} color="#2d7576" />
-                <Text style={styles.appointmentTitle}>Select Appointment Time</Text>
-              </View>
-
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.timeSlotsScroll}
-                contentContainerStyle={styles.timeSlotsContent}
-              >
-                {timeSlots.map((time) => (
-                  <TouchableOpacity
-                    key={time}
-                    style={[
-                      styles.timeSlot,
-                      selectedTime === time && styles.timeSlotSelected,
-                    ]}
-                    onPress={() => setSelectedTime(time)}
-                  >
-                    <Text
-                      style={[
-                        styles.timeSlotText,
-                        selectedTime === time && styles.timeSlotTextSelected,
-                      ]}
-                    >
-                      {time}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
           </>
         )}
 
-        {/* Bottom Padding */}
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      {/* Connect Button */}
       <View style={styles.bottomContainer}>
         <TouchableOpacity 
-          style={styles.connectButton} 
-          onPress={() => {
-            navigation.navigate("Telecom");
-          }}
+          style={[styles.connectButton, !isFormComplete && styles.connectButtonDisabled]}
+          disabled={!isFormComplete}
+          onPress={handleBookAppointment}
         >
-          <Icon name="videocam" size={24} color="#ffffff" />
-          <Text style={styles.connectButtonText}>Connect Online Now</Text>
+          <Icon name="event" size={24} color="#ffffff" />
+          <Text style={styles.connectButtonText}>Book Appointment</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Doctor Type Picker Modal */}
       <Modal
         visible={showDoctorTypePicker}
         transparent={true}
@@ -631,48 +737,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.5,
   },
-  appointmentSection: {
-    paddingHorizontal: 24,
-    paddingTop: 32,
-  },
-  appointmentHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 16,
-  },
-  appointmentTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#131616',
-  },
-  timeSlotsScroll: {
-    marginTop: 8,
-  },
-  timeSlotsContent: {
-    gap: 12,
-  },
-  timeSlot: {
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 24,
-    borderWidth: 2,
-    borderColor: '#e2e8f0',
-    backgroundColor: '#ffffff',
-    marginRight: 12,
-  },
-  timeSlotSelected: {
-    backgroundColor: '#2d7576',
-    borderColor: '#2d7576',
-  },
-  timeSlotText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#131616',
-  },
-  timeSlotTextSelected: {
-    color: '#ffffff',
-  },
   bottomContainer: {
     paddingHorizontal: 24,
     paddingVertical: 16,
@@ -693,6 +757,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 5,
+  },
+  connectButtonDisabled: {
+    backgroundColor: '#cbd5e1',
+    shadowOpacity: 0,
   },
   connectButtonText: {
     fontSize: 17,
@@ -758,16 +826,105 @@ const styles = StyleSheet.create({
   },
   noDoctorsText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#64748b',
     marginTop: 12,
   },
   noDoctorsSubtext: {
     fontSize: 14,
     color: '#94a3b8',
-    marginTop: 4,
     textAlign: 'center',
+    marginTop: 4,
+  },
+  // Added Styles for the "Booked" View
+  confirmationCard: {
+    backgroundColor: '#ffffff',
+    margin: 24,
+    padding: 32,
+    borderRadius: 24,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  successIconContainer: {
+    marginBottom: 16,
+  },
+  confirmationTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#131616',
+    marginBottom: 8,
+  },
+  confirmationSubtitle: {
+    fontSize: 16,
+    color: '#64748b',
+    marginBottom: 32,
+  },
+  appointmentDetails: {
+    flexDirection: 'row',
+    backgroundColor: '#f8fafc',
+    padding: 16,
+    borderRadius: 16,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  doctorImageSmall: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginRight: 16,
+  },
+  doctorDetailsSmall: {
+    flex: 1,
+  },
+  doctorNameSmall: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#131616',
+  },
+  doctorSpecialtySmall: {
+    fontSize: 14,
+    color: '#64748b',
+    marginBottom: 4,
+  },
+  timeInfoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  appointmentTimeText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#2d7576',
+  },
+  waitingContainer: {
+    alignItems: 'center',
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9',
+    width: '100%',
+  },
+  waitingText: {
+    fontSize: 14,
+    color: '#64748b',
+    marginBottom: 8,
+  },
+  timerText: {
+    fontSize: 48,
+    fontWeight: '800',
+    color: '#2d7576',
+    letterSpacing: 2,
+    marginBottom: 8,
+  },
+  waitingSubtext: {
+    fontSize: 13,
+    color: '#94a3b8',
+    fontStyle: 'italic',
   },
 });
 
-export default ConsultationRequestScreen;
+export default ConsultationRequestScreen

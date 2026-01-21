@@ -93,45 +93,13 @@ export default function ProductDetailScreen({ route, navigation }: any) {
     }, 2500);
   };
 
- const handleWishlistToggle = async () => {
-  try {
-    const wishlist = await loadWishlist();
-
-    const exists = wishlist.some(
-      (item: any) => item.id === product.id
-    );
-
-    let updatedWishlist;
-
-    if (exists) {
-      // REMOVE from wishlist
-      updatedWishlist = wishlist.filter(
-        (item: any) => item.id !== product.id
-      );
-      setIsWishlisted(false);
-    } else {
-      // ADD to wishlist
-      updatedWishlist = [
-        ...wishlist,
-        {
-          id: product.id,
-          title: product.title,
-          price: product.price,
-          image: product.image,
-        },
-      ];
-      setIsWishlisted(true);
-    }
-
-    await saveWishlist(updatedWishlist);
-
+  const handleWishlistToggle = () => {
+    setIsWishlisted(!isWishlisted);
     setShowWishlistModal(true);
-    setTimeout(() => setShowWishlistModal(false), 2000);
-  } catch (error) {
-    console.log("Wishlist error:", error);
-  }
-};
-
+    setTimeout(() => {
+      setShowWishlistModal(false);
+    }, 2000);
+  };
 
   const getVehicleLabel = () => {
     const selected = vehicleTypes.find(v => v.value === formData.vehicleType);

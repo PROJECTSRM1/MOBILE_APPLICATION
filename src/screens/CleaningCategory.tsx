@@ -10,20 +10,33 @@ import {
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import { useNavigation } from "@react-navigation/native"; // ✅ ADDED
+import { useNavigation } from "@react-navigation/native";
+import { useTheme } from "../context/ThemeContext";
 
 const CleaningCategorySelectScreen = () => {
-  const navigation = useNavigation<any>(); // ✅ ADDED
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
+  const navigation = useNavigation<any>(); 
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar
+  barStyle={colors.background === "#ffffff" ? "dark-content" : "light-content"}
+/>
 
-      <LinearGradient colors={["#0d1321", "#101622"]} style={styles.container}>
+
+<LinearGradient
+  colors={
+    colors.background === "#ffffff"
+      ? [colors.background, colors.surface]
+      : ["#0d1321", "#101622"] // keep rich dark gradient
+  }
+  style={styles.container}
+>
         {/* HEADER */}
         <View style={styles.header}>
-          <TouchableOpacity>
-            <Icon name="arrow-back" size={24} color="#fff" />
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Icon name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Cleaning Services</Text>
           <View style={{ width: 24 }} />
@@ -109,119 +122,140 @@ export default CleaningCategorySelectScreen;
 
 /* ================= STYLES ================= */
 
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: "#0d1321",
-  },
-  container: {
-    flex: 1,
-  },
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
-  header: {
-    height: 100,
-    paddingHorizontal: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderBottomWidth: 1,
-    borderBottomColor: "#1c2433",
-  },
-  headerTitle: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "600",
-    
-  },
+    container: {
+      flex: 1,
+    },
 
-  content: {
-    paddingHorizontal: 16,
-    paddingTop: 20,
-    paddingBottom: 16,
-  },
-  title: {
-    color: "#fff",
-    fontSize: 26,
-    fontWeight: "700",
-    lineHeight: 32,
-  },
-  subtitle: {
-    marginTop: 8,
-    color: "#9da6b9",
-    fontSize: 14,
-    lineHeight: 20,
-  },
+    /* ================= HEADER ================= */
+    header: {
+      height: 100,
+      paddingHorizontal: 16,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
 
-  cardsWrapper: {
-    marginTop:0,
-    marginBottom:150,
-    flex: 1,
-    paddingHorizontal: 16,
-    justifyContent: "center",
-    gap: 20,
-  },
+    headerTitle: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: "600",
+    },
 
-  bigCard: {
-    height: 180,
-    borderRadius: 20,
-    overflow: "hidden",
-    backgroundColor: "#1c1f27",
-  },
-  cardImage: {
-    width: "100%",
-    height: "100%",
-  },
-  cardOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.45)",
-  },
-  cardContent: {
-    position: "absolute",
-    bottom: 20,
-    left: 20,
-  },
-  cardTitle: {
-    color: "#fff",
-    fontSize: 22,
-    fontWeight: "700",
-  },
-  cardSub: {
-    marginTop: 6,
-    color: "#d1d5db",
-    fontSize: 14,
-  },
+    /* ================= CONTENT ================= */
+    content: {
+      paddingHorizontal: 16,
+      paddingTop: 20,
+      paddingBottom: 16,
+    },
 
-  bottomNav: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 72,
-    backgroundColor: "#1c1f27",
-    borderTopWidth: 1,
-    borderTopColor: "#282e39",
-    flexDirection: "row",
-    paddingBottom: 12,
-  },
-  navItem: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "flex-end",
-    gap: 4,
-  },
-  navItemActive: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "flex-end",
-    gap: 4,
-  },
-  navText: {
-    color: "#9da6b9",
-    fontSize: 12,
-  },
-  navTextActive: {
-    color: "#1a5cff",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-});
+    title: {
+      color: colors.text,
+      fontSize: 26,
+      fontWeight: "700",
+      lineHeight: 32,
+    },
+
+    subtitle: {
+      marginTop: 8,
+      color: colors.subText,
+      fontSize: 14,
+      lineHeight: 20,
+    },
+
+    /* ================= CARDS ================= */
+    cardsWrapper: {
+      marginTop: 0,
+      marginBottom: 150,
+      flex: 1,
+      paddingHorizontal: 16,
+      justifyContent: "center",
+      gap: 20,
+    },
+
+    bigCard: {
+      height: 180,
+      borderRadius: 20,
+      overflow: "hidden",
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    cardImage: {
+      width: "100%",
+      height: "100%",
+    },
+
+    cardOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: "rgba(0,0,0,0.45)", // keeps contrast for both modes
+    },
+
+    cardContent: {
+      position: "absolute",
+      bottom: 20,
+      left: 20,
+      right: 20,
+    },
+
+    cardTitle: {
+      color: "#ffffff", // intentional: image overlay readability
+      fontSize: 22,
+      fontWeight: "700",
+    },
+
+    cardSub: {
+      marginTop: 6,
+      color: "#e5e7eb",
+      fontSize: 14,
+    },
+
+    /* ================= BOTTOM NAV ================= */
+    bottomNav: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: 72,
+      backgroundColor: colors.surface,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      flexDirection: "row",
+      paddingBottom: 12,
+    },
+
+    navItem: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "flex-end",
+      gap: 4,
+    },
+
+    navItemActive: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "flex-end",
+      gap: 4,
+    },
+
+    navText: {
+      color: colors.subText,
+      fontSize: 12,
+    },
+
+    navTextActive: {
+      color: colors.primary,
+      fontSize: 12,
+      fontWeight: "600",
+    },
+  });

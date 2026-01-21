@@ -13,6 +13,7 @@ import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTheme } from "../context/ThemeContext";
 
 
 import { ImageSourcePropType } from "react-native";
@@ -65,6 +66,8 @@ const SERVICES: Service[] = [
   },
 ];
 const CleaningServicesScreen = () => {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
     const navigation=useNavigation<any>();
 const [selectedServices, setSelectedServices] = useState<Service[]>([]);
 
@@ -198,157 +201,189 @@ const isSelected = selectedServices.some(s => s.id === item.id);
 
 export default CleaningServicesScreen;
 
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: "#0d1321",
-  },
-  container: {
-    flex: 1,
-  },
-  header: {
-    height: 32,
-    paddingHorizontal: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderBottomWidth: 1,
-    borderBottomColor: "#1c2433",
-  },
-  headerTitle: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  content: {
-    paddingHorizontal: 16,
-    paddingTop: 20,
-    paddingBottom: 12,
-  },
-  title: {
-    color: "#fff",
-    fontSize: 26,
-    fontWeight: "700",
-    lineHeight: 32,
-  },
-  subtitle: {
-    marginTop: 8,
-    color: "#9da6b9",
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  list: {
-    paddingHorizontal: 16,
-    paddingBottom: 160,
-  },
-  card: {
-    flex: 1,
-    backgroundColor: "#1c212b",
-    borderRadius: 16,
-    padding: 12,
-    margin: 8,
-    borderWidth: 2,
-    borderColor: "transparent",
-  },
-  cardSelected: {
-    borderColor: "#1a5cff",
-  },
-  imageWrapper: {
-    borderRadius: 12,
-    overflow: "hidden",
-    marginBottom: 10,
-  },
-  image: {
-    width: "100%",
-    height: 110,
-  },
-  checkCircle: {
-    position: "absolute",
-    top: 8,
-    right: 8,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  checkCircleSelected: {
-    backgroundColor: "#1a5cff",
-  },
-  cardTitle: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  cardPrice: {
-    marginTop: 4,
-    color: "#9da6b9",
-    fontSize: 14,
-  },
-  cardPriceSelected: {
-    color: "#1a5cff",
-    fontWeight: "600",
-  },
-  ctaWrapper: {
-    position: "absolute",
-    bottom: 88,
-    left: 16,
-    right: 16,
-  },
-  ctaButton: {
-    height: 52,
-    borderRadius: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-  },
-  ctaDisabled: {
-    opacity: 0.5,
-  },
-  ctaText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  bottomNav: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 72,
-    backgroundColor: "#1c1f27",
-    borderTopWidth: 1,
-    borderTopColor: "#282e39",
-    flexDirection: "row",
-    paddingBottom: 12,
-  },
-  navItem: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "flex-end",
-    gap: 4,
-  },
-  navItemActive: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "flex-end",
-    gap: 4,
-  },
-  navText: {
-    color: "#9da6b9",
-    fontSize: 12,
-  },
-  navTextActive: {
-    color: "#1a5cff",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  safeHeader: {
-    // marginTop: StatusBar.currentHeight,
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
-  backgroundColor: "#0d1321",
-},
+    container: {
+      flex: 1,
+    },
 
-});
+    /* ================= HEADER ================= */
+    header: {
+      height: 48,
+      paddingHorizontal: 16,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+
+    headerTitle: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: "600",
+    },
+
+    safeHeader: {
+      backgroundColor: colors.surface,
+    },
+
+    /* ================= CONTENT ================= */
+    content: {
+      paddingHorizontal: 16,
+      paddingTop: 20,
+      paddingBottom: 12,
+    },
+
+    title: {
+      color: colors.text,
+      fontSize: 26,
+      fontWeight: "700",
+      lineHeight: 32,
+    },
+
+    subtitle: {
+      marginTop: 8,
+      color: colors.subText,
+      fontSize: 14,
+      lineHeight: 20,
+    },
+
+    list: {
+      paddingHorizontal: 16,
+      paddingBottom: 160,
+    },
+
+    /* ================= CARD ================= */
+    card: {
+      flex: 1,
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      padding: 12,
+      margin: 8,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    cardSelected: {
+      borderColor: colors.primary,
+      backgroundColor: colors.surface,
+    },
+
+    imageWrapper: {
+      borderRadius: 12,
+      overflow: "hidden",
+      marginBottom: 10,
+    },
+
+    image: {
+      width: "100%",
+      height: 110,
+    },
+
+    checkCircle: {
+      position: "absolute",
+      top: 8,
+      right: 8,
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: "rgba(0,0,0,0.45)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    checkCircleSelected: {
+      backgroundColor: colors.primary,
+    },
+
+    cardTitle: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: "600",
+    },
+
+    cardPrice: {
+      marginTop: 4,
+      color: colors.subText,
+      fontSize: 14,
+    },
+
+    cardPriceSelected: {
+      color: colors.primary,
+      fontWeight: "600",
+    },
+
+    /* ================= CTA ================= */
+    ctaWrapper: {
+      position: "absolute",
+      bottom: 88,
+      left: 16,
+      right: 16,
+    },
+
+    ctaButton: {
+      height: 52,
+      borderRadius: 14,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      backgroundColor: colors.primary,
+    },
+
+    ctaDisabled: {
+      opacity: 0.5,
+    },
+
+    ctaText: {
+      color: "#ffffff",
+      fontSize: 16,
+      fontWeight: "700",
+    },
+
+    /* ================= BOTTOM NAV ================= */
+    bottomNav: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: 72,
+      backgroundColor: colors.surface,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      flexDirection: "row",
+      paddingBottom: 12,
+    },
+
+    navItem: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "flex-end",
+      gap: 4,
+    },
+
+    navItemActive: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "flex-end",
+      gap: 4,
+    },
+
+    navText: {
+      color: colors.subText,
+      fontSize: 12,
+    },
+
+    navTextActive: {
+      color: colors.primary,
+      fontSize: 12,
+      fontWeight: "600",
+    },
+  });

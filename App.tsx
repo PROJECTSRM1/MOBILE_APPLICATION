@@ -1,7 +1,9 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { ThemeProvider, useTheme } from "./src/context/ThemeContext";
 
+/* ================= SCREENS ================= */
 import Splash from "./src/screens/Splash";
 import Onboarding from "./src/screens/Onboarding";
 import Landing from "./src/screens/Landing";
@@ -25,7 +27,6 @@ import SwachifyMarketScreen from "./src/screens/SwachifyMarketScreen";
 import ProductRegistration from "./src/screens/ProductRegistration";
 import Studentlisting from "./src/screens/Studentlisting";
 import InternshipList from "./src/screens/InternshipList";
-import type { Internship } from "./src/screens/InternshipList";
 import Freelancer from "./src/screens/Freelancer";
 import TransportComingSoon from "./src/screens/TransportComingSoon";
 import RawMaterial from "./src/screens/RawMaterial";
@@ -33,10 +34,6 @@ import HomeSub from "./src/screens/HomeSub";
 import HomeSubCat from "./src/screens/HomeSubCat";
 import CommercialSub from "./src/screens/CommercialSub";
 import VehicleSub from "./src/screens/VehicleSub";
-import { ThemeProvider } from "./src/context/ThemeContext";
-
-
-
 import EmployeeHomeScreen from "./src/screens/EmployeeHomeScreen";
 import CartScreen from "./src/screens/CartScreen";
 import CandidateProfile from "./src/screens/CandidateProfile";
@@ -47,7 +44,6 @@ import ApplicationSuccessScreen from "./src/screens/ApplicationSuccessScreen";
 import ServiceDetailsScreen from "./src/screens/ServiceDetailsScreen";
 import PaymentSuccessDetailsScreen from "./src/screens/PaymentSuccessDetailsScreen";
 import ProductDetailScreen from "./src/screens/ProductDetailScreen";
-import RegisterProductModal from "./src/screens/RegisterProductModal";
 import BuyerPage from "./src/screens/BuyerPage";
 import JustrideMultiStop from "./src/screens/JustRideMultiStop";
 import JustrideApp from "./src/screens/JustrideApp";
@@ -57,79 +53,20 @@ import TelemedicineConsultation from "./src/screens/TelemedicineConsultation";
 import FacilitiesScreen from "./src/screens/FacilitiesScreen";
 import Wishlist from "./src/screens/Wishlist";
 
+import ParcelView from "./src/screens/ParcelView";
+import MetroView from "./src/screens/MetroView";
+import ScootyView from "./src/screens/ScootyView";
+import EnrollmentDetailsScreen from "./src/screens/EnrollmentDetailsScreen";
 
+/* ================= NAV ================= */
+const Stack = createNativeStackNavigator();
 
-export type RootStackParamList = {
-  Splash: undefined;
-  Onboarding: undefined;
-  Landing: { isLoggedIn?: boolean } | undefined;
-  Internship: { internship: Internship };
-  WelcomeOne: undefined;
-  StudentListing: undefined;
-  Cleaning: undefined;
-  CleaningCategory: undefined;
-  Login: { role?: "customer" | "user"; prefilledEmail?: string; prefilledPassword?: string } | undefined;
-  Signup: undefined;
-  Transport: undefined;
-  CustomerDashboard: undefined;
-  UserDashboard: undefined;
-  Settings: undefined;
-  Rentals: undefined;
-  Construction: undefined;
-  FreelancerDashboard: undefined;
-  FDOverview: undefined;
-  Freelancer: undefined;
-  ServiceRequests: undefined;
-  PaymentScreen: undefined;
-  BookCleaning: undefined;
-  EducationHome: undefined;
-  ProfileInformation: undefined;
-  AuthScreen: undefined;
-  Notifications: undefined;
-  EmployeeAllocation: undefined;
-  JobDetails: undefined;
-  CleaningServiceScreen: undefined;
-  CompaniesListingScreen: undefined;
-  Marketplace: undefined;
-  SellItem: undefined;
-  ProductScreen: undefined;
-  SwachifyMarketScreen: undefined;
-  ProductRegistration: undefined;
-  InternshipList: undefined;
-  RawMaterial: undefined;
-  HomeSub: undefined;
-  HomeSubCat: undefined;
-  CommercialSub: undefined;
-  VehicleSub: undefined;
-  EmployeeHomeScreen: undefined;
-  Cart: undefined;
-  CandidateProfile: undefined;
-  Training: undefined;
-  TrainingDetails: undefined;
-  ApplicationSuccess: undefined;
-  // ReviewApplication: undefined;
-   ReviewApplication: { internship: Internship };
-  ProductDetail: undefined;
-  BuyerPage: undefined;
-  ServiceDetails: undefined;
-  PaymentSuccessDetails: undefined;
-  JustRideMultiStop: undefined;
-  JustrideApp: undefined;
-  Health:undefined;
-  Form:undefined;
-  Telecom:undefined;
-  Facility:undefined;
-  Wishlist: undefined;
+/* ================= NAV WRAPPER ================= */
+function AppNavigator() {
+  const { navigationTheme } = useTheme();
 
-};
-
-
-const Stack = createNativeStackNavigator<RootStackParamList>();
-
-export default function App(): React.ReactElement {
   return (
-    <ThemeProvider>  
-    <NavigationContainer>
+    <NavigationContainer theme={navigationTheme}>
       <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={Splash} />
         <Stack.Screen name="Onboarding" component={Onboarding} />
@@ -158,23 +95,22 @@ export default function App(): React.ReactElement {
         <Stack.Screen name="SwachifyMarketScreen" component={SwachifyMarketScreen} />
         <Stack.Screen name="ProductRegistration" component={ProductRegistration} />
         <Stack.Screen name="Transport" component={TransportComingSoon} />
-         <Stack.Screen name="Freelancer" component={Freelancer} />
-         <Stack.Screen name="RawMaterial" component={RawMaterial} />
-         <Stack.Screen name="HomeSub" component={HomeSub} />
-         <Stack.Screen name="HomeSubCat" component={HomeSubCat} />
-<Stack.Screen name="CommercialSub" component={CommercialSub} />
-<Stack.Screen name="VehicleSub" component={VehicleSub} />
-
-         <Stack.Screen name="EmployeeHomeScreen" component={EmployeeHomeScreen} />
-         <Stack.Screen name="Cart" component={CartScreen} />
+        <Stack.Screen name="Freelancer" component={Freelancer} />
+        <Stack.Screen name="RawMaterial" component={RawMaterial} />
+        <Stack.Screen name="HomeSub" component={HomeSub} />
+        <Stack.Screen name="HomeSubCat" component={HomeSubCat} />
+        <Stack.Screen name="CommercialSub" component={CommercialSub} />
+        <Stack.Screen name="VehicleSub" component={VehicleSub} />
+        <Stack.Screen name="EmployeeHomeScreen" component={EmployeeHomeScreen} />
+        <Stack.Screen name="Cart" component={CartScreen} />
         <Stack.Screen name="Training" component={TrainingScreen} />
-        <Stack.Screen name="ApplicationSuccess" component={ApplicationSuccessScreen} />
         <Stack.Screen name="TrainingDetails" component={TrainingDetailsScreen} />
+        <Stack.Screen name="ApplicationSuccess" component={ApplicationSuccessScreen} />
         <Stack.Screen name="ReviewApplication" component={ReviewApplication} />
         <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
         <Stack.Screen name="BuyerPage" component={BuyerPage} />
         <Stack.Screen name="JustRideMultiStop" component={JustrideMultiStop} />
-        <Stack.Screen name= "JustrideApp" component={JustrideApp} />
+        <Stack.Screen name="JustrideApp" component={JustrideApp} />
         <Stack.Screen name="Health" component={DoctorListScreen} />
         <Stack.Screen name="Form" component={ConsultationRequestScreen} />
          <Stack.Screen name="Telecom" component={TelemedicineConsultation} />
@@ -182,8 +118,22 @@ export default function App(): React.ReactElement {
          <Stack.Screen name="Wishlist" component={Wishlist} />
 
 
+         <Stack.Screen name="ParcelView" component={ParcelView} />
+         <Stack.Screen name="MetroView" component={MetroView} />
+         <Stack.Screen name="ScootyView" component={ScootyView} />
+        <Stack.Screen name="Facility" component={FacilitiesScreen} />
+        <Stack.Screen name="enrollmentDetails" component={EnrollmentDetailsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
      </ThemeProvider> 
+  );
+}
+
+/* ================= ROOT ================= */
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppNavigator />
+    </ThemeProvider>
   );
 }

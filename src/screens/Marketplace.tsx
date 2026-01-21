@@ -18,6 +18,7 @@ import Geolocation from 'react-native-geolocation-service';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PERMISSIONS, RESULTS, request } from 'react-native-permissions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from "../context/ThemeContext";
 
 const { width } = Dimensions.get('window');
 
@@ -63,7 +64,8 @@ const Marketplace = ({ navigation }: any) => {
   const [selectedPropertyType, setSelectedPropertyType] = useState('All');
   const [selectedDateFilter, setSelectedDateFilter] = useState('All Time');
   const [selectedRatingFilter, setSelectedRatingFilter] = useState('All Ratings');
-  
+    const { colors } = useTheme();
+const styles = getStyles(colors) as any;
   const [properties, setProperties] = useState<Property[]>([]);
 
   useEffect(() => {
@@ -629,463 +631,336 @@ const Marketplace = ({ navigation }: any) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0a0c10',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#1e293b',
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#fff',
-  },
-  listingTypeDropdown: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#161b26',
-    borderWidth: 1,
-    borderColor: '#232936',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
-    gap: 4,
-  },
-  listingTypeText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  sellButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#135bec',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    gap: 4,
-  },
-  sellButtonText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  filterContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#1e293b',
-  },
-  filterPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#161b26',
-    borderWidth: 1,
-    borderColor: '#232936',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    marginRight: 8,
-    gap: 6,
-  },
-  filterText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  content: {
-    flex: 1,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#161b26',
-    marginHorizontal: 16,
-    marginTop: 16,
-    marginBottom: 24,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 14,
-    color: '#fff',
-    paddingVertical: 12,
-  },
-  locationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    marginBottom: 24,
-  },
-  locationLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  locationIconContainer: {
-    backgroundColor: 'rgba(19, 91, 236, 0.1)',
-    padding: 6,
-    borderRadius: 8,
-  },
-  locationLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#64748b',
-    letterSpacing: 1,
-  },
-  locationText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#fff',
-  },
-  changeText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#135bec',
-  },
-  categoryScroll: {
-    paddingHorizontal: 16,
-    marginBottom: 32,
-  },
-  categoryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 40,
-    backgroundColor: '#161b26',
-    borderWidth: 1,
-    borderColor: '#232936',
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    marginRight: 8,
-    gap: 8,
-  },
-  activeCategoryButton: {
-    backgroundColor: '#135bec',
-    borderColor: '#135bec',
-  },
-  categoryText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#94a3b8',
-  },
-  activeCategoryText: {
-    color: '#fff',
-  },
-  propertiesHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-  propertiesTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#fff',
-  },
-  sortContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  sortText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#94a3b8',
-  },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-    paddingHorizontal: 32,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#fff',
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#64748b',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  emptyButton: {
-    backgroundColor: '#135bec',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  emptyButtonText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: 8,
-    paddingBottom: 100,
-  },
-card: {
-width: (width - 48) / 2,
-margin: 8,
-},
-cardImage: {
-width: '100%',
-aspectRatio: 4 / 5,
-borderRadius: 16,
-overflow: 'hidden',
-position: 'relative',
-marginBottom: 8,
-},
-image: {
-width: '100%',
-height: '100%',
-},
-favoriteButton: {
-position: 'absolute',
-top: 8,
-right: 8,
-backgroundColor: 'rgba(255, 255, 255, 0.2)',
-padding: 6,
-borderRadius: 20,
-},
-topBadgesContainer: {
-position: 'absolute',
-top: 8,
-left: 8,
-flexDirection: 'column',
-gap: 4,
-},
-newBadge: {
-backgroundColor: '#10b981',
-paddingHorizontal: 8,
-paddingVertical: 2,
-borderRadius: 4,
-},
-newBadgeText: {
-fontSize: 10,
-fontWeight: '700',
-color: '#fff',
-letterSpacing: 1,
-},
-saleBadge: {
-backgroundColor: '#3b82f6',
-paddingHorizontal: 8,
-paddingVertical: 2,
-borderRadius: 4,
-},
-saleBadgeText: {
-fontSize: 9,
-fontWeight: '700',
-color: '#fff',
-letterSpacing: 0.5,
-},
-rentBadge: {
-backgroundColor: '#f59e0b',
-paddingHorizontal: 8,
-paddingVertical: 2,
-borderRadius: 4,
-},
-rentBadgeText: {
-fontSize: 9,
-fontWeight: '700',
-color: '#fff',
-letterSpacing: 0.5,
-},
-conditionBadge: {
-paddingHorizontal: 8,
-paddingVertical: 2,
-borderRadius: 4,
-},
-newConditionBadge: {
-backgroundColor: '#8b5cf6',
-},
-oldConditionBadge: {
-backgroundColor: '#6b7280',
-},
-conditionBadgeText: {
-fontSize: 9,
-fontWeight: '700',
-color: '#fff',
-letterSpacing: 0.5,
-},
-ratingBadge: {
-position: 'absolute',
-bottom: 8,
-left: 8,
-backgroundColor: 'rgba(0, 0, 0, 0.4)',
-flexDirection: 'row',
-alignItems: 'center',
-paddingHorizontal: 8,
-paddingVertical: 4,
-borderRadius: 6,
-gap: 4,
-},
-ratingText: {
-fontSize: 10,
-fontWeight: '700',
-color: '#fff',
-},
-cardContent: {
-paddingHorizontal: 4,
-},
-cardTitle: {
-fontSize: 14,
-fontWeight: '700',
-color: '#fff',
-marginBottom: 4,
-},
-cardPrice: {
-fontSize: 16,
-fontWeight: '800',
-color: '#135bec',
-marginBottom: 6,
-},
-locationRow: {
-flexDirection: 'row',
-alignItems: 'center',
-gap: 4,
-marginBottom: 3,
-},
-locationDetailText: {
-fontSize: 10,
-fontWeight: '500',
-color: '#64748b',
-flex: 1,
-},
-areaRow: {
-flexDirection: 'row',
-alignItems: 'center',
-gap: 4,
-marginBottom: 6,
-},
-areaDetailText: {
-fontSize: 10,
-fontWeight: '500',
-color: '#64748b',
-flex: 1,
-},
-cardDetails: {
-flexDirection: 'row',
-gap: 12,
-marginBottom: 4,
-},
-detailItem: {
-flexDirection: 'row',
-alignItems: 'center',
-gap: 4,
-},
-detailText: {
-fontSize: 10,
-fontWeight: '500',
-color: '#64748b',
-},
-distanceContainer: {
-flexDirection: 'row',
-alignItems: 'center',
-gap: 4,
-},
-distanceText: {
-fontSize: 10,
-fontWeight: '500',
-color: '#64748b',
-},
-bottomNav: {
-flexDirection: 'row',
-justifyContent: 'space-around',
-alignItems: 'center',
-backgroundColor: 'rgba(10, 12, 16, 0.95)',
-borderTopWidth: 1,
-borderTopColor: '#1e293b',
-paddingTop: 12,
-paddingBottom: 24,
-},
-navItem: {
-alignItems: 'center',
-gap: 4,
-},
-navText: {
-fontSize: 10,
-fontWeight: '700',
-color: '#64748b',
-},
-activeNavText: {
-color: '#135bec',
-},
-modalOverlay: {
-flex: 1,
-backgroundColor: 'rgba(0, 0, 0, 0.7)',
-justifyContent: 'flex-end',
-},
-modalContent: {
-backgroundColor: '#161b26',
-borderTopLeftRadius: 24,
-borderTopRightRadius: 24,
-maxHeight: '70%',
-paddingBottom: 24,
-},
-modalHeader: {
-flexDirection: 'row',
-justifyContent: 'space-between',
-alignItems: 'center',
-paddingHorizontal: 20,
-paddingVertical: 16,
-borderBottomWidth: 1,
-borderBottomColor: '#232936',
-},
-modalTitle: {
-fontSize: 18,
-fontWeight: '700',
-color: '#fff',
-},
-optionsList: {
-paddingHorizontal: 16,
-paddingTop: 8,
-},
-optionItem: {
-flexDirection: 'row',
-justifyContent: 'space-between',
-alignItems: 'center',
-paddingVertical: 16,
-paddingHorizontal: 12,
-borderBottomWidth: 1,
-borderBottomColor: '#232936',
-},
-selectedOption: {
-backgroundColor: 'rgba(19, 91, 236, 0.1)',
-},
-optionText: {
-fontSize: 16,
-fontWeight: '500',
-color: '#fff',
-},
-selectedOptionText: {
-color: '#135bec',
-fontWeight: '600',
-},
-});
-
 export default Marketplace;
+
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+
+    headerLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+
+    headerTitle: {
+      fontSize: 16,
+      fontWeight: "800",
+      color: colors.text,
+    },
+
+    listingTypeDropdown: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 8,
+      gap: 4,
+    },
+
+    listingTypeText: {
+      fontSize: 12,
+      fontWeight: "700",
+      color: colors.text,
+    },
+
+    sellButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.primary,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 8,
+      gap: 4,
+    },
+
+    sellButtonText: {
+      fontSize: 12,
+      fontWeight: "700",
+      color: colors.onPrimary ?? "#fff",
+    },
+
+    filterContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+
+    filterPill: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 20,
+      marginRight: 8,
+      gap: 6,
+    },
+
+    filterText: {
+      fontSize: 11,
+      fontWeight: "700",
+      color: colors.text,
+    },
+
+    content: { flex: 1 },
+
+    searchContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.card,
+      marginHorizontal: 16,
+      marginTop: 16,
+      marginBottom: 24,
+      borderRadius: 12,
+      paddingHorizontal: 12,
+    },
+
+    searchIcon: { marginRight: 8 },
+
+    searchInput: {
+      flex: 1,
+      fontSize: 14,
+      color: colors.text,
+      paddingVertical: 12,
+    },
+
+    locationContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      marginBottom: 24,
+    },
+
+    locationLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+
+    locationIconContainer: {
+      backgroundColor: colors.primary + "1A",
+      padding: 6,
+      borderRadius: 8,
+    },
+
+    locationLabel: {
+      fontSize: 10,
+      fontWeight: "700",
+      color: colors.subText,
+      letterSpacing: 1,
+    },
+
+    locationText: {
+      fontSize: 14,
+      fontWeight: "800",
+      color: colors.text,
+    },
+
+    changeText: {
+      fontSize: 11,
+      fontWeight: "700",
+      color: colors.primary,
+    },
+
+    categoryScroll: {
+      paddingHorizontal: 16,
+      marginBottom: 32,
+    },
+
+    categoryButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      height: 40,
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: 16,
+      borderRadius: 12,
+      marginRight: 8,
+      gap: 8,
+    },
+
+    activeCategoryButton: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+
+    categoryText: {
+      fontSize: 12,
+      fontWeight: "700",
+      color: colors.subText,
+    },
+
+    activeCategoryText: {
+      color: colors.onPrimary ?? "#fff",
+    },
+
+    propertiesHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      marginBottom: 16,
+    },
+
+    propertiesTitle: {
+      fontSize: 18,
+      fontWeight: "800",
+      color: colors.text,
+    },
+
+    sortContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+    },
+
+    sortText: {
+      fontSize: 12,
+      fontWeight: "700",
+      color: colors.subText,
+    },
+
+    emptyState: {
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 60,
+      paddingHorizontal: 32,
+    },
+
+    emptyTitle: {
+      fontSize: 20,
+      fontWeight: "800",
+      color: colors.text,
+      marginTop: 16,
+      marginBottom: 8,
+    },
+
+    emptySubtitle: {
+      fontSize: 14,
+      fontWeight: "500",
+      color: colors.subText,
+      textAlign: "center",
+      marginBottom: 24,
+    },
+
+    emptyButton: {
+      backgroundColor: colors.primary,
+      paddingHorizontal: 24,
+      paddingVertical: 12,
+      borderRadius: 12,
+    },
+
+    emptyButtonText: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: colors.onPrimary ?? "#fff",
+    },
+
+    bottomNav: {
+      flexDirection: "row",
+      justifyContent: "space-around",
+      alignItems: "center",
+      backgroundColor: colors.background + "F2",
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      paddingTop: 12,
+      paddingBottom: 24,
+    },
+
+    navItem: {
+      alignItems: "center",
+      gap: 4,
+    },
+
+    navText: {
+      fontSize: 10,
+      fontWeight: "700",
+      color: colors.subText,
+    },
+
+    activeNavText: {
+      color: colors.primary,
+    },
+
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.7)",
+      justifyContent: "flex-end",
+    },
+
+    modalContent: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      maxHeight: "70%",
+      paddingBottom: 24,
+    },
+
+    modalHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: colors.text,
+    },
+
+    optionsList: {
+      paddingHorizontal: 16,
+      paddingTop: 8,
+    },
+
+    optionItem: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: 16,
+      paddingHorizontal: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+
+    selectedOption: {
+      backgroundColor: colors.primary + "1A",
+    },
+
+    optionText: {
+      fontSize: 16,
+      fontWeight: "500",
+      color: colors.text,
+    },
+
+    selectedOptionText: {
+      color: colors.primary,
+      fontWeight: "600",
+    },
+  });

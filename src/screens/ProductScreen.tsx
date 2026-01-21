@@ -14,10 +14,10 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import RegisterProductModal from "./RegisterProductModal";
+import { useTheme } from "../context/ThemeContext";
 
 const INITIAL_PRODUCTS = [
   {
@@ -89,6 +89,8 @@ const ENTREPRENEURS = [
 const STORAGE_KEY = "swachify_products";
 
 export default function SwachifyMarketScreen() {
+    const { colors } = useTheme();
+    const styles = getStyles(colors);
   const navigation = useNavigation<any>();
 
   const [activeFilter, setActiveFilter] = useState("all");
@@ -267,10 +269,10 @@ export default function SwachifyMarketScreen() {
 
         {/* Category Filters */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chips}>
-          <Filter label="All Products" value="all" active={activeFilter} setActive={setActiveFilter} />
-          <Filter label="Sustainable" value="sustainable" icon="eco" active={activeFilter} setActive={setActiveFilter} />
-          <Filter label="Recycled" value="recycled" icon="recycling" active={activeFilter} setActive={setActiveFilter} />
-          <Filter label="Cleaners" value="cleaners" icon="sanitizer" active={activeFilter} setActive={setActiveFilter} />
+          <Filter label="All Products" value="all" active={activeFilter} setActive={setActiveFilter} colors={colors}styles={styles} />
+          <Filter label="Sustainable" value="sustainable" icon="eco" active={activeFilter} setActive={setActiveFilter} colors={colors} styles={styles} />
+          <Filter label="Recycled" value="recycled" icon="recycling" active={activeFilter} setActive={setActiveFilter} colors={colors} styles={styles} />
+          <Filter label="Cleaners" value="cleaners" icon="sanitizer" active={activeFilter} setActive={setActiveFilter} colors={colors} styles={styles} />
         </ScrollView>
 
         {/* Sort Button */}
@@ -372,10 +374,10 @@ export default function SwachifyMarketScreen() {
 
       {/* Footer */}
       <View style={styles.footer}>
-        <FooterTab icon="home" label="Home" />
-        <FooterTab icon="storefront" label="Market" active />
-        <FooterTab icon="analytics" label="Stats" />
-        <FooterTab icon="person" label="Profile" />
+        <FooterTab icon="home" label="Home" active colors={colors} styles={styles} />
+        <FooterTab icon="storefront" label="Market" active={false} colors={colors} styles={styles} />
+        <FooterTab icon="analytics" label="Stats" active={false} colors={colors} styles={styles} />
+        <FooterTab icon="person" label="Profile" active={false} colors={colors} styles={styles} />
       </View>
 
       {/* Toast */}
@@ -554,242 +556,521 @@ export default function SwachifyMarketScreen() {
   );
 }
 
-const Filter = ({ label, value, icon, active, setActive }: any) => (
+const Filter = ({ label, value, icon, active, setActive, colors, styles }: any) => (
   <TouchableOpacity
     onPress={() => setActive(value)}
-    style={[styles.chip, active === value && styles.chipActive]}
+    style={[
+      styles.chip,
+      active === value && styles.chipActive,
+    ]}
   >
-    {icon && <MaterialIcons name={icon} size={16} color={active === value ? "#fff" : "#9da6b9"} />}
-    <Text style={[styles.chipText, active === value && { color: "#fff" }]}>{label}</Text>
+    {icon && (
+      <MaterialIcons
+        name={icon}
+        size={16}
+        color={active === value ? "#ffffff" : colors.subText}
+      />
+    )}
+
+    <Text
+      style={[
+        styles.chipText,
+        active === value && styles.activeChipText,
+      ]}
+    >
+      {label}
+    </Text>
   </TouchableOpacity>
 );
 
-const FooterTab = ({ icon, label, active }: any) => (
+
+const FooterTab = ({ icon, label, active, colors, styles }: any) => (
   <TouchableOpacity style={styles.footerTab}>
-    <MaterialIcons name={icon} size={22} color={active ? "#135bec" : "#9da6b9"} />
-    <Text style={[styles.footerText, active && { color: "#135bec" }]}>{label}</Text>
+    <MaterialIcons
+      name={icon}
+      size={22}
+      color={active ? colors.primary : colors.subText}
+    />
+    <Text
+      style={[
+        styles.footerText,
+        active && { color: colors.primary },
+      ]}
+    >
+      {label}
+    </Text>
   </TouchableOpacity>
 );
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#101622" },
-  header: {
-    height: 56,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-  },
-  headerTitle: { color: "#fff", fontSize: 18, fontWeight: "800" },
-  cartBadge: {
-    position: "absolute",
-    top: -6,
-    right: -6,
-    backgroundColor: "#135bec",
-    borderRadius: 10,
-    width: 16,
-    height: 16,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  cartText: { color: "#fff", fontSize: 10, fontWeight: "700" },
-  searchRow: { padding: 16, paddingBottom: 8 },
-  searchBox: {
-    height: 48,
-    backgroundColor: "#1c212e",
-    borderRadius: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    gap: 8,
-  },
-  searchInput: { flex: 1, color: "#fff", fontSize: 15 },
-  registerButtonContainer: { paddingHorizontal: 16, paddingBottom: 12 },
-  registerButton: {
-    backgroundColor: "#135bec",
-    height: 48,
-    borderRadius: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-  },
-  registerButtonText: { color: "#fff", fontSize: 15, fontWeight: "700" },
-  chips: { paddingHorizontal: 16, marginBottom: 8 },
-  chip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 16,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#1c212e",
-    marginRight: 10,
-  },
-  chipActive: { backgroundColor: "#135bec" },
-  chipText: { color: "#9da6b9", fontSize: 13, fontWeight: "600" },
-  sortButtonContainer: { paddingHorizontal: 16, paddingBottom: 8 },
-  sortButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    backgroundColor: "#1c212e",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#135bec",
-  },
-  sortButtonText: { color: "#135bec", fontSize: 14, fontWeight: "600" },
-  activeFilterIndicator: { color: "#22c55e", fontSize: 20 },
-  resultsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  resultsText: { color: "#9da6b9", fontSize: 13 },
-  clearFiltersText: { color: "#135bec", fontSize: 13, fontWeight: "600" },
-  grid: { padding: 16, flexDirection: "row", flexWrap: "wrap", gap: 14 },
-  emptyContainer: {
-    width: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 60,
-  },
-  emptyText: { color: "#fff", fontSize: 18, fontWeight: "600", marginTop: 16 },
-  emptySubtext: { color: "#6b7280", fontSize: 14, marginTop: 6 },
-  card: { width: "47%" },
-  cardImage: { height: 190, borderRadius: 18, justifyContent: "space-between", padding: 10 },
-  tag: {
-    backgroundColor: "rgba(255,255,255,0.9)",
-    fontSize: 10,
-    fontWeight: "700",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    color: "#135bec",
-    alignSelf: "flex-start",
-  },
-  addBtn: { alignSelf: "flex-end", backgroundColor: "#135bec", padding: 8, borderRadius: 10 },
-  cardTitle: { color: "#fff", fontSize: 13, fontWeight: "700", marginTop: 6 },
-  cardBrand: { color: "#9da6b9", fontSize: 11, marginTop: 2 },
-  cardMeta: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    marginTop: 4,
-  },
-  ratingContainer: { flexDirection: "row", alignItems: "center", gap: 2 },
-  ratingText: { color: "#fbbf24", fontSize: 12, fontWeight: "600" },
-  distanceContainer: { flexDirection: "row", alignItems: "center", gap: 2 },
-  distanceText: { color: "#9da6b9", fontSize: 11 },
-  cardPrice: { color: "#135bec", fontSize: 15, fontWeight: "800", marginTop: 4 },
-  sectionTitle: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
-    paddingHorizontal: 16,
-    marginTop: 20,
-    marginBottom: 12,
-  },
-  avatarRow: { paddingHorizontal: 16, marginBottom: 12 },
-  avatarItem: { alignItems: "center", marginRight: 16 },
-  avatar: { width: 60, height: 60, borderRadius: 30, borderWidth: 2, borderColor: "#135bec" },
-  avatarText: { color: "#fff", fontSize: 10, marginTop: 6 },
-  footer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 64,
-    backgroundColor: "#0f1522",
-    flexDirection: "row",
-    borderTopWidth: 1,
-    borderTopColor: "#1c212e",
-  },
-  footerTab: { flex: 1, alignItems: "center", justifyContent: "center" },
-  footerText: { fontSize: 10, color: "#9da6b9", marginTop: 2 },
-  toastWrapper: { flex: 1, justifyContent: "center", alignItems: "center" },
-  toast: {
-    flexDirection: "row",
-    gap: 8,
-    backgroundColor: "#1c212e",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 14,
-  },
-  toastText: { color: "#fff", fontSize: 13, fontWeight: "600" },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
-    justifyContent: "flex-end",
-  },
-  sortModalContainer: {
-    backgroundColor: "#1c212e",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: "80%",
-  },
-  sortModalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#374151",
-  },
-  sortModalTitle: { color: "#fff", fontSize: 20, fontWeight: "700" },
-  sortSection: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-  },
-  sortSectionTitle: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 12,
-  },
-  sortOption: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
-    borderRadius: 12,
-    marginBottom: 8,
-  },
-  sortOptionActive: {
-    backgroundColor: "rgba(19, 91, 236, 0.1)",
-    borderWidth: 1,
-    borderColor: "#135bec",
-  },
-  sortOptionText: { color: "#9da6b9", fontSize: 15, fontWeight: "500" },
-  sortOptionTextActive: { color: "#fff", fontWeight: "600" },
-  sortModalFooter: {
-    flexDirection: "row",
-    gap: 12,
-    padding: 20,
-    borderTopWidth: 1,
-    borderTopColor: "#374151",
-  },
-  resetButton: {
-    flex: 1,
-    paddingVertical: 14,
-    backgroundColor: "#374151",
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  resetButtonText: { color: "#fff", fontSize: 15, fontWeight: "600" },
-  applyButton: {
-    flex: 1,
-    paddingVertical: 14,
-    backgroundColor: "#135bec",
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  applyButtonText: { color: "#fff", fontSize: 15, fontWeight: "700" },
-});
+
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+
+    /* ================= HEADER ================= */
+    header: {
+      height: 56,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: 16,
+      backgroundColor: colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+
+    headerTitle: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: "800",
+    },
+
+    cartBadge: {
+      position: "absolute",
+      top: -6,
+      right: -6,
+      backgroundColor: colors.primary,
+      borderRadius: 10,
+      width: 16,
+      height: 16,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    cartText: {
+      color: "#ffffff",
+      fontSize: 10,
+      fontWeight: "700",
+    },
+
+    /* ================= SEARCH ================= */
+    searchRow: {
+      padding: 16,
+      paddingBottom: 8,
+    },
+
+    searchBox: {
+      height: 48,
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 12,
+      gap: 8,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    searchInput: {
+      flex: 1,
+      color: colors.text,
+      fontSize: 15,
+    },
+
+    /* ================= REGISTER ================= */
+    registerButtonContainer: {
+      paddingHorizontal: 16,
+      paddingBottom: 12,
+    },
+
+    registerButton: {
+      backgroundColor: colors.primary,
+      height: 48,
+      borderRadius: 16,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+    },
+
+    registerButtonText: {
+      color: "#ffffff",
+      fontSize: 15,
+      fontWeight: "700",
+    },
+
+    /* ================= CHIPS ================= */
+    chips: {
+      paddingHorizontal: 16,
+      marginBottom: 8,
+    },
+
+    chip: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      paddingHorizontal: 16,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.card,
+      marginRight: 10,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    chipActive: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+
+    chipText: {
+      color: colors.subText,
+      fontSize: 13,
+      fontWeight: "600",
+    },
+
+    /* ================= SORT ================= */
+    sortButtonContainer: {
+      paddingHorizontal: 16,
+      paddingBottom: 8,
+    },
+
+    sortButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6,
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.primary,
+    },
+
+    sortButtonText: {
+      color: colors.primary,
+      fontSize: 14,
+      fontWeight: "600",
+    },
+
+    activeFilterIndicator: {
+      color: colors.success ?? "#22c55e",
+      fontSize: 20,
+    },
+
+    /* ================= RESULTS ================= */
+    resultsContainer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+    },
+
+    resultsText: {
+      color: colors.subText,
+      fontSize: 13,
+    },
+
+    clearFiltersText: {
+      color: colors.primary,
+      fontSize: 13,
+      fontWeight: "600",
+    },
+
+    /* ================= GRID ================= */
+    grid: {
+      padding: 16,
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 14,
+    },
+
+    emptyContainer: {
+      width: "100%",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 60,
+    },
+
+    emptyText: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: "600",
+      marginTop: 16,
+    },
+
+    emptySubtext: {
+      color: colors.subText,
+      fontSize: 14,
+      marginTop: 6,
+    },
+
+    /* ================= CARD ================= */
+    card: {
+      width: "47%",
+    },
+
+    cardImage: {
+      height: 190,
+      borderRadius: 18,
+      justifyContent: "space-between",
+      padding: 10,
+      backgroundColor: colors.card,
+    },
+
+    tag: {
+      backgroundColor: "rgba(255,255,255,0.9)",
+      fontSize: 10,
+      fontWeight: "700",
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 6,
+      color: colors.primary,
+      alignSelf: "flex-start",
+    },
+
+    addBtn: {
+      alignSelf: "flex-end",
+      backgroundColor: colors.primary,
+      padding: 8,
+      borderRadius: 10,
+    },
+
+    cardTitle: {
+      color: "#ffffff",
+      fontSize: 13,
+      fontWeight: "700",
+      marginTop: 6,
+    },
+
+    cardBrand: {
+      color: colors.subText,
+      fontSize: 11,
+      marginTop: 2,
+    },
+
+    cardMeta: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      marginTop: 4,
+    },
+
+    ratingContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 2,
+    },
+
+    ratingText: {
+      color: "#fbbf24", // rating stays semantic
+      fontSize: 12,
+      fontWeight: "600",
+    },
+
+    distanceContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 2,
+    },
+
+    distanceText: {
+      color: colors.subText,
+      fontSize: 11,
+    },
+
+    cardPrice: {
+      color: colors.primary,
+      fontSize: 15,
+      fontWeight: "800",
+      marginTop: 4,
+    },
+
+    /* ================= SECTION ================= */
+    sectionTitle: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: "700",
+      paddingHorizontal: 16,
+      marginTop: 20,
+      marginBottom: 12,
+    },
+
+    avatarRow: {
+      paddingHorizontal: 16,
+      marginBottom: 12,
+    },
+
+    avatarItem: {
+      alignItems: "center",
+      marginRight: 16,
+    },
+
+    avatar: {
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      borderWidth: 2,
+      borderColor: colors.primary,
+    },
+
+    avatarText: {
+      color: colors.text,
+      fontSize: 10,
+      marginTop: 6,
+    },
+
+    /* ================= FOOTER ================= */
+    footer: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: 64,
+      backgroundColor: colors.surface,
+      flexDirection: "row",
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+
+    footerTab: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    footerText: {
+      fontSize: 10,
+      color: colors.subText,
+      marginTop: 2,
+    },
+
+    /* ================= TOAST ================= */
+    toastWrapper: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+
+    toast: {
+      flexDirection: "row",
+      gap: 8,
+      backgroundColor: colors.card,
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    toastText: {
+      color: colors.text,
+      fontSize: 13,
+      fontWeight: "600",
+    },
+
+    /* ================= MODAL ================= */
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.7)",
+      justifyContent: "flex-end",
+    },
+
+    sortModalContainer: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      maxHeight: "80%",
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+
+    sortModalHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: 20,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+
+    sortModalTitle: {
+      color: colors.text,
+      fontSize: 20,
+      fontWeight: "700",
+    },
+
+    sortSection: {
+      paddingHorizontal: 20,
+      paddingTop: 20,
+    },
+
+    sortSectionTitle: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: "600",
+      marginBottom: 12,
+    },
+
+    sortOption: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      marginBottom: 8,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    sortOptionActive: {
+      backgroundColor: colors.primary + "15",
+      borderColor: colors.primary,
+    },
+
+    sortOptionText: {
+      color: colors.subText,
+      fontSize: 15,
+      fontWeight: "500",
+    },
+
+    sortOptionTextActive: {
+      color: colors.text,
+      fontWeight: "600",
+    },
+
+    sortModalFooter: {
+      flexDirection: "row",
+      gap: 12,
+      padding: 20,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+
+    resetButton: {
+      flex: 1,
+      paddingVertical: 14,
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    resetButtonText: {
+      color: colors.text,
+      fontSize: 15,
+      fontWeight: "600",
+    },
+
+    applyButton: {
+      flex: 1,
+      paddingVertical: 14,
+      backgroundColor: colors.primary,
+      borderRadius: 12,
+      alignItems: "center",
+    },
+
+    applyButtonText: {
+      color: "#ffffff",
+      fontSize: 15,
+      fontWeight: "700",
+    },
+  });

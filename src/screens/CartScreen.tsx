@@ -10,6 +10,7 @@ import {
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
+import { useTheme } from "../context/ThemeContext";
 
 interface CartItem {
   id: string;
@@ -21,6 +22,8 @@ interface CartItem {
 
 const CartScreen = () => {
 //   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const { colors } = useTheme();
+    const styles = getStyles(colors) as any;
 const [cartItems, setCartItems] = useState<CartItem[]>([
   {
     id: "clean-001",
@@ -46,6 +49,7 @@ const [cartItems, setCartItems] = useState<CartItem[]>([
 
   const [loading, setLoading] = useState(false);
   const [showPriceBreakup, setShowPriceBreakup] = useState(false);
+
 
   /* ================= LOAD CART ================= */
 
@@ -178,12 +182,19 @@ const [cartItems, setCartItems] = useState<CartItem[]>([
   );
 };
 
-const Row = ({ label, value, bold }: any) => (
+// const Row = ({ label, value, bold }: any) => (
+//   <View style={styles.row}>
+//     <Text style={[styles.rowText, bold && styles.bold]}>{label}</Text>
+//     <Text style={[styles.rowText, bold && styles.bold]}>₹{value}</Text>
+//   </View>
+// );
+const Row = ({ label, value, bold, styles }: any) => (
   <View style={styles.row}>
     <Text style={[styles.rowText, bold && styles.bold]}>{label}</Text>
     <Text style={[styles.rowText, bold && styles.bold]}>₹{value}</Text>
   </View>
 );
+
 
 export default CartScreen;
 
@@ -383,98 +394,262 @@ export default CartScreen;
 //     fontWeight: "600",
 //   },
 // });
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0f172a" },
+// const styles = StyleSheet.create({
+//   container: { flex: 1, backgroundColor: "#0f172a" },
 
-  header: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderColor: "#1e293b",
-  },
+//   header: {
+//     padding: 16,
+//     borderBottomWidth: 1,
+//     borderColor: "#1e293b",
+//   },
 
-  headerTitle: { color: "#fff", fontSize: 20, fontWeight: "600" },
+//   headerTitle: { color: "#fff", fontSize: 20, fontWeight: "600" },
 
-  card: {
-    flexDirection: "row",
-    backgroundColor: "#1e293b",
-    margin: 16,
-    padding: 16,
-    borderRadius: 14,
-    alignItems: "center",
-  },
+//   card: {
+//     flexDirection: "row",
+//     backgroundColor: "#1e293b",
+//     margin: 16,
+//     padding: 16,
+//     borderRadius: 14,
+//     alignItems: "center",
+//   },
 
-  serviceTitle: { color: "#fff", fontSize: 15, fontWeight: "500" },
-  serviceMeta: { color: "#9ca3af", fontSize: 12, marginVertical: 4 },
-  price: { color: "#3b82f6", fontWeight: "600" },
+//   serviceTitle: { color: "#fff", fontSize: 15, fontWeight: "500" },
+//   serviceMeta: { color: "#9ca3af", fontSize: 12, marginVertical: 4 },
+//   price: { color: "#3b82f6", fontWeight: "600" },
 
-  bottomBar: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: "#020617",
-    padding: 16,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderTopWidth: 1,
-    borderColor: "#1e293b",
-  },
+//   bottomBar: {
+//     position: "absolute",
+//     bottom: 0,
+//     left: 0,
+//     right: 0,
+//     backgroundColor: "#020617",
+//     padding: 16,
+//     flexDirection: "row",
+//     justifyContent: "space-between",
+//     alignItems: "center",
+//     borderTopWidth: 1,
+//     borderColor: "#1e293b",
+//   },
 
-  totalLabel: { color: "#9ca3af", fontSize: 12 },
-  totalAmount: { color: "#fff", fontSize: 18, fontWeight: "600" },
+//   totalLabel: { color: "#9ca3af", fontSize: 12 },
+//   totalAmount: { color: "#fff", fontSize: 18, fontWeight: "600" },
 
-  proceedBtn: {
-    backgroundColor: "#2563eb",
-    paddingHorizontal: 30,
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
+//   proceedBtn: {
+//     backgroundColor: "#2563eb",
+//     paddingHorizontal: 30,
+//     paddingVertical: 12,
+//     borderRadius: 12,
+//   },
 
-  proceedText: { color: "#fff", fontWeight: "600" },
+//   proceedText: { color: "#fff", fontWeight: "600" },
 
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#0f172a",
-  },
+//   emptyContainer: {
+//     flex: 1,
+//     justifyContent: "center",
+//     alignItems: "center",
+//     backgroundColor: "#0f172a",
+//   },
 
-  emptyTitle: { color: "#fff", fontSize: 18, marginTop: 12 },
-  emptySub: { color: "#9ca3af", marginTop: 4 },
+//   emptyTitle: { color: "#fff", fontSize: 18, marginTop: 12 },
+//   emptySub: { color: "#9ca3af", marginTop: 4 },
 
-  modalOverlay: {
-    position: "absolute",
-    inset: 0,
-    backgroundColor: "rgba(0,0,0,0.6)",
-    justifyContent: "flex-end",
-  },
+//   modalOverlay: {
+//     position: "absolute",
+//     inset: 0,
+//     backgroundColor: "rgba(0,0,0,0.6)",
+//     justifyContent: "flex-end",
+//   },
 
-  modalSheet: {
-    backgroundColor: "#020617",
-    padding: 20,
-    borderTopLeftRadius: 22,
-    borderTopRightRadius: 22,
-  },
+//   modalSheet: {
+//     backgroundColor: "#020617",
+//     padding: 20,
+//     borderTopLeftRadius: 22,
+//     borderTopRightRadius: 22,
+//   },
 
-  modalTitle: { color: "#fff", fontSize: 16, marginBottom: 16 },
+//   modalTitle: { color: "#fff", fontSize: 16, marginBottom: 16 },
 
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginVertical: 6,
-  },
+//   row: {
+//     flexDirection: "row",
+//     justifyContent: "space-between",
+//     marginVertical: 6,
+//   },
 
-  rowText: { color: "#9ca3af" },
-  bold: { color: "#fff", fontWeight: "600" },
+//   rowText: { color: "#9ca3af" },
+//   bold: { color: "#fff", fontWeight: "600" },
 
-  divider: { height: 1, backgroundColor: "#1e293b", marginVertical: 10 },
+//   divider: { height: 1, backgroundColor: "#1e293b", marginVertical: 10 },
 
-  closeBtn: {
-    marginTop: 16,
-    backgroundColor: "#2563eb",
-    padding: 12,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-});
+//   closeBtn: {
+//     marginTop: 16,
+//     backgroundColor: "#2563eb",
+//     padding: 12,
+//     borderRadius: 10,
+//     alignItems: "center",
+//   },
+// });
+
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+
+    header: {
+      padding: 16,
+      backgroundColor: colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+
+    headerTitle: {
+      color: colors.text,
+      fontSize: 20,
+      fontWeight: "600",
+    },
+
+    card: {
+      flexDirection: "row",
+      backgroundColor: colors.card,
+      margin: 16,
+      padding: 16,
+      borderRadius: 16,
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    serviceTitle: {
+      color: colors.text,
+      fontSize: 15,
+      fontWeight: "600",
+    },
+
+    serviceMeta: {
+      color: colors.subText,
+      fontSize: 12,
+      marginVertical: 4,
+    },
+
+    price: {
+      color: colors.primary,
+      fontWeight: "600",
+    },
+
+    /* BOTTOM BAR */
+    bottomBar: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: colors.surface,
+      padding: 16,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+
+    totalLabel: {
+      color: colors.subText,
+      fontSize: 12,
+    },
+
+    totalAmount: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: "700",
+    },
+
+    proceedBtn: {
+      backgroundColor: colors.primary,
+      paddingHorizontal: 30,
+      paddingVertical: 12,
+      borderRadius: 14,
+    },
+
+    proceedText: {
+      color: "#fff",
+      fontWeight: "600",
+      fontSize: 14,
+    },
+
+    /* EMPTY STATE */
+    emptyContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: colors.background,
+    },
+
+    emptyTitle: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: "600",
+      marginTop: 12,
+    },
+
+    emptySub: {
+      color: colors.subText,
+      marginTop: 4,
+      fontSize: 13,
+    },
+
+    /* MODAL */
+    modalOverlay: {
+      position: "absolute",
+      inset: 0,
+      backgroundColor: "rgba(0,0,0,0.6)",
+      justifyContent: "flex-end",
+    },
+
+    modalSheet: {
+      backgroundColor: colors.surface,
+      padding: 20,
+      borderTopLeftRadius: 22,
+      borderTopRightRadius: 22,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+
+    modalTitle: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: "600",
+      marginBottom: 16,
+    },
+
+    row: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginVertical: 6,
+    },
+
+    rowText: {
+      color: colors.subText,
+      fontSize: 13,
+    },
+
+    bold: {
+      color: colors.text,
+      fontWeight: "600",
+    },
+
+    divider: {
+      height: 1,
+      backgroundColor: colors.border,
+      marginVertical: 10,
+    },
+
+    closeBtn: {
+      marginTop: 16,
+      backgroundColor: colors.primary,
+      paddingVertical: 12,
+      borderRadius: 12,
+      alignItems: "center",
+    },
+  });
+

@@ -223,6 +223,9 @@ const [openWishlist, setOpenWishlist] = useState<boolean>(false);
 
 
 
+
+
+
   /* ================= LOAD USER DATA ================= */
  useEffect(() => {
   loadUserFromStorage();

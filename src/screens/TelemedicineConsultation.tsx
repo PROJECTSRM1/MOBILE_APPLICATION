@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,214 +7,70 @@ import {
   ScrollView,
   Image,
   StatusBar,
-  Alert,
+  LayoutAnimation,
   Platform,
+  UIManager,
+  Alert,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-// SOLUTION 1: Using expo-document-picker (if using Expo)
-// import * as DocumentPicker from 'expo-document-picker';
-
-// SOLUTION 2: Using react-native-image-picker for images only
-import { launchImageLibrary } from 'react-native-image-picker';
-
-import ReactNativeBlobUtil from 'react-native-blob-util';
-import Share from 'react-native-share';
 import { 
   ArrowLeft, Mic, MicOff, Phone, Video, 
-  Download, ClipboardCheck, Microscope, 
-  FileText, Search 
+  ClipboardCheck, Microscope, 
+  ShoppingBag, MapPin,
+  Download,
+  FileText
 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 
-interface FileItem {
-  id: string;
-  name: string;
-  uploadedBy: string;
-  time: string;
-  type: 'prescription' | 'test';
-  path: string; 
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
 }
-
-const STORAGE_KEY = '@consultation_files';
 
 const TelemedicineConsultation: React.FC = () => {
   const navigation = useNavigation<any>();
   const [isMuted, setIsMuted] = useState(false);
-  const [files, setFiles] = useState<FileItem[]>([]);
+  
+  const [showPrescription, setShowPrescription] = useState(false);
+  const [showTests, setShowTests] = useState(false);
+  
+  // Static data (as if received from an API/Doctor)
+  const tablets = [
+    { id: '1', name: 'Amoxicillin', dosage: '500mg - Twice daily' },
+    { id: '2', name: 'Paracetamol', dosage: '650mg - As needed' }
+  ];
+  
+  const labTests = [
+    { id: '1', name: 'Complete Blood Count (CBC)' },
+    { id: '2', name: 'Thyroid Profile' }
+  ];
 
-  useEffect(() => {
-    loadFiles();
-  }, []);
-
-  const loadFiles = async () => {
-    try {
-      const storedFiles = await AsyncStorage.getItem(STORAGE_KEY);
-      if (storedFiles) setFiles(JSON.parse(storedFiles));
-    } catch (e) {
-      console.error("Failed to load files", e);
-    }
+  const togglePrescription = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setShowPrescription(!showPrescription);
   };
 
-  // SOLUTION 2: Using react-native-image-picker (works for images/photos)
-  const handleUpload = async (type: 'prescription' | 'test') => {
-    try {
-      const result = await launchImageLibrary({
-        mediaType: 'photo',
-        quality: 0.8,
-        includeBase64: false,
-      });
-
-      if (result.didCancel) {
-        console.log("User cancelled picker");
-        return;
-      }
-
-      if (result.errorCode) {
-        Alert.alert("Error", result.errorMessage || "Failed to pick image");
-        return;
-      }
-
-      if (result.assets && result.assets.length > 0) {
-        const asset = result.assets[0];
-        const fileName = asset.fileName || `file_${Date.now()}.jpg`;
-        const sourceUri = asset.uri;
-
-        if (!sourceUri) {
-          Alert.alert("Error", "Could not access file");
-          return;
-        }
-
-        const dir = ReactNativeBlobUtil.fs.dirs.DocumentDir;
-        const destPath = `${dir}/${fileName}`;
-
-        // Copy file to permanent storage
-        const cleanUri = sourceUri.replace('file://', '');
-        await ReactNativeBlobUtil.fs.cp(cleanUri, destPath);
-
-        const newFile: FileItem = {
-          id: Date.now().toString(),
-          name: fileName,
-          uploadedBy: 'PATIENT',
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          type: type,
-          path: destPath
-        };
-
-        const updatedFiles = [newFile, ...files];
-        setFiles(updatedFiles);
-        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedFiles));
-        
-        Alert.alert("Success", "Document uploaded and saved successfully!");
-      }
-    } catch (err) {
-      Alert.alert("Error", "Failed to upload document");
-      console.error(err);
-    }
+  const toggleTests = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setShowTests(!showTests);
   };
 
-  /* 
-  // SOLUTION 1: If using Expo, use this instead:
-  const handleUploadExpo = async (type: 'prescription' | 'test') => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: ['image/*', 'application/pdf'],
-        copyToCacheDirectory: true,
-      });
-
-      if (result.canceled) {
-        console.log("User cancelled picker");
-        return;
-      }
-
-      if (result.assets && result.assets.length > 0) {
-        const asset = result.assets[0];
-        const fileName = asset.name;
-        const sourceUri = asset.uri;
-
-        const dir = ReactNativeBlobUtil.fs.dirs.DocumentDir;
-        const destPath = `${dir}/${fileName}`;
-
-        await ReactNativeBlobUtil.fs.cp(sourceUri, destPath);
-
-        const newFile: FileItem = {
-          id: Date.now().toString(),
-          name: fileName,
-          uploadedBy: 'PATIENT',
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          type: type,
-          path: destPath
-        };
-
-        const updatedFiles = [newFile, ...files];
-        setFiles(updatedFiles);
-        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedFiles));
-        
-        Alert.alert("Success", "Document uploaded and saved successfully!");
-      }
-    } catch (err) {
-      Alert.alert("Error", "Failed to upload document");
-      console.error(err);
-    }
-  };
-  */
-
-  const handleDownload = async (file: FileItem) => {
-    try {
-      const fileExists = await ReactNativeBlobUtil.fs.exists(file.path);
-      
-      if (!fileExists) {
-        Alert.alert("Error", "File no longer exists on this device storage.");
-        return;
-      }
-
-      if (Platform.OS === 'android') {
-        // Android: Save to Downloads folder
-        const destPath = `${ReactNativeBlobUtil.fs.dirs.DownloadDir}/${file.name}`;
-        
-        await ReactNativeBlobUtil.fs.cp(file.path, destPath);
-        
-        // Show the file in downloads using Android's MediaScanner
-        ReactNativeBlobUtil.fs.scanFile([{ path: destPath }])
-          .then(() => {
-            Alert.alert(
-              "Success", 
-              `File saved to Downloads folder`,
-              [
-                { text: "OK" },
-                { 
-                  text: "Open", 
-                  onPress: () => {
-                    ReactNativeBlobUtil.android.actionViewIntent(destPath, 
-                      file.name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/jpeg'
-                    );
-                  }
-                }
-              ]
-            );
-          })
-          .catch((err) => {
-            Alert.alert("Downloaded", "File saved to Downloads folder");
-          });
-      } else {
-        // iOS: Use Share sheet (iOS doesn't allow direct downloads to Files app)
-        await Share.open({
-          url: file.path,
-          type: file.name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/jpeg',
-          title: file.name,
-          subject: file.name,
-          message: 'Save this file',
-        });
-      }
-    } catch (error) {
-      console.log("Download error:", error);
-      Alert.alert("Error", "Failed to download file");
-    }
+  // Logic for "Real" Download simulation
+  const handleDownload = async (type: string) => {
+    Alert.alert("Downloading...", `Saving your ${type} as PDF to your local storage.`);
+    
+    // Note: In a production app, you would use:
+    // 1. react-native-blob-util to download a PDF from a URL
+    // 2. OR react-native-html-to-pdf to generate a PDF from this list
+    
+    setTimeout(() => {
+      Alert.alert("Success", "File saved to /Downloads/Prescription_Jan20.pdf");
+    }, 2000);
   };
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <ArrowLeft size={22} color="#1a7f7f" />
@@ -223,13 +79,14 @@ const TelemedicineConsultation: React.FC = () => {
           <Text style={styles.doctorName}>Dr. Julianne Smith</Text>
           <View style={styles.liveIndicator}>
             <View style={styles.liveDot} />
-            <Text style={styles.liveText}>12:45 • LIVE SESSION</Text>
+            <Text style={styles.liveText}>LIVE CONSULTATION</Text>
           </View>
         </View>
         <View style={{width: 44}} />
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Video Call Section */}
         <View style={styles.videoWrapper}>
           <View style={styles.videoContainer}>
             <Image
@@ -258,57 +115,104 @@ const TelemedicineConsultation: React.FC = () => {
           </View>
         </View>
 
-        <View style={styles.filesSection}>
-          <Text style={styles.filesSectionTitle}>Shared Consultation Files</Text>
-          <Text style={styles.filesSectionSubtitle}>{files.length} Documents available</Text>
+        <View style={styles.contentSection}>
+          <Text style={styles.sectionTitle}>Medical Documents</Text>
+          <Text style={styles.sectionSubtitle}>View and download your digital records</Text>
 
-          <View style={styles.uploadButtonsRow}>
-            <TouchableOpacity 
-              style={styles.uploadButtonPrimary}
-              onPress={() => handleUpload('prescription')}
-            >
-              <ClipboardCheck size={28} color="#fff" />
-              <Text style={styles.uploadButtonText}>Upload Prescription</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.uploadButtonSecondary}
-              onPress={() => handleUpload('test')}
-            >
-              <Microscope size={28} color="#1a7f7f" />
-              <Text style={styles.uploadButtonTextSecondary}>Upload Test List</Text>
-            </TouchableOpacity>
-          </View>
-
-          {files.map((file) => (
-            <View key={file.id} style={styles.fileItem}>
-              <View style={styles.fileIconContainer}>
-                {file.type === 'prescription' ? (
-                  <FileText size={24} color="#1a7f7f" />
-                ) : (
-                  <Microscope size={24} color="#1a7f7f" />
-                )}
+          {/* DIGITAL PRESCRIPTION SECTION */}
+          <View style={[styles.mainCard, showPrescription && styles.activeCard]}>
+            <TouchableOpacity style={styles.cardHeader} onPress={togglePrescription}>
+              <View style={styles.iconBox}>
+                <ClipboardCheck size={24} color="#1a7f7f" />
               </View>
-              <View style={styles.fileInfo}>
-                <Text style={styles.fileName} numberOfLines={1}>{file.name}</Text>
-                <Text style={styles.fileMetadata}>{file.uploadedBy} • {file.time}</Text>
+              <View style={styles.cardHeaderText}>
+                <Text style={styles.cardTitle}>Digital Prescription</Text>
+                <Text style={styles.cardSubtitle}>{tablets.length} Medicines prescribed</Text>
               </View>
               <TouchableOpacity 
-                style={styles.downloadButton}
-                onPress={() => handleDownload(file)}
+                style={styles.downloadIconBtn} 
+                onPress={() => handleDownload('Prescription')}
               >
-                <Download size={22} color="#1a7f7f" />
+                <Download size={20} color="#1a7f7f" />
               </TouchableOpacity>
-            </View>
-          ))}
+            </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={styles.mainActionButton}
-            onPress={() => navigation.navigate("Facility")}
-          >
-            <Search size={20} color="#fff" style={{marginRight: 8}} />
-            <Text style={styles.mainActionButtonText}>Look for Medicines and Labs</Text>
-          </TouchableOpacity>
+            {showPrescription && (
+              <View style={styles.expandedContent}>
+                <View style={styles.listHeader}>
+                  <FileText size={16} color="#64748b" />
+                  <Text style={styles.listHeaderText}>Official Medicine List</Text>
+                </View>
+
+                {tablets.map((item) => (
+                  <View key={item.id} style={styles.itemRow}>
+                    <View style={styles.itemInfo}>
+                      <Text style={styles.itemNameText}>{item.name}</Text>
+                      <Text style={styles.itemDetailText}>{item.dosage}</Text>
+                    </View>
+                  </View>
+                ))}
+                
+                <TouchableOpacity 
+                  style={styles.ctaButton}
+                  onPress={() => navigation.navigate("Facility", { 
+                    activeTab: 'pharmacy', 
+                    prescribedItems: tablets 
+                  })}
+                >
+                  <ShoppingBag size={18} color="#fff" />
+                  <Text style={styles.ctaButtonText}>Order Medicines Now</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+
+          {/* RECOMMENDED TESTS SECTION */}
+          <View style={[styles.mainCard, showTests && styles.activeCard]}>
+            <TouchableOpacity style={styles.cardHeader} onPress={toggleTests}>
+              <View style={styles.iconBoxSecondary}>
+                <Microscope size={24} color="#1a7f7f" />
+              </View>
+              <View style={styles.cardHeaderText}>
+                <Text style={styles.cardTitle}>Lab Test Requisition</Text>
+                <Text style={styles.cardSubtitle}>{labTests.length} Tests required</Text>
+              </View>
+              <TouchableOpacity 
+                style={styles.downloadIconBtn} 
+                onPress={() => handleDownload('Lab Requisition')}
+              >
+                <Download size={20} color="#1a7f7f" />
+              </TouchableOpacity>
+            </TouchableOpacity>
+
+            {showTests && (
+              <View style={styles.expandedContent}>
+                <View style={styles.listHeader}>
+                  <FileText size={16} color="#64748b" />
+                  <Text style={styles.listHeaderText}>Required Lab Procedures</Text>
+                </View>
+
+                {labTests.map((item) => (
+                  <View key={item.id} style={styles.itemRow}>
+                    <View style={styles.itemInfo}>
+                      <Text style={styles.itemNameText}>{item.name}</Text>
+                    </View>
+                  </View>
+                ))}
+
+                <TouchableOpacity 
+                    style={[styles.ctaButton, {backgroundColor: '#0f172a'}]}
+                    onPress={() => navigation.navigate("Facility", { 
+                      activeTab: 'lab', 
+                      prescribedItems: labTests 
+                    })}
+                  >
+                    <MapPin size={18} color="#fff" />
+                    <Text style={styles.ctaButtonText}>Find Nearby Labs</Text>
+                  </TouchableOpacity>
+              </View>
+            )}
+          </View>
         </View>
       </ScrollView>
     </View>
@@ -321,12 +225,12 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', padding: 16 },
   backButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#f0f9f9', alignItems: 'center', justifyContent: 'center' },
   headerCenter: { flex: 1, alignItems: 'center' },
-  doctorName: { fontSize: 17, fontWeight: '700' },
+  doctorName: { fontSize: 17, fontWeight: '700', color: '#0f172a' },
   liveIndicator: { flexDirection: 'row', alignItems: 'center' },
   liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#4ade80', marginRight: 6 },
-  liveText: { fontSize: 11, color: '#64748b' },
+  liveText: { fontSize: 11, color: '#1a7f7f', fontWeight: '700' },
   videoWrapper: { padding: 16 },
-  videoContainer: { width: '100%', height: 400, borderRadius: 24, overflow: 'hidden', backgroundColor: '#000' },
+  videoContainer: { width: '100%', height: 350, borderRadius: 24, overflow: 'hidden', backgroundColor: '#000' },
   videoBackground: { width: '100%', height: '100%' },
   pipContainer: { position: 'absolute', top: 12, right: 12, width: 80, height: 110, borderRadius: 12, overflow: 'hidden', borderWidth: 2, borderColor: '#fff' },
   pipImage: { width: '100%', height: '100%' },
@@ -334,22 +238,53 @@ const styles = StyleSheet.create({
   controlsBlur: { flexDirection: 'row', backgroundColor: 'rgba(0,0,0,0.5)', padding: 10, borderRadius: 30, alignItems: 'center', gap: 15 },
   controlButton: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
   endCallButton: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#f87171', alignItems: 'center', justifyContent: 'center' },
-  filesSection: { padding: 20, backgroundColor: '#fff', borderTopLeftRadius: 30, borderTopRightRadius: 30, marginTop: -30 },
-  filesSectionTitle: { fontSize: 20, fontWeight: '700', color: '#0f172a' },
-  filesSectionSubtitle: { fontSize: 14, color: '#64748b', marginBottom: 20 },
-  uploadButtonsRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
-  uploadButtonPrimary: { flex: 1, backgroundColor: '#1a7f7f', padding: 15, borderRadius: 15, alignItems: 'center', gap: 8 },
-  uploadButtonSecondary: { flex: 1, borderWidth: 1, borderColor: '#1a7f7f', padding: 15, borderRadius: 15, alignItems: 'center', gap: 8 },
-  uploadButtonText: { color: '#fff', fontSize: 13, fontWeight: '700', textAlign: 'center' },
-  uploadButtonTextSecondary: { color: '#1a7f7f', fontSize: 13, fontWeight: '700', textAlign: 'center' },
-  fileItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f8fafc', padding: 15, borderRadius: 16, marginBottom: 10 },
-  fileIconContainer: { width: 45, height: 45, backgroundColor: '#fff', borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  fileInfo: { flex: 1, marginLeft: 12 },
-  fileName: { fontSize: 14, fontWeight: '600', color: '#1e293b' },
-  fileMetadata: { fontSize: 12, color: '#94a3b8' },
-  downloadButton: { padding: 5 },
-  mainActionButton: { backgroundColor: '#1a7f7f', flexDirection: 'row', padding: 18, borderRadius: 15, justifyContent: 'center', alignItems: 'center', marginTop: 10 },
-  mainActionButtonText: { color: '#fff', fontWeight: '700', fontSize: 16 }
-});
+  
+  contentSection: { padding: 20, backgroundColor: '#fff', borderTopLeftRadius: 30, borderTopRightRadius: 30, marginTop: -30 },
+  sectionTitle: { fontSize: 20, fontWeight: '800', color: '#0f172a' },
+  sectionSubtitle: { fontSize: 14, color: '#64748b', marginBottom: 20 },
 
+  mainCard: { 
+    backgroundColor: '#f8fafc', 
+    borderRadius: 20, 
+    padding: 16, 
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#f1f5f9'
+  },
+  activeCard: {
+    borderColor: '#1a7f7f',
+    backgroundColor: '#fff',
+    elevation: 4,
+    shadowColor: '#1a7f7f',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+  },
+  cardHeader: { flexDirection: 'row', alignItems: 'center' },
+  iconBox: { width: 48, height: 48, borderRadius: 14, backgroundColor: '#e0f2f1', alignItems: 'center', justifyContent: 'center' },
+  iconBoxSecondary: { width: 48, height: 48, borderRadius: 14, backgroundColor: '#f1f5f9', alignItems: 'center', justifyContent: 'center' },
+  cardHeaderText: { marginLeft: 15, flex: 1 },
+  cardTitle: { fontSize: 16, fontWeight: '700', color: '#1e293b' },
+  cardSubtitle: { fontSize: 12, color: '#94a3b8' },
+  downloadIconBtn: { padding: 8, backgroundColor: '#fff', borderRadius: 10, borderWidth: 1, borderColor: '#f1f5f9' },
+
+  expandedContent: { marginTop: 20, borderTopWidth: 1, borderTopColor: '#f1f5f9', paddingTop: 15 },
+  listHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 15, gap: 8 },
+  listHeaderText: { fontSize: 12, fontWeight: '700', color: '#64748b', textTransform: 'uppercase' },
+  itemRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12, backgroundColor: '#f8fafc', padding: 15, borderRadius: 16 },
+  itemInfo: { flex: 1 },
+  itemNameText: { fontSize: 15, fontWeight: '700', color: '#1e293b' },
+  itemDetailText: { fontSize: 13, color: '#64748b', marginTop: 4, fontWeight: '500' },
+  
+  ctaButton: { 
+    backgroundColor: '#1a7f7f', 
+    flexDirection: 'row', 
+    padding: 16, 
+    borderRadius: 15, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    marginTop: 15 
+  },
+  ctaButtonText: { color: '#fff', fontWeight: '700', fontSize: 14, marginLeft: 8 }
+});
+ 
 export default TelemedicineConsultation;

@@ -1,57 +1,64 @@
-import React, { createContext, useContext, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+} from "react";
+import { DarkTheme, DefaultTheme, Theme } from "@react-navigation/native";
+import { lightColors, darkColors } from "../theme/colors";
 
-type ThemeColors = {
-  background: string;
-  surface: string;
-  card: string;
-  text: string;
-  subText: string;
-  border: string;
-  primary: string;
-  danger: string;
-};
+/* ---------------- TYPES ---------------- */
 
 type ThemeContextType = {
   lightMode: boolean;
   toggleTheme: () => void;
-  colors: ThemeColors;
+  colors: typeof lightColors;
+  navigationTheme: Theme;
 };
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+/* ---------------- CONTEXT ---------------- */
 
-export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const ThemeContext = createContext<ThemeContextType | undefined>(
+  undefined
+);
+
+/* ---------------- PROVIDER ---------------- */
+
+export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const [lightMode, setLightMode] = useState(false);
 
   const toggleTheme = () => setLightMode(prev => !prev);
 
-  const colors: ThemeColors = lightMode
-    ? {
-        background: "#f9fafb",
-        surface: "#ffffff",
-        card: "#f3f4f6",
-        text: "#111827",
-        subText: "#6b7280",
-        border: "#e5e7eb",
-        primary: "#2563eb",
-        danger: "#dc2626",
-      }
-    : {
-        background: "#0f172a",
-        surface: "#020617",
-        card: "#020617",
-        text: "#f8fafc",
-        subText: "#94a3b8",
-        border: "#1e293b",
-        primary: "#3b82f6",
-        danger: "#ef4444",
-      };
+  const colors = lightMode ? lightColors : darkColors;
+
+  const navigationTheme: Theme = {
+    ...(lightMode ? DefaultTheme : DarkTheme),
+    colors: {
+      ...(lightMode ? DefaultTheme.colors : DarkTheme.colors),
+      background: colors.background,
+      card: colors.card,
+      text: colors.text,
+      border: colors.border,
+      primary: colors.primary,
+      notification: colors.primary,
+    },
+  };
 
   return (
-    <ThemeContext.Provider value={{ lightMode, toggleTheme, colors }}>
+    <ThemeContext.Provider
+      value={{
+        lightMode,
+        toggleTheme,
+        colors,
+        navigationTheme,
+      }}
+    >
       {children}
     </ThemeContext.Provider>
   );
 };
+
+/* ---------------- HOOK ---------------- */
 
 export const useTheme = () => {
   const context = useContext(ThemeContext);
