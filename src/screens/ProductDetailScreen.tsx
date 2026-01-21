@@ -18,17 +18,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 // "500", "₹500", "1,200", "500/kg", undefined
 const formatPrice = (value: any) => {
   if (!value) return "₹0";
-
   const cleaned = String(value).replace(/[^0-9.]/g, "");
   const num = Number(cleaned);
-
   if (isNaN(num)) return `₹${value}`; // fallback (never NaN)
   return `₹${num.toLocaleString("en-IN")}`;
 };
 
 export default function ProductDetailScreen({ route, navigation }: any) {
   const { product } = route.params;
-
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -36,9 +33,10 @@ export default function ProductDetailScreen({ route, navigation }: any) {
     quantity: "", // STRING (kg / pcs / packs)
     vehicleType: "",
   });
-
   const [showVehicleDropdown, setShowVehicleDropdown] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showWishlistModal, setShowWishlistModal] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
   const [errors, setErrors] = useState<any>({});
 
   const vehicleTypes = [
@@ -50,25 +48,31 @@ export default function ProductDetailScreen({ route, navigation }: any) {
 
   const validateForm = () => {
     const newErrors: any = {};
-
     if (!formData.name.trim()) newErrors.name = "Name is required";
-    if (!/^\d{10}$/.test(formData.phone)) newErrors.phone = "Enter valid 10-digit phone number";
+    if (!/^\d{10}$/.test(formData.phone))
+      newErrors.phone = "Enter valid 10-digit phone number";
     if (!formData.address.trim()) newErrors.address = "Address is required";
     if (!formData.quantity.trim()) newErrors.quantity = "Quantity is required";
     if (!formData.vehicleType) newErrors.vehicleType = "Select vehicle type";
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleBuyProduct = () => {
     if (!validateForm()) return;
-
     setShowSuccessModal(true);
     setTimeout(() => {
       setShowSuccessModal(false);
       navigation.goBack();
     }, 2500);
+  };
+
+  const handleWishlistToggle = () => {
+    setIsWishlisted(!isWishlisted);
+    setShowWishlistModal(true);
+    setTimeout(() => {
+      setShowWishlistModal(false);
+    }, 2000);
   };
 
   const getVehicleLabel = () => {
@@ -172,16 +176,35 @@ export default function ProductDetailScreen({ route, navigation }: any) {
             {errors.vehicleType && <Text style={styles.error}>{errors.vehicleType}</Text>}
           </View>
 
-          <TouchableOpacity style={styles.buyButton} onPress={handleBuyProduct}>
-            <MaterialIcons name="shopping-cart" size={20} color="#fff" />
-            <Text style={styles.buyText}>Buy Product</Text>
-          </TouchableOpacity>
+          <View style={styles.buttonRow}>
+            <TouchableOpacity
+              style={styles.wishlistButton}
+              onPress={handleWishlistToggle}
+            >
+              <MaterialIcons
+                name={isWishlisted ? "favorite" : "favorite-border"}
+                size={20}
+                color={isWishlisted ? "#ef4444" : "#135bec"}
+              />
+              <Text style={[styles.wishlistText, isWishlisted && styles.wishlistTextActive]}>
+                {isWishlisted ? "Wishlisted" : "Add to Wishlist"}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.buyButton} onPress={handleBuyProduct}>
+              <MaterialIcons name="shopping-cart" size={20} color="#fff" />
+              <Text style={styles.buyText}>Buy Product</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
 
       {/* VEHICLE MODAL */}
       <Modal transparent visible={showVehicleDropdown}>
-        <TouchableOpacity style={styles.overlay} onPress={() => setShowVehicleDropdown(false)}>
+        <TouchableOpacity
+          style={styles.overlay}
+          onPress={() => setShowVehicleDropdown(false)}
+        >
           <View style={styles.modal}>
             {vehicleTypes.map(v => (
               <TouchableOpacity
@@ -201,13 +224,31 @@ export default function ProductDetailScreen({ route, navigation }: any) {
         </TouchableOpacity>
       </Modal>
 
+      {/* WISHLIST TOAST */}
+      <Modal transparent visible={showWishlistModal} animationType="fade">
+        <View style={styles.toastContainer}>
+          <View style={styles.toast}>
+            <MaterialIcons
+              name={isWishlisted ? "favorite" : "favorite-border"}
+              size={20}
+              color={isWishlisted ? "#ef4444" : "#fff"}
+            />
+            <Text style={styles.toastText}>
+              {isWishlisted ? "Added to Wishlist" : "Removed from Wishlist"}
+            </Text>
+          </View>
+        </View>
+      </Modal>
+
       {/* SUCCESS */}
       <Modal transparent visible={showSuccessModal}>
         <View style={styles.successOverlay}>
           <View style={styles.successBox}>
             <MaterialIcons name="check-circle" size={64} color="#22c55e" />
             <Text style={styles.successTitle}>Order Successful</Text>
-            <Text style={styles.successText}>Your order has been placed successfully</Text>
+            <Text style={styles.successText}>
+              Your order has been placed successfully
+            </Text>
           </View>
         </View>
       </Modal>
@@ -216,7 +257,16 @@ export default function ProductDetailScreen({ route, navigation }: any) {
 }
 
 /* ================= INPUT COMPONENT ================= */
-const Input = ({ label, value, onChange, error, placeholder, multiline, keyboard, maxLength }: any) => (
+const Input = ({
+  label,
+  value,
+  onChange,
+  error,
+  placeholder,
+  multiline,
+  keyboard,
+  maxLength,
+}: any) => (
   <View style={styles.inputGroup}>
     <Text style={styles.label}>{label}</Text>
     <TextInput
@@ -236,7 +286,6 @@ const Input = ({ label, value, onChange, error, placeholder, multiline, keyboard
 /* ================= STYLES ================= */
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#101622" },
-
   header: {
     height: 56,
     flexDirection: "row",
@@ -245,14 +294,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   headerTitle: { color: "#fff", fontSize: 18, fontWeight: "700" },
-
   imageWrapper: {
     height: 260,
     backgroundColor: "#0f1522",
     justifyContent: "center",
   },
   productImage: { width: "100%", height: "100%" },
-
   productInfo: {
     backgroundColor: "#1c212e",
     margin: 16,
@@ -264,13 +311,15 @@ const styles = StyleSheet.create({
   metaRow: { flexDirection: "row", gap: 16, marginTop: 12 },
   metaItem: { flexDirection: "row", gap: 4, alignItems: "center" },
   metaText: { color: "#9da6b9" },
-
   priceBox: { marginTop: 16 },
   price: { color: "#135bec", fontSize: 24, fontWeight: "800" },
-
   formContainer: { padding: 20 },
-  formTitle: { color: "#fff", fontSize: 18, fontWeight: "700", marginBottom: 16 },
-
+  formTitle: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 16,
+  },
   inputGroup: { marginBottom: 14 },
   label: { color: "#fff", fontWeight: "600", marginBottom: 6 },
   input: {
@@ -291,11 +340,24 @@ const styles = StyleSheet.create({
     borderColor: "#374151",
   },
   dropdownText: { color: "#fff" },
-
   error: { color: "#ef4444", fontSize: 12, marginTop: 4 },
   errorBorder: { borderColor: "#ef4444" },
-
+  buttonRow: { flexDirection: "row", gap: 12, marginTop: 6 },
+  wishlistButton: {
+    flex: 1,
+    backgroundColor: "transparent",
+    padding: 16,
+    borderRadius: 12,
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 8,
+    borderWidth: 2,
+    borderColor: "#135bec",
+  },
+  wishlistText: { color: "#135bec", fontWeight: "700" },
+  wishlistTextActive: { color: "#ef4444" },
   buyButton: {
+    flex: 1,
     backgroundColor: "#135bec",
     padding: 16,
     borderRadius: 12,
@@ -304,7 +366,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   buyText: { color: "#fff", fontWeight: "700" },
-
   overlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.7)",
@@ -318,7 +379,6 @@ const styles = StyleSheet.create({
   },
   modalItem: { flexDirection: "row", gap: 12, paddingVertical: 14 },
   modalText: { color: "#fff", fontSize: 15 },
-
   successOverlay: {
     flex: 1,
     justifyContent: "center",
@@ -338,5 +398,29 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   successText: { color: "#9da6b9", marginTop: 8 },
+  toastContainer: {
+    flex: 1,
+    justifyContent: "flex-end",
+    alignItems: "center",
+    paddingBottom: 100,
+  },
+  toast: {
+    backgroundColor: "#1c212e",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  toastText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
+  },
 });
-
