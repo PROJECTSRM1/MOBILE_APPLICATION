@@ -7,6 +7,10 @@ export const lightColors = {
   border: "#e5e7eb",
   primary: "#3b82f6",
   danger: "#ef4444",
+  placeholder: '#94a3b8',
+  success: '#10b981',
+  gradientStart: "#ffffff",
+  gradientEnd: "#f1f5f9",
 };
 
 export const darkColors = {
@@ -18,4 +22,8 @@ export const darkColors = {
   border: "#1f2937",
   primary: "#3b82f6",
   danger: "#ef4444",
+  gradientStart: "#0d1321",
+  gradientEnd: "#101622",
+  placeholder: '#94a3b8',
+  success: '#10b981',
 };

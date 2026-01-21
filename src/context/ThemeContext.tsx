@@ -41,6 +41,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
       border: colors.border,
       primary: colors.primary,
       notification: colors.primary,
+
     },
   };
 

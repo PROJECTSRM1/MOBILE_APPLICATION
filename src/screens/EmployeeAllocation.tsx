@@ -26,7 +26,7 @@ type Professional = {
   rating: string;
   ratingValue: number;
   distance: string;
-  image: any;
+  image: string;
   verified?: boolean;
   mobileNumber: string;
 };
@@ -39,7 +39,7 @@ const PROFESSIONALS: Professional[] = [
     rating: "4.9 (124)",
     ratingValue: 4.9,
     distance: "0.8 mi",
-    image: { uri: "https://randomuser.me/api/portraits/women/44.jpg" },
+    image: "https://randomuser.me/api/portraits/women/44.jpg" ,
     verified: true,
     mobileNumber: "xxxx456",
   },
@@ -50,7 +50,7 @@ const PROFESSIONALS: Professional[] = [
     rating: "4.7 (89)",
     ratingValue: 4.7,
     distance: "1.2 mi",
-    image: { uri: "https://randomuser.me/api/portraits/men/32.jpg" },
+    image: "https://randomuser.me/api/portraits/men/32.jpg" ,
     mobileNumber: "xxxx789",
   },
   {
@@ -60,7 +60,7 @@ const PROFESSIONALS: Professional[] = [
     rating: "4.8 (210)",
     ratingValue: 4.8,
     distance: "2.0 mi",
-    image: { uri: "https://randomuser.me/api/portraits/women/65.jpg" },
+    image:  "https://randomuser.me/api/portraits/women/65.jpg" ,
     mobileNumber: "xxxx321",
   },
   {
@@ -70,7 +70,7 @@ const PROFESSIONALS: Professional[] = [
     rating: "4.5 (56)",
     ratingValue: 4.5,
     distance: "5.4 mi",
-    image: { uri: "https://randomuser.me/api/portraits/men/45.jpg" },
+    image:"https://randomuser.me/api/portraits/men/45.jpg" ,
     mobileNumber: "xxxx654",
   },
 ];
@@ -201,7 +201,10 @@ const EmployeeAllocation = () => {
               >
                 {/* Professional Image */}
                 <View style={styles.imageContainer}>
-                  <Image source={item.image} style={styles.avatar} />
+                  <Image
+  source={{ uri: item.image }}
+  style={styles.avatar}
+/>
                   {item.verified && (
                     <View style={styles.verified}>
                       <Icon name="verified" size={20} color="#facc15" />

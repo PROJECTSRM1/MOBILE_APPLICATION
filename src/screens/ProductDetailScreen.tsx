@@ -13,6 +13,7 @@ import {
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useTheme } from "../context/ThemeContext";
 
 
 /* ================= PRICE HELPER ================= */
@@ -27,6 +28,8 @@ const formatPrice = (value: any) => {
 };
 
 export default function ProductDetailScreen({ route, navigation }: any) {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
   const { product } = route.params;
   const [formData, setFormData] = useState({
     name: "",
@@ -114,7 +117,7 @@ export default function ProductDetailScreen({ route, navigation }: any) {
       <SafeAreaView>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <MaterialIcons name="arrow-back" size={24} color="#fff" />
+            <MaterialIcons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Product Details</Text>
           <View style={{ width: 24 }} />
@@ -158,6 +161,7 @@ export default function ProductDetailScreen({ route, navigation }: any) {
           <Text style={styles.formTitle}>Order Details</Text>
 
           <Input
+            styles={styles}
             label="Full Name *"
             value={formData.name}
             error={errors.name}
@@ -165,6 +169,7 @@ export default function ProductDetailScreen({ route, navigation }: any) {
           />
 
           <Input
+            styles={styles}
             label="Phone Number *"
             keyboard="phone-pad"
             maxLength={10}
@@ -174,6 +179,7 @@ export default function ProductDetailScreen({ route, navigation }: any) {
           />
 
           <Input
+            styles={styles}
             label="Delivery Address *"
             multiline
             value={formData.address}
@@ -182,6 +188,7 @@ export default function ProductDetailScreen({ route, navigation }: any) {
           />
 
           <Input
+            styles={styles}
             label="Quantity *"
             placeholder="Eg: 2 kg / 5 pcs / 1 pack"
             value={formData.quantity}
@@ -292,6 +299,7 @@ const Input = ({
   multiline,
   keyboard,
   maxLength,
+  styles,
 }: any) => (
   <View style={styles.inputGroup}>
     <Text style={styles.label}>{label}</Text>
@@ -310,143 +318,268 @@ const Input = ({
 );
 
 /* ================= STYLES ================= */
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#101622" },
-  header: {
-    height: 56,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-  },
-  headerTitle: { color: "#fff", fontSize: 18, fontWeight: "700" },
-  imageWrapper: {
-    height: 260,
-    backgroundColor: "#0f1522",
-    justifyContent: "center",
-  },
-  productImage: { width: "100%", height: "100%" },
-  productInfo: {
-    backgroundColor: "#1c212e",
-    margin: 16,
-    borderRadius: 20,
-    padding: 20,
-  },
-  productTitle: { color: "#fff", fontSize: 20, fontWeight: "700" },
-  productBrand: { color: "#9da6b9", marginTop: 4 },
-  metaRow: { flexDirection: "row", gap: 16, marginTop: 12 },
-  metaItem: { flexDirection: "row", gap: 4, alignItems: "center" },
-  metaText: { color: "#9da6b9" },
-  priceBox: { marginTop: 16 },
-  price: { color: "#135bec", fontSize: 24, fontWeight: "800" },
-  formContainer: { padding: 20 },
-  formTitle: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "700",
-    marginBottom: 16,
-  },
-  inputGroup: { marginBottom: 14 },
-  label: { color: "#fff", fontWeight: "600", marginBottom: 6 },
-  input: {
-    backgroundColor: "#1c212e",
-    borderRadius: 12,
-    padding: 14,
-    color: "#fff",
-    borderWidth: 1,
-    borderColor: "#374151",
-  },
-  dropdown: {
-    backgroundColor: "#1c212e",
-    borderRadius: 12,
-    padding: 14,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    borderWidth: 1,
-    borderColor: "#374151",
-  },
-  dropdownText: { color: "#fff" },
-  error: { color: "#ef4444", fontSize: 12, marginTop: 4 },
-  errorBorder: { borderColor: "#ef4444" },
-  buttonRow: { flexDirection: "row", gap: 12, marginTop: 6 },
-  wishlistButton: {
-    flex: 1,
-    backgroundColor: "transparent",
-    padding: 16,
-    borderRadius: 12,
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 8,
-    borderWidth: 2,
-    borderColor: "#135bec",
-  },
-  wishlistText: { color: "#135bec", fontWeight: "700" },
-  wishlistTextActive: { color: "#ef4444" },
-  buyButton: {
-    flex: 1,
-    backgroundColor: "#135bec",
-    padding: 16,
-    borderRadius: 12,
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 8,
-  },
-  buyText: { color: "#fff", fontWeight: "700" },
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    justifyContent: "flex-end",
-  },
-  modal: {
-    backgroundColor: "#1c212e",
-    padding: 20,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-  },
-  modalItem: { flexDirection: "row", gap: 12, paddingVertical: 14 },
-  modalText: { color: "#fff", fontSize: 15 },
-  successOverlay: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.8)",
-  },
-  successBox: {
-    backgroundColor: "#1c212e",
-    padding: 32,
-    borderRadius: 24,
-    alignItems: "center",
-  },
-  successTitle: {
-    color: "#fff",
-    fontSize: 22,
-    fontWeight: "700",
-    marginTop: 12,
-  },
-  successText: { color: "#9da6b9", marginTop: 8 },
-  toastContainer: {
-    flex: 1,
-    justifyContent: "flex-end",
-    alignItems: "center",
-    paddingBottom: 100,
-  },
-  toast: {
-    backgroundColor: "#1c212e",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  toastText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-});
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+
+    /* Header */
+    header: {
+      height: 56,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      backgroundColor: colors.background,
+    },
+
+    headerTitle: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: "700",
+    },
+
+    /* Image */
+    imageWrapper: {
+      height: 260,
+      backgroundColor: colors.surface,
+      justifyContent: "center",
+    },
+
+    productImage: {
+      width: "100%",
+      height: "100%",
+    },
+
+    /* Product Info */
+    productInfo: {
+      backgroundColor: colors.card,
+      margin: 16,
+      borderRadius: 20,
+      padding: 20,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    productTitle: {
+      color: colors.text,
+      fontSize: 20,
+      fontWeight: "700",
+    },
+
+    productBrand: {
+      color: colors.subText,
+      marginTop: 4,
+    },
+
+    metaRow: {
+      flexDirection: "row",
+      gap: 16,
+      marginTop: 12,
+    },
+
+    metaItem: {
+      flexDirection: "row",
+      gap: 4,
+      alignItems: "center",
+    },
+
+    metaText: {
+      color: colors.subText,
+    },
+
+    priceBox: {
+      marginTop: 16,
+    },
+
+    price: {
+      color: colors.primary,
+      fontSize: 24,
+      fontWeight: "800",
+    },
+
+    /* Form */
+    formContainer: {
+      padding: 20,
+    },
+
+    formTitle: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: "700",
+      marginBottom: 16,
+    },
+
+    inputGroup: {
+      marginBottom: 14,
+    },
+
+    label: {
+      color: colors.text,
+      fontWeight: "600",
+      marginBottom: 6,
+    },
+
+    input: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: 14,
+      color: colors.text,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    dropdown: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: 14,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    dropdownText: {
+      color: colors.text,
+    },
+
+    error: {
+      color: colors.danger,
+      fontSize: 12,
+      marginTop: 4,
+    },
+
+    errorBorder: {
+      borderColor: colors.danger,
+    },
+
+    /* Buttons */
+    buttonRow: {
+      flexDirection: "row",
+      gap: 12,
+      marginTop: 6,
+    },
+
+    wishlistButton: {
+      flex: 1,
+      backgroundColor: "transparent",
+      padding: 16,
+      borderRadius: 12,
+      flexDirection: "row",
+      justifyContent: "center",
+      gap: 8,
+      borderWidth: 2,
+      borderColor: colors.primary,
+    },
+
+    wishlistText: {
+      color: colors.primary,
+      fontWeight: "700",
+    },
+
+    wishlistTextActive: {
+      color: colors.danger,
+    },
+
+    buyButton: {
+      flex: 1,
+      backgroundColor: colors.primary,
+      padding: 16,
+      borderRadius: 12,
+      flexDirection: "row",
+      justifyContent: "center",
+      gap: 8,
+    },
+
+    buyText: {
+      color: colors.onPrimary ?? "#ffffff",
+      fontWeight: "700",
+    },
+
+    /* Bottom Sheet / Modal */
+    overlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.7)",
+      justifyContent: "flex-end",
+    },
+
+    modal: {
+      backgroundColor: colors.card,
+      padding: 20,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+    },
+
+    modalItem: {
+      flexDirection: "row",
+      gap: 12,
+      paddingVertical: 14,
+    },
+
+    modalText: {
+      color: colors.text,
+      fontSize: 15,
+    },
+
+    /* Success Modal */
+    successOverlay: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: "rgba(0,0,0,0.8)",
+    },
+
+    successBox: {
+      backgroundColor: colors.card,
+      padding: 32,
+      borderRadius: 24,
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    successTitle: {
+      color: colors.text,
+      fontSize: 22,
+      fontWeight: "700",
+      marginTop: 12,
+    },
+
+    successText: {
+      color: colors.subText,
+      marginTop: 8,
+    },
+
+    /* Toast */
+    toastContainer: {
+      flex: 1,
+      justifyContent: "flex-end",
+      alignItems: "center",
+      paddingBottom: 100,
+    },
+
+    toast: {
+      backgroundColor: colors.card,
+      paddingVertical: 12,
+      paddingHorizontal: 20,
+      borderRadius: 8,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 8,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    toastText: {
+      color: colors.text,
+      fontSize: 14,
+      fontWeight: "600",
+    },
+  });
