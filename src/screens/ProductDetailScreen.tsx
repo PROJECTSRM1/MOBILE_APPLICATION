@@ -96,13 +96,35 @@ export default function ProductDetailScreen({ route, navigation }: any) {
     }, 2500);
   };
 
-  const handleWishlistToggle = () => {
+ const handleWishlistToggle = async () => {
+  try {
+    const wishlist = await loadWishlist();
+
+    let updatedWishlist;
+
+    if (isWishlisted) {
+      // REMOVE from wishlist
+      updatedWishlist = wishlist.filter(
+        (item: any) => item.id !== product.id
+      );
+    } else {
+      // ADD to wishlist
+      updatedWishlist = [...wishlist, product];
+    }
+
+    await saveWishlist(updatedWishlist);
+
     setIsWishlisted(!isWishlisted);
     setShowWishlistModal(true);
+
     setTimeout(() => {
       setShowWishlistModal(false);
     }, 2000);
-  };
+  } catch (error) {
+    console.log("❌ Wishlist update error:", error);
+  }
+};
+
 
   const getVehicleLabel = () => {
     const selected = vehicleTypes.find(v => v.value === formData.vehicleType);
