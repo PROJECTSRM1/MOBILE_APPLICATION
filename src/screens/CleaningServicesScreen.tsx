@@ -66,7 +66,9 @@ const SERVICES: Service[] = [
   },
 ];
 const CleaningServicesScreen = () => {
-  const { colors } = useTheme();
+const { colors, navigationTheme } = useTheme();
+const isDark = navigationTheme.dark;
+
   const styles = getStyles(colors);
     const navigation=useNavigation<any>();
 const [selectedServices, setSelectedServices] = useState<Service[]>([]);
@@ -116,9 +118,12 @@ const isSelected = selectedServices.some(s => s.id === item.id);
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="light-content" />
       <LinearGradient
-        colors={["#0d1321", "#101622"]}
-        style={styles.container}
-      >
+  colors={[
+    colors.gradientStart ?? colors.background,
+    colors.gradientEnd ?? colors.surface,
+  ]}
+  style={styles.container}
+>
       <SafeAreaView edges={["top"]} style={styles.safeHeader}>
   <View style={styles.header}>
     <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -130,14 +135,26 @@ const isSelected = selectedServices.some(s => s.id === item.id);
 </SafeAreaView>
 
 
-        <View style={styles.content}>
-          <Text style={styles.title}>
-            Select the type of cleaning you need today.
-          </Text>
-          <Text style={styles.subtitle}>
-            Choose one or more services to proceed with your booking.
-          </Text>
-        </View>
+<View style={styles.content}>
+  <Text
+    style={[
+      styles.title,
+      { color: isDark ? "#ffffff" : "#0d1321" },
+    ]}
+  >
+    Select the type of cleaning you need today.
+  </Text>
+
+  <Text
+    style={[
+      styles.subtitle,
+      { color: isDark ? "rgba(255,255,255,0.75)" : "#4b5563" },
+    ]}
+  >
+    Choose one or more services to proceed with your booking.
+  </Text>
+</View>
+
 
         <FlatList
           data={SERVICES}

@@ -22,7 +22,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { useNavigation } from "@react-navigation/native";
 import { launchCamera, launchImageLibrary, Asset } from "react-native-image-picker";
 
-
+import {useTheme} from "../context/ThemeContext";
 /* =======================
    TYPES
    ======================= */
@@ -82,7 +82,8 @@ const BookCleaningScreen: React.FC = () => {
   const consultationCharge = route.params?.consultationCharge || 0;
 
   const navigation = useNavigation<any>();
-
+  const {colors}=useTheme();
+  const styles = getStyles(colors);
   const [locationType, setLocationType] = useState<"default" | "other">("default");
   const [allocationType, setAllocationType] = useState<"auto" | "manual">("auto");
   const [selectedTime, setSelectedTime] = useState("10:00 AM");
@@ -196,23 +197,28 @@ const totalPrice = servicePrice + consultationCharge;
         const { latitude, longitude } = position.coords;
 
         try {
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
-            {
-              headers: {
-                "User-Agent": "BookCleaningApp/1.0",
-              },
-            }
-          );
+const response = await fetch(
+  `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
+  {
+    headers: {
+      "User-Agent": "BookCleaningApp/1.0",
+      "Accept": "application/json",
+    },
+  }
+);
+
 
           const data = await response.json();
           const address = data.display_name || "Address not found";
           setCurrentAddress(address);
           console.log("Address fetched:", address);
-        } catch (e) {
-          console.error("Geocoding error:", e);
-          setCurrentAddress("Unable to fetch address. Please try again.");
-        } finally {
+        } 
+        catch (e) {
+  console.error("Geocoding error:", e);
+  Alert.alert("Network Error", "Unable to reach geocoding server");
+  setCurrentAddress("Unable to fetch address. Please try again.");
+}
+finally {
           setLoadingLocation(false);
         }
       },
@@ -324,7 +330,8 @@ const removeImage = (index: number) => {
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.goBack()}>
-            <MaterialIcons name="arrow-back" size={24} color="#fff" />
+            <MaterialIcons name="chevron-left" size={32} color={colors.text} />
+
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Book Cleaning</Text>
         </View>
@@ -748,6 +755,7 @@ const removeImage = (index: number) => {
   <SummaryRow
     label={`Add-ons (${addonServices.length})`}
     value={`$${(addonServices.length * ADDON_PRICE).toFixed(2)}`}
+    styles={styles}
   />
 
   {/* 👇 ADD THIS BLOCK */}
@@ -755,6 +763,7 @@ const removeImage = (index: number) => {
     <SummaryRow
       label="Consultation Charge"
       value={`$${consultationCharge.toFixed(2)}`}
+      styles={styles}
     />
   )}
 
@@ -858,848 +867,713 @@ const removeImage = (index: number) => {
   );
 };
 
+export default BookCleaningScreen;
+
 /* =======================
    SMALL COMPONENTS
    ======================= */
 
-const SummaryRow = ({ label, value }: { label: string; value: string }) => (
+const SummaryRow = ({ label, value, styles }: { label: string; value: string; styles: any }) => (
   <View style={styles.summaryRow}>
     <Text style={styles.summaryRowText}>{label}</Text>
     <Text style={styles.summaryRowText}>{value}</Text>
   </View>
 );
 
-export default BookCleaningScreen;
-
 /* =======================
    STYLES
    ======================= */
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: "#101622",
-  },
-
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#1F2937",
-  },
-
-  headerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-
-  iconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  headerTitle: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "700",
-    letterSpacing: -0.3,
-  },
-
-  content: {
-    padding: 16,
-  },
-
-  sectionTitle: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "700",
-    marginBottom: 12,
-    letterSpacing: -0.3,
-  },
-
-  label: {
-    color: "#9CA3AF",
-    fontSize: 14,
-    fontWeight: "500",
-    marginBottom: 8,
-  },
-
-  input: {
-    backgroundColor: "#1C1F27",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#3B4354",
-    paddingHorizontal: 16,
-    height: 56,
-    color: "#fff",
-    fontSize: 16,
-    marginBottom: 16,
-    justifyContent: "center",
-  },
-
-  textArea: {
-    height: 100,
-    paddingTop: 16,
-    textAlignVertical: "top",
-  },
-
-  selectBox: {
-    backgroundColor: "#1C1F27",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#3B4354",
-    height: 56,
-    justifyContent: "center",
-    marginBottom: 16,
-  },
-
-  selectText: {
-    color: "#fff",
-    fontSize: 16,
-  },
-
-  otherLocationFields: {
-    marginBottom: 8,
-  },
-
-  row: {
-    flexDirection: "row",
-    gap: 12,
-  },
-
-  halfInput: {
-    flex: 1,
-  },
-
-  inputWithIcon: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#1C1F27",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#3B4354",
-    paddingHorizontal: 16,
-    height: 56,
-  },
-
-  inputWithSuffix: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#1C1F27",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#3B4354",
-    paddingHorizontal: 16,
-    height: 56,
-  },
-
-  inputFlex: {
-    flex: 1,
-    color: "#fff",
-    fontSize: 16,
-  },
-
-  suffixText: {
-    color: "#9CA3AF",
-    fontSize: 14,
-    fontWeight: "500",
-  },
-
-  sectionDivider: {
-    height: 24,
-  },
-
-  timeHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "baseline",
-    marginBottom: 12,
-  },
-
-  subText: {
-    color: "#9CA3AF",
-    fontSize: 12,
-    fontWeight: "500",
-  },
-
-  timeScroll: {
-    marginBottom: 8,
-  },
-
-  timeChip: {
-    backgroundColor: "#282E39",
-    paddingHorizontal: 20,
-    height: 40,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-
-  timeChipActive: {
-    backgroundColor: "#135BEC",
-    shadowColor: "#135BEC",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-
-  timeText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "500",
-  },
-
-  timeTextActive: {
-    fontWeight: "700",
-  },
-
-  thinDivider: {
-    height: 4,
-    backgroundColor: "#1C1F27",
-    borderRadius: 2,
-    marginVertical: 24,
-  },
-
-  addonHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-
-  addBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    backgroundColor: "rgba(37, 99, 235, 0.1)",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-
-  addBtnText: {
-    color: "#135BEC",
-    fontWeight: "700",
-    fontSize: 14,
-  },
-
-  addonCard: {
-    backgroundColor: "#1C1F27",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#3B4354",
-    marginBottom: 12,
-    flexDirection: "row",
-    overflow: "hidden",
-  },
-
-  addonAccent: {
-    width: 4,
-    backgroundColor: "#135BEC",
-  },
-
-  addonContent: {
-    flex: 1,
-    padding: 16,
-  },
-
-  addonCardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-
-  addonTitle: {
-    color: "#135BEC",
-    fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: 0.5,
-  },
-
-  addonLabel: {
-    color: "#9CA3AF",
-    fontSize: 14,
-    fontWeight: "500",
-    marginBottom: 8,
-  },
-
-  addonSelectBox: {
-    backgroundColor: "#101622",
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#3B4354",
-    paddingHorizontal: 16,
-    height: 48,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-
-  addonSelectText: {
-    color: "#fff",
-    fontSize: 15,
-  },
-
-  summary: {
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
-    padding: 16,
-    marginTop: 8,
-  },
-
-  summaryRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 8,
-  },
-
-  summaryRowText: {
-    color: "#9CA3AF",
-    fontSize: 14,
-  },
-
-  summaryDivider: {
-    height: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    marginVertical: 12,
-  },
-
-  summaryTotal: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-
-  summaryTotalLabel: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-
-  summaryTotalValue: {
-    color: "#135BEC",
-    fontSize: 24,
-    fontWeight: "700",
-  },
-
-  bottomBar: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 16,
-    paddingBottom: 24,
-    backgroundColor: "#101622",
-    borderTopWidth: 1,
-    borderTopColor: "#1F2937",
-  },
-
-  ctaBtn: {
-    height: 56,
-    backgroundColor: "#135BEC",
-    borderRadius: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 12,
-    shadowColor: "#135BEC",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 12,
-  },
-
-  ctaText: {
-    color: "#fff",
-    fontSize: 17,
-    fontWeight: "700",
-  },
-
-  dropdownBox: {
-    backgroundColor: "#1C1F27",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#3B4354",
-    height: 56,
-    justifyContent: "center",
-    marginBottom: 16,
-  },
-
-  picker: {
-    color: "#fff",
-    height: 56,
-  },
-
-  allocatedCard: {
-    backgroundColor: "#1C1F27",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#135BEC",
-    padding: 16,
-    marginBottom: 16,
-  },
-
-  allocatedHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-
-  allocatedTitle: {
-    color: "#135BEC",
-    fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: 0.5,
-  },
-
-  allocatedContent: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-
-  allocatedLeft: {
-    flexDirection: "row",
-    gap: 12,
-    alignItems: "center",
-  },
-
-  allocatedAvatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-  },
-
-  verifiedBadge: {
-    position: "absolute",
-    bottom: -2,
-    right: -2,
-    backgroundColor: "#1C1F27",
-    borderRadius: 10,
-    padding: 2,
-  },
-
-  allocatedName: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-
-  allocatedRole: {
-    color: "#9CA3AF",
-    fontSize: 13,
-    marginTop: 2,
-  },
-
-  allocatedMeta: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginTop: 4,
-  },
-
-  metaText: {
-    color: "#9CA3AF",
-    fontSize: 12,
-  },
-
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.8)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-
-  modalCard: {
-    backgroundColor: "#1F2937",
-    borderRadius: 20,
-    padding: 24,
-    width: "100%",
-    maxWidth: 400,
-    alignItems: "center",
-  },
-
-  modalAvatarContainer: {
-    marginBottom: 16,
-  },
-
-  modalAvatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-  },
-
-  modalVerifiedBadge: {
-    position: "absolute",
-    bottom: 0,
-    right: 0,
-    backgroundColor: "#1F2937",
-    borderRadius: 12,
-    padding: 4,
-  },
-
-  modalName: {
-    color: "#fff",
-    fontSize: 22,
-    fontWeight: "700",
-    marginBottom: 4,
-  },
-
-  modalSubtitle: {
-    color: "#135BEC",
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 24,
-  },
-
-  modalInfoGrid: {
-    width: "100%",
-    backgroundColor: "#101622",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
-  },
-
-  modalInfoRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#3B4354",
-  },
-
-  modalInfoLabel: {
-    color: "#9CA3AF",
-    fontSize: 14,
-  },
-
-  modalInfoValue: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-
-  modalRatingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-
-  modalButton: {
-    width: "100%",
-    height: 52,
-    backgroundColor: "#135BEC",
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  modalButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  detectedLocationBox: {
-  backgroundColor: "#1C1F27",
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+
+    /* ================= HEADER ================= */
+
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      backgroundColor: colors.surface,
+    },
+
+    headerLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+picker: {
+  height: 48,
+  width: '100%',
+},
+
+    iconBtn: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+
+    headerTitle: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: "700",
+      letterSpacing: -0.3,
+    },
+
+    /* ================= CONTENT ================= */
+
+    content: {
+      padding: 16,
+    },
+    /* ================= SUMMARY ================= */
+
+    summary: {
+      backgroundColor: colors.card + "0D",
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border + "33",
+      padding: 16,
+      marginTop: 8,
+    },
+
+    summaryRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: 8,
+    },
+
+    summaryRowText: {
+      color: colors.subText,
+      fontSize: 14,
+    },
+
+    summaryDivider: {
+      height: 1,
+      backgroundColor: colors.border + "33",
+      marginVertical: 12,
+    },
+
+    summaryTotal: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+
+    summaryTotalLabel: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: "700",
+    },
+
+    summaryTotalValue: {
+      color: colors.primary,
+      fontSize: 24,
+      fontWeight: "700",
+    },
+
+    section: {
+      marginBottom: 24,
+    },
+
+    sectionTitle: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: "700",
+      marginBottom: 12,
+      letterSpacing: -0.3,
+    },
+
+    label: {
+      color: colors.subText,
+      fontSize: 14,
+      fontWeight: "500",
+      marginBottom: 8,
+    },
+
+ input: {
+  backgroundColor: colors.card,
   borderRadius: 12,
   borderWidth: 1,
-  borderColor: "#3B4354",
+  borderColor: colors.border,
   paddingHorizontal: 16,
-  paddingVertical: 14,
+  paddingVertical: Platform.OS === "android" ? 12 : 16,
+  minHeight: 56,
+  color: colors.text,
+  fontSize: 16,
   marginBottom: 16,
 },
 
-locationRow: {
-  flexDirection: "row",
-  alignItems: "center",
-  gap: 8,
-},
 
-detectedLocationText: {
-  color: "#FFFFFF",
-  fontSize: 14,
-  flexShrink: 1,
-},
+    textArea: {
+      height: 100,
+      paddingTop: 16,
+      textAlignVertical: "top",
+    },
 
-detectedLocationPlaceholder: {
-  color: "#9CA3AF",
-  fontSize: 14,
-},
+    textarea: {
+      backgroundColor: colors.background,
+      borderWidth: 2,
+      borderColor: colors.border,
+      borderRadius: 12,
+      padding: 16,
+      color: colors.text,
+      fontSize: 14,
+        minHeight: 100,
+  paddingTop: 12,
+  textAlignVertical: "top",
+    },
 
- section: {
-    marginBottom: 24,
-  },
+    textareaError: {
+      borderColor: colors.error,
+    },
 
-  floorInput: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1C1F27',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#3B4354',
-    paddingHorizontal: 16,
-    height: 56,
-    marginBottom: 16,
-  },
+    importantTextarea: {
+      borderColor: colors.warning,
+      backgroundColor: colors.surface,
+    },
 
-  floorField: {
-    flex: 1,
-    color: '#fff',
-    fontSize: 16,
-  },
+    /* ================= LOCATION ================= */
 
-  sqftLabel: {
-    color: '#9CA3AF',
-    fontSize: 14,
-    fontWeight: '500',
-  },
+    detectedLocationBox: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      marginBottom: 16,
+    },
 
-  // Missing styles for Date and Time section
-  dateTimeRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 24,
-  },
+    locationRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
 
-  dateSection: {
-    flex: 1,
-  },
+    detectedLocationText: {
+      color: colors.text,
+      fontSize: 14,
+      flexShrink: 1,
+    },
 
-  timeSection: {
-    flex: 1,
-  },
+    detectedLocationPlaceholder: {
+      color: colors.subText,
+      fontSize: 14,
+    },
 
-  dateInput: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1C1F27',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#3B4354',
-    paddingHorizontal: 16,
-    height: 56,
-    gap: 10,
-  },
+    /* ================= ROWS ================= */
 
-  timeInput: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1C1F27',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#3B4354',
-    paddingHorizontal: 16,
-    height: 56,
-    gap: 10,
-  },
+    row: {
+      flexDirection: "row",
+      gap: 12,
+    },
 
-  dateIcon: {
-    fontSize: 20,
-  },
+    halfInput: {
+      flex: 1,
+    },
 
-  timeIcon: {
-    fontSize: 20,
-  },
+    /* ================= FLOOR ================= */
 
-  dateText: {
-    color: '#fff',
-    fontSize: 15,
-  },
+    floorInput: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: 16,
+      minHeight: 56,
+      marginBottom: 16,
+    },
 
-  // Missing styles for Extra Hours Card
-  extraHoursCard: {
-    backgroundColor: '#1C1F27',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#3B4354',
-    padding: 20,
-    marginBottom: 24,
-  },
+    floorField: {
+      flex: 1,
+      color: colors.text,
+      fontSize: 16,
+    },
 
-  extraHoursHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
+    sqftLabel: {
+      color: colors.subText,
+      fontSize: 14,
+      fontWeight: "500",
+    },
 
-  extraHoursTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: 4,
-  },
+    /* ================= DATE & TIME ================= */
 
-  extraHoursSubtitle: {
-    fontSize: 13,
-    color: '#9CA3AF',
-  },
+    dateTimeRow: {
+      flexDirection: "row",
+      gap: 12,
+      marginBottom: 24,
+    },
 
-  counterContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#101622',
-    borderRadius: 30,
-    padding: 6,
-    gap: 12,
-  },
+    dateSection: {
+      flex: 1,
+    },
 
-  counterButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#282E39',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+    timeSection: {
+      flex: 1,
+    },
 
-  counterButtonPlus: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#135BEC',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+    dateInput: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: 16,
+      height: 56,
+      gap: 10,
+    },
 
-  counterIcon: {
-    fontSize: 18,
-    color: '#fff',
-    fontWeight: '700',
-  },
+    timeInput: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: 16,
+      height: 56,
+      gap: 10,
+    },
 
-  counterText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-    minWidth: 50,
-    textAlign: 'center',
-  },
+    dateText: {
+      color: colors.text,
+      fontSize: 15,
+    },
 
-  reasonSection: {
-    marginTop: 20,
-  },
+    /* ================= EXTRA HOURS ================= */
 
-  reasonLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1,
-    color: '#135BEC',
-    marginBottom: 12,
-  },
+    extraHoursCard: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 20,
+      marginBottom: 24,
+    },
 
-  textarea: {
-    backgroundColor: '#101622',
-    borderWidth: 2,
-    borderColor: '#3B4354',
-    borderRadius: 12,
-    padding: 16,
-    color: '#fff',
-    fontSize: 14,
-    minHeight: 100,
-    textAlignVertical: 'top',
-  },
+    extraHoursHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 20,
+    },
 
-  textareaError: {
-    borderColor: '#ef4444',
-  },
+    extraHoursTitle: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: colors.text,
+      marginBottom: 4,
+    },
 
-  errorMessage: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 12,
-  },
+    extraHoursSubtitle: {
+      fontSize: 13,
+      color: colors.subText,
+    },
 
-  errorIcon: {
-    fontSize: 18,
-  },
+    counterContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.background,
+      borderRadius: 30,
+      padding: 6,
+      gap: 12,
+    },
 
-  errorText: {
-    fontSize: 13,
-    color: '#ef4444',
-  },
-reasonHeader: {
-  flexDirection: "row",
-  alignItems: "center",
-  gap: 6,
-  marginBottom: 10,
-},
+    counterButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: colors.surface,
+      alignItems: "center",
+      justifyContent: "center",
+    },
 
-required: {
-  color: "#EF4444",
-  fontWeight: "700",
-},
+    counterButtonPlus: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: colors.primary,
+      alignItems: "center",
+      justifyContent: "center",
+    },
 
-importantTextarea: {
-  borderColor: "#F59E0B",
-  backgroundColor: "#0F172A",
-},
+    counterText: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: colors.text,
+      minWidth: 50,
+      textAlign: "center",
+    },
 
- photoContainer: {
-  flexDirection: "row",
-  flexWrap: "wrap",
-  gap: 12,
-},
+    /* ================= REASON ================= */
 
-photoBoxDashed: {
-  width: 90,
-  height: 90,
-  borderRadius: 16,
-  borderWidth: 2,
-  borderStyle: "dashed",
-  borderColor: "#3B4354",
-  alignItems: "center",
-  justifyContent: "center",
-  backgroundColor: "transparent",
-},
+    reasonHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      marginBottom: 10,
+    },
 
-photoText: {
-  color: "#9CA3AF",
-  fontSize: 11,
-  marginTop: 6,
-  textAlign: "center",
-},
+    required: {
+      color: colors.error,
+      fontWeight: "700",
+    },
 
-photoPreview: {
-  width: 90,
-  height: 90,
-  borderRadius: 16,
-  overflow: "hidden",
-  backgroundColor: "#252835",
-},
+    errorMessage: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      marginTop: 12,
+    },
 
-photoImage: {
-  width: "100%",
-  height: "100%",
-},
+    errorText: {
+      fontSize: 13,
+      color: colors.error,
+    },
 
-removePhoto: {
-  position: "absolute",
-  top: -6,
-  right: -6,
-  width: 22,
-  height: 22,
-  borderRadius: 11,
-  backgroundColor: "#EF4444",
-  alignItems: "center",
-  justifyContent: "center",
-  elevation: 4,
-},
+    /* ================= PHOTOS ================= */
 
-});
+    photoContainer: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 12,
+    },
+
+    photoBoxDashed: {
+      width: 90,
+      height: 90,
+      borderRadius: 16,
+      borderWidth: 2,
+      borderStyle: "dashed",
+      borderColor: colors.border,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    photoText: {
+      color: colors.subText,
+      fontSize: 11,
+      marginTop: 6,
+      textAlign: "center",
+    },
+
+    photoPreview: {
+      width: 90,
+      height: 90,
+      borderRadius: 16,
+      overflow: "hidden",
+      backgroundColor: colors.surface,
+    },
+
+    photoImage: {
+      width: "100%",
+      height: "100%",
+    },
+
+    removePhoto: {
+      position: "absolute",
+      top: -6,
+      right: -6,
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      backgroundColor: colors.error,
+      alignItems: "center",
+      justifyContent: "center",
+      elevation: 4,
+    },
+
+    /* ================= MISSING STYLES ================= */
+
+    dropdownBox: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      marginBottom: 16,
+    },
+
+    otherLocationFields: {
+      marginBottom: 16,
+    },
+
+    allocatedCard: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 16,
+      marginBottom: 16,
+    },
+
+    allocatedHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 12,
+    },
+
+    allocatedTitle: {
+      fontSize: 16,
+      fontWeight: "700",
+      color: colors.text,
+    },
+
+    allocatedContent: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+
+    allocatedLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      flex: 1,
+    },
+
+    allocatedAvatar: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      marginRight: 12,
+    },
+
+    verifiedBadge: {
+      position: "absolute",
+      top: -5,
+      right: -5,
+      backgroundColor: colors.background,
+      borderRadius: 10,
+      padding: 2,
+    },
+
+    allocatedName: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: colors.text,
+    },
+
+    allocatedRole: {
+      fontSize: 14,
+      color: colors.subText,
+    },
+
+    allocatedMeta: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: 4,
+    },
+
+    metaText: {
+      fontSize: 12,
+      color: colors.subText,
+      marginLeft: 4,
+    },
+
+    timeText: {
+      color: colors.text,
+      fontSize: 15,
+    },
+
+    counterIcon: {
+      fontSize: 20,
+      color: colors.text,
+    },
+
+    reasonSection: {
+      marginTop: 16,
+    },
+
+    reasonLabel: {
+      fontSize: 14,
+      color: colors.warning,
+      fontWeight: "500",
+    },
+
+    thinDivider: {
+      height: 1,
+      backgroundColor: colors.border,
+      marginVertical: 16,
+    },
+
+    addonHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 12,
+    },
+
+    addBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.primary,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 8,
+    },
+
+    addBtnText: {
+      color: "#fff",
+      fontSize: 14,
+      marginLeft: 4,
+    },
+
+    addonTitle: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: colors.text,
+      marginBottom: 8,
+    },
+
+    addonCard: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 16,
+      marginBottom: 12,
+    },
+
+    addonAccent: {
+      width: 4,
+      backgroundColor: colors.primary,
+      borderRadius: 2,
+      marginRight: 12,
+    },
+
+    addonContent: {
+      flex: 1,
+    },
+
+    addonSelectText: {
+      fontSize: 16,
+      color: colors.text,
+    },
+
+    addonCardHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 8,
+    },
+
+    bottomBar: {
+      padding: 16,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      backgroundColor: colors.surface,
+    },
+
+    ctaBtn: {
+      backgroundColor: colors.primary,
+      borderRadius: 12,
+      paddingVertical: 16,
+      alignItems: "center",
+      flexDirection: "row",
+      justifyContent: "center",
+    },
+
+    ctaText: {
+      color: "#fff",
+      fontSize: 16,
+      fontWeight: "600",
+      marginLeft: 8,
+    },
+
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.5)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+
+    modalCard: {
+      backgroundColor: colors.surface,
+      borderRadius: 16,
+      padding: 24,
+      width: "80%",
+      alignItems: "center",
+    },
+
+    modalAvatarContainer: {
+      marginBottom: 16,
+    },
+
+    modalAvatar: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+    },
+
+    modalVerifiedBadge: {
+      position: "absolute",
+      top: -5,
+      right: -5,
+      backgroundColor: colors.background,
+      borderRadius: 12,
+      padding: 4,
+    },
+
+    modalName: {
+      fontSize: 20,
+      fontWeight: "700",
+      color: colors.text,
+      marginBottom: 4,
+    },
+
+    modalSubtitle: {
+      fontSize: 16,
+      color: colors.subText,
+      marginBottom: 20,
+    },
+
+    modalInfoGrid: {
+      width: "100%",
+      marginBottom: 24,
+    },
+
+    modalInfoRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: 12,
+    },
+
+    modalInfoLabel: {
+      fontSize: 14,
+      color: colors.subText,
+    },
+
+    modalRatingRow: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+
+    modalInfoValue: {
+      fontSize: 14,
+      color: colors.text,
+    },
+
+    modalButton: {
+      backgroundColor: colors.primary,
+      borderRadius: 12,
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      alignItems: "center",
+    },
+
+    modalButtonText: {
+      color: "#fff",
+      fontSize: 16,
+      fontWeight: "600",
+    },
+  });

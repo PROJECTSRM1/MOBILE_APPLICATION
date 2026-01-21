@@ -13,6 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import LinearGradient from "react-native-linear-gradient";
 import { useRoute, useNavigation } from "@react-navigation/native";
+import { useTheme } from "../context/ThemeContext";
 
 const { width } = Dimensions.get("window");
 
@@ -70,6 +71,8 @@ const COURSE_INFO_MAP: Record<
 
 /* ===================== SCREEN ===================== */
 const TrainingDetailsScreen = () => {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
 
@@ -264,104 +267,214 @@ const TrainingDetailsScreen = () => {
 export default TrainingDetailsScreen;
 
 /* ===================== STYLES (UNCHANGED) ===================== */
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#0b1220" },
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: colors.background ?? "#0b1220",
+    },
 
-  imageHeader: { height: 260 },
-  overlay: { flex: 1, padding: 16, justifyContent: "space-between" },
+    imageHeader: {
+      height: 260,
+    },
 
-  headerTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  headerTitle: { color: "#fff", fontSize: 18, fontWeight: "700" },
+    overlay: {
+      flex: 1,
+      padding: 16,
+      justifyContent: "space-between",
+    },
 
-  badge: {
-    backgroundColor: "#2563eb",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 14,
-    marginBottom: 8,
-    alignSelf: "flex-start",
-  },
-  badgeText: { color: "#fff", fontSize: 11, fontWeight: "800" },
-  imageTitle: { color: "#fff", fontSize: 26, fontWeight: "800" },
+    /* ================= HEADER ================= */
+    headerTop: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
 
-  infoRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: 16,
-  },
-  infoCard: {
-    backgroundColor: "#111827",
-    flex: 1,
-    marginHorizontal: 4,
-    borderRadius: 14,
-    padding: 12,
-    alignItems: "center",
-  },
-  infoLabel: { color: "#9ca3af", fontSize: 12 },
-  infoValue: { color: "#fff", fontWeight: "700" },
+    headerTitle: {
+      color: colors.text ?? "#ffffff",
+      fontSize: 18,
+      fontWeight: "700",
+    },
 
-  tabRow: { flexDirection: "row", paddingHorizontal: 16 },
-  tabBtn: { marginRight: 24 },
-  tabText: { color: "#9ca3af", fontWeight: "600" },
-  tabTextActive: { color: "#fff", fontWeight: "700" },
-  tabUnderline: { height: 2, backgroundColor: "#2563eb", marginTop: 6 },
+    badge: {
+      backgroundColor: colors.primary ?? "#2563eb",
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 14,
+      marginBottom: 8,
+      alignSelf: "flex-start",
+    },
 
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 12,
-  },
-  sectionTitle: { color: "#fff", fontSize: 16, fontWeight: "700" },
-  viewAll: { color: "#2563eb", fontSize: 13 },
+    badgeText: {
+      color: "#ffffff",
+      fontSize: 11,
+      fontWeight: "800",
+    },
 
-  materialCard: {
-    flexDirection: "row",
-    backgroundColor: "#1b2538",
-    padding: 12,
-    borderRadius: 14,
-    marginBottom: 12,
-    alignItems: "center",
-  },
-  materialIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  materialIconText: { color: "#fff", fontWeight: "800", fontSize: 11 },
-  materialTitle: { color: "#fff", fontWeight: "700" },
-  materialSize: { color: "#9ca3af", fontSize: 12 },
+    imageTitle: {
+      color: colors.text ?? "#ffffff",
+      fontSize: 26,
+      fontWeight: "800",
+    },
 
-  videoCard: { borderRadius: 14, overflow: "hidden", marginVertical: 12 },
-  videoThumbnail: { width: "100%", height: 180 },
-  videoCenterPlay: {
-    position: "absolute",
-    top: "40%",
-    left: "42%",
-    backgroundColor: "rgba(0,0,0,0.6)",
-    padding: 14,
-    borderRadius: 40,
-  },
-  videoTitle: { color: "#fff", fontWeight: "700" },
-  videoDesc: { color: "#9ca3af", fontSize: 12 },
+    /* ================= INFO ROW ================= */
+    infoRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      padding: 16,
+    },
 
-  progressCard: {
-    margin: 16,
-    padding: 16,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "#1f2937",
-    alignItems: "center",
-  },
-  progressText: {
-    color: "#9ca3af",
-    fontSize: 12,
-    marginTop: 6,
-    textAlign: "center",
-  },
-});
+    infoCard: {
+      backgroundColor: colors.card ?? "#111827",
+      flex: 1,
+      marginHorizontal: 4,
+      borderRadius: 14,
+      padding: 12,
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: colors.border ?? "#1f2937",
+    },
+
+    infoLabel: {
+      color: colors.subText ?? "#9ca3af",
+      fontSize: 12,
+    },
+
+    infoValue: {
+      color: colors.text ?? "#ffffff",
+      fontWeight: "700",
+    },
+
+    /* ================= TABS ================= */
+    tabRow: {
+      flexDirection: "row",
+      paddingHorizontal: 16,
+    },
+
+    tabBtn: {
+      marginRight: 24,
+    },
+
+    tabText: {
+      color: colors.subText ?? "#9ca3af",
+      fontWeight: "600",
+    },
+
+    tabTextActive: {
+      color: colors.text ?? "#ffffff",
+      fontWeight: "700",
+    },
+
+    tabUnderline: {
+      height: 2,
+      backgroundColor: colors.primary ?? "#2563eb",
+      marginTop: 6,
+    },
+
+    /* ================= SECTION ================= */
+    sectionHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: 12,
+    },
+
+    sectionTitle: {
+      color: colors.text ?? "#ffffff",
+      fontSize: 16,
+      fontWeight: "700",
+    },
+
+    viewAll: {
+      color: colors.primary ?? "#2563eb",
+      fontSize: 13,
+    },
+
+    /* ================= MATERIAL ================= */
+    materialCard: {
+      flexDirection: "row",
+      backgroundColor: colors.card ?? "#1b2538",
+      padding: 12,
+      borderRadius: 14,
+      marginBottom: 12,
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: colors.border ?? "#1f2937",
+    },
+
+    materialIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: 8,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: colors.primary + "20",
+    },
+
+    materialIconText: {
+      color: "#ffffff",
+      fontWeight: "800",
+      fontSize: 11,
+    },
+
+    materialTitle: {
+      color: colors.text ?? "#ffffff",
+      fontWeight: "700",
+    },
+
+    materialSize: {
+      color: colors.subText ?? "#9ca3af",
+      fontSize: 12,
+    },
+
+    /* ================= VIDEO ================= */
+    videoCard: {
+      borderRadius: 14,
+      overflow: "hidden",
+      marginVertical: 12,
+      borderWidth: 1,
+      borderColor: colors.border ?? "#1f2937",
+    },
+
+    videoThumbnail: {
+      width: "100%",
+      height: 180,
+    },
+
+    videoCenterPlay: {
+      position: "absolute",
+      top: "40%",
+      left: "42%",
+      backgroundColor: "rgba(0,0,0,0.6)",
+      padding: 14,
+      borderRadius: 40,
+    },
+
+    videoTitle: {
+      color: colors.text ?? "#ffffff",
+      fontWeight: "700",
+    },
+
+    videoDesc: {
+      color: colors.subText ?? "#9ca3af",
+      fontSize: 12,
+    },
+
+    /* ================= PROGRESS ================= */
+    progressCard: {
+      margin: 16,
+      padding: 16,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: colors.border ?? "#1f2937",
+      alignItems: "center",
+      backgroundColor: colors.surface ?? colors.background,
+    },
+
+    progressText: {
+      color: colors.subText ?? "#9ca3af",
+      fontSize: 12,
+      marginTop: 6,
+      textAlign: "center",
+    },
+  });
