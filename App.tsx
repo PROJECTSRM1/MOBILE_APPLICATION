@@ -66,6 +66,7 @@ function AppNavigator() {
   const { navigationTheme } = useTheme();
 
   return (
+   
     <NavigationContainer theme={navigationTheme}>
       <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={Splash} />
@@ -114,7 +115,7 @@ function AppNavigator() {
         <Stack.Screen name="Health" component={DoctorListScreen} />
         <Stack.Screen name="Form" component={ConsultationRequestScreen} />
          <Stack.Screen name="Telecom" component={TelemedicineConsultation} />
-         <Stack.Screen name="Facility" component={FacilitiesScreen} />
+         
          <Stack.Screen name="Wishlist" component={Wishlist} />
 
 
@@ -125,7 +126,7 @@ function AppNavigator() {
         <Stack.Screen name="enrollmentDetails" component={EnrollmentDetailsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
-     </ThemeProvider> 
+     
   );
 }
 

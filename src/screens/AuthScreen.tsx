@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  Modal,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
@@ -25,14 +26,46 @@ const AuthScreen = () => {
   const [password, setPassword] = useState('');
 
   /* ===== REGISTER ONLY ===== */
+  const [selectedServices, setSelectedServices] = useState<number[]>([]);
+  const [showServiceModal, setShowServiceModal] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [mobile, setMobile] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [aadhaar, setAadhaar] = useState('');
   const [location, setLocation] = useState('');
-  const [lookingForWork, setLookingForWork] = useState('');
+  const [role, setRole] = useState('');
   const [workType, setWorkType] = useState('');
+
+  /* ===== DOCTOR FIELDS ===== */
+  const [hospitalName, setHospitalName] = useState('');
+  const [certificate, setCertificate] = useState('');
+  const [yearsOfExperience, setYearsOfExperience] = useState('');
+  const [designation, setDesignation] = useState('');
+  const [workingType, setWorkingType] = useState('');
+
+  /* ===== JUSTRIDE DRIVER FIELDS ===== */
+  const [vehicleInsurance, setVehicleInsurance] = useState('');
+  const [driverLicense, setDriverLicense] = useState('');
+  const [vehicleRC, setVehicleRC] = useState('');
+  const [hasPollutionCert, setHasPollutionCert] = useState('');
+  const [pollutionCertificate, setPollutionCertificate] = useState('');
+  const [yearOfPurchase, setYearOfPurchase] = useState('');
+  const [vehicleModel, setVehicleModel] = useState('');
+
+  /* ===== SERVICE OPTIONS ===== */
+  const serviceOptions = [
+    { label: 'Cleaning & Home Services', value: 1 },
+    { label: 'Go Ride', value: 2 },
+    { label: 'Buy/Sell/Rental', value: 3 },
+    { label: 'Raw Materials', value: 4 },
+    { label: 'Education', value: 5 },
+    { label: 'Swachify Products', value: 6 },
+  ];
+
+  /* ================= HELPER FUNCTIONS ================= */
+  const hasJustRide = selectedServices.includes(2);
+  const showDriverFields = hasJustRide && workType === 'looking';
 
   /* ================= REGISTER ================= */
 
@@ -47,16 +80,64 @@ const AuthScreen = () => {
       return;
     }
 
-    const userProfile = {
+    if (selectedServices.length === 0) {
+      Alert.alert('Error', 'Please select at least one service');
+      return;
+    }
+
+    // Additional validation for doctor role
+    if (role === 'doctor') {
+      if (!hospitalName || !certificate || !yearsOfExperience || !designation || !workingType) {
+        Alert.alert('Error', 'All doctor-specific fields must be filled');
+        return;
+      }
+    }
+
+    // Additional validation for JustRide driver
+    if (showDriverFields) {
+      if (!vehicleInsurance || !driverLicense || !vehicleRC || !yearOfPurchase || !vehicleModel || !hasPollutionCert) {
+        Alert.alert('Error', 'All JustRide driver fields must be filled');
+        return;
+      }
+      if (hasPollutionCert === 'yes' && !pollutionCertificate) {
+        Alert.alert('Error', 'Please upload pollution certificate');
+        return;
+      }
+    }
+
+    const userProfile: any = {
       firstName,
       lastName,
       email,
       mobile,
       aadhaar,
       location,
-      lookingForWork,
+      role,
       workType,
+      selectedServices,
     };
+
+    // Add doctor-specific fields if role is doctor
+    if (role === 'doctor') {
+      userProfile.hospitalName = hospitalName;
+      userProfile.certificate = certificate;
+      userProfile.yearsOfExperience = yearsOfExperience;
+      userProfile.designation = designation;
+      userProfile.workingType = workingType;
+    }
+
+    // Add JustRide driver fields
+    if (showDriverFields) {
+      userProfile.driverDetails = {
+        vehicleInsurance,
+        driverLicense,
+        vehicleRC,
+        hasPollutionCert,
+        pollutionCertificate: hasPollutionCert === 'yes' ? pollutionCertificate : null,
+        yearOfPurchase,
+        vehicleModel,
+      };
+    }
 
     try {
       await AsyncStorage.setItem(
@@ -106,6 +187,25 @@ const AuthScreen = () => {
     }
   };
 
+  /* ================= HANDLE SERVICE SELECTION ================= */
+  const handleServiceToggle = (serviceValue: number) => {
+    setSelectedServices((prev) => {
+      if (prev.includes(serviceValue)) {
+        return prev.filter((s) => s !== serviceValue);
+      } else {
+        return [...prev, serviceValue];
+      }
+    });
+  };
+
+  const getSelectedServiceLabels = () => {
+    if (selectedServices.length === 0) return 'Select services';
+    return serviceOptions
+      .filter((s) => selectedServices.includes(s.value))
+      .map((s) => s.label)
+      .join(', ');
+  };
+
   /* ================= UI ================= */
 
   return (
@@ -147,6 +247,24 @@ const AuthScreen = () => {
             <>
               <Text style={styles.title}>Create Account</Text>
 
+              {/* SELECT SERVICES DROPDOWN */}
+              <Text style={styles.label}>Select Services *</Text>
+              <TouchableOpacity
+                style={styles.dropdownTrigger}
+                onPress={() => setShowServiceModal(true)}
+              >
+                <Text
+                  style={[
+                    styles.dropdownTriggerText,
+                    selectedServices.length === 0 && styles.placeholderText,
+                  ]}
+                  numberOfLines={2}
+                >
+                  {getSelectedServiceLabels()}
+                </Text>
+                <Text style={styles.dropdownArrow}>▼</Text>
+              </TouchableOpacity>
+
               <Input label="First Name" value={firstName} onChange={setFirstName} />
               <Input label="Last Name" value={lastName} onChange={setLastName} />
               <Input label="Mobile Number" value={mobile} onChange={setMobile} />
@@ -160,11 +278,46 @@ const AuthScreen = () => {
               />
               <Input label="Aadhaar Number" value={aadhaar} onChange={setAadhaar} />
               <Input label="Location" value={location} onChange={setLocation} />
-              <Input
-                label="Looking for Work"
-                value={lookingForWork}
-                onChange={setLookingForWork}
-              />
+
+              <Text style={styles.label}>Select Role</Text>
+              <View style={styles.dropdownWrapper}>
+                <Picker
+                  selectedValue={role}
+                  onValueChange={setRole}
+                  style={styles.picker}
+                  dropdownIconColor="#ffffff"
+                >
+                  <Picker.Item label="Choose role" value="" />
+                  <Picker.Item label="Doctor" value="doctor" />
+                  <Picker.Item label="Patient" value="patient" />
+                  <Picker.Item label="Other" value="other" />
+                </Picker>
+              </View>
+
+              {/* DOCTOR-SPECIFIC FIELDS */}
+              {role === 'doctor' && (
+                <>
+                  <Input label="Hospital Name" value={hospitalName} onChange={setHospitalName} />
+                  <Input label="Certificate" value={certificate} onChange={setCertificate} />
+                  <Input label="Years of Experience" value={yearsOfExperience} onChange={setYearsOfExperience} />
+                  <Input label="Designation" value={designation} onChange={setDesignation} />
+
+                  <Text style={styles.label}>Select Working Type</Text>
+                  <View style={styles.dropdownWrapper}>
+                    <Picker
+                      selectedValue={workingType}
+                      onValueChange={setWorkingType}
+                      style={styles.picker}
+                      dropdownIconColor="#ffffff"
+                    >
+                      <Picker.Item label="Choose working type" value="" />
+                      <Picker.Item label="Online" value="online" />
+                      <Picker.Item label="Offline" value="offline" />
+                      <Picker.Item label="Both" value="both" />
+                    </Picker>
+                  </View>
+                </>
+              )}
 
               <Text style={styles.label}>Select Work Type</Text>
               <View style={styles.dropdownWrapper}>
@@ -180,6 +333,70 @@ const AuthScreen = () => {
                   <Picker.Item label="Both" value="both" />
                 </Picker>
               </View>
+
+              {/* JUSTRIDE DRIVER FIELDS */}
+              {showDriverFields && (
+                <>
+                  <View style={styles.sectionHeader}>
+                    <Text style={styles.sectionTitle}>Driver Details</Text>
+                  </View>
+
+                  <Input 
+                    label="Vehicle Insurance" 
+                    value={vehicleInsurance} 
+                    onChange={setVehicleInsurance} 
+                  />
+                  
+                  <Input 
+                    label="Driver License" 
+                    value={driverLicense} 
+                    onChange={setDriverLicense} 
+                  />
+                  
+                  <Input 
+                    label="Vehicle Registration Certificate (RC)" 
+                    value={vehicleRC} 
+                    onChange={setVehicleRC} 
+                  />
+
+                  <Text style={styles.label}>Pollution Certificate</Text>
+                  <View style={styles.dropdownWrapper}>
+                    <Picker
+                      selectedValue={hasPollutionCert}
+                      onValueChange={setHasPollutionCert}
+                      style={styles.picker}
+                      dropdownIconColor="#ffffff"
+                    >
+                      <Picker.Item label="Do you have pollution certificate?" value="" />
+                      <Picker.Item label="Yes" value="yes" />
+                      <Picker.Item label="No" value="no" />
+                    </Picker>
+                  </View>
+
+                  {hasPollutionCert === 'yes' && (
+                    <Input 
+                      label="Upload Pollution Certificate" 
+                      value={pollutionCertificate} 
+                      onChange={setPollutionCertificate}
+                      placeholder="Certificate number or upload path"
+                    />
+                  )}
+
+                  <Input 
+                    label="Year of Purchase" 
+                    value={yearOfPurchase} 
+                    onChange={setYearOfPurchase}
+                    placeholder="e.g., 2020"
+                  />
+                  
+                  <Input 
+                    label="Vehicle Model" 
+                    value={vehicleModel} 
+                    onChange={setVehicleModel}
+                    placeholder="e.g., Honda City"
+                  />
+                </>
+              )}
 
               <TouchableOpacity
                 style={styles.primaryBtn}
@@ -213,13 +430,61 @@ const AuthScreen = () => {
           )}
         </View>
       </ScrollView>
+
+      {/* SERVICE SELECTION MODAL */}
+      <Modal
+        visible={showServiceModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowServiceModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select Services</Text>
+              <TouchableOpacity onPress={() => setShowServiceModal(false)}>
+                <Text style={styles.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalScrollView}>
+              {serviceOptions.map((service) => (
+                <TouchableOpacity
+                  key={service.value}
+                  style={styles.modalOption}
+                  onPress={() => handleServiceToggle(service.value)}
+                >
+                  <View
+                    style={[
+                      styles.checkbox,
+                      selectedServices.includes(service.value) && styles.checkboxChecked,
+                    ]}
+                  >
+                    {selectedServices.includes(service.value) && (
+                      <Text style={styles.checkmark}>✓</Text>
+                    )}
+                  </View>
+                  <Text style={styles.modalOptionText}>{service.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <TouchableOpacity
+              style={styles.modalDoneBtn}
+              onPress={() => setShowServiceModal(false)}
+            >
+              <Text style={styles.modalDoneText}>Done</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </LinearGradient>
   );
 };
 
 /* ================= COMPONENTS ================= */
 
-const Input = ({ label, value, onChange, secure }: any) => (
+const Input = ({ label, value, onChange, secure, placeholder }: any) => (
   <>
     <Text style={styles.label}>{label}</Text>
     <TextInput
@@ -227,7 +492,7 @@ const Input = ({ label, value, onChange, secure }: any) => (
       value={value}
       secureTextEntry={secure}
       onChangeText={onChange}
-      placeholder={`Enter ${label.toLowerCase()}`}
+      placeholder={placeholder || `Enter ${label.toLowerCase()}`}
       placeholderTextColor="#9ca3af"
     />
   </>
@@ -238,7 +503,7 @@ const SocialSection = () => (
     <Text style={styles.or}>OR CONTINUE WITH</Text>
     <View style={styles.socialRow}>
       <SocialBtn text="G" />
-      <SocialBtn text="" />
+      <SocialBtn text="" />
       <SocialBtn text="in" />
     </View>
     <Text style={styles.terms}>
@@ -288,12 +553,129 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
 
+  // Section Header
+  sectionHeader: {
+    marginTop: 8,
+    marginBottom: 12,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1f2937',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#3b82f6',
+  },
+
+  // Dropdown Trigger Styles
+  dropdownTrigger: {
+    backgroundColor: '#111827',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 14,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dropdownTriggerText: {
+    color: '#fff',
+    flex: 1,
+    fontSize: 14,
+  },
+  placeholderText: {
+    color: '#9ca3af',
+  },
+  dropdownArrow: {
+    color: '#9ca3af',
+    fontSize: 12,
+    marginLeft: 8,
+  },
+
   dropdownWrapper: {
     backgroundColor: '#111827',
     borderRadius: 12,
     marginBottom: 14,
   },
   picker: { color: '#fff' },
+
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#0b1220',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '70%',
+    paddingBottom: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1f2937',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  modalClose: {
+    fontSize: 24,
+    color: '#9ca3af',
+    fontWeight: '300',
+  },
+  modalScrollView: {
+    padding: 20,
+  },
+  modalOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1f2937',
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#4b5563',
+    marginRight: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkboxChecked: {
+    backgroundColor: '#2563eb',
+    borderColor: '#2563eb',
+  },
+  checkmark: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  modalOptionText: {
+    color: '#e5e7eb',
+    fontSize: 15,
+    flex: 1,
+  },
+  modalDoneBtn: {
+    backgroundColor: '#2563eb',
+    margin: 20,
+    marginTop: 10,
+    padding: 16,
+    borderRadius: 14,
+    alignItems: 'center',
+  },
+  modalDoneText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 16,
+  },
 
   primaryBtn: {
     backgroundColor: '#2563eb',
