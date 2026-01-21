@@ -14,7 +14,7 @@ import {
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useNavigation, useRoute } from "@react-navigation/native";
-
+import { useTheme } from "../context/ThemeContext";
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width - 64;
 const CARD_MARGIN = 16;
@@ -26,7 +26,7 @@ type Professional = {
   rating: string;
   ratingValue: number;
   distance: string;
-  image: any;
+  image: string;
   verified?: boolean;
   mobileNumber: string;
 };
@@ -39,7 +39,7 @@ const PROFESSIONALS: Professional[] = [
     rating: "4.9 (124)",
     ratingValue: 4.9,
     distance: "0.8 mi",
-    image: { uri: "https://randomuser.me/api/portraits/women/44.jpg" },
+    image: "https://randomuser.me/api/portraits/women/44.jpg",
     verified: true,
     mobileNumber: "xxxx456",
   },
@@ -50,7 +50,7 @@ const PROFESSIONALS: Professional[] = [
     rating: "4.7 (89)",
     ratingValue: 4.7,
     distance: "1.2 mi",
-    image: { uri: "https://randomuser.me/api/portraits/men/32.jpg" },
+    image:  "https://randomuser.me/api/portraits/men/32.jpg" ,
     mobileNumber: "xxxx789",
   },
   {
@@ -60,7 +60,7 @@ const PROFESSIONALS: Professional[] = [
     rating: "4.8 (210)",
     ratingValue: 4.8,
     distance: "2.0 mi",
-    image: { uri: "https://randomuser.me/api/portraits/women/65.jpg" },
+    image: "https://randomuser.me/api/portraits/women/65.jpg" ,
     mobileNumber: "xxxx321",
   },
   {
@@ -70,7 +70,7 @@ const PROFESSIONALS: Professional[] = [
     rating: "4.5 (56)",
     ratingValue: 4.5,
     distance: "5.4 mi",
-    image: { uri: "https://randomuser.me/api/portraits/men/45.jpg" },
+    image: "https://randomuser.me/api/portraits/men/45.jpg" ,
     mobileNumber: "xxxx654",
   },
 ];
@@ -79,7 +79,8 @@ const EmployeeAllocation = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const scrollViewRef = useRef<ScrollView>(null);
-
+ const { colors } = useTheme();
+    const styles = getStyles(colors);
   const [selectedId, setSelectedId] = useState<string>("1");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoAllocating, setIsAutoAllocating] = useState(false);
@@ -139,8 +140,15 @@ const EmployeeAllocation = () => {
   if (isAutoAllocating) {
     return (
       <SafeAreaView style={styles.safe}>
-        <StatusBar barStyle="light-content" />
-        <LinearGradient colors={["#0d1321", "#101622"]} style={styles.container}>
+       <StatusBar
+  barStyle={colors.background === "#ffffff" ? "dark-content" : "light-content"}
+/>
+
+        <LinearGradient
+  colors={[colors.gradientStart, colors.gradientEnd]}
+  style={styles.container}
+>
+
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#1a5cff" />
             <Text style={styles.loadingText}>Allocating best professional for you...</Text>
@@ -157,7 +165,11 @@ const EmployeeAllocation = () => {
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="light-content" />
 
-      <LinearGradient colors={["#0d1321", "#101622"]} style={styles.container}>
+    <LinearGradient
+  colors={[colors.gradientStart, colors.gradientEnd]}
+  style={styles.container}
+>
+
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -201,7 +213,8 @@ const EmployeeAllocation = () => {
               >
                 {/* Professional Image */}
                 <View style={styles.imageContainer}>
-                  <Image source={item.image} style={styles.avatar} />
+                  <Image source={{uri:item.image}}
+                  style={styles.avatar}/>
                   {item.verified && (
                     <View style={styles.verified}>
                       <Icon name="verified" size={20} color="#facc15" />
@@ -292,275 +305,294 @@ const EmployeeAllocation = () => {
 
 export default EmployeeAllocation;
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#0d1321" },
-  container: { flex: 1 },
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
-  header: {
-    height: 56,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#1c2433",
-  },
-  headerTitle: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "700",
-  },
+    container: {
+      flex: 1,
+    },
 
-  listHeader: {
-    paddingHorizontal: 16,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginVertical: 16,
-  },
-  listTitle: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  sortText: {
-    color: "#9da6b9",
-    fontSize: 13,
-  },
+    header: {
+      height: 56,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      backgroundColor: colors.surface,
+    },
 
-  scrollContent: {
-    paddingHorizontal: 32,
-    paddingVertical: 20,
-  },
+    headerTitle: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: "700",
+    },
 
-  card: {
-    width: CARD_WIDTH,
-    marginHorizontal: CARD_MARGIN,
-    padding: 24,
-    borderRadius: 24,
-    backgroundColor: "#1c1f27",
-    borderWidth: 2,
-    borderColor: "#3b4354",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 10,
-  },
-  cardSelected: {
-    borderColor: "#1a5cff",
-    backgroundColor: "rgba(26,92,255,0.12)",
-    shadowColor: "#1a5cff",
-    shadowOpacity: 0.4,
-  },
+    listHeader: {
+      paddingHorizontal: 16,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginVertical: 16,
+    },
 
-  imageContainer: {
-    alignItems: "center",
-    marginBottom: 20,
-  },
+    listTitle: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: "700",
+    },
 
-  avatar: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 3,
-    borderColor: "#1a5cff",
-  },
+    sortText: {
+      color: colors.subText,
+      fontSize: 13,
+    },
 
-  verified: {
-    position: "absolute",
-    bottom: 0,
-    right: "35%",
-    backgroundColor: "#1c1f27",
-    borderRadius: 16,
-    padding: 4,
-    borderWidth: 2,
-    borderColor: "#facc15",
-  },
+    scrollContent: {
+      paddingHorizontal: 32,
+      paddingVertical: 20,
+    },
 
-  infoContainer: {
-    alignItems: "center",
-  },
+    card: {
+      width: CARD_WIDTH,
+      marginHorizontal: CARD_MARGIN,
+      padding: 24,
+      borderRadius: 24,
+      backgroundColor: colors.card,
+      borderWidth: 2,
+      borderColor: colors.border,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.3,
+      shadowRadius: 16,
+      elevation: 10,
+    },
 
-  name: {
-    color: "#fff",
-    fontSize: 24,
-    fontWeight: "700",
-    marginBottom: 4,
-  },
+    cardSelected: {
+      borderColor: colors.primary,
+      backgroundColor: `${colors.primary}20`,
+      shadowColor: colors.primary,
+      shadowOpacity: 0.4,
+    },
 
-  role: {
-    color: "#9da6b9",
-    fontSize: 16,
-    marginBottom: 16,
-  },
+    imageContainer: {
+      alignItems: "center",
+      marginBottom: 20,
+    },
 
-  metaContainer: {
-    flexDirection: "row",
-    gap: 12,
-    marginBottom: 20,
-  },
+    avatar: {
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+      borderWidth: 3,
+      borderColor: colors.primary,
+    },
 
-  metaRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
+    verified: {
+      position: "absolute",
+      bottom: 0,
+      right: "35%",
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      padding: 4,
+      borderWidth: 2,
+      borderColor: "#facc15",
+    },
 
-  ratingBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    backgroundColor: "rgba(250, 204, 21, 0.1)",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 12,
-  },
+    infoContainer: {
+      alignItems: "center",
+    },
 
-  distanceBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    backgroundColor: "rgba(26, 92, 255, 0.1)",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 12,
-  },
+    name: {
+      color: colors.text,
+      fontSize: 24,
+      fontWeight: "700",
+      marginBottom: 4,
+    },
 
-  meta: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
-  },
+    role: {
+      color: colors.subText,
+      fontSize: 16,
+      marginBottom: 16,
+    },
 
-  mobileContainer: {
-    width: "100%",
-    backgroundColor: "#101622",
-    borderRadius: 12,
-    padding: 16,
-    alignItems: "center",
-  },
+    metaContainer: {
+      flexDirection: "row",
+      gap: 12,
+      marginBottom: 20,
+    },
 
-  mobileLabel: {
-    color: "#9da6b9",
-    fontSize: 12,
-    marginBottom: 4,
-  },
+    metaRow: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
 
-  mobileNumber: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "700",
-  },
+    ratingBox: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      backgroundColor: "rgba(250,204,21,0.1)",
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 12,
+    },
 
-  selectionContainer: {
-    position: "absolute",
-    top: 24,
-    right: 24,
-  },
+    distanceBox: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      backgroundColor: `${colors.primary}20`,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 12,
+    },
 
-  radio: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: "#3b4354",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#1c1f27",
-  },
-  radioSelected: {
-    borderColor: "#1a5cff",
-    backgroundColor: "#1a5cff",
-  },
-  radioInner: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: "#fff",
-  },
+    meta: {
+      color: colors.text,
+      fontSize: 14,
+      fontWeight: "600",
+    },
 
-  pagination: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 8,
-    marginVertical: 20,
-  },
+    mobileContainer: {
+      width: "100%",
+      backgroundColor: colors.surfaceAlt,
+      borderRadius: 12,
+      padding: 16,
+      alignItems: "center",
+    },
 
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#3b4354",
-  },
+    mobileLabel: {
+      color: colors.subText,
+      fontSize: 12,
+      marginBottom: 4,
+    },
 
-  dotActive: {
-    width: 24,
-    backgroundColor: "#1a5cff",
-  },
+    mobileNumber: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: "700",
+    },
 
-  footer: {
-    padding: 16,
-    backgroundColor: "#111318",
-    borderTopWidth: 1,
-    borderTopColor: "#3b4354",
-  },
-  filters: {
-    flexDirection: "row",
-    gap: 12,
-    marginBottom: 16,
-  },
-  filterBtn: {
-    flex: 1,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: "#1c1f27",
-    borderWidth: 1,
-    borderColor: "#3b4354",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-  },
-  filterText: {
-    color: "#fff",
-    fontSize: 13,
-    fontWeight: "500",
-  },
+    selectionContainer: {
+      position: "absolute",
+      top: 24,
+      right: 24,
+    },
 
-  confirmBtn: {
-    height: 52,
-    borderRadius: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-  },
-  confirmText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
-  },
+    radio: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      borderWidth: 2,
+      borderColor: colors.border,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.card,
+    },
 
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 40,
-  },
+    radioSelected: {
+      borderColor: colors.primary,
+      backgroundColor: colors.primary,
+    },
 
-  loadingText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "700",
-    marginTop: 24,
-    textAlign: "center",
-  },
+    radioInner: {
+      width: 14,
+      height: 14,
+      borderRadius: 7,
+      backgroundColor: "#fff",
+    },
 
-  loadingSubtext: {
-    color: "#9da6b9",
-    fontSize: 14,
-    marginTop: 8,
-    textAlign: "center",
-  },
-});
+    pagination: {
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+      gap: 8,
+      marginVertical: 20,
+    },
+
+    dot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: colors.border,
+    },
+
+    dotActive: {
+      width: 24,
+      backgroundColor: colors.primary,
+    },
+
+    footer: {
+      padding: 16,
+      backgroundColor: colors.surface,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+
+    filters: {
+      flexDirection: "row",
+      gap: 12,
+      marginBottom: 16,
+    },
+
+    filterBtn: {
+      flex: 1,
+      height: 40,
+      borderRadius: 10,
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+    },
+
+    filterText: {
+      color: colors.text,
+      fontSize: 13,
+      fontWeight: "500",
+    },
+
+    confirmBtn: {
+      height: 52,
+      borderRadius: 14,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      backgroundColor: colors.primary,
+    },
+
+    confirmText: {
+      color: "#fff",
+      fontSize: 16,
+      fontWeight: "700",
+    },
+
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: 40,
+    },
+
+    loadingText: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: "700",
+      marginTop: 24,
+      textAlign: "center",
+    },
+
+    loadingSubtext: {
+      color: colors.subText,
+      fontSize: 14,
+      marginTop: 8,
+      textAlign: "center",
+    },
+  });
