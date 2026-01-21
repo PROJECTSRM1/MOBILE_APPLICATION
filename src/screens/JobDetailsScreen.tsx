@@ -12,6 +12,7 @@ import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { WebView } from "react-native-webview";
+import { useTheme } from "../context/ThemeContext";
 
 type RootStackParamList = {
   Companies: undefined;
@@ -127,6 +128,8 @@ const getJobData = (company: Company) => {
 };
 
 const JobDetailsScreen = () => {
+  const { colors } = useTheme();
+    const styles = getStyles(colors);
   const navigation = useNavigation<JobDetailsNavProp>();
   const route = useRoute<JobDetailsRouteProp>();
   //const { company } = route.params;
@@ -231,7 +234,7 @@ const jobData = getJobData(company);
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container} edges={['top']}>
-        <StatusBar barStyle="light-content" backgroundColor="#101622" />
+        <StatusBar barStyle="light-content" backgroundColor={"#101622"} />
         
         {/* Top Bar */}
         <View style={styles.topBar}>
@@ -239,7 +242,7 @@ const jobData = getJobData(company);
             style={styles.iconButton}
             onPress={() => navigation.goBack()}
           >
-            <MaterialIcons name="arrow-back" size={24} color="#ffffff" />
+            <MaterialIcons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={styles.pageTitle}>Job Details</Text>
           <TouchableOpacity 
@@ -396,255 +399,294 @@ const jobData = getJobData(company);
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#101622',
-  },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#101622',
-    borderBottomWidth: 1,
-    borderBottomColor: '#1f2937',
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 20,
-  },
-  pageTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#ffffff',
-    flex: 1,
-    textAlign: 'center',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 20,
-  },
-  headerSection: {
-    padding: 16,
-    paddingTop: 24,
-  },
-  headerContent: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 16,
-  },
-  companyLogo: {
-    width: 80,
-    height: 80,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  headerText: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  jobTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#ffffff',
-    lineHeight: 28,
-    marginBottom: 6,
-  },
-  companyInfoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  companyName: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#9da6b9',
-  },
-  dot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#9da6b9',
-  },
-  postedTime: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#9da6b9',
-  },
-  detailsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: 16,
-    gap: 12,
-    marginTop: 8,
-  },
-  detailCard: {
-    width: '48%',
-    backgroundColor: '#1A2230',
-    borderRadius: 16,
-    padding: 16,
-    gap: 8,
-    borderWidth: 1,
-    borderColor: '#2a3141',
-  },
-  detailIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  detailLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#9da6b9',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-  },
-  detailValue: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#ffffff',
-  },
-  section: {
-    paddingHorizontal: 16,
-    paddingTop: 24,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#ffffff',
-    marginBottom: 12,
-  },
-  description: {
-    fontSize: 15,
-    lineHeight: 24,
-    color: '#9da6b9',
-  },
-  readMore: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#135bec',
-    marginTop: 8,
-  },
-  requirementsList: {
-    gap: 12,
-  },
-  requirementItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-  },
-  requirementText: {
-    flex: 1,
-    fontSize: 14,
-    lineHeight: 22,
-    color: '#9da6b9',
-  },
-  mapContainer: {
-    width: '100%',
-    height: 160,
-    borderRadius: 16,
-    overflow: 'hidden',
-    backgroundColor: '#1A2230',
-    position: 'relative',
-  },
-  mapOverlay: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
-  },
-  mapLabel: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(26, 34, 48, 0.95)',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    gap: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  mapLabelText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#ffffff',
-  },
-  alertContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-  },
-  alert: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-    backgroundColor: '#f9731610',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#f9731630',
-  },
-  alertContent: {
-    flex: 1,
-    gap: 4,
-  },
-  alertTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#ffffff',
-  },
-  alertText: {
-    fontSize: 12,
-    lineHeight: 18,
-    color: '#9da6b9',
-  },
-  bottomContainer: {
-    backgroundColor: '#101622',
-    borderTopWidth: 1,
-    borderTopColor: '#1f2937',
-  },
-  applyButtonContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-  },
-  applyButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#135bec',
-    height: 52,
-    borderRadius: 16,
-    gap: 8,
-    shadowColor: '#135bec',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  applyButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#ffffff',
-  },
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background ?? '#101622',
+    },
 
+    topBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: colors.background ?? '#101622',
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border ?? '#1f2937',
+    },
 
-});
+    iconButton: {
+      width: 40,
+      height: 40,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 20,
+    },
+
+    pageTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.text ?? '#ffffff',
+      flex: 1,
+      textAlign: 'center',
+    },
+
+    scrollView: {
+      flex: 1,
+    },
+
+    scrollContent: {
+      paddingBottom: 20,
+    },
+
+    headerSection: {
+      padding: 16,
+      paddingTop: 24,
+    },
+
+    headerContent: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 16,
+    },
+
+    companyLogo: {
+      width: 80,
+      height: 80,
+      borderRadius: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+
+    headerText: {
+      flex: 1,
+      justifyContent: 'center',
+    },
+
+    jobTitle: {
+      fontSize: 22,
+      fontWeight: '700',
+      color: colors.text ?? '#ffffff',
+      lineHeight: 28,
+      marginBottom: 6,
+    },
+
+    companyInfoRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+
+    companyName: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: colors.subText ?? '#9da6b9',
+    },
+
+    dot: {
+      width: 4,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: colors.subText ?? '#9da6b9',
+    },
+
+    postedTime: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: colors.subText ?? '#9da6b9',
+    },
+
+    detailsGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      paddingHorizontal: 16,
+      gap: 12,
+      marginTop: 8,
+    },
+
+    detailCard: {
+      width: '48%',
+      backgroundColor: colors.card ?? '#1A2230',
+      borderRadius: 16,
+      padding: 16,
+      gap: 8,
+      borderWidth: 1,
+      borderColor: colors.border ?? '#2a3141',
+    },
+
+    detailIcon: {
+      width: 32,
+      height: 32,
+      borderRadius: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+
+    detailLabel: {
+      fontSize: 10,
+      fontWeight: '600',
+      color: colors.subText ?? '#9da6b9',
+      letterSpacing: 0.5,
+      textTransform: 'uppercase',
+    },
+
+    detailValue: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.text ?? '#ffffff',
+    },
+
+    section: {
+      paddingHorizontal: 16,
+      paddingTop: 24,
+    },
+
+    sectionTitle: {
+      fontSize: 20,
+      fontWeight: '700',
+      color: colors.text ?? '#ffffff',
+      marginBottom: 12,
+    },
+
+    description: {
+      fontSize: 15,
+      lineHeight: 24,
+      color: colors.subText ?? '#9da6b9',
+    },
+
+    readMore: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.primary ?? '#135bec',
+      marginTop: 8,
+    },
+
+    requirementsList: {
+      gap: 12,
+    },
+
+    requirementItem: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 12,
+    },
+
+    requirementText: {
+      flex: 1,
+      fontSize: 14,
+      lineHeight: 22,
+      color: colors.subText ?? '#9da6b9',
+    },
+
+    mapContainer: {
+      width: '100%',
+      height: 160,
+      borderRadius: 16,
+      overflow: 'hidden',
+      backgroundColor: colors.card ?? '#1A2230',
+      position: 'relative',
+    },
+
+    mapOverlay: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    },
+
+    mapLabel: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: 'rgba(26, 34, 48, 0.95)',
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 20,
+      gap: 8,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 8,
+    },
+
+    mapLabelText: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: '#ffffff',
+    },
+
+    alertContainer: {
+      paddingHorizontal: 16,
+      paddingTop: 16,
+    },
+
+    alert: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 12,
+      backgroundColor: '#f9731610',
+      borderRadius: 16,
+      padding: 16,
+      borderWidth: 1,
+      borderColor: '#f9731630',
+    },
+
+    alertContent: {
+      flex: 1,
+      gap: 4,
+    },
+
+    alertTitle: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.text ?? '#ffffff',
+    },
+
+    alertText: {
+      fontSize: 12,
+      lineHeight: 18,
+      color: colors.subText ?? '#9da6b9',
+    },
+
+    bottomContainer: {
+      backgroundColor: colors.background ?? '#101622',
+      borderTopWidth: 1,
+      borderTopColor: colors.border ?? '#1f2937',
+    },
+
+    applyButtonContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+    },
+
+    applyButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.primary ?? '#135bec',
+      height: 52,
+      borderRadius: 16,
+      gap: 8,
+      shadowColor: colors.primary ?? '#135bec',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 12,
+      elevation: 8,
+    },
+
+    applyButtonText: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: '#ffffff',
+    },
+  });
+
 
 export default JobDetailsScreen;

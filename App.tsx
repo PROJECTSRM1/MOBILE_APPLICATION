@@ -26,7 +26,7 @@ import ProductScreen from "./src/screens/ProductScreen";
 import SwachifyMarketScreen from "./src/screens/SwachifyMarketScreen";
 import ProductRegistration from "./src/screens/ProductRegistration";
 import Studentlisting from "./src/screens/Studentlisting";
-import InternshipList from "./src/screens/InternshipList";
+import InternshipList, { Internship } from "./src/screens/InternshipList";
 import Freelancer from "./src/screens/Freelancer";
 import TransportComingSoon from "./src/screens/TransportComingSoon";
 import RawMaterial from "./src/screens/RawMaterial";
@@ -57,6 +57,70 @@ import ParcelView from "./src/screens/ParcelView";
 import MetroView from "./src/screens/MetroView";
 import ScootyView from "./src/screens/ScootyView";
 import EnrollmentDetailsScreen from "./src/screens/EnrollmentDetailsScreen";
+
+export type RootStackParamList = {
+  Splash: undefined;
+  Onboarding: undefined;
+  Landing: { isLoggedIn?: boolean } | undefined;
+  Internship: { internship: Internship };
+  WelcomeOne: undefined;
+  StudentListing: undefined;
+  Cleaning: undefined;
+  CleaningCategory: undefined;
+  Login: { role?: "customer" | "user"; prefilledEmail?: string; prefilledPassword?: string } | undefined;
+  Signup: undefined;
+  Transport: undefined;
+  CustomerDashboard: undefined;
+  UserDashboard: undefined;
+  Settings: undefined;
+  Rentals: undefined;
+  Construction: undefined;
+  FreelancerDashboard: undefined;
+  FDOverview: undefined;
+  Freelancer: undefined;
+  ServiceRequests: undefined;
+  PaymentScreen: undefined;
+  BookCleaning: undefined;
+  EducationHome: undefined;
+  ProfileInformation: undefined;
+  AuthScreen: undefined;
+  Notifications: undefined;
+  EmployeeAllocation: undefined;
+  JobDetails: undefined;
+  CleaningServiceScreen: undefined;
+  CompaniesListingScreen: undefined;
+  Marketplace: undefined;
+  SellItem: undefined;
+  ProductScreen: undefined;
+  SwachifyMarketScreen: undefined;
+  ProductRegistration: undefined;
+  InternshipList: undefined;
+  RawMaterial: undefined;
+  HomeSub: undefined;
+  HomeSubCat: undefined;
+  CommercialSub: undefined;
+  VehicleSub: undefined;
+  EmployeeHomeScreen: undefined;
+  Cart: undefined;
+  CandidateProfile: undefined;
+  Training: undefined;
+  TrainingDetails: undefined;
+  ApplicationSuccess: undefined;
+  // ReviewApplication: undefined;
+   ReviewApplication: { internship: Internship };
+  ProductDetail: undefined;
+  BuyerPage: undefined;
+  ServiceDetails: undefined;
+  PaymentSuccessDetails: undefined;
+  JustRideMultiStop: undefined;
+  JustrideApp: undefined;
+  Health:undefined;
+  Form:undefined;
+  Telecom:undefined;
+  Facility:undefined;
+  Wishlist: undefined;
+
+};
 
 /* ================= NAV ================= */
 const Stack = createNativeStackNavigator();
@@ -114,10 +178,7 @@ function AppNavigator() {
         <Stack.Screen name="Health" component={DoctorListScreen} />
         <Stack.Screen name="Form" component={ConsultationRequestScreen} />
          <Stack.Screen name="Telecom" component={TelemedicineConsultation} />
-         <Stack.Screen name="Facility" component={FacilitiesScreen} />
          <Stack.Screen name="Wishlist" component={Wishlist} />
-
-
          <Stack.Screen name="ParcelView" component={ParcelView} />
          <Stack.Screen name="MetroView" component={MetroView} />
          <Stack.Screen name="ScootyView" component={ScootyView} />
@@ -125,7 +186,7 @@ function AppNavigator() {
         <Stack.Screen name="enrollmentDetails" component={EnrollmentDetailsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
-     </ThemeProvider> 
+      
   );
 }
 

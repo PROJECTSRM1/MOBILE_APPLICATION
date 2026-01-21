@@ -89,6 +89,7 @@ interface SwachifyProduct {
 type RootStackParamList = {
   AuthScreen: undefined;
   ProfileInformation: undefined;
+  Wishlist: undefined;
 };
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;

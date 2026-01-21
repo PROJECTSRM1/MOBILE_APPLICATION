@@ -13,6 +13,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../App";
+import { useTheme } from '../context/ThemeContext';
 
 
 export interface Internship {
@@ -82,6 +83,8 @@ const internships: Internship[] = [
 const filters = ['All', 'Design', 'Engineering', 'Marketing', 'Remote'];
 
 const InternshipsScreen = () => {
+  const {colors} = useTheme();
+  const styles = getStyles(colors);
   type InternshipListNavProp = NativeStackNavigationProp<
   RootStackParamList,
   "InternshipList"
@@ -208,7 +211,7 @@ const navigation = useNavigation<InternshipListNavProp>();
         <StatusBar barStyle="light-content" backgroundColor="#101622" />
       
         {/* Top Bar */}
-        <View style={styles.topBar}>
+        {/* <View style={styles.topBar}>
           <TouchableOpacity style={styles.iconButton}>
             <Icon name="arrow-back-ios" size={20} color="#ffffff" />
           </TouchableOpacity>
@@ -232,7 +235,39 @@ const navigation = useNavigation<InternshipListNavProp>();
               )}
             </View>
           </TouchableOpacity>
+        </View> */}
+        {/* Top Bar */}
+<View style={styles.topBar}>
+  <TouchableOpacity
+    style={styles.iconButton}
+    onPress={() => navigation.goBack()} //  FIX (safe & required)
+  >
+    <Icon name="arrow-back-ios" size={20} color={colors.text} />
+  </TouchableOpacity>
+
+  <Text style={styles.pageTitle}>
+    {showBookmarks ? 'Bookmarks' : 'Internships'}
+  </Text>
+
+  <TouchableOpacity
+    style={styles.iconButton}
+    onPress={() => setShowBookmarks(!showBookmarks)}
+  >
+    <View>
+      <Icon
+        name={showBookmarks ? "close" : "bookmark"}
+        size={24}
+        color={colors.text}
+      />
+      {!showBookmarks && bookmarkedIds.size > 0 && (
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>{bookmarkedIds.size}</Text>
         </View>
+      )}
+    </View>
+  </TouchableOpacity>
+</View>
+
 
         {/* Search Bar - Only show when not in bookmarks view */}
         {!showBookmarks && (
@@ -378,241 +413,301 @@ const navigation = useNavigation<InternshipListNavProp>();
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#101622',
-  },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#1f2937',
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 20,
-  },
-  pageTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#ffffff',
-    flex: 1,
-    textAlign: 'center',
-    paddingRight: 8,
-  },
-  badge: {
-    position: 'absolute',
-    top: -4,
-    right: -4,
-    backgroundColor: '#135bec',
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 4,
-  },
-  badgeText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#ffffff',
-  },
-  searchContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1E232E',
-    borderRadius: 12,
-    height: 48,
-  },
-  searchIcon: {
-    paddingLeft: 16,
-  },
-  searchInput: {
-    flex: 1,
-    color: '#ffffff',
-    fontSize: 16,
-    paddingHorizontal: 12,
-  },
-  filterIcon: {
-    paddingRight: 16,
-  },
-  chipsContainer: {
-    maxHeight: 52,
-  },
-  chipsContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    gap: 8,
-  },
-  chip: {
-    height: 36,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    marginRight: 8,
-  },
-  chipActive: {
-    backgroundColor: '#135bec',
-  },
-  chipInactive: {
-    backgroundColor: '#1E232E',
-  },
-  chipText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#ffffff',
-    marginRight: 4,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  cardsContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    gap: 16,
-  },
-  card: {
-    backgroundColor: '#1C222C',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#1f2937',
-    marginBottom: 16,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  companyInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  logo: {
-    width: 48,
-    height: 48,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#374151',
-  },
-  logoText: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#ffffff',
-  },
-  jobTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#ffffff',
-    lineHeight: 20,
-  },
-  companyName: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#9da6b9',
-    marginTop: 2,
-  },
-  tagsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 12,
-  },
-  tag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    gap: 4,
-  },
-  tagText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#d1d5db',
-  },
-  description: {
-    fontSize: 14,
-    lineHeight: 22,
-    color: '#9da6b9',
-    marginBottom: 16,
-  },
-  applyButton: {
-    width: '100%',
-    height: 40,
-    backgroundColor: '#135bec',
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  applyButtonText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#ffffff',
-  },
-  bottomNavContainer: {
-    backgroundColor: '#101622',
-    borderTopWidth: 1,
-    borderTopColor: '#1f2937',
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    height: 64,
-  },
-  navItem: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: '100%',
-  },
-  navLabel: {
-    fontSize: 10,
-    fontWeight: '500',
-    color: '#9da6b9',
-    marginTop: 4,
-  },
-  navLabelActive: {
-    color: '#135bec',
-  },
-  emptyContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#ffffff',
-    marginTop: 16,
-  },
-  emptySubText: {
-    fontSize: 14,
-    color: '#9da6b9',
-    marginTop: 8,
-    textAlign: 'center',
-  },
-});
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+
+    /* ================= TOP BAR ================= */
+    topBar: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      paddingBottom: 8,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      backgroundColor: colors.surface,
+    },
+
+    iconButton: {
+      width: 40,
+      height: 40,
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: 20,
+    },
+
+    pageTitle: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: colors.text,
+      flex: 1,
+      textAlign: "center",
+      paddingRight: 8,
+    },
+
+    badge: {
+      position: "absolute",
+      top: -4,
+      right: -4,
+      backgroundColor: colors.primary,
+      borderRadius: 10,
+      minWidth: 20,
+      height: 20,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 4,
+    },
+
+    badgeText: {
+      fontSize: 11,
+      fontWeight: "700",
+      color: "#fff",
+    },
+
+    /* ================= SEARCH ================= */
+    searchContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: colors.surface,
+    },
+
+    searchBar: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.input,
+      borderRadius: 14,
+      height: 48,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    searchIcon: {
+      paddingLeft: 16,
+      color: colors.subText,
+    },
+
+    searchInput: {
+      flex: 1,
+      color: colors.text,
+      fontSize: 16,
+      paddingHorizontal: 12,
+    },
+
+    filterIcon: {
+      paddingRight: 16,
+      color: colors.primary,
+    },
+
+    /* ================= FILTER CHIPS ================= */
+    chipsContainer: {
+      maxHeight: 52,
+      backgroundColor: colors.surface,
+    },
+
+    chipsContent: {
+      paddingHorizontal: 16,
+      paddingBottom: 16,
+      gap: 8,
+    },
+
+    chip: {
+      height: 36,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 16,
+      borderRadius: 18,
+      marginRight: 8,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.card,
+    },
+
+    chipActive: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+
+    chipInactive: {
+      backgroundColor: colors.card,
+    },
+
+    chipText: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: colors.text,
+      marginRight: 4,
+    },
+
+    /* ================= LIST ================= */
+    scrollView: {
+      flex: 1,
+    },
+
+    cardsContainer: {
+      paddingHorizontal: 16,
+      paddingBottom: 16,
+      gap: 16,
+    },
+
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: 16,
+      padding: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+      marginBottom: 16,
+    },
+
+    cardHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      marginBottom: 12,
+    },
+
+    companyInfo: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+
+    logo: {
+      width: 48,
+      height: 48,
+      borderRadius: 10,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.card,
+    },
+
+    logoText: {
+      fontSize: 20,
+      fontWeight: "700",
+      color: colors.text,
+    },
+
+    jobTitle: {
+      fontSize: 16,
+      fontWeight: "700",
+      color: colors.text,
+      lineHeight: 20,
+    },
+
+    companyName: {
+      fontSize: 14,
+      fontWeight: "500",
+      color: colors.subText,
+      marginTop: 2,
+    },
+
+    tagsContainer: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 8,
+      marginBottom: 12,
+    },
+
+    tag: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.muted,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 8,
+      gap: 4,
+    },
+
+    tagText: {
+      fontSize: 12,
+      fontWeight: "500",
+      color: colors.subText,
+    },
+
+    description: {
+      fontSize: 14,
+      lineHeight: 22,
+      color: colors.subText,
+      marginBottom: 16,
+    },
+
+    applyButton: {
+      width: "100%",
+      height: 42,
+      backgroundColor: colors.primary,
+      borderRadius: 12,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    applyButtonText: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: "#fff",
+    },
+
+    /* ================= BOTTOM NAV ================= */
+    bottomNavContainer: {
+      backgroundColor: colors.surface,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+
+    bottomNav: {
+      flexDirection: "row",
+      justifyContent: "space-around",
+      alignItems: "center",
+      height: 64,
+    },
+
+    navItem: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      height: "100%",
+    },
+
+    navLabel: {
+      fontSize: 10,
+      fontWeight: "500",
+      color: colors.subText,
+      marginTop: 4,
+    },
+
+    navLabelActive: {
+      color: colors.primary,
+      fontWeight: "700",
+    },
+
+    /* ================= EMPTY ================= */
+    emptyContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 60,
+    },
+
+    emptyText: {
+      fontSize: 18,
+      fontWeight: "600",
+      color: colors.text,
+      marginTop: 16,
+    },
+
+    emptySubText: {
+      fontSize: 14,
+      color: colors.subText,
+      marginTop: 8,
+      textAlign: "center",
+    },
+  });
+
 
 export default InternshipsScreen;

@@ -18,6 +18,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useNavigation } from "@react-navigation/native";
+import { useTheme } from "../context/ThemeContext";
 
 /* =======================
    TYPES
@@ -141,11 +142,13 @@ const Dropdown = ({
   value,
   options,
   onSelect,
+  styles,
 }: {
   label: string;
   value: string | null;
   options: string[];
   onSelect: (val: string | null) => void;
+  styles: any;
 }) => {
   const [open, setOpen] = useState(false);
 
@@ -197,6 +200,8 @@ const Dropdown = ({
    SCREEN
 ======================= */
 const Studentlisting = () => {
+    const { colors } = useTheme();
+  const styles = getStyles(colors);
   const navigation = useNavigation<any>();
   const [activeTab, setActiveTab] = useState("All Students");
   const [selectedCert, setSelectedCert] = useState<string | null>(null);
@@ -328,6 +333,7 @@ const ListHeader = () => (
           value={selectedAggregate}
           options={aggregateFilters}
           onSelect={setSelectedAggregate}
+          styles={styles}
         />
 
         <Dropdown
@@ -335,6 +341,7 @@ const ListHeader = () => (
           value={selectedCert}
           options={certFilters}
           onSelect={setSelectedCert}
+          styles={styles}
         />
 
         <Dropdown
@@ -342,6 +349,7 @@ const ListHeader = () => (
           value={selectedInternship}
           options={internshipFilters}
           onSelect={setSelectedInternship}
+          styles={styles}
         />
       </View>
     )}
@@ -468,219 +476,338 @@ export default Studentlisting;
 /* =======================
    STYLES (UNCHANGED PREMIUM)
 ======================= */
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#0b1220" },
-  container: { flex: 1 },
-  header: { flexDirection: "row", justifyContent: "space-between", padding: 16 },
-  title: { color: "#fff", fontSize: 18, fontWeight: "700" },
-  searchBox: {
-    flexDirection: "row",
-    backgroundColor: "#1b2538",
-    margin: 16,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    alignItems: "center",
-  },
-  input: { flex: 1, color: "#fff", height: 44 },
-  tabs: { paddingHorizontal: 16, gap: 12 },
-  tab: { paddingHorizontal: 18, height: 36, borderRadius: 20, backgroundColor: "#1b2538", justifyContent: "center" },
-  tabActive: { backgroundColor: "#2563eb" },
-  tabText: { color: "#9ca3af" },
-  tabTextActive: { color: "#fff", fontWeight: "700" },
-  sectionLabel: { color: "#6b7280", marginLeft: 16, marginTop: 16, fontSize: 12, fontWeight: "700" },
-  filters: { paddingHorizontal: 16, gap: 10, marginTop: 8 },
-  chip: { paddingHorizontal: 16, height: 34, borderRadius: 18, borderWidth: 1, borderColor: "#334155", justifyContent: "center" },
-  chipActive: { backgroundColor: "#2563eb", borderColor: "#2563eb" },
-  chipText: { color: "#9ca3af" },
-  chipTextActive: { color: "#fff", fontWeight: "700" },
-  listContent: { padding: 16 },
-  card: { backgroundColor: "#1b2538", borderRadius: 18, padding: 16, marginBottom: 16 },
-  topRow: { flexDirection: "row", gap: 14 },
-  avatar: { width: 56, height: 56, borderRadius: 16 },
-  name: { color: "#fff", fontSize: 16, fontWeight: "700" },
-  program: { color: "#5fa8ff", fontSize: 13 },
-  attendance: { color: "#9ca3af", fontSize: 12 },
-  rating: { flexDirection: "row", gap: 4, alignItems: "center" },
-  ratingText: { color: "#facc15", fontWeight: "700" },
-  bottomRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 12 },
-  shift: { flexDirection: "row", gap: 6, alignItems: "center" },
-  shiftText: { color: "#9ca3af", fontSize: 12 },
-  statusPill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  activePill: { backgroundColor: "#0f2f24" },
-  completedPill: { backgroundColor: "#1f2937" },
-  statusText: { fontSize: 11, fontWeight: "700" },
-  activeText: { color: "#22c55e" },
-  completedText: { color: "#9ca3af" },
-  filterContainer: {
-  paddingBottom: 8,
-},
-dropdownRow: {
-  flexDirection: "row",
-  gap: 10,
-  paddingHorizontal: 16,
-  marginBottom: 14,
-},
-dropdownCol: {
-  flex: 1,
-},
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
-tabRow: {
+    container: {
+      flex: 1,
+    },
+
+    /* ================= HEADER ================= */
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      padding: 16,
+      backgroundColor: colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+
+    title: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: "700",
+    },
+
+    /* ================= SEARCH ================= */
+    searchBox: {
+      flexDirection: "row",
+      backgroundColor: colors.card,
+      margin: 16,
+      borderRadius: 12,
+      paddingHorizontal: 12,
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    input: {
+      flex: 1,
+      color: colors.text,
+      height: 44,
+    },
+
+    /* ================= TABS ================= */
+    tabs: {
+      paddingHorizontal: 16,
+      gap: 12,
+    },
+
+    tab: {
+      paddingHorizontal: 18,
+      height: 36,
+      borderRadius: 20,
+      backgroundColor: colors.card,
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    tabActive: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+
+    tabText: {
+      color: colors.subText,
+    },
+
+    tabTextActive: {
+      color: "#ffffff",
+      fontWeight: "700",
+    },
+
+    sectionLabel: {
+      color: colors.muted ?? colors.subText,
+      marginLeft: 16,
+      marginTop: 16,
+      fontSize: 12,
+      fontWeight: "700",
+    },
+
+    /* ================= FILTERS ================= */
+    filters: {
+      paddingHorizontal: 16,
+      gap: 10,
+      marginTop: 8,
+    },
+
+    chip: {
+      paddingHorizontal: 16,
+      height: 34,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: colors.border,
+      justifyContent: "center",
+      backgroundColor: colors.card,
+    },
+
+    chipActive: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+
+    chipText: {
+      color: colors.subText,
+    },
+
+    chipTextActive: {
+      color: "#ffffff",
+      fontWeight: "700",
+    },
+
+    /* ================= LIST ================= */
+    listContent: {
+      padding: 16,
+    },
+
+    card: {
+      backgroundColor: colors.card,
+      borderRadius: 18,
+      padding: 16,
+      marginBottom: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    topRow: {
+      flexDirection: "row",
+      gap: 14,
+    },
+
+    avatar: {
+      width: 56,
+      height: 56,
+      borderRadius: 16,
+    },
+
+    name: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: "700",
+    },
+
+    program: {
+      color: colors.primary,
+      fontSize: 13,
+    },
+
+    attendance: {
+      color: colors.subText,
+      fontSize: 12,
+    },
+
+    rating: {
+      flexDirection: "row",
+      gap: 4,
+      alignItems: "center",
+    },
+
+    ratingText: {
+      color: "#facc15", // semantic (rating stays yellow)
+      fontWeight: "700",
+    },
+
+    bottomRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginTop: 12,
+    },
+
+    shift: {
+      flexDirection: "row",
+      gap: 6,
+      alignItems: "center",
+    },
+
+    shiftText: {
+      color: colors.subText,
+      fontSize: 12,
+    },
+
+    /* ================= STATUS ================= */
+    statusPill: {
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 8,
+    },
+
+    activePill: {
+      backgroundColor: colors.success + "22",
+    },
+
+    completedPill: {
+      backgroundColor: colors.card,
+    },
+
+    statusText: {
+      fontSize: 11,
+      fontWeight: "700",
+    },
+
+    activeText: {
+      color: colors.success ?? "#22c55e",
+    },
+
+    completedText: {
+      color: colors.subText,
+    },
+
+    /* ================= DROPDOWNS ================= */
+    filterContainer: {
+      paddingBottom: 8,
+    },
+
+    dropdownRow: {
+      flexDirection: "row",
+      gap: 10,
+      paddingHorizontal: 16,
+      marginBottom: 14,
+    },
+
+    dropdownCol: {
+      flex: 1,
+    },
+
+    dropdownWrapper: {
+      paddingHorizontal: 16,
+      marginBottom: 14,
+    },
+
+    dropdown: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      paddingHorizontal: 14,
+      height: 44,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    dropdownText: {
+      color: colors.text,
+      fontSize: 13,
+    },
+
+    dropdownArrow: {
+      color: colors.subText,
+      fontSize: 12,
+    },
+
+    dropdownMenu: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      marginTop: 6,
+      borderWidth: 1,
+      borderColor: colors.border,
+      overflow: "hidden",
+    },
+
+    dropdownItem: {
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+
+    dropdownItemText: {
+      color: colors.text,
+      fontSize: 13,
+    },
+
+    /* ================= NAME ROW ================= */
+    nameRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+
+    candidateId: {
+      color: colors.subText,
+      fontSize: 12,
+      fontWeight: "600",
+    },
+
+    infoCol: {
+      flex: 1,
+      gap: 4,
+    },
+
+    rightCol: {
+      alignItems: "flex-end",
+      justifyContent: "space-between",
+      height: 90,
+    },
+    tabRow: {
   flexDirection: "row",
   gap: 10,
   paddingHorizontal: 16,
-  marginBottom: 18,
+  marginBottom: 16,
 },
 
 tabPill: {
   paddingHorizontal: 18,
   height: 34,
   borderRadius: 18,
-  backgroundColor: "#1b2538",
+  backgroundColor: colors.card,
   justifyContent: "center",
+  borderWidth: 1,
+  borderColor: colors.border,
 },
 
 tabPillActive: {
-  backgroundColor: "#2563eb",
+  backgroundColor: colors.primary,
+  borderColor: colors.primary,
 },
 
 tabPillText: {
-  color: "#9ca3af",
+  color: colors.subText,
   fontSize: 13,
 },
 
 tabPillTextActive: {
-  color: "#fff",
+  color: "#ffffff",
   fontWeight: "700",
 },
 
-filterTitle: {
-  color: "#6b7280",
-  fontSize: 12,
-  fontWeight: "700",
-  marginLeft: 16,
-  marginBottom: 8,
-},
-dropdownWrapper: {
-  paddingHorizontal: 16,
-  marginBottom: 14,
-},
-
-dropdown: {
-  backgroundColor: "#1b2538",
-  borderRadius: 12,
-  paddingHorizontal: 14,
-  height: 44,
-  flexDirection: "row",
-  alignItems: "center",
-  justifyContent: "space-between",
-  borderWidth: 1,
-  borderColor: "#334155",
-},
-
-dropdownText: {
-  color: "#fff",
-  fontSize: 13,
-},
-
-dropdownArrow: {
-  color: "#9ca3af",
-  fontSize: 12,
-},
-
-dropdownMenu: {
-  backgroundColor: "#1b2538",
-  borderRadius: 12,
-  marginTop: 6,
-  borderWidth: 1,
-  borderColor: "#334155",
-  overflow: "hidden",
-},
-
-dropdownItem: {
-  paddingHorizontal: 14,
-  paddingVertical: 12,
-  borderBottomWidth: 1,
-  borderBottomColor: "#334155",
-},
-
-dropdownItemText: {
-  color: "#e5e7eb",
-  fontSize: 13,
-},
-
-pillRow: {
-  flexDirection: "row",
-  flexWrap: "wrap",
-  gap: 10,
-  paddingHorizontal: 16,
-  marginBottom: 14,
-},
-
-filterPill: {
-  paddingHorizontal: 16,
-  height: 32,
-  borderRadius: 16,
-  borderWidth: 1,
-  borderColor: "#334155",
-  justifyContent: "center",
-},
-
-filterPillActive: {
-  backgroundColor: "#2563eb",
-  borderColor: "#2563eb",
-},
-
-filterPillText: {
-  color: "#9ca3af",
-  fontSize: 12,
-},
-
-filterPillTextActive: {
-  color: "#fff",
-  fontWeight: "700",
-},
-nameRow: {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-},
-
-candidateId: {
-  color: "#9ca3af",
-  fontSize: 12,
-  fontWeight: "600",
-},
-infoCol: {
-  flex: 1,
-  gap: 4,
-},
-
-rightCol: {
-  alignItems: "flex-end",
-  justifyContent: "space-between",
-  height: 90,
-},
-
-// filterPillTextActive: {
-//   color: "#fff",
-//   fontWeight: "700",
-// },
-// nameRow: {
-//   flexDirection: "row",
-//   justifyContent: "space-between",
-//   alignItems: "center",
+// filterContainer: {
+//   paddingBottom: 8,
 // },
 
-// candidateId: {
-//   color: "#9ca3af",
-//   fontSize: 12,
-//   fontWeight: "600",
-// },
-
-// filterPillTextActive: {
-//   color: "#fff",
-//   fontWeight: "700",
-// },
-
-
-});
+  });
