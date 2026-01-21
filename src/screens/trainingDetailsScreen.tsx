@@ -311,12 +311,12 @@ const getStyles = (colors: any) =>
       fontSize: 11,
       fontWeight: "800",
     },
+imageTitle: {
+  color: colors.subText ?? "#dfe3ea",
+  fontSize: 26,
+  fontWeight: "800",
+},
 
-    imageTitle: {
-      color: colors.text ?? "#ffffff",
-      fontSize: 26,
-      fontWeight: "800",
-    },
 
     /* ================= INFO ROW ================= */
     infoRow: {
@@ -325,23 +325,6 @@ const getStyles = (colors: any) =>
       padding: 16,
     },
 
-<<<<<<< HEAD
-  progressCard: {
-    margin: 16,
-    padding: 16,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "#1f2937",
-    alignItems: "center",
-  },
-  progressText: {
-    color: "#9ca3af",
-    fontSize: 12,
-    marginTop: 6,
-    textAlign: "center",
-  },
-});
-=======
     infoCard: {
       backgroundColor: colors.card ?? "#111827",
       flex: 1,
@@ -495,4 +478,3 @@ const getStyles = (colors: any) =>
       textAlign: "center",
     },
   });
->>>>>>> 5d3b82a55bd4d1cd10e579ce55d8b95863c6bc86

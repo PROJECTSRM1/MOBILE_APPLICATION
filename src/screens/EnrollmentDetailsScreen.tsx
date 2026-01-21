@@ -328,16 +328,6 @@
         fontWeight: "800",
         },
 
-<<<<<<< HEAD
-  trustText: {
-    color: "#9ca3af",
-    textAlign: "center",
-    marginTop: 24,
-    marginBottom: 40,
-    fontSize: 12,
-  },
-});
-=======
         courseMeta: {
         color: colors.subText ?? "#9ca3af",
         marginVertical: 6,
@@ -451,4 +441,3 @@
         fontSize: 12,
         },
     });
->>>>>>> 5d3b82a55bd4d1cd10e579ce55d8b95863c6bc86

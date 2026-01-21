@@ -322,16 +322,6 @@ const getStyles = (colors: any) =>
       padding: 12,
     },
 
-<<<<<<< HEAD
-  continueBtn: {
-    backgroundColor: "#2563eb",
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-  },
-  continueText: { color: "#fff", fontWeight: "700" },
-});
-=======
     statusBadge: {
       backgroundColor: colors.primary ?? "#2563eb",
       paddingHorizontal: 8,
@@ -431,4 +421,3 @@ const getStyles = (colors: any) =>
       fontWeight: "700",
     },
   });
->>>>>>> 5d3b82a55bd4d1cd10e579ce55d8b95863c6bc86

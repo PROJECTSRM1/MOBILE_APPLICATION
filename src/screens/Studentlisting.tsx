@@ -378,7 +378,7 @@ const renderStudent = ({ item }: { item: Student }) => (
           <Text style={styles.name}>{item.name}</Text>
           <Text style={styles.program}>{item.program}</Text>
           <Text style={styles.attendance}>
-            {item.attendance}% Attendance
+            {item.attendance}% Academic Score
           </Text>
 
           <View style={styles.shift}>
