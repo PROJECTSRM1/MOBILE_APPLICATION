@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
+import { useTheme } from '../context/ThemeContext';
 
 // Material Icons Components
 const ArrowLeft = ({ size = 24, color = '#fff' }) => (
@@ -45,6 +46,8 @@ const Navigation = ({ size = 24, color = '#fff' }) => (
 );
 
 const JustrideApp = () => {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
   const [fromLocation, setFromLocation] = useState('Grand Central Terminal, NY');
   const [toLocation, setToLocation] = useState('Empire State Building');
   const [selectedCategory, setSelectedCategory] = useState('All Services');
@@ -221,13 +224,13 @@ const JustrideApp = () => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.headerButton}>
-          <ArrowLeft size={24} color="#fff" />
+          <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>
         
         <Text style={styles.headerTitle}>Justride</Text>
         
         <TouchableOpacity style={styles.headerButton}>
-          <Menu size={24} color="#fff" />
+          <Menu size={24} color={colors.text} />
         </TouchableOpacity>
       </View>
 
@@ -388,297 +391,357 @@ const JustrideApp = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#101622',
-  },
-  header: {
-    height: 56,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    backgroundColor: '#101622',
-  },
-  headerButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  locationContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  locationFieldsWrapper: {
-    position: 'relative',
-  },
-  routeLine: {
-    position: 'absolute',
-    left: 23,
-    top: 28,
-    bottom: 28,
-    width: 2,
-    backgroundColor: 'rgba(19, 91, 236, 0.3)',
-    zIndex: 0,
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-    zIndex: 10,
-  },
-  locationDot: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 4,
-    borderColor: '#101622',
-    marginRight: 12,
-  },
-  locationDotStart: {
-    backgroundColor: '#135bec',
-  },
-  locationDotEnd: {
-    backgroundColor: '#10b981',
-  },
-  locationDotInner: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#fff',
-  },
-  locationInputWrapper: {
-    flex: 1,
-    position: 'relative',
-  },
-  locationInput: {
-    height: 48,
-    backgroundColor: '#1c1f27',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#3b4354',
-    paddingHorizontal: 16,
-    paddingRight: 40,
-    color: '#fff',
-    fontSize: 14,
-  },
-  locationIcon: {
-    position: 'absolute',
-    right: 12,
-    top: 16,
-  },
-  searchContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 8,
-  },
-  searchWrapper: {
-    position: 'relative',
-  },
-  searchIcon: {
-    position: 'absolute',
-    left: 12,
-    top: 11,
-    zIndex: 1,
-  },
-  searchInput: {
-    height: 40,
-    backgroundColor: '#1c1f27',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#3b4354',
-    paddingLeft: 40,
-    paddingRight: 16,
-    color: '#fff',
-    fontSize: 14,
-  },
-  categoryScroll: {
-    maxHeight: 52,
-  },
-  categoryContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  categoryChip: {
-    height: 36,
-    paddingHorizontal: 20,
-    borderRadius: 18,
-    backgroundColor: '#282e39',
-    borderWidth: 1,
-    borderColor: '#3b4354',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  categoryChipActive: {
-    backgroundColor: '#135bec',
-    borderColor: '#135bec',
-    shadowColor: '#135bec',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  categoryText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#9da6b9',
-  },
-  categoryTextActive: {
-    color: '#fff',
-    fontWeight: '700',
-  },
-  servicesContainer: {
-    flex: 1,
-    marginTop: 8,
-  },
-  servicesContent: {
-    paddingBottom: 20,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
-  },
-  sectionTitle: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: 'rgba(255, 255, 255, 0.6)',
-    letterSpacing: 1.5,
-  },
-  serviceCount: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#135bec',
-  },
-  serviceCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    minHeight: 88,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  serviceLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  serviceIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  serviceIconText: {
-    fontSize: 28,
-  },
-  serviceInfo: {
-    flex: 1,
-  },
-  serviceName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: 4,
-  },
-  serviceAvailability: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  serviceRight: {
-    alignItems: 'flex-end',
-    marginLeft: 16,
-  },
-  servicePrice: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: 2,
-  },
-  serviceDistance: {
-    fontSize: 12,
-    color: '#9da6b9',
-  },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 64,
-    paddingHorizontal: 16,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: '#9da6b9',
-    textAlign: 'center',
-    marginTop: 16,
-    marginBottom: 16,
-  },
-  clearButton: {
-    backgroundColor: '#135bec',
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  clearButtonText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  bottomGradient: {
-    position: 'absolute',
-    bottom: 88,
-    left: 0,
-    right: 0,
-    height: 96,
-    backgroundColor: 'transparent',
-  },
-  bottomButtonContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: '#101622',
-  },
-  reviewButton: {
-    backgroundColor: '#135bec',
-    height: 56,
-    borderRadius: 12,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#135bec',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 12,
-  },
-  reviewButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#fff',
-    marginRight: 8,
-  },
-  reviewButtonIcon: {
-    fontSize: 20,
-    color: '#fff',
-  },
-});
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+
+    /* Header */
+    header: {
+      height: 56,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: 16,
+      backgroundColor: colors.background,
+    },
+
+    headerButton: {
+      width: 40,
+      height: 40,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: colors.text,
+    },
+
+    /* Location */
+    locationContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+
+    locationFieldsWrapper: {
+      position: "relative",
+    },
+
+    routeLine: {
+      position: "absolute",
+      left: 23,
+      top: 28,
+      bottom: 28,
+      width: 2,
+      backgroundColor: colors.primary + "4D",
+      zIndex: 0,
+    },
+
+    locationRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 12,
+      zIndex: 10,
+    },
+
+    locationDot: {
+      width: 20,
+      height: 20,
+      borderRadius: 10,
+      justifyContent: "center",
+      alignItems: "center",
+      borderWidth: 4,
+      borderColor: colors.background,
+      marginRight: 12,
+    },
+
+    locationDotStart: {
+      backgroundColor: colors.primary,
+    },
+
+    locationDotEnd: {
+      backgroundColor: colors.success,
+    },
+
+    locationDotInner: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: colors.onPrimary ?? "#fff",
+    },
+
+    locationInputWrapper: {
+      flex: 1,
+      position: "relative",
+    },
+
+    locationInput: {
+      height: 48,
+      backgroundColor: colors.card,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: 16,
+      paddingRight: 40,
+      color: colors.text,
+      fontSize: 14,
+    },
+
+    locationIcon: {
+      position: "absolute",
+      right: 12,
+      top: 16,
+    },
+
+    /* Search */
+    searchContainer: {
+      paddingHorizontal: 16,
+      paddingBottom: 8,
+    },
+
+    searchWrapper: {
+      position: "relative",
+    },
+
+    searchIcon: {
+      position: "absolute",
+      left: 12,
+      top: 11,
+      zIndex: 1,
+    },
+
+    searchInput: {
+      height: 40,
+      backgroundColor: colors.card,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingLeft: 40,
+      paddingRight: 16,
+      color: colors.text,
+      fontSize: 14,
+    },
+
+    /* Categories */
+    categoryScroll: {
+      maxHeight: 52,
+    },
+
+    categoryContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+    },
+
+    categoryChip: {
+      height: 36,
+      paddingHorizontal: 20,
+      borderRadius: 18,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 12,
+    },
+
+    categoryChipActive: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+      shadowColor: colors.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 8,
+    },
+
+    categoryText: {
+      fontSize: 14,
+      fontWeight: "500",
+      color: colors.subText,
+    },
+
+    categoryTextActive: {
+      color: colors.onPrimary ?? "#fff",
+      fontWeight: "700",
+    },
+
+    /* Services */
+    servicesContainer: {
+      flex: 1,
+      marginTop: 8,
+    },
+
+    servicesContent: {
+      paddingBottom: 20,
+    },
+
+    sectionHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: 16,
+      paddingTop: 16,
+      paddingBottom: 8,
+    },
+
+    sectionTitle: {
+      fontSize: 11,
+      fontWeight: "700",
+      color: colors.text + "99",
+      letterSpacing: 1.5,
+    },
+
+    serviceCount: {
+      fontSize: 11,
+      fontWeight: "700",
+      color: colors.primary,
+    },
+
+    serviceCard: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      minHeight: 88,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border + "33",
+    },
+
+    serviceLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      flex: 1,
+    },
+
+    serviceIcon: {
+      width: 56,
+      height: 56,
+      borderRadius: 12,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 16,
+      backgroundColor: colors.surface,
+    },
+
+    serviceIconText: {
+      fontSize: 28,
+    },
+
+    serviceInfo: {
+      flex: 1,
+    },
+
+    serviceName: {
+      fontSize: 16,
+      fontWeight: "700",
+      color: colors.text,
+      marginBottom: 4,
+    },
+
+    serviceAvailability: {
+      fontSize: 12,
+      fontWeight: "600",
+      color: colors.subText,
+    },
+
+    serviceRight: {
+      alignItems: "flex-end",
+      marginLeft: 16,
+    },
+
+    servicePrice: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: colors.text,
+      marginBottom: 2,
+    },
+
+    serviceDistance: {
+      fontSize: 12,
+      color: colors.subText,
+    },
+
+    /* Empty State */
+    emptyState: {
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 64,
+      paddingHorizontal: 16,
+    },
+
+    emptyText: {
+      fontSize: 14,
+      color: colors.subText,
+      textAlign: "center",
+      marginTop: 16,
+      marginBottom: 16,
+    },
+
+    clearButton: {
+      backgroundColor: colors.primary,
+      paddingHorizontal: 24,
+      paddingVertical: 10,
+      borderRadius: 8,
+    },
+
+    clearButtonText: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: colors.onPrimary ?? "#fff",
+    },
+
+    /* Bottom */
+    bottomGradient: {
+      position: "absolute",
+      bottom: 88,
+      left: 0,
+      right: 0,
+      height: 96,
+      backgroundColor: "transparent",
+    },
+
+    bottomButtonContainer: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      backgroundColor: colors.background,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+
+    reviewButton: {
+      backgroundColor: colors.primary,
+      height: 56,
+      borderRadius: 12,
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+      shadowColor: colors.primary,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.4,
+      shadowRadius: 16,
+      elevation: 12,
+    },
+
+    reviewButtonText: {
+      fontSize: 16,
+      fontWeight: "700",
+      color: colors.onPrimary ?? "#fff",
+      marginRight: 8,
+    },
+
+    reviewButtonIcon: {
+      fontSize: 20,
+      color: colors.onPrimary ?? "#fff",
+    },
+  });
 
 export default JustrideApp;

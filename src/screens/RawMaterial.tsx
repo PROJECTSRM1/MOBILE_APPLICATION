@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   TextInput,
   TouchableOpacity,
@@ -13,6 +12,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Geolocation from 'react-native-geolocation-service';
 import { PERMISSIONS, RESULTS, request } from 'react-native-permissions';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTheme } from '../context/ThemeContext';
 
 /* DATA */
 const MATERIALS = [
@@ -59,6 +59,8 @@ const MATERIALS = [
 ];
 
 const RawMaterial = () => {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
   const [selectedRange, setSelectedRange] = useState('0-10');
   const [location, setLocation] = useState('Detecting location...');
   const [locationError, setLocationError] = useState(false);
@@ -170,7 +172,7 @@ const RawMaterial = () => {
       {/* HEADER */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Icon name="arrow-left" size={22} color="#fff" />
+          <Icon name="arrow-left" size={22} color={colors.text} />
           <Text style={styles.headerTitle}>Marketplace</Text>
         </View>
         <TouchableOpacity
@@ -280,10 +282,10 @@ const RawMaterial = () => {
           <Text style={styles.rangeLabel}>RANGE</Text>
 
           <View style={styles.rangeRow}>
-            {RangeBtn('0-10', '0-10km', selectedRange, setSelectedRange)}
-            {RangeBtn('10', '10km', selectedRange, setSelectedRange)}
-            {RangeBtn('20', '20km', selectedRange, setSelectedRange)}
-            {RangeBtn('20-40', '20-40km', selectedRange, setSelectedRange)}
+            {RangeBtn('0-10', '0-10km', selectedRange, setSelectedRange, styles)}
+            {RangeBtn('10', '10km', selectedRange, setSelectedRange, styles)}
+            {RangeBtn('20', '20km', selectedRange, setSelectedRange, styles)}
+            {RangeBtn('20-40', '20-40km', selectedRange, setSelectedRange, styles)}
           </View>
 
           <View style={styles.ratingRow}>
@@ -304,11 +306,11 @@ const RawMaterial = () => {
 
       {/* BOTTOM TABS */}
       <View style={styles.bottomTabs}>
-        <BottomTab icon="home-outline" label="Home" />
-        <BottomTab icon="storefront" label="Market" active />
-        <BottomTab icon="clipboard-text-outline" label="Orders" />
-        <BottomTab icon="chat-outline" label="Quotes" />
-        <BottomTab icon="account-outline" label="Profile" />
+        <BottomTab icon="home-outline" label="Home" styles={styles} />
+        <BottomTab icon="storefront" label="Market" active styles={styles} />
+        <BottomTab icon="clipboard-text-outline" label="Orders" styles={styles} />
+        <BottomTab icon="chat-outline" label="Quotes" styles={styles} />
+        <BottomTab icon="account-outline" label="Profile" styles={styles} />
       </View>
     </SafeAreaView>
   );
@@ -319,7 +321,8 @@ const RangeBtn = (
   value: string,
   label: string,
   selected: string,
-  setSelected: any
+  setSelected: any,
+  styles: any
 ) => (
   <TouchableOpacity
     key={value}
@@ -338,7 +341,7 @@ const RangeBtn = (
 );
 
 /* BOTTOM TAB */
-const BottomTab = ({ icon, label, active }: any) => (
+const BottomTab = ({ icon, label, active, styles }: any) => (
   <View style={styles.tabItem}>
     <Icon name={icon} size={22} color={active ? '#3b82f6' : '#64748b'} />
     <Text style={[styles.tabText, active && styles.tabActive]}>{label}</Text>
@@ -348,165 +351,294 @@ const BottomTab = ({ icon, label, active }: any) => (
 export default RawMaterial;
 
 /* STYLES */
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0b1220' },
+import { StyleSheet } from "react-native";
 
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-  },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  headerTitle: { color: '#fff', fontSize: 20, fontWeight: '700' },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1f2937',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-    maxWidth: '50%',
-  },
-  location: { color: '#3b82f6', fontWeight: '600', fontSize: 13 },
-  locationError: { color: '#ef4444' },
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
-  searchBox: {
-    marginHorizontal: 16,
-    marginBottom: 10,
-    backgroundColor: '#111827',
-    borderRadius: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-  },
-  searchInput: { flex: 1, height: 42, color: '#fff', marginLeft: 6 },
+    /* Header */
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: 16,
+      backgroundColor: colors.background,
+    },
 
-  sectionHeader: {
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  sectionTitle: { color: '#fff', fontSize: 18, fontWeight: '700' },
-  sectionSub: { color: '#94a3b8', fontSize: 12 },
-  seeAll: { color: '#3b82f6', fontWeight: '600' },
+    headerLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+    },
 
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-    paddingHorizontal: 32,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#fff',
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#64748b',
-    textAlign: 'center',
-  },
+    headerTitle: {
+      color: colors.text,
+      fontSize: 20,
+      fontWeight: "700",
+    },
 
-  card: {
-    marginHorizontal: 16,
-    marginBottom: 12,
-    backgroundColor: '#111827',
-    borderRadius: 16,
-    padding: 12,
-    flexDirection: 'row',
-  },
-  iconBox: {
-    width: 56,
-    height: 56,
-    backgroundColor: '#1f2937',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  cardTop: { flexDirection: 'row', justifyContent: 'space-between' },
-  cardTitle: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 14,
-    flex: 1,
-    marginRight: 8,
-  },
-  newBadge: {
-    color: '#22c55e',
-    backgroundColor: '#22c55e22',
-    fontSize: 10,
-    paddingHorizontal: 6,
-    borderRadius: 6,
-  },
-  timeText: { color: '#94a3b8', fontSize: 11 },
+    headerRight: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.card,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 12,
+      maxWidth: "50%",
+    },
 
-  ratingText: { color: '#facc15', fontSize: 12, marginVertical: 4 },
-  reviewText: { color: '#94a3b8' },
+    location: {
+      color: colors.primary,
+      fontWeight: "600",
+      fontSize: 13,
+    },
 
-  cardBottom: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  price: { color: '#3b82f6', fontWeight: '700' },
-  distance: { color: '#94a3b8', fontSize: 12 },
+    locationError: {
+      color: colors.danger,
+    },
 
-  /* RANGE + RATING */
-  filterContainer: {
-    margin: 16,
-    backgroundColor: '#111827',
-    borderRadius: 16,
-    padding: 12,
-  },
-  rangeLabel: { color: '#94a3b8', fontSize: 11, marginBottom: 6 },
-  rangeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  rangeBtn: {
-    backgroundColor: '#1f2937',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  rangeBtnActive: { backgroundColor: '#2563eb' },
-  rangeText: { color: '#94a3b8', fontSize: 12 },
-  rangeTextActive: { color: '#fff', fontWeight: '600' },
+    /* Search */
+    searchBox: {
+      marginHorizontal: 16,
+      marginBottom: 10,
+      backgroundColor: colors.card,
+      borderRadius: 14,
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
 
-  ratingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 12,
-  },
-  ratingBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    borderWidth: 1,
-    borderColor: '#1f2937',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  ratingActive: { borderColor: '#2563eb' },
-  ratingTextBtn: { color: '#94a3b8', fontSize: 12 },
-  ratingTextActive: { color: '#3b82f6', fontSize: 12 },
+    searchInput: {
+      flex: 1,
+      height: 42,
+      color: colors.text,
+      marginLeft: 6,
+    },
 
-  bottomTabs: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#111827',
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#1f2937',
-  },
-  tabItem: { alignItems: 'center' },
-  tabText: { fontSize: 10, color: '#64748b' },
-  tabActive: { color: '#3b82f6' },
-});
+    /* Section Header */
+    sectionHeader: {
+      paddingHorizontal: 16,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: 10,
+    },
+
+    sectionTitle: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: "700",
+    },
+
+    sectionSub: {
+      color: colors.subText,
+      fontSize: 12,
+    },
+
+    seeAll: {
+      color: colors.primary,
+      fontWeight: "600",
+    },
+
+    /* Empty State */
+    emptyState: {
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 60,
+      paddingHorizontal: 32,
+    },
+
+    emptyTitle: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: colors.text,
+      marginTop: 16,
+      marginBottom: 8,
+    },
+
+    emptySubtitle: {
+      fontSize: 14,
+      fontWeight: "500",
+      color: colors.subText,
+      textAlign: "center",
+    },
+
+    /* Cards */
+    card: {
+      marginHorizontal: 16,
+      marginBottom: 12,
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      padding: 12,
+      flexDirection: "row",
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    iconBox: {
+      width: 56,
+      height: 56,
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 12,
+    },
+
+    cardTop: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+
+    cardTitle: {
+      color: colors.text,
+      fontWeight: "700",
+      fontSize: 14,
+      flex: 1,
+      marginRight: 8,
+    },
+
+    newBadge: {
+      color: colors.success,
+      backgroundColor: colors.success + "22",
+      fontSize: 10,
+      paddingHorizontal: 6,
+      borderRadius: 6,
+    },
+
+    timeText: {
+      color: colors.subText,
+      fontSize: 11,
+    },
+
+    ratingText: {
+      color: colors.warning,
+      fontSize: 12,
+      marginVertical: 4,
+    },
+
+    reviewText: {
+      color: colors.subText,
+    },
+
+    cardBottom: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+
+    price: {
+      color: colors.primary,
+      fontWeight: "700",
+    },
+
+    distance: {
+      color: colors.subText,
+      fontSize: 12,
+    },
+
+    /* RANGE + RATING FILTER */
+    filterContainer: {
+      margin: 16,
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      padding: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    rangeLabel: {
+      color: colors.subText,
+      fontSize: 11,
+      marginBottom: 6,
+    },
+
+    rangeRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 8,
+    },
+
+    rangeBtn: {
+      backgroundColor: colors.surface,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 12,
+    },
+
+    rangeBtnActive: {
+      backgroundColor: colors.primary,
+    },
+
+    rangeText: {
+      color: colors.subText,
+      fontSize: 12,
+    },
+
+    rangeTextActive: {
+      color: colors.onPrimary ?? "#fff",
+      fontWeight: "600",
+    },
+
+    ratingRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginTop: 12,
+    },
+
+    ratingBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 12,
+    },
+
+    ratingActive: {
+      borderColor: colors.primary,
+    },
+
+    ratingTextBtn: {
+      color: colors.subText,
+      fontSize: 12,
+    },
+
+    ratingTextActive: {
+      color: colors.primary,
+      fontSize: 12,
+    },
+
+    /* Bottom Tabs */
+    bottomTabs: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: colors.surface,
+      flexDirection: "row",
+      justifyContent: "space-around",
+      paddingVertical: 10,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+
+    tabItem: {
+      alignItems: "center",
+    },
+
+    tabText: {
+      fontSize: 10,
+      color: colors.subText,
+    },
+
+    tabActive: {
+      color: colors.primary,
+    },
+  });

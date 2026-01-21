@@ -7,11 +7,11 @@ import {
   TouchableOpacity,
   Image,
   StatusBar,
-  SafeAreaView,
   StyleSheet,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 const DoctorListScreen = () => {
