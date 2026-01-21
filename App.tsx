@@ -52,11 +52,13 @@ import ConsultationRequestScreen from "./src/screens/Healthform";
 import TelemedicineConsultation from "./src/screens/TelemedicineConsultation";
 import FacilitiesScreen from "./src/screens/FacilitiesScreen";
 import Wishlist from "./src/screens/Wishlist";
+import AmbulanceBookingScreen from "./src/screens/Ambulance";
 
 import ParcelView from "./src/screens/ParcelView";
 import MetroView from "./src/screens/MetroView";
 import ScootyView from "./src/screens/ScootyView";
 import EnrollmentDetailsScreen from "./src/screens/EnrollmentDetailsScreen";
+
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -119,6 +121,7 @@ export type RootStackParamList = {
   Telecom:undefined;
   Facility:undefined;
   Wishlist: undefined;
+  Ambulance:undefined;
 
 };
 
@@ -183,6 +186,8 @@ function AppNavigator() {
          <Stack.Screen name="MetroView" component={MetroView} />
          <Stack.Screen name="ScootyView" component={ScootyView} />
         <Stack.Screen name="enrollmentDetails" component={EnrollmentDetailsScreen} />
+        <Stack.Screen name="Ambulance" component={AmbulanceBookingScreen} />
+        <Stack.Screen name="Facility" component={FacilitiesScreen} />
       </Stack.Navigator>
     </NavigationContainer>
       
