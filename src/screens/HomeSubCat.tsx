@@ -11,6 +11,7 @@ import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../App";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTheme } from '../context/ThemeContext';
 
 interface MaterialIconProps {
   name: string;
@@ -92,6 +93,9 @@ export default function HomeSubCat() {
   // Get property type from route params, default to '1BHK'
   const propertyType = route.params?.propertyType || '1BHK';
   const pricing = PRICING_CONFIG[propertyType] || PRICING_CONFIG['1BHK'];
+
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
 
   const [services, setServices] = useState<ServicesState>({
     standard: true,
@@ -366,305 +370,349 @@ export default function HomeSubCat() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#101c22',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: 'rgba(16, 28, 34, 0.8)',
-    borderBottomWidth: 1,
-    borderBottomColor: '#1f2937',
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  helpButton: {
-    color: '#135BEC',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 200,
-  },
-  sectionHeader: {
-    paddingHorizontal: 16,
-    paddingTop: 24,
-    paddingBottom: 8,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#fff',
-  },
-  sectionSubtitle: {
-    fontSize: 14,
-    color: '#94a3b8',
-    marginTop: 4,
-  },
-  serviceList: {
-    marginTop: 16,
-  },
-  serviceItem: {
-    flexDirection: 'row',
-    backgroundColor: '#1a262e',
-    paddingHorizontal: 16,
-    paddingVertical: 20,
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    borderBottomWidth: 1,
-    borderBottomColor: '#1f2937',
-  },
-  serviceItemExpanded: {
-    backgroundColor: '#1a262e',
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#1f2937',
-  },
-  serviceItemTop: {
-    paddingHorizontal: 16,
-    paddingTop: 20,
-  },
-  serviceContent: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 16,
-    flex: 1,
-  },
-  checkboxContainer: {
-    marginTop: 4,
-  },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#475569',
-    backgroundColor: 'transparent',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkboxChecked: {
-    backgroundColor: '#135BEC',
-    borderColor: '#135BEC',
-  },
-  serviceDetails: {
-    flex: 1,
-  },
-  serviceTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  serviceName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  badge: {
-    backgroundColor: 'rgba(19, 164, 236, 0.1)',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
-  },
-  badgeText: {
-    color: '#135BEC',
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  servicePrice: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#135BEC',
-    marginTop: 2,
-  },
-  serviceDescription: {
-    fontSize: 14,
-    color: '#94a3b8',
-    marginTop: 4,
-    lineHeight: 20,
-  },
-  serviceAction: {
-    marginTop: 4,
-  },
-  includedText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#9ca3af',
-  },
-  addText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#135BEC',
-  },
-  quantityContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginHorizontal: 16,
-    marginLeft: 56,
-    marginTop: 12,
-    backgroundColor: 'rgba(16, 28, 34, 0.5)',
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#1f2937',
-  },
-  quantityLabel: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#cbd5e1',
-  },
-  quantitySelector: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-    backgroundColor: '#1f2937',
-    borderRadius: 8,
-    padding: 4,
-    borderWidth: 1,
-    borderColor: '#374151',
-  },
-  quantityButtonMinus: {
-    width: 32,
-    height: 32,
-    borderRadius: 6,
-    backgroundColor: '#374151',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  quantityValue: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#fff',
-    minWidth: 16,
-    textAlign: 'center',
-  },
-  quantityButtonPlus: {
-    width: 32,
-    height: 32,
-    borderRadius: 6,
-    backgroundColor: '#135BEC',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tipContainer: {
-    margin: 16,
-    padding: 16,
-    borderRadius: 12,
-    backgroundColor: 'rgba(19, 164, 236, 0.05)',
-    borderWidth: 1,
-    borderColor: 'rgba(19, 164, 236, 0.2)',
-    flexDirection: 'row',
-    gap: 12,
-  },
-  tipText: {
-    fontSize: 12,
-    color: '#94a3b8',
-    lineHeight: 16,
-    flex: 1,
-  },
-  tipTextBold: {
-    color: '#135BEC',
-    fontWeight: '700',
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
-  summaryTab: {
-    backgroundColor: '#1a262e',
-    borderTopWidth: 1,
-    borderTopColor: '#1f2937',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  summaryContent: {
-    gap: 4,
-  },
-  summaryLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#9ca3af',
-    letterSpacing: 1.5,
-  },
-  summaryTotal: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#fff',
-  },
-  continueButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#135BEC',
-    paddingHorizontal: 32,
-    paddingVertical: 14,
-    borderRadius: 12,
-    shadowColor: '#135BEC',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  continueButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderTopWidth: 1,
-    borderTopColor: '#1f2937',
-    paddingTop: 8,
-    paddingBottom: 32,
-    paddingHorizontal: 16,
-  },
-  navItem: {
-    alignItems: 'center',
-    gap: 4,
-  },
-  navLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#9ca3af',
-  },
-  navLabelActive: {
-    color: '#135BEC',
-  },
-});
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+
+    headerLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+
+    iconButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.text,
+    },
+
+    helpButton: {
+      color: colors.primary,
+      fontWeight: '600',
+      fontSize: 14,
+    },
+
+    scrollView: {
+      flex: 1,
+    },
+
+    scrollContent: {
+      paddingBottom: 200,
+    },
+
+    sectionHeader: {
+      paddingHorizontal: 16,
+      paddingTop: 24,
+      paddingBottom: 8,
+    },
+
+    sectionTitle: {
+      fontSize: 20,
+      fontWeight: '800',
+      color: colors.text,
+    },
+
+    sectionSubtitle: {
+      fontSize: 14,
+      color: colors.subText,
+      marginTop: 4,
+    },
+
+    serviceList: {
+      marginTop: 16,
+    },
+
+    serviceItem: {
+      flexDirection: 'row',
+      backgroundColor: colors.card,
+      paddingHorizontal: 16,
+      paddingVertical: 20,
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+
+    serviceItemExpanded: {
+      backgroundColor: colors.card,
+      paddingBottom: 20,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+
+    serviceItemTop: {
+      paddingHorizontal: 16,
+      paddingTop: 20,
+    },
+
+    serviceContent: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 16,
+      flex: 1,
+    },
+
+    checkboxContainer: {
+      marginTop: 4,
+    },
+
+    checkbox: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      borderWidth: 2,
+      borderColor: colors.border,
+      backgroundColor: 'transparent',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+
+    checkboxChecked: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+
+    serviceDetails: {
+      flex: 1,
+    },
+
+    serviceTitleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+
+    serviceName: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.text,
+    },
+
+    badge: {
+      backgroundColor: colors.primary + '1A',
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 12,
+    },
+
+    badgeText: {
+      color: colors.primary,
+      fontSize: 10,
+      fontWeight: '700',
+    },
+
+    servicePrice: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.primary,
+      marginTop: 2,
+    },
+
+    serviceDescription: {
+      fontSize: 14,
+      color: colors.subText,
+      marginTop: 4,
+      lineHeight: 20,
+    },
+
+    includedText: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: colors.subText,
+    },
+
+    addText: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.primary,
+    },
+
+    quantityContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginHorizontal: 16,
+      marginLeft: 56,
+      marginTop: 12,
+      backgroundColor: colors.surface,
+      padding: 12,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    quantityLabel: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.text,
+    },
+
+    quantitySelector: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 16,
+      backgroundColor: colors.card,
+      borderRadius: 8,
+      padding: 4,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    quantityValue: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.text,
+      minWidth: 16,
+      textAlign: 'center',
+    },
+
+    quantityButtonMinus: {
+      width: 32,
+      height: 32,
+      borderRadius: 6,
+      backgroundColor: colors.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+
+    quantityButtonPlus: {
+      width: 32,
+      height: 32,
+      borderRadius: 6,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+
+    tipContainer: {
+      margin: 16,
+      padding: 16,
+      borderRadius: 12,
+      backgroundColor: colors.primary + '0D',
+      borderWidth: 1,
+      borderColor: colors.primary + '33',
+      flexDirection: 'row',
+      gap: 12,
+    },
+
+    tipText: {
+      fontSize: 12,
+      color: colors.subText,
+      lineHeight: 16,
+      flex: 1,
+    },
+
+    tipTextBold: {
+      color: colors.primary,
+      fontWeight: '700',
+    },
+
+    summaryTab: {
+      backgroundColor: colors.surface,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      paddingHorizontal: 24,
+      paddingVertical: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+
+    summaryLabel: {
+      fontSize: 10,
+      fontWeight: '700',
+      color: colors.subText,
+      letterSpacing: 1.5,
+    },
+
+    summaryTotal: {
+      fontSize: 24,
+      fontWeight: '800',
+      color: colors.text,
+    },
+
+    continueButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      backgroundColor: colors.primary,
+      paddingHorizontal: 32,
+      paddingVertical: 14,
+      borderRadius: 12,
+    },
+
+    continueButtonText: {
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: '700',
+    },
+
+    bottomNav: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      paddingTop: 8,
+      paddingBottom: 32,
+      paddingHorizontal: 16,
+    },
+
+    navLabel: {
+      fontSize: 10,
+      fontWeight: '700',
+      color: colors.subText,
+    },
+
+    navLabelActive: {
+      color: colors.primary,
+    },
+
+    serviceAction: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      minWidth: 60,
+    },
+
+    footer: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+    },
+
+    summaryContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+
+    navItem: {
+      alignItems: 'center',
+      paddingVertical: 8,
+      minWidth: 60,
+    },
+  });
