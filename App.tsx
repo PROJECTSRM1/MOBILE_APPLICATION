@@ -51,6 +51,8 @@ import DoctorListScreen from "./src/screens/Healthcare";
 import ConsultationRequestScreen from "./src/screens/Healthform";
 import TelemedicineConsultation from "./src/screens/TelemedicineConsultation";
 import FacilitiesScreen from "./src/screens/FacilitiesScreen";
+import Wishlist from "./src/screens/Wishlist";
+
 import ParcelView from "./src/screens/ParcelView";
 import MetroView from "./src/screens/MetroView";
 import ScootyView from "./src/screens/ScootyView";
@@ -112,6 +114,10 @@ function AppNavigator() {
         <Stack.Screen name="Health" component={DoctorListScreen} />
         <Stack.Screen name="Form" component={ConsultationRequestScreen} />
          <Stack.Screen name="Telecom" component={TelemedicineConsultation} />
+         <Stack.Screen name="Facility" component={FacilitiesScreen} />
+         <Stack.Screen name="Wishlist" component={Wishlist} />
+
+
          <Stack.Screen name="ParcelView" component={ParcelView} />
          <Stack.Screen name="MetroView" component={MetroView} />
          <Stack.Screen name="ScootyView" component={ScootyView} />
@@ -119,6 +125,7 @@ function AppNavigator() {
         <Stack.Screen name="enrollmentDetails" component={EnrollmentDetailsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
+     </ThemeProvider> 
   );
 }
 

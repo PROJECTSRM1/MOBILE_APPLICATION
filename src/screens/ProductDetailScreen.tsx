@@ -12,6 +12,8 @@ import {
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { SafeAreaView } from "react-native-safe-area-context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 
 /* ================= PRICE HELPER ================= */
 // Works with values coming from storage:
@@ -38,6 +40,18 @@ export default function ProductDetailScreen({ route, navigation }: any) {
   const [showWishlistModal, setShowWishlistModal] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [errors, setErrors] = useState<any>({});
+    // ================= WISHLIST STORAGE =================
+  const WISHLIST_KEY = "wishlist_items";
+
+  const saveWishlist = async (items: any[]) => {
+    await AsyncStorage.setItem(WISHLIST_KEY, JSON.stringify(items));
+  };
+
+  const loadWishlist = async () => {
+    const stored = await AsyncStorage.getItem(WISHLIST_KEY);
+    return stored ? JSON.parse(stored) : [];
+  };
+
 
   const vehicleTypes = [
     { label: "Bike", value: "bike", icon: "two-wheeler" },
@@ -45,6 +59,18 @@ export default function ProductDetailScreen({ route, navigation }: any) {
     { label: "DCM Van", value: "dcm_van", icon: "airport-shuttle" },
     { label: "Freight / Lorry", value: "freight", icon: "local-shipping" },
   ];
+  React.useEffect(() => {
+  const checkWishlist = async () => {
+    const wishlist = await loadWishlist();
+    const exists = wishlist.some(
+      (item: any) => item.id === product.id
+    );
+    setIsWishlisted(exists);
+  };
+
+  checkWishlist();
+}, []);
+
 
   const validateForm = () => {
     const newErrors: any = {};
