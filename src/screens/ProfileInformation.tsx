@@ -18,12 +18,22 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
+
+
+
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+
+
+
+
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { launchImageLibrary } from 'react-native-image-picker';
+
 // import { getLightMode, setLightMode } from "../utils/theme";
 import { useTheme } from "../context/ThemeContext";
 import { RootStackParamList } from "../../App";
+
 
 // const { lightMode, toggleTheme } = useTheme();
 
@@ -60,6 +70,8 @@ interface UserProfile {
   drivingLicense?: boolean;
   availableHoursFrom?: string;
   availableHoursTo?: string;
+  resumeImage?: string;
+
 }
 
 interface MarketplaceListing {
@@ -86,6 +98,12 @@ interface SwachifyProduct {
   category: string;
   createdAt?: string;
 }
+
+type RootStackParamList = {
+  AuthScreen: undefined;
+  ProfileInformation: undefined;
+  Wishlist: undefined;
+};
 
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -185,6 +203,17 @@ const ProfileInformation: React.FC = () => {
   const [nocCertificateNumber, setNocCertificateNumber] = useState<string>('');
   const [nocPoliceStation, setNocPoliceStation] = useState<string>('');
   const [nocIssueYear, setNocIssueYear] = useState<string>('');
+  // New fields
+const [candidateCaseClear, setCandidateCaseClear] = useState<'yes' | 'no'>('no');
+const [caseNumber, setCaseNumber] = useState<string>('');
+
+// Education extras
+const [educationDuration, setEducationDuration] = useState<string>(''); // MM/YYYY-MM/YYYY
+const [internshipJoinDate, setInternshipJoinDate] = useState<Date>(new Date());
+const [showInternshipPicker, setShowInternshipPicker] = useState<boolean>(false);
+const [resumeImage, setResumeImage] = useState<string | null>(null);
+
+
 
   // Expertise fields
   const [expertiseServices, setExpertiseServices] = useState<string[]>(['UI Design', 'Web Dev']);
@@ -195,6 +224,10 @@ const ProfileInformation: React.FC = () => {
   const [drivingLicense, setDrivingLicense] = useState<boolean>(true);
   const [availableHoursFrom, setAvailableHoursFrom] = useState<Date>(new Date());
   const [availableHoursTo, setAvailableHoursTo] = useState<Date>(new Date());
+  const [availableFromText, setAvailableFromText] = useState<string>("09:00 AM");
+const [availableToText, setAvailableToText] = useState<string>("06:00 PM");
+
+
   const [showFromPicker, setShowFromPicker] = useState<boolean>(false);
   const [showToPicker, setShowToPicker] = useState<boolean>(false);
 
@@ -232,6 +265,10 @@ const [openWishlist, setOpenWishlist] = useState<boolean>(false);
   loadWishlist();
 }, []);
 
+/* 🔽 ADD THIS EXACTLY HERE 🔽 */
+
+
+
   const loadUserFromStorage = async () => {
     try {
       const storedUser = await AsyncStorage.getItem('userProfile');
@@ -260,6 +297,10 @@ const [openWishlist, setOpenWishlist] = useState<boolean>(false);
       setYearsOfExperience(parsed.yearsOfExperience ?? '');
       setAdditionalSkills(parsed.additionalSkills ?? '');
       setDrivingLicense(parsed.drivingLicense ?? true);
+      if (parsed.resumeImage) {
+  setResumeImage(parsed.resumeImage);
+}
+
       
       if (parsed.availableHoursFrom) {
         const [hours, minutes] = parsed.availableHoursFrom.split(':');
@@ -316,16 +357,24 @@ const [openWishlist, setOpenWishlist] = useState<boolean>(false);
     }
   };
 
-  const loadWishlist = async () => {
+ const loadWishlist = async () => {
   try {
     const storedWishlist = await AsyncStorage.getItem("wishlist_items");
+    console.log("📦 RAW wishlist from storage:", storedWishlist);
+
     if (storedWishlist) {
-      setWishlistItems(JSON.parse(storedWishlist));
+      const parsed = JSON.parse(storedWishlist);
+      console.log("✅ PARSED wishlist:", parsed);
+      setWishlistItems(parsed);
+    } else {
+      console.log("⚠️ No wishlist found in storage");
+      setWishlistItems([]);
     }
   } catch (error) {
-    console.log("Error loading wishlist:", error);
+    console.log("❌ Error loading wishlist:", error);
   }
 };
+
 
 
   /* ================= SAVE USER DATA ================= */
@@ -334,12 +383,15 @@ const [openWishlist, setOpenWishlist] = useState<boolean>(false);
 
     try {
       const updatedUser: UserProfile = {
+
         ...user,
         mobile: phone,
         location: location,
         degree: degree,
         institution: institution,
         percentage: percentage,
+        resumeImage: resumeImage ?? undefined,
+
         certificateName: certificateName,
         certificateIssuedBy: certificateIssuedBy,
         certificateYear: certificateYear,
@@ -467,6 +519,28 @@ const [openWishlist, setOpenWishlist] = useState<boolean>(false);
     }
   };
 
+const handleResumeImageUpload = () => {
+  launchImageLibrary(
+    {
+      mediaType: 'photo',
+      quality: 0.8,
+    },
+    (response) => {
+      if (response.didCancel) return;
+
+      if (response.errorCode) {
+        Alert.alert('Error', 'Failed to pick image');
+        return;
+      }
+
+      if (response.assets && response.assets.length > 0) {
+        setResumeImage(response.assets[0].uri ?? null);
+      }
+    }
+  );
+};
+
+
   const handleLogout = async () => {
     Alert.alert(
       'Logout',
@@ -549,155 +623,260 @@ const [openWishlist, setOpenWishlist] = useState<boolean>(false);
         <Divider />
 
         {/* BASIC INFORMATION */}
-        <SectionHeader
-          title="Basic Information"
-          open={openBasic}
-          onPress={() => toggleSection(setOpenBasic)}
-        />
-        {openBasic && (
-          <Card>
-            <Field label="Phone Number">
-              <TextInput
-                style={styles.input}
-                value={phone}
-                onChangeText={setPhone}
-                placeholder="+1 (555) 123-4567"
-                placeholderTextColor="#6b7280"
-                keyboardType="phone-pad"
-              />
-            </Field>
+       {/* BASIC INFORMATION */}
+<SectionHeader
+  title="Basic Information"
+  open={openBasic}
+  onPress={() => toggleSection(setOpenBasic)}
+/>
+{openBasic && (
+  <Card>
+    <Field label="Phone Number">
+      <TextInput
+        style={styles.input}
+        value={phone}
+        onChangeText={setPhone}
+        placeholder="+1 (555) 123-4567"
+        placeholderTextColor="#6b7280"
+        keyboardType="phone-pad"
+      />
+    </Field>
 
-            <Field label="Location">
-              <TextInput
-                style={styles.input}
-                value={location}
-                onChangeText={setLocation}
-                placeholder="San Francisco, CA"
-                placeholderTextColor="#6b7280"
-              />
-            </Field>
-          </Card>
-        )}
+    <Field label="Location">
+      <TextInput
+        style={styles.input}
+        value={location}
+        onChangeText={setLocation}
+        placeholder="San Francisco, CA"
+        placeholderTextColor="#6b7280"
+      />
+    </Field>
 
-        {/* EDUCATION */}
-        <SectionHeader
-          title="Education Qualification"
-          open={openEducation}
-          onPress={() => toggleSection(setOpenEducation)}
-        />
-        {openEducation && (
-          <Card>
-            <Field label="Degree">
-              <TextInput
-                style={styles.input}
-                value={degree}
-                onChangeText={setDegree}
-                placeholder="e.g. B.Tech Computer Science"
-                placeholderTextColor="#6b7280"
-              />
-            </Field>
+    {/* ✅ ADD THIS HERE */}
+   <Field label="AVAILABLE HOURS">
+              <View style={styles.timeRow}>
+                <View style={styles.timeField}>
+                  <Text style={styles.timeLabel}>FROM</Text>
+                  <TouchableOpacity 
+                    style={styles.timeInput}
+                    onPress={() => setShowFromPicker(true)}
+                  >
+                    <Text style={styles.timeText}>{formatTime(availableHoursFrom)}</Text>
+                    <Icon name="access-time" size={20} color="#6b7280" />
+                  </TouchableOpacity>
+                </View>
 
-            <Field label="Institution">
-              <TextInput
-                style={styles.input}
-                value={institution}
-                onChangeText={setInstitution}
-                placeholder="e.g. Stanford University"
-                placeholderTextColor="#6b7280"
-              />
+                <View style={styles.timeField}>
+                  <Text style={styles.timeLabel}>TO</Text>
+                  <TouchableOpacity 
+                    style={styles.timeInput}
+                    onPress={() => setShowToPicker(true)}
+                  >
+                    <Text style={styles.timeText}>{formatTime(availableHoursTo)}</Text>
+                    <Icon name="access-time" size={20} color="#6b7280" />
+                  </TouchableOpacity>
+                </View>
+              </View>
             </Field>
+  </Card>
+)}
 
-            <Field label="Percentage">
-              <TextInput
-                style={styles.input}
-                value={percentage}
-                onChangeText={setPercentage}
-                placeholder="e.g. 85%"
-                placeholderTextColor="#6b7280"
-              />
-            </Field>
-          </Card>
-        )}
+       {/* EDUCATION */}
+<SectionHeader
+  title="Education Qualification"
+  open={openEducation}
+  onPress={() => toggleSection(setOpenEducation)}
+/>
 
-        {/* CERTIFICATES */}
-        <SectionHeader
-          title="Certificates"
-          open={openCertificates}
-          onPress={() => toggleSection(setOpenCertificates)}
-        />
-        {openCertificates && (
-          <Card>
-            <Field label="Certificate Name">
-              <TextInput
-                style={styles.input}
-                value={certificateName}
-                onChangeText={setCertificateName}
-                placeholder="e.g. Project Management Professional"
-                placeholderTextColor="#6b7280"
-              />
-            </Field>
+{openEducation && (
+  <Card>
+    {/* Degree */}
+    <Field label="Degree">
+      <TextInput
+        style={styles.input}
+        value={degree}
+        onChangeText={setDegree}
+        placeholder="e.g. B.Tech Computer Science"
+        placeholderTextColor="#6b7280"
+      />
+    </Field>
 
-            <Field label="Issued By">
-              <TextInput
-                style={styles.input}
-                value={certificateIssuedBy}
-                onChangeText={setCertificateIssuedBy}
-                placeholder="e.g. PMI"
-                placeholderTextColor="#6b7280"
-              />
-            </Field>
+    {/* Institution */}
+    <Field label="Institution">
+      <TextInput
+        style={styles.input}
+        value={institution}
+        onChangeText={setInstitution}
+        placeholder="e.g. Stanford University"
+        placeholderTextColor="#6b7280"
+      />
+    </Field>
 
-            <Field label="Year">
-              <TextInput
-                style={styles.input}
-                value={certificateYear}
-                onChangeText={setCertificateYear}
-                placeholder="e.g. 2023"
-                placeholderTextColor="#6b7280"
-              />
-            </Field>
-          </Card>
-        )}
+    {/* Percentage */}
+    <Field label="Percentage">
+      <TextInput
+        style={styles.input}
+        value={percentage}
+        onChangeText={setPercentage}
+        placeholder="e.g. 85%"
+        placeholderTextColor="#6b7280"
+      />
+    </Field>
+
+    {/* Years in Education */}
+    <Field label="Years in Education (MM/YYYY - MM/YYYY)">
+      <TextInput
+        style={styles.input}
+        value={educationDuration}
+        onChangeText={setEducationDuration}
+        placeholder="06/2019 - 05/2023"
+        placeholderTextColor="#6b7280"
+      />
+    </Field>
+
+    {/* Internship Join Date */}
+    <Field label="Internship Join Date">
+      <TouchableOpacity
+        style={styles.timeInput}
+        onPress={() => setShowInternshipPicker(true)}
+      >
+        <Text style={styles.timeText}>
+          {internshipJoinDate.toDateString()}
+        </Text>
+        <Icon name="calendar-today" size={20} color="#6b7280" />
+      </TouchableOpacity>
+    </Field>
+
+    {/* Resume Upload / Download */}
+    <Field label="Resume">
+  <View style={{ flexDirection: "row", gap: 20 }}>
+    <TouchableOpacity onPress={handleResumeImageUpload}>
+      <Icon name="upload-file" size={28} color={colors.primary} />
+    </TouchableOpacity>
+  </View>
+
+  {resumeImage && (
+    <Image
+      source={{ uri: resumeImage }}
+      style={{
+        marginTop: 12,
+        width: 120,
+        height: 160,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: colors.border,
+      }}
+      resizeMode="cover"
+    />
+  )}
+</Field>
+
+  </Card>
+)}
+
+{/* ✅ DATE PICKER – MUST BE OUTSIDE CARD */}
+{showInternshipPicker && (
+  <DateTimePicker
+    value={internshipJoinDate}
+    mode="date"
+    display="default"
+    onChange={(event, selectedDate) => {
+      setShowInternshipPicker(false);
+      if (selectedDate) {
+        setInternshipJoinDate(selectedDate);
+      }
+    }}
+  />
+)}
 
         {/* NOC */}
-        <SectionHeader
-          title="NOC Details"
-          open={openNoc}
-          onPress={() => toggleSection(setOpenNoc)}
+
+        {/* NOC DETAILS */}
+<SectionHeader
+  title="NOC Details"
+  open={openNoc}
+  onPress={() => toggleSection(setOpenNoc)}
+/>
+
+{openNoc && (
+  <Card>
+
+    {/* Candidate Case Clear */}
+    <Field label="Candidate Case Clear">
+      <View style={styles.radioGroup}>
+        <TouchableOpacity
+          style={styles.radioOption}
+          onPress={() => setCandidateCaseClear('yes')}
+        >
+          <View style={styles.radioCircle}>
+            {candidateCaseClear === 'yes' && (
+              <View style={styles.radioSelected} />
+            )}
+          </View>
+          <Text style={styles.radioText}>Yes</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.radioOption}
+          onPress={() => setCandidateCaseClear('no')}
+        >
+          <View style={styles.radioCircle}>
+            {candidateCaseClear === 'no' && (
+              <View style={styles.radioSelected} />
+            )}
+          </View>
+          <Text style={styles.radioText}>No</Text>
+        </TouchableOpacity>
+      </View>
+    </Field>
+
+    {/* Case Number OR Certificate Number */}
+    {candidateCaseClear === 'yes' ? (
+      <Field label="Case Number">
+        <TextInput
+          style={styles.input}
+          value={caseNumber}
+          onChangeText={setCaseNumber}
+          placeholder="Enter case number"
+          placeholderTextColor="#6b7280"
         />
-        {openNoc && (
-          <Card>
-            <Field label="Certificate Number">
-              <TextInput
-                style={styles.input}
-                value={nocCertificateNumber}
-                onChangeText={setNocCertificateNumber}
-                placeholder="Enter certificate number"
-                placeholderTextColor="#6b7280"
-              />
-            </Field>
+      </Field>
+    ) : (
+      <Field label="Certificate Number">
+        <TextInput
+          style={styles.input}
+          value={nocCertificateNumber}
+          onChangeText={setNocCertificateNumber}
+          placeholder="Enter certificate number"
+          placeholderTextColor="#6b7280"
+        />
+      </Field>
+    )}
 
-            <Field label="Near Police Station">
-              <TextInput
-                style={styles.input}
-                value={nocPoliceStation}
-                onChangeText={setNocPoliceStation}
-                placeholder="Enter police station"
-                placeholderTextColor="#6b7280"
-              />
-            </Field>
+    {/* Near Police Station – unchanged */}
+    <Field label="Near Police Station">
+      <TextInput
+        style={styles.input}
+        value={nocPoliceStation}
+        onChangeText={setNocPoliceStation}
+        placeholder="Enter police station"
+        placeholderTextColor="#6b7280"
+      />
+    </Field>
 
-            <Field label="Issue Year">
-              <TextInput
-                style={styles.input}
-                value={nocIssueYear}
-                onChangeText={setNocIssueYear}
-                placeholder="e.g. 2024"
-                placeholderTextColor="#6b7280"
-              />
-            </Field>
-          </Card>
-        )}
+    {/* Issue Year – unchanged */}
+    <Field label="Issue Year">
+      <TextInput
+        style={styles.input}
+        value={nocIssueYear}
+        onChangeText={setNocIssueYear}
+        placeholder="e.g. 2024"
+        placeholderTextColor="#6b7280"
+      />
+    </Field>
+
+  </Card>
+)}
 
         {/* FREELANCER/EMPLOYEE EXPERTISE */}
         <SectionHeader
@@ -827,6 +1006,8 @@ const [openWishlist, setOpenWishlist] = useState<boolean>(false);
                   setShowFromPicker(false);
                   if (selectedDate) {
                     setAvailableHoursFrom(selectedDate);
+                    setAvailableFromText(formatTime(selectedDate));
+
                   }
                 }}
               />
@@ -842,6 +1023,8 @@ const [openWishlist, setOpenWishlist] = useState<boolean>(false);
                   setShowToPicker(false);
                   if (selectedDate) {
                     setAvailableHoursTo(selectedDate);
+setAvailableToText(formatTime(selectedDate));
+
                   }
                 }}
               />
@@ -1487,6 +1670,32 @@ const getStyles = (colors: any) =>
       fontWeight: "600",
       color: colors.danger,
     },
+    timeTextInput: {
+  flex: 1,
+  color: colors.text,
+  fontSize: 15,
+  paddingVertical: 0,
+},
+
+timeBox: {
+  flexDirection: "row",
+  alignItems: "center",
+  backgroundColor: colors.card,
+  borderRadius: 10,
+  paddingHorizontal: 12,
+  height: 48,               // 🔥 FIX HEIGHT
+  borderWidth: 1,
+  borderColor: colors.border,
+},
+
+timeInputText: {
+  flex: 1,                  // 🔥 FIX WIDTH
+  fontSize: 15,
+  color: colors.text,
+  paddingVertical: 0,       // 🔥 ANDROID FIX
+},
+
+
   });
 
 
