@@ -32,6 +32,7 @@ import {
   CheckCheck,
   Package,
 } from 'lucide-react-native';
+import { useTheme } from '../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
@@ -100,6 +101,8 @@ const getIcon = (name: string, size: number, color: string) => {
  * MAIN COMPONENT 
  */
 const ParcelView: React.FC = () => {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
   const [step, setStep] = useState<Step>(Step.DETAILS);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [formData, setFormData] = useState<ParcelFormData>({
@@ -570,622 +573,756 @@ const ParcelView: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#020617',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 40,
-    paddingBottom: 20,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  backButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    backgroundColor: '#0f172a',
-    borderWidth: 1,
-    borderColor: '#1e293b',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  backButtonHidden: {
-    opacity: 0,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '900',
-    color: '#f1f5f9',
-    letterSpacing: -0.5,
-  },
-  liveBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(99, 102, 241, 0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.3)',
-  },
-  liveText: {
-    fontSize: 10,
-    fontWeight: '900',
-    color: '#818cf8',
-    letterSpacing: 1.5,
-    marginLeft: 8,
-  },
-  stepper: {
-    flexDirection: 'row',
-    paddingHorizontal: 40,
-    paddingVertical: 32,
-    alignItems: 'center',
-  },
-  stepContainer: {
-    alignItems: 'center',
-  },
-  stepCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  stepCircleActive: {
-    backgroundColor: '#6366f1',
-  },
-  stepCircleInactive: {
-    backgroundColor: '#0f172a',
-    borderWidth: 1,
-    borderColor: '#1e293b',
-  },
-  stepLabel: {
-    fontSize: 9,
-    fontWeight: '900',
-    letterSpacing: 2,
-    marginTop: 12,
-  },
-  stepLabelActive: {
-    color: '#818cf8',
-  },
-  stepLabelInactive: {
-    color: '#334155',
-  },
-  progressBarContainer: {
-    flex: 1,
-    height: 6,
-    backgroundColor: '#0f172a',
-    borderRadius: 3,
-    marginHorizontal: 12,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: '100%',
-    backgroundColor: '#6366f1',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  content: {
-    padding: 24,
-    paddingBottom: 120,
-  },
-  section: {
-    gap: 32,
-  },
-  inputGroup: {
-    gap: 12,
-  },
-  labelContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: 4,
-  },
-  label: {
-    fontSize: 11,
-    fontWeight: '900',
-    color: '#64748b',
-    letterSpacing: 2.5,
-    marginLeft: 8,
-  },
-  inputContainerReadOnly: {
-    backgroundColor: 'rgba(15, 23, 42, 0.4)',
-    borderWidth: 1,
-    borderColor: '#1e293b',
-    borderRadius: 24,
-    padding: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  inputContainer: {
-    backgroundColor: '#0f172a',
-    borderWidth: 1,
-    borderColor: '#1e293b',
-    borderRadius: 24,
-    padding: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  inputContainerMargin: {
-    marginTop: 12,
-  },
-  iconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: 'rgba(99, 102, 241, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  iconBoxRose: {
-    backgroundColor: 'rgba(244, 63, 94, 0.1)',
-  },
-  iconBoxEmerald: {
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-  },
-  iconBoxBlue: {
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#ffffff',
-  },
-  inputTextReadOnly: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#cbd5e1',
-  },
-  packageHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    paddingHorizontal: 4,
-  },
-  packageTitle: {
-    fontSize: 24,
-    fontWeight: '900',
-    color: '#ffffff',
-  },
-  packageSubtitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#64748b',
-    marginTop: 4,
-  },
-  selectedBadge: {
-    backgroundColor: 'rgba(99, 102, 241, 0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 20,
-  },
-  selectedText: {
-    fontSize: 10,
-    fontWeight: '900',
-    color: '#818cf8',
-    letterSpacing: 0.5,
-  },
-  categoryGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 16,
-  },
-  categoryCard: {
-    width: (width - 64) / 2,
-    aspectRatio: 1,
-    backgroundColor: '#0f172a',
-    borderWidth: 2,
-    borderColor: '#1e293b',
-    borderRadius: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  categoryCardActive: {
-    backgroundColor: '#6366f1',
-    borderColor: '#818cf8',
-  },
-  categoryIcon: {
-    marginBottom: 16,
-  },
-  categoryLabel: {
-    fontSize: 12,
-    fontWeight: '900',
-    color: '#64748b',
-    letterSpacing: 1.5,
-  },
-  categoryLabelActive: {
-    color: '#ffffff',
-  },
-  checkmark: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
-  },
-  descriptionBox: {
-    padding: 24,
-    backgroundColor: '#0f172a',
-    borderWidth: 2,
-    borderColor: '#1e293b',
-    borderRadius: 32,
-    gap: 16,
-  },
-  descriptionLabel: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  descriptionLabelText: {
-    fontSize: 10,
-    fontWeight: '900',
-    color: '#fb7185',
-    letterSpacing: 3,
-  },
-  mandatoryBadge: {
-    backgroundColor: '#f43f5e',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  mandatoryText: {
-    fontSize: 8,
-    fontWeight: '900',
-    color: '#ffffff',
-  },
-  textarea: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#1e293b',
-    paddingVertical: 8,
-    minHeight: 80,
-    textAlignVertical: 'top',
-  },
-  errorBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(244, 63, 94, 0.1)',
-    padding: 8,
-    borderRadius: 8,
-  },
-  errorText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#f43f5e',
-    marginLeft: 8,
-  },
-  invoice: {
-    backgroundColor: '#0f172a',
-    borderRadius: 40,
-    padding: 32,
-    borderWidth: 1,
-    borderColor: 'rgba(30, 41, 59, 0.5)',
-  },
-  invoiceHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 32,
-  },
-  invoiceTitle: {
-    fontSize: 24,
-    fontWeight: '900',
-    color: '#ffffff',
-    fontStyle: 'italic',
-  },
-  invoiceNumber: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#64748b',
-    letterSpacing: 3,
-    marginTop: 4,
-  },
-  invoiceIcon: {
-    width: 48,
-    height: 48,
-    backgroundColor: '#6366f1',
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  invoiceDetails: {
-    gap: 20,
-  },
-  invoiceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  invoiceRowLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#334155',
-    marginRight: 12,
-  },
-  invoiceLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#64748b',
-  },
-  invoiceSubtext: {
-    fontSize: 9,
-    fontWeight: '900',
-    color: '#818cf8',
-    letterSpacing: 0.5,
-    marginTop: 2,
-  },
-  invoiceValue: {
-    fontSize: 14,
-    fontWeight: '900',
-    color: '#ffffff',
-  },
-  freeBadge: {
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 20,
-  },
-  freeText: {
-    fontSize: 10,
-    fontWeight: '900',
-    color: '#34d399',
-  },
-  invoiceTotal: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    paddingTop: 32,
-    borderTopWidth: 2,
-    borderTopColor: '#1e293b',
-    borderStyle: 'dashed',
-    marginTop: 12,
-  },
-  totalLabel: {
-    fontSize: 10,
-    fontWeight: '900',
-    color: '#475569',
-    letterSpacing: 3,
-  },
-  totalAmount: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-  },
-  currencySymbol: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: '#94a3b8',
-    marginRight: 4,
-  },
-  totalValue: {
-    fontSize: 48,
-    fontWeight: '900',
-    color: '#6366f1',
-    letterSpacing: -2,
-  },
-  paymentMethods: {
-    alignItems: 'flex-end',
-  },
-  termsText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#64748b',
-    fontStyle: 'italic',
-    textDecorationLine: 'underline',
-    marginBottom: 8,
-  },
-  cardIcons: {
-    flexDirection: 'row',
-    gap: 6,
-  },
-  cardIconBlue: {
-    width: 32,
-    height: 20,
-    backgroundColor: '#3b82f6',
-    borderRadius: 4,
-  },
-  cardIconOrange: {
-    width: 32,
-    height: 20,
-    backgroundColor: '#ea580c',
-    borderRadius: 4,
-  },
-  deliveryInfo: {
-    backgroundColor: 'rgba(99, 102, 241, 0.05)',
-    borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.2)',
-    borderRadius: 28,
-    padding: 24,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  deliveryIcon: {
-    width: 48,
-    height: 48,
-    backgroundColor: '#6366f1',
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  deliveryText: {
-    flex: 1,
-  },
-  deliveryTitle: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: '#ffffff',
-    fontStyle: 'italic',
-  },
-  deliveryDescription: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#64748b',
-    lineHeight: 18,
-    marginTop: 4,
-  },
-  deliveryHighlight: {
-    color: '#818cf8',
-    fontWeight: '900',
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 24,
-    paddingBottom: 48,
-    backgroundColor: 'rgba(2, 6, 23, 0.9)',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(15, 23, 42, 0.5)',
-  },
-  continueButton: {
-    width: '100%',
-    paddingVertical: 24,
-    borderRadius: 28,
-    backgroundColor: '#6366f1',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  continueButtonDisabled: {
-    backgroundColor: '#0f172a',
-    borderWidth: 1,
-    borderColor: '#1e293b',
-  },
-  continueText: {
-    fontSize: 14,
-    fontWeight: '900',
-    color: '#ffffff',
-    letterSpacing: 2,
-    marginRight: 12,
-  },
-  continueTextDisabled: {
-    color: '#475569',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.85)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  modalContainer: {
-    backgroundColor: '#0f172a',
-    borderRadius: 40,
-    padding: 40,
-    width: '100%',
-    maxWidth: 400,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#1e293b',
-  },
-  successIconContainer: {
-    marginBottom: 24,
-  },
-  successIconOuter: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(99, 102, 241, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  successIconInner: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: '#6366f1',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  successTitle: {
-    fontSize: 28,
-    fontWeight: '900',
-    color: '#ffffff',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  successMessage: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#94a3b8',
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 32,
-  },
-  successName: {
-    color: '#818cf8',
-    fontWeight: '900',
-  },
-  successDetails: {
-    width: '100%',
-    backgroundColor: '#020617',
-    borderRadius: 24,
-    padding: 20,
-    marginBottom: 32,
-    borderWidth: 1,
-    borderColor: '#1e293b',
-    gap: 16,
-  },
-  successDetailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  successDetailLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#64748b',
-    flex: 1,
-  },
-  successDetailValue: {
-    fontSize: 13,
-    fontWeight: '900',
-    color: '#ffffff',
-    letterSpacing: 0.5,
-  },
-  successButton: {
-    width: '100%',
-    paddingVertical: 20,
-    borderRadius: 24,
-    backgroundColor: '#6366f1',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  successButtonText: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: '#ffffff',
-    letterSpacing: 2,
-  },
-  trackButton: {
-    paddingVertical: 12,
-  },
-  trackButtonText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#818cf8',
-    textDecorationLine: 'underline',
-  },
-});
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    // Container Styles
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    
+    // Header Styles
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 24,
+      paddingTop: 40,
+      paddingBottom: 20,
+    },
+    
+    headerLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    
+    backButton: {
+      width: 48,
+      height: 48,
+      borderRadius: 16,
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.cardBorder,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 16,
+    },
+    
+    backButtonHidden: {
+      opacity: 0,
+    },
+    
+    headerTitle: {
+      fontSize: 24,
+      fontWeight: '900',
+      color: colors.text,
+      letterSpacing: -0.5,
+    },
+    
+    liveBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.primaryBgMedium,
+      paddingHorizontal: 12,
+      paddingVertical: 4,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: colors.primaryBorder,
+    },
+    
+    liveText: {
+      fontSize: 10,
+      fontWeight: '900',
+      color: colors.text,
+      letterSpacing: 1.5,
+      marginLeft: 8,
+    },
+    
+    // Stepper Styles
+    stepper: {
+      flexDirection: 'row',
+      paddingHorizontal: 40,
+      paddingVertical: 32,
+      alignItems: 'center',
+    },
+    
+    stepContainer: {
+      alignItems: 'center',
+    },
+    
+    stepCircle: {
+      width: 48,
+      height: 48,
+      borderRadius: 16,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    
+    stepCircleActive: {
+      backgroundColor: colors.primary,
+    },
+    
+    stepCircleInactive: {
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.cardBorder,
+    },
+    
+    stepLabel: {
+      fontSize: 9,
+      fontWeight: '900',
+      letterSpacing: 2,
+      marginTop: 12,
+    color: colors.text,
+    },
+    
+    stepLabelActive: {
+      color: colors.text,
+    },
+    
+    stepLabelInactive: {
+      color: colors.text,
+    },
+    
+    progressBarContainer: {
+      flex: 1,
+      height: 6,
+      backgroundColor: colors.card,
+      borderRadius: 3,
+      marginHorizontal: 12,
+      overflow: 'hidden',
+    },
+    
+    progressBarFill: {
+      height: '100%',
+      backgroundColor: colors.primary,
+    },
+    
+    // Content Styles
+    scrollView: {
+      flex: 1,
+    },
+    
+    content: {
+      padding: 24,
+      paddingBottom: 120,
+    },
+    
+    section: {
+      gap: 32,
+    },
+    
+    // Input Group Styles
+    inputGroup: {
+      gap: 12,
+    },
+    
+    labelContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginLeft: 4,
+    },
+    
+    label: {
+      fontSize: 11,
+      fontWeight: '900',
+      color: colors.subText,
+      letterSpacing: 2.5,
+      marginLeft: 8,
+    },
+    
+    inputContainerReadOnly: {
+      backgroundColor: colors.cardTransparent,
+      borderWidth: 1,
+      borderColor: colors.cardBorder,
+      borderRadius: 24,
+      padding: 20,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    
+    inputContainer: {
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.cardBorder,
+      borderRadius: 24,
+      padding: 20,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    
+    inputContainerMargin: {
+      marginTop: 12,
+    },
+    
+    iconBox: {
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      backgroundColor: colors.iconBoxIndigo,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 16,
+    },
+    
+    iconBoxRose: {
+      backgroundColor: colors.iconBoxRose,
+    },
+    
+    iconBoxEmerald: {
+      backgroundColor: colors.iconBoxEmerald,
+    },
+    
+    iconBoxBlue: {
+      backgroundColor: colors.iconBoxBlue,
+    },
+    
+    input: {
+      flex: 1,
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.subText,
+    },
+    
+    inputTextReadOnly: {
+      flex: 1,
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    
+    // Package Header Styles
+    packageHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-end',
+      paddingHorizontal: 4,
+    },
+    
+    packageTitle: {
+      fontSize: 24,
+      fontWeight: '900',
+      color: colors.text,
+    },
+    
+    packageSubtitle: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.subText,
+      marginTop: 4,
+    },
+    
+    selectedBadge: {
+      backgroundColor: colors.primaryBgMedium,
+      paddingHorizontal: 12,
+      paddingVertical: 4,
+      borderRadius: 20,
+    },
+    
+    selectedText: {
+      fontSize: 10,
+      fontWeight: '900',
+      color: colors.primaryLight,
+      letterSpacing: 0.5,
+    },
+    
+    // Category Grid Styles
+    categoryGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 16,
+    },
+    
+    categoryCard: {
+      width: (width - 64) / 2,
+      aspectRatio: 1,
+      backgroundColor: colors.card,
+      borderWidth: 2,
+      borderColor: colors.cardBorder,
+      borderRadius: 32,
+      justifyContent: 'center',
+      alignItems: 'center',
+      position: 'relative',
+    },
+    
+    categoryCardActive: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primaryLight,
+    },
+    
+    categoryIcon: {
+      marginBottom: 16,
+    },
+    
+    categoryLabel: {
+      fontSize: 12,
+      fontWeight: '900',
+      color: colors.subText,
+      letterSpacing: 1.5,
+    },
+    
+    categoryLabelActive: {
+      color: colors.onPrimary,
+    },
+    
+    checkmark: {
+      position: 'absolute',
+      top: 16,
+      right: 16,
+    },
+    
+    // Description Box Styles
+    descriptionBox: {
+      padding: 24,
+      backgroundColor: colors.card,
+      borderWidth: 2,
+      borderColor: colors.cardBorder,
+      borderRadius: 32,
+      gap: 16,
+    },
+    
+    descriptionLabel: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    
+    descriptionLabelText: {
+      fontSize: 10,
+      fontWeight: '900',
+      color: colors.dangerLight,
+      letterSpacing: 3,
+    },
+    
+    mandatoryBadge: {
+      backgroundColor: colors.danger,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 4,
+    },
+    
+    mandatoryText: {
+      fontSize: 8,
+      fontWeight: '900',
+      color: colors.onPrimary,
+    },
+    
+    textarea: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.textSecondary,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.cardBorder,
+      paddingVertical: 8,
+      minHeight: 80,
+      textAlignVertical: 'top',
+    },
+    
+    errorBox: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.dangerBg,
+      padding: 8,
+      borderRadius: 8,
+    },
+    
+    errorText: {
+      fontSize: 10,
+      fontWeight: '700',
+      color: colors.danger,
+      marginLeft: 8,
+    },
+    
+    // Invoice Styles
+    invoice: {
+      backgroundColor: colors.card,
+      borderRadius: 40,
+      padding: 32,
+      borderWidth: 1,
+      borderColor: colors.cardBorderTransparent,
+    },
+    
+    invoiceHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 32,
+    },
+    
+    invoiceTitle: {
+      fontSize: 24,
+      fontWeight: '900',
+      color: colors.text,
+      fontStyle: 'italic',
+    },
+    
+    invoiceNumber: {
+      fontSize: 10,
+      fontWeight: '700',
+      color: colors.subText,
+      letterSpacing: 3,
+      marginTop: 4,
+    },
+    
+    invoiceIcon: {
+      width: 48,
+      height: 48,
+      backgroundColor: colors.primary,
+      borderRadius: 16,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    
+    invoiceDetails: {
+      gap: 20,
+    },
+    
+    invoiceRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    
+    invoiceRowLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    
+    dot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: colors.disabled,
+      marginRight: 12,
+    },
+    
+    invoiceLabel: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: colors.subText,
+    },
+    
+    invoiceSubtext: {
+      fontSize: 9,
+      fontWeight: '900',
+      color: colors.primaryLight,
+      letterSpacing: 0.5,
+      marginTop: 2,
+    },
+    
+    invoiceValue: {
+      fontSize: 14,
+      fontWeight: '900',
+      color: colors.text,
+    },
+    
+    freeBadge: {
+      backgroundColor: colors.successBg,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 20,
+    },
+    
+    freeText: {
+      fontSize: 10,
+      fontWeight: '900',
+      color: colors.successLight,
+    },
+    
+    invoiceTotal: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-end',
+      paddingTop: 32,
+      borderTopWidth: 2,
+      borderTopColor: colors.cardBorder,
+      borderStyle: 'dashed',
+      marginTop: 12,
+    },
+    
+    totalLabel: {
+      fontSize: 10,
+      fontWeight: '900',
+      color: colors.sectionLabel,
+      letterSpacing: 3,
+    },
+    
+    totalAmount: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+    },
+    
+    currencySymbol: {
+      fontSize: 20,
+      fontWeight: '900',
+      color: colors.subTextLight,
+      marginRight: 4,
+    },
+    
+    totalValue: {
+      fontSize: 48,
+      fontWeight: '900',
+      color: colors.primary,
+      letterSpacing: -2,
+    },
+    
+    // Payment Methods Styles
+    paymentMethods: {
+      alignItems: 'flex-end',
+    },
+    
+    termsText: {
+      fontSize: 9,
+      fontWeight: '700',
+      color: colors.subText,
+      fontStyle: 'italic',
+      textDecorationLine: 'underline',
+      marginBottom: 8,
+    },
+    
+    cardIcons: {
+      flexDirection: 'row',
+      gap: 6,
+    },
+    
+    cardIconBlue: {
+      width: 32,
+      height: 20,
+      backgroundColor: '#3b82f6',
+      borderRadius: 4,
+    },
+    
+    cardIconOrange: {
+      width: 32,
+      height: 20,
+      backgroundColor: colors.warning,
+      borderRadius: 4,
+    },
+    
+    // Delivery Info Styles
+    deliveryInfo: {
+      backgroundColor: colors.primaryBg,
+      borderWidth: 1,
+      borderColor: colors.primaryBorder,
+      borderRadius: 28,
+      padding: 24,
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+    },
+    
+    deliveryIcon: {
+      width: 48,
+      height: 48,
+      backgroundColor: colors.primary,
+      borderRadius: 16,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 16,
+    },
+    
+    deliveryText: {
+      flex: 1,
+    },
+    
+    deliveryTitle: {
+      fontSize: 16,
+      fontWeight: '900',
+      color: colors.text,
+      fontStyle: 'italic',
+    },
+    
+    deliveryDescription: {
+      fontSize: 12,
+      fontWeight: '500',
+      color: colors.subText,
+      lineHeight: 18,
+      marginTop: 4,
+    },
+    
+    deliveryHighlight: {
+      color: colors.primaryLight,
+      fontWeight: '900',
+    },
+    
+    // Footer Styles
+    footer: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      padding: 24,
+      paddingBottom: 48,
+      backgroundColor: 'rgba(2, 6, 23, 0.9)',
+      borderTopWidth: 1,
+      borderTopColor: colors.cardBorderTransparent,
+    },
+    
+    continueButton: {
+      width: '100%',
+      paddingVertical: 24,
+      borderRadius: 28,
+      backgroundColor: colors.primary,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      color: colors.text,
+    },
+    
+    continueButtonDisabled: {
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    
+    continueText: {
+      fontSize: 14,
+      fontWeight: '900',
+      color: colors.primary,
+      letterSpacing: 2,
+      marginRight: 12,
+    },
+    
+    continueTextDisabled: {
+      color: colors.sectionLabel,
+    },
+    
+    // Modal Styles
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: colors.modalBackdrop,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 24,
+    },
+    
+    modalContainer: {
+      backgroundColor: colors.card,
+      borderRadius: 40,
+      padding: 40,
+      width: '100%',
+      maxWidth: 400,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: colors.cardBorder,
+    },
+    
+    successIconContainer: {
+      marginBottom: 24,
+    },
+    
+    successIconOuter: {
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+      backgroundColor: colors.primaryBg,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    
+    successIconInner: {
+      width: 96,
+      height: 96,
+      borderRadius: 48,
+      backgroundColor: colors.primary,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    
+    successTitle: {
+      fontSize: 28,
+      fontWeight: '900',
+      color: colors.text,
+      marginBottom: 12,
+      textAlign: 'center',
+    },
+    
+    successMessage: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: colors.subTextLight,
+      textAlign: 'center',
+      lineHeight: 22,
+      marginBottom: 32,
+    },
+    
+    successName: {
+      color: colors.primaryLight,
+      fontWeight: '900',
+    },
+    
+    successDetails: {
+      width: '100%',
+      backgroundColor: colors.background,
+      borderRadius: 24,
+      padding: 20,
+      marginBottom: 32,
+      borderWidth: 1,
+      borderColor: colors.cardBorder,
+      gap: 16,
+    },
+    
+    successDetailRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    
+    successDetailLabel: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: colors.subText,
+      flex: 1,
+    },
+    
+    successDetailValue: {
+      fontSize: 13,
+      fontWeight: '900',
+      color: colors.text,
+      letterSpacing: 0.5,
+    },
+    
+    successButton: {
+      width: '100%',
+      paddingVertical: 20,
+      borderRadius: 24,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    
+    successButtonText: {
+      fontSize: 16,
+      fontWeight: '900',
+      color: colors.onPrimary,
+      letterSpacing: 2,
+    },
+    
+    trackButton: {
+      paddingVertical: 12,
+    },
+    
+    trackButtonText: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.primaryLight,
+      textDecorationLine: 'underline',
+    },
+    
+    // Map Background Styles (if needed)
+    mapBg: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      opacity: 0.12,
+    },
+    
+    mapOverlay: {
+      flex: 1,
+      backgroundColor: colors.mapOverlay,
+    },
+  });
 
 export default ParcelView;

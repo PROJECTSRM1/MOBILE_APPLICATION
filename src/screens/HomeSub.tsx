@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { useNavigation } from "@react-navigation/native";
+import { useTheme } from "../context/ThemeContext";
 
 
 interface PropertyOption {
@@ -23,6 +24,8 @@ interface PropertyOption {
 
 const HomeSub = () => {
     const navigation = useNavigation<any>();
+    const { colors } = useTheme();
+    const styles = getStyles(colors) as any;
 
 
   const [selectedProperty, setSelectedProperty] = useState('1bhk');
@@ -172,15 +175,15 @@ const HomeSub = () => {
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem}>
           <MaterialIcons name="calendar-today" size={24} color="#9db0b9" />
-          <Text style={styles.navText}>Bookings</Text>
+          <Text style={styles.navLabel}>Bookings</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem}>
           <MaterialIcons name="account-balance-wallet" size={24} color="#9db0b9" />
-          <Text style={styles.navText}>Wallet</Text>
+          <Text style={styles.navLabel}>Wallet</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem}>
           <MaterialIcons name="person" size={24} color="#9db0b9" />
-          <Text style={styles.navText}>Profile</Text>
+          <Text style={styles.navLabel}>Profile</Text>
         </TouchableOpacity>
       </View>
 
@@ -190,296 +193,314 @@ const HomeSub = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#101c22',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    paddingBottom: 8,
-  },
-  backButton: {
-    width: 48,
-    height: 48,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#fff',
-    flex: 1,
-    textAlign: 'center',
-    marginRight: 48,
-  },
-  mainContent: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 20,
-  },
-  searchContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 48,
-    backgroundColor: '#283339',
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  searchIconContainer: {
-    paddingLeft: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  searchInput: {
-    flex: 1,
-    height: '100%',
-    paddingHorizontal: 12,
-    paddingLeft: 8,
-    fontSize: 16,
-    color: '#fff',
-  },
-  section: {
-    marginTop: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#fff',
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-  serviceCardContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-  serviceCard: {
-    height: 128,
-    borderRadius: 12,
-    overflow: 'hidden',
-    position: 'relative',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  serviceCardActive: {
-    borderWidth: 2,
-    borderColor: '#135BEC',
-    shadowColor: '#135BEC',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  serviceCardImage: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
-  },
-  serviceCardOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(16, 28, 34, 0.7)',
-  },
-  expandButton: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#135BEC',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  expandButtonInactive: {
-    backgroundColor: 'transparent',
-  },
-  serviceCardContent: {
-    position: 'absolute',
-    bottom: 16,
-    left: 16,
-  },
-  serviceCardTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: 2,
-  },
-  serviceCardSubtitle: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#135BEC',
-    letterSpacing: 1.2,
-  },
-  serviceCardSubtitleInactive: {
-    fontSize: 10,
-    fontWeight: '500',
-    color: '#9db0b9',
-    letterSpacing: 1.2,
-  },
-  propertyOptions: {
-    marginTop: 8,
-    paddingLeft: 16,
-  },
-  propertyOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#1c2a31',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  propertyOptionSelected: {
-    borderWidth: 2,
-    borderColor: '#135BEC',
-    shadowColor: '#135BEC',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  propertyOptionLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  propertyIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    backgroundColor: '#283339',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  propertyIconContainerActive: {
-    backgroundColor: 'rgba(19, 164, 236, 0.2)',
-  },
-  propertyTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: 2,
-  },
-  propertyPrice: {
-    fontSize: 12,
-    color: '#9db0b9',
-  },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  checkboxSelected: {
-    backgroundColor: '#135BEC',
-    borderColor: '#135BEC',
-  },
-  floatingButtonContainer: {
-    position: 'absolute',
-    bottom: 90,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  floatingButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(28, 42, 49, 0.95)',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 16,
-  },
-  floatingButtonTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: 2,
-  },
-  floatingButtonSubtitle: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#135BEC',
-  },
-  continueButton: {
-    backgroundColor: '#135BEC',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
-    minWidth: 120,
-    alignItems: 'center',
-  },
-  continueButtonText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    height: 80,
-    backgroundColor: '#0c161b',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.05)',
-    paddingBottom: 16,
-    paddingHorizontal: 16,
-  },
-  navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-  },
-  navTextActive: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#135BEC',
-  },
-  navText: {
-    fontSize: 10,
-    fontWeight: '500',
-    color: '#9db0b9',
-  },
-  homeIndicator: {
-    position: 'absolute',
-    bottom: 6,
-    left: '50%',
-    width: 128,
-    height: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 2,
-    transform: [{ translateX: -64 }],
-  },
-});
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      paddingBottom: 8,
+      backgroundColor: colors.surface,
+    },
+
+    backButton: {
+      width: 48,
+      height: 48,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.text,
+      flex: 1,
+      textAlign: 'center',
+      marginRight: 48,
+    },
+
+    mainContent: {
+      flex: 1,
+    },
+
+    scrollContent: {
+      paddingBottom: 20,
+    },
+
+    searchContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+
+    searchBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      height: 48,
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      overflow: 'hidden',
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    searchIconContainer: {
+      paddingLeft: 16,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+
+    searchInput: {
+      flex: 1,
+      height: '100%',
+      paddingHorizontal: 12,
+      paddingLeft: 8,
+      fontSize: 16,
+      color: colors.text,
+    },
+
+    section: {
+      marginTop: 16,
+    },
+
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.text,
+      paddingHorizontal: 16,
+      marginBottom: 16,
+    },
+
+    serviceCardContainer: {
+      paddingHorizontal: 16,
+      marginBottom: 16,
+    },
+
+    serviceCard: {
+      height: 128,
+      borderRadius: 12,
+      overflow: 'hidden',
+      position: 'relative',
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    serviceCardActive: {
+      borderWidth: 2,
+      borderColor: colors.primary,
+    },
+
+    serviceCardImage: {
+      width: '100%',
+      height: '100%',
+      position: 'absolute',
+    },
+
+    serviceCardOverlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: colors.background + 'B3',
+    },
+
+    expandButton: {
+      position: 'absolute',
+      top: 8,
+      right: 8,
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: colors.primary,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+
+    expandButtonInactive: {
+      backgroundColor: 'transparent',
+    },
+
+    serviceCardContent: {
+      position: 'absolute',
+      bottom: 16,
+      left: 16,
+    },
+
+    serviceCardTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.text,
+      marginBottom: 2,
+    },
+
+    serviceCardSubtitle: {
+      fontSize: 10,
+      fontWeight: '700',
+      color: colors.primary,
+      letterSpacing: 1.2,
+    },
+
+    serviceCardSubtitleInactive: {
+      fontSize: 10,
+      fontWeight: '500',
+      color: colors.subText,
+      letterSpacing: 1.2,
+    },
+
+    propertyOptions: {
+      marginTop: 8,
+      paddingLeft: 16,
+    },
+
+    propertyOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 8,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    propertyOptionSelected: {
+      borderWidth: 2,
+      borderColor: colors.primary,
+    },
+
+    propertyTitle: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.text,
+      marginBottom: 2,
+    },
+
+    propertyPrice: {
+      fontSize: 12,
+      color: colors.subText,
+    },
+
+    floatingButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: colors.surface,
+      borderRadius: 16,
+      padding: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    floatingButtonTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.text,
+    },
+
+    floatingButtonSubtitle: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.primary,
+    },
+
+    continueButton: {
+      backgroundColor: colors.primary,
+      paddingHorizontal: 24,
+      paddingVertical: 12,
+      borderRadius: 12,
+      minWidth: 120,
+      alignItems: 'center',
+    },
+
+    continueButtonText: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: '#fff',
+    },
+
+    bottomNav: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-around',
+      height: 80,
+      backgroundColor: colors.surface,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      paddingBottom: 16,
+      paddingHorizontal: 16,
+    },
+
+    navTextActive: {
+      fontSize: 10,
+      fontWeight: '700',
+      color: colors.primary,
+    },
+
+    propertyOptionLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+
+    propertyIconContainer: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: colors.surface,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 12,
+    },
+
+    propertyIconContainerActive: {
+      backgroundColor: colors.primary + '20',
+    },
+
+    checkbox: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      borderWidth: 2,
+      borderColor: colors.border,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+
+    checkboxSelected: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+
+    floatingButtonContainer: {
+      position: 'absolute',
+      bottom: 100,
+      left: 16,
+      right: 16,
+    },
+
+    navItem: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 4,
+    },
+
+    homeIndicator: {
+      position: 'absolute',
+      bottom: 8,
+      left: '50%',
+      width: 134,
+      height: 5,
+      borderRadius: 2.5,
+      backgroundColor: '#fff',
+      transform: [{ translateX: -67 }],
+    },
+  });
 export default HomeSub;

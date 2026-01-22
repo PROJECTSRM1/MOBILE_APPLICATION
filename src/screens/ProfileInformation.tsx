@@ -35,6 +35,7 @@ import { launchImageLibrary } from 'react-native-image-picker';
 
 // import { getLightMode, setLightMode } from "../utils/theme";
 import { useTheme } from "../context/ThemeContext";
+import { RootStackParamList } from "../../App";
 
 
 // const { lightMode, toggleTheme } = useTheme();
@@ -644,7 +645,7 @@ const handleResumeImageUpload = () => {
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.headerIcon}>
-          <Icon name="arrow-back" size={24} color="#fff" />
+          <Icon name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>Profile Settings</Text>
