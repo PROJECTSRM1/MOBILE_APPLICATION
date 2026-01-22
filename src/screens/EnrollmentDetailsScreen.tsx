@@ -57,6 +57,14 @@ const EnrollmentDetailsScreen = () => {
 
   /* ================= DOCUMENT UPLOAD ================= */
   const [documents, setDocuments] = useState<string[]>([]);
+const [errors, setErrors] = useState<{
+  fullName?: string;
+  email?: string;
+  university?: string;
+  qualification?: string;
+  graduationYear?: string;
+   documents?: string;
+}>({});
 
   const pickDocuments = () => {
     launchImageLibrary(
@@ -73,6 +81,47 @@ const EnrollmentDetailsScreen = () => {
   const removeDocument = (index: number) => {
     setDocuments(documents.filter((_, i) => i !== index));
   };
+const validateForm = () => {
+  const newErrors: typeof errors = {};
+
+  // Full Name: only letters and spaces
+  if (!fullName.trim()) {
+    newErrors.fullName = "Full name is required";
+  } else if (!/^[a-zA-Z\s]+$/.test(fullName.trim())) {
+    newErrors.fullName = "Full name can only contain letters";
+  }
+
+  // Email
+  if (!email.trim()) {
+    newErrors.email = "Email is required";
+  } else if (!/^\S+@\S+\.\S+$/.test(email)) {
+    newErrors.email = "Enter a valid email address";
+  }
+
+  // University
+  if (!university.trim()) {
+    newErrors.university = "University name is required";
+  }
+
+  // Qualification
+  if (!qualification.trim()) {
+    newErrors.qualification = "Qualification is required";
+  }
+
+  // Graduation Year: 4-digit number
+  if (!graduationYear.trim()) {
+    newErrors.graduationYear = "Graduation year is required";
+  } else if (!/^\d{4}$/.test(graduationYear)) {
+    newErrors.graduationYear = "Enter a valid year (e.g. 2024)";
+  }
+  if (documents.length === 0) {
+    newErrors.documents = "Please upload at least one document";
+  }
+  setErrors(newErrors);
+
+  // Returns true if no errors
+  return Object.keys(newErrors).length === 0;
+};
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -138,7 +187,13 @@ const EnrollmentDetailsScreen = () => {
             style={styles.input}
             value={fullName}
             onChangeText={setFullName}
+            
           />
+{errors.fullName && (
+  <Text style={{ color: "#ef4444", fontSize: 12, marginBottom: 8 }}>
+    {errors.fullName}
+  </Text>
+)}
 
           <Text style={styles.inputLabel}>Email Address</Text>
           <TextInput
@@ -148,6 +203,12 @@ const EnrollmentDetailsScreen = () => {
             value={email}
             onChangeText={setEmail}
           />
+          {errors.email && (
+  <Text style={{ color: "#ef4444", fontSize: 12, marginBottom: 8 }}>
+    {errors.email}
+  </Text>
+)}
+
         </View>
 
         {/* ================= ACADEMIC INFO ================= */}
@@ -162,6 +223,12 @@ const EnrollmentDetailsScreen = () => {
             value={university}
             onChangeText={setUniversity}
           />
+          {errors.university && (
+  <Text style={{ color: "#ef4444", fontSize: 12, marginBottom: 8 }}>
+    {errors.university}
+  </Text>
+)}
+
 
           <View style={styles.row}>
             <View style={styles.halfInput}>
@@ -173,6 +240,12 @@ const EnrollmentDetailsScreen = () => {
                 value={qualification}
                 onChangeText={setQualification}
               />
+              {errors.qualification && (
+  <Text style={{ color: "#ef4444", fontSize: 12, marginBottom: 8 }}>
+    {errors.qualification}
+  </Text>
+)}
+
             </View>
 
             <View style={styles.halfInput}>
@@ -185,6 +258,12 @@ const EnrollmentDetailsScreen = () => {
                 value={graduationYear}
                 onChangeText={setGraduationYear}
               />
+              {errors.graduationYear && (
+  <Text style={{ color: "#ef4444", fontSize: 12, marginBottom: 8 }}>
+    {errors.graduationYear}
+  </Text>
+)}
+
             </View>
           </View>
 
@@ -210,16 +289,25 @@ const EnrollmentDetailsScreen = () => {
               </View>
             ))}
           </ScrollView>
+          {errors.documents && (
+  <Text style={{ color: "#ef4444", fontSize: 12, marginTop: 4, marginBottom: 8 }}>
+    {errors.documents}
+  </Text>
+)}
+
         </View>
 
         {/* ================= CONFIRM ================= */}
         <TouchableOpacity
           style={styles.confirmBtn}
-          onPress={() =>
-            (navigation as any).navigate("TrainingDetails", {
-              course: courseData,
-            })
-          }
+        onPress={() => {
+  if (!validateForm()) return;
+
+  (navigation as any).navigate("TrainingDetails", {
+    course: courseData,
+  });
+}}
+
         >
           <Text style={styles.confirmText}>Confirm & Enroll</Text>
           <Icon name="arrow-forward" size={20} color="#fff" />

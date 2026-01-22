@@ -145,6 +145,7 @@ const trendingStudents = studentsData
   .filter((student) => student.academicScore > 80)
   .sort((a, b) => b.academicScore - a.academicScore); // sort descending
 
+
 const { width } = Dimensions.get("window");
 
 const EducationHome = () => {
@@ -152,6 +153,16 @@ const EducationHome = () => {
   const styles = getStyles(colors);
   const navigation = useNavigation<any>();
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [searchText, setSearchText] = useState("");
+const filteredTrendingStudents = trendingStudents.filter(
+  (student) =>
+    student.name.toLowerCase().includes(searchText.toLowerCase()) ||
+    student.program.toLowerCase().includes(searchText.toLowerCase()) ||
+    student.skills.some((skill) =>
+      skill.toLowerCase().includes(searchText.toLowerCase())
+    )
+);
+
 const [showAllTrending, setShowAllTrending] = useState(false); // NEW
 
   /* ===== LOAD USER FROM STORAGE ===== */
@@ -223,9 +234,12 @@ const [showAllTrending, setShowAllTrending] = useState(false); // NEW
               </Text>
             </View>
           </View>
-          <TouchableOpacity style={styles.bell}>
-            <Icon name="notifications" size={22} color={colors.text} />
-            <View style={styles.dot} />
+     <TouchableOpacity
+  style={styles.bell}
+  onPress={() => navigation.navigate("Notifications")}
+>
+  <Icon name="notifications-none" size={28} color={colors.text} />
+  {/* <View style={styles.dot} /> */}
           </TouchableOpacity>
         </View>
 
@@ -236,6 +250,8 @@ const [showAllTrending, setShowAllTrending] = useState(false); // NEW
             placeholder="Search for colleges, jobs..."
             placeholderTextColor="#9da6b9"
             style={styles.searchInput}
+             value={searchText}                    // ✅ ADD
+  onChangeText={setSearchText}  
           />
           <Icon name="mic" size={20} color="#1a5cff" />
         </View>
@@ -316,8 +332,17 @@ const [showAllTrending, setShowAllTrending] = useState(false); // NEW
 
 
 <View style={{ paddingHorizontal: 16 }}>
-  {(showAllTrending ? trendingStudents : trendingStudents.slice(0, 4)).map((student) => (
-  <View key={student.id} style={styles.trendingRowCard}>
+  {(showAllTrending ? filteredTrendingStudents : filteredTrendingStudents.slice(0, 4)).map((student) => (
+  <TouchableOpacity
+  key={student.id}
+  style={styles.trendingRowCard}
+  activeOpacity={0.8}
+  onPress={() =>
+    navigation.navigate("CandidateProfile", {
+      student: student,
+    })
+  }
+>
     <Image source={{ uri: student.avatar }} style={styles.trendingAvatar} />
     <View style={styles.trendingInfo}>
       <Text style={styles.trendingName}>{student.name}</Text>
@@ -331,7 +356,8 @@ const [showAllTrending, setShowAllTrending] = useState(false); // NEW
       </View>
       <Text style={styles.shift}>{student.shift}</Text>
     </View>
-  </View>
+ </TouchableOpacity>
+
 ))}
 
 </View>

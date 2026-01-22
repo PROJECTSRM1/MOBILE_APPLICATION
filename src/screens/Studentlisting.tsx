@@ -426,18 +426,23 @@ const renderStudent = ({ item }: { item: Student }) => (
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <View style={styles.header}>
-          <ChevronLeft size={24} color={colors.text} />
-          <Text style={styles.title}>Students</Text>
-          <TouchableOpacity
-            onPress={() => {
-              setIsSearchOpen(!isSearchOpen);
-              setTimeout(() => inputRef.current?.focus(), 100);
-            }}
-          >
-            <Search size={22} color={colors.text} />
-          </TouchableOpacity>
-        </View>
+       <View style={styles.header}>
+  <TouchableOpacity onPress={() => navigation.goBack()}>
+    <ChevronLeft size={24} color={colors.text} />
+  </TouchableOpacity>
+
+  <Text style={styles.title}>Students</Text>
+
+  <TouchableOpacity
+    onPress={() => {
+      setIsSearchOpen(!isSearchOpen);
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }}
+  >
+    <Search size={22} color={colors.text} />
+  </TouchableOpacity>
+</View>
+
 
         {isSearchOpen && (
           <View style={styles.searchBox}>

@@ -20,6 +20,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
 import { useNavigation } from "@react-navigation/native";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 
 /* =========================
    MAIN SCREEN
@@ -41,6 +42,7 @@ const ReviewApplication = () => {
   const [college, setCollege] = useState("Stanford University, 2024");
   const [email, setEmail] = useState("alex.johnson@edu-mail.com");
   const [phone, setPhone] = useState("+1 (555) 012-3456");
+const [isDeclared, setIsDeclared] = useState(false);
 
   /* 🔹 Edit All handler */
   const toggleEditAll = () => {
@@ -55,7 +57,10 @@ const ReviewApplication = () => {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* HEADER */}
         <View style={styles.header}>
-          <ChevronLeft size={22} color={colors.text} />
+         <TouchableOpacity onPress={() => navigation.goBack()}>
+  <ChevronLeft size={22} color={colors.text} />
+</TouchableOpacity>
+
           <Text style={styles.headerTitle}>Review Application</Text>
 
           <TouchableOpacity onPress={toggleEditAll}>
@@ -156,8 +161,21 @@ const ReviewApplication = () => {
         </Section>
 
         {/* DECLARATION */}
-        <View style={styles.declaration}>
-          <View style={styles.checkbox} />
+      <View style={styles.declaration}>
+ <TouchableOpacity
+  style={[
+    styles.checkbox,
+    isDeclared && { backgroundColor: colors.primary },
+  ]}
+  onPress={() => setIsDeclared(!isDeclared)}
+  activeOpacity={0.8}
+>
+  {isDeclared && (
+    <MaterialIcons name="check" size={16} color="#fff" />
+  )}
+</TouchableOpacity>
+
+
           <Text style={styles.declarationText}>
             I hereby certify that the information provided is accurate and true
             to the best of my knowledge.
@@ -167,7 +185,11 @@ const ReviewApplication = () => {
         {/* SUBMIT */}
         <TouchableOpacity
           style={styles.submitBtn}
-          onPress={() => navigation.navigate("ApplicationSuccess" as never)}
+        onPress={() => {
+  if (!isDeclared) return;
+  navigation.navigate("ApplicationSuccess" as never);
+}}
+
         >
           <Text style={styles.submitText}>Submit Application ➜</Text>
         </TouchableOpacity>
@@ -405,6 +427,8 @@ const getStyles = (colors: any) =>
       borderWidth: 2,
       borderColor: colors.primary,
       marginTop: 4,
+      alignItems: "center",
+      justifyContent: "center",
     },
 
     declarationText: {
