@@ -126,7 +126,7 @@ const ServiceDetailsScreen = () => {
 
   const needsConsultation = selectedServices.length > 1;
 
-  const handleProceed = () => {
+   const handleProceed = () => {
     if (selectedServices.length === 0) {
       Alert.alert("Selection Required", "Please select at least one service");
       return;
@@ -140,14 +140,16 @@ const ServiceDetailsScreen = () => {
       return;
     }
 
+    // Map services to include the category (e.g., "Plumbing") so Add-ons work
+    const mappedServices = selectedServices.map((s) => ({
+      id: s.id,
+      title: s.title,
+      category: service.title, 
+      selectedFloor: s.needsFloorInfo ? floorSelections[s.id] : undefined,
+    }));
+
     navigation.navigate("BookCleaning", {
-      selectedServices: selectedServices.map((s) => ({
-        ...service,
-        subService: s.title,
-        subServiceId: s.id,
-        selectedFloor: s.needsFloorInfo ? floorSelections[s.id] : undefined,
-      })),
-      propertyType,
+      selectedServices: mappedServices,
       consultationCharge: needsConsultation ? CONSULTATION_CHARGE : 0,
     });
   };
@@ -155,11 +157,9 @@ const ServiceDetailsScreen = () => {
   const renderServiceCard = (item: ServiceItem) => {
     const selected = isSelected(item.id);
     const currentFloor = floorSelections[item.id] || 1;
-    
-    console.log(`Rendering ${item.title}, selected: ${selected}, floor: ${currentFloor}`);
 
     return (
-      <View style={styles.cardWrapper} key={`${item.id}-${currentFloor}`}>
+      <View style={styles.cardWrapper} key={item.id}>
         <TouchableOpacity
           style={[styles.card, selected && styles.cardSelected]}
           onPress={() => toggleService(item)}
@@ -186,11 +186,7 @@ const ServiceDetailsScreen = () => {
           <View style={styles.floorCounter}>
             <TouchableOpacity
               style={styles.counterBtn}
-              onPress={() => {
-                const newFloor = Math.max(1, currentFloor - 1);
-                console.log('Decrement clicked:', item.id, 'from', currentFloor, 'to', newFloor);
-                updateFloorSelection(item.id, newFloor);
-              }}
+              onPress={() => updateFloorSelection(item.id, Math.max(1, currentFloor - 1))}
             >
               <Icon name="remove" size={18} color="#fff" />
             </TouchableOpacity>
@@ -199,11 +195,7 @@ const ServiceDetailsScreen = () => {
 
             <TouchableOpacity
               style={styles.counterBtn}
-              onPress={() => {
-                const newFloor = Math.min(maxFloors, currentFloor + 1);
-                console.log('Increment clicked:', item.id, 'from', currentFloor, 'to', newFloor);
-                updateFloorSelection(item.id, newFloor);
-              }}
+              onPress={() => updateFloorSelection(item.id, Math.min(maxFloors, currentFloor + 1))}
             >
               <Icon name="add" size={18} color="#fff" />
             </TouchableOpacity>

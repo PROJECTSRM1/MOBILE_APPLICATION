@@ -16,130 +16,187 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { Picker } from "@react-native-picker/picker";
 import Geolocation from "react-native-geolocation-service";
-import {  PERMISSIONS, RESULTS, request } from "react-native-permissions";
+import { PERMISSIONS, RESULTS, request } from "react-native-permissions";
 import { useRoute } from "@react-navigation/native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useNavigation } from "@react-navigation/native";
 import { launchCamera, launchImageLibrary, Asset } from "react-native-image-picker";
-
-import {useTheme} from "../context/ThemeContext";
-/* =======================
-   TYPES
-   ======================= */
-
-interface Service {
-  id: string;
-  title: string;
-  category: string;
-}
-
-interface Professional {
-  id: string;
-  name: string;
-  role: string;
-  rating: string;
-  distance: string;
-  image: any;
-  verified?: boolean;
-  mobileNumber: string;
-}
+import { useTheme } from "../context/ThemeContext";
 
 /* =======================
-   CONSTANTS
+   TYPES & CONSTANTS 
    ======================= */
+interface Service { 
+  id: string; 
+  title: string; 
+  category: string; 
+}
+
+interface Professional { 
+  id: string; 
+  name: string; 
+  role: string; 
+  rating: string; 
+  distance: string; 
+  image: any; 
+  verified?: boolean; 
+  mobileNumber: string; 
+}
+
 const ALL_SERVICES: Service[] = [
-  // Home Services
-  { id: "1", title: "Plumbing", category: "Home" },
-  { id: "2", title: "Painting", category: "Home" },
-  { id: "3", title: "Electrician", category: "Home" },
-
-  // Apartment Cleaning
-  { id: "4", title: "Floor Cleaning", category: "Apartment" },
-  { id: "5", title: "Kitchen Cleaning", category: "Apartment" },
-  { id: "6", title: "Washroom Cleaning", category: "Apartment" },
-
-  // Commercial Cleaning
-  { id: "7", title: "Office Cleaning", category: "Commercial" },
-  { id: "8", title: "Villa Cleaning", category: "Commercial" },
-  { id: "9", title: "Pool Cleaning", category: "Commercial" },
-
-  // Vehicle Cleaning
-  { id: "10", title: "Car Cleaning", category: "Vehicle" },
-  { id: "11", title: "Bike Cleaning", category: "Vehicle" },
+  { id: "1", title: "Kitchen Cleaning", category: "Home" },
+  { id: "2", title: "Washroom Cleaning", category: "Home" },
+  { id: "3", title: "Sofa Cleaning", category: "Home" },
+  { id: "4", title: "Bedroom Cleaning", category: "Home" },
+  { id: "5", title: "Window Cleaning", category: "Home" },
+  { id: "6", title: "Full Deep Cleaning", category: "Home" },
+  { id: "7", title: "Small Office Cleaning", category: "Commercial" },
+  { id: "8", title: "Medium Office Cleaning", category: "Commercial" },
+  { id: "9", title: "Large Corporate Office Cleaning", category: "Commercial" },
+  { id: "10", title: "Retail Shop/Showroom Cleaning", category: "Commercial" },
+  { id: "11", title: "Warehouse/Clinic Cleaning", category: "Commercial" },
+  { id: "12", title: "Car", category: "Vehicle" },
+  { id: "13", title: "Motor Bike", category: "Vehicle" },
+  { id: "14", title: "Heavy", category: "Vehicle" },
+  { id: "15", title: "Electric", category: "Vehicle" },
+  { id: "16", title: "Bicycle", category: "Vehicle" },
+  { id: "17", title: "Pipe Leakage", category: "Plumbing" },
+  { id: "18", title: "Tap Fixing", category: "Plumbing" },
+  { id: "19", title: "Bathroom Fitting", category: "Plumbing" },
+  { id: "20", title: "Water Tank Cleaning", category: "Plumbing" },
+  { id: "21", title: "Interior Painting", category: "Painting" },
+  { id: "22", title: "Exterior Painting", category: "Painting" },
+  { id: "23", title: "Wall Texture", category: "Painting" },
+  { id: "24", title: "Repainting", category: "Painting" },
+  { id: "25", title: "Wiring", category: "Electrician" },
+  { id: "26", title: "Fan Repair", category: "Electrician" },
+  { id: "27", title: "Light Installation", category: "Electrician" },
+  { id: "28", title: "Power Backup Setup", category: "Electrician" },
+  { id: "29", title: "AC Installation", category: "AC Repair" },
+  { id: "30", title: "AC Gas Refill", category: "AC Repair" },
+  { id: "31", title: "AC General Service", category: "AC Repair" },
+  { id: "32", title: "AC Uninstallation", category: "AC Repair" },
+  { id: "33", title: "Home Cooking", category: "Chef" },
+  { id: "34", title: "Party Catering", category: "Chef" },
+  { id: "35", title: "Weekly Meal Plan", category: "Chef" },
+  { id: "36", title: "Festival Cooking", category: "Chef" },
 ];
-
-const TIME_SLOTS = ["10:00 AM", "11:00 AM", "12:00 PM", "01:00 PM", "02:00 PM"];
 
 const BASE_PRICE = 80;
 const ADDON_PRICE = 25;
 
-/* =======================
-   SCREEN
-   ======================= */
+// FIXED: Enhanced category detection function
+const detectCategoryFromTitle = (serviceTitle: string): string | null => {
+  const cleanTitle = serviceTitle.toLowerCase().replace(/ service$/i, '').trim();
+  
+  // First, try exact match in ALL_SERVICES
+  const exactMatch = ALL_SERVICES.find(s => s.title.toLowerCase() === cleanTitle);
+  if (exactMatch) return exactMatch.category;
+  
+  // Enhanced keyword matching with priority order
+  const categoryKeywords: { [key: string]: string[] } = {
+    'Plumbing': ['plumb', 'pipe', 'tap', 'leak', 'bathroom fitting', 'water tank', 'drain', 'faucet'],
+    'Painting': ['paint', 'interior painting', 'exterior painting', 'texture', 'repaint', 'wall paint'],
+    'Electrician': ['wiring', 'fan repair', 'light install', 'power backup', 'electrical', 'switch', 'socket'],
+    'AC Repair': ['ac ', 'air condition', 'cooling', 'gas refill', 'hvac', 'ac install'],
+    'Chef': ['cook', 'chef', 'catering', 'meal plan', 'festival cooking', 'food', 'party catering'],
+    'Commercial': ['office', 'commercial', 'corporate', 'retail', 'shop', 'showroom', 'warehouse', 'clinic'],
+    'Home': ['kitchen', 'washroom', 'sofa', 'bedroom', 'window', 'deep cleaning', 'home'],
+    'Vehicle': ['car', 'bike', 'motor', 'truck', 'heavy', 'electric', 'ev', 'bicycle', 'cycle', 'vehicle', 'auto'],
+  };
+  
+  // Check categories in order
+  for (const [category, keywords] of Object.entries(categoryKeywords)) {
+    if (keywords.some(keyword => cleanTitle.includes(keyword))) {
+      return category;
+    }
+  }
+  
+  return null;
+};
 
 const BookCleaningScreen: React.FC = () => {
   const route = useRoute<any>();
   const consultationCharge = route.params?.consultationCharge || 0;
-
   const navigation = useNavigation<any>();
-  const {colors}=useTheme();
+  const { colors } = useTheme();
   const styles = getStyles(colors);
+
+  // States
   const [locationType, setLocationType] = useState<"default" | "other">("default");
   const [allocationType, setAllocationType] = useState<"auto" | "manual">("auto");
-  const [selectedTime, setSelectedTime] = useState("10:00 AM");
   const [floorArea, setFloorArea] = useState("");
   const [date, setDate] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [time, setTime] = useState("10:00 AM");
-
-const [extraHours, setExtraHours] = useState(0);
-
-const [reason, setReason] = useState("");
-const [reasonError, setReasonError] = useState(false);
+  const [extraHours, setExtraHours] = useState(0);
+  const [reason, setReason] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [contactNumber, setContactNumber] = useState("");
   const [locationDetails, setLocationDetails] = useState("");
   const [images, setImages] = useState<Asset[]>([]);
-
-  const [selectedServices, setSelectedServices] = useState<Service[]>(() => {
-    const incoming = route.params?.selectedServices || [];
-
-    // CASE 1: Already full objects (Home Services)
-    if (incoming.length && typeof incoming[0] === "object") {
-      return incoming;
-    }
-
-    // CASE 2: Titles only (Cleaning Services)
-    return incoming
-      .map((title: string) => ALL_SERVICES.find((s) => s.title === title))
-      .filter(Boolean) as Service[];
-  });
-
   const [showAddonPicker, setShowAddonPicker] = useState(false);
   const [selectedAddon, setSelectedAddon] = useState<string | null>(null);
   const [currentAddress, setCurrentAddress] = useState("");
   const [loadingLocation, setLoadingLocation] = useState(false);
-
-  // Employee Allocation States
   const [allocatedEmployee, setAllocatedEmployee] = useState<Professional | null>(null);
   const [showEmployeeModal, setShowEmployeeModal] = useState(false);
 
+  // FIXED: Initial Data Logic - Handle both direct service selection and allocated employee services
+// --- UPDATED INITIAL DATA LOGIC ---
+  const incomingSelectedService = route.params?.selectedService; // From Commercial/Vehicle
+  const incomingServiceArray = route.params?.selectedServices;  // From ServiceDetails (Plumbing/Painting/etc)
+
+  const [selectedServices, setSelectedServices] = useState<Service[]>(() => {
+    // 1. If we got an array of services (from ServiceDetailsScreen)
+    if (incomingServiceArray && incomingServiceArray.length > 0) {
+      return incomingServiceArray.map((s: any) => ({
+        id: s.subServiceId || s.id,
+        title: s.subService || s.title,
+        category: detectCategoryFromTitle(s.subService || s.title) || s.category
+      }));
+    }
+
+    // 2. If we got a single service title (from Commercial/Home/Vehicle)
+    if (incomingSelectedService) {
+      const match = ALL_SERVICES.find(s => 
+        s.title.toLowerCase().includes(incomingSelectedService.toLowerCase()) ||
+        incomingSelectedService.toLowerCase().includes(s.title.toLowerCase())
+      );
+      
+      if (match) return [match];
+
+      // Fallback virtual service
+      const cat = detectCategoryFromTitle(incomingSelectedService);
+      return [{
+        id: 'virtual-' + Date.now(),
+        title: incomingSelectedService,
+        category: cat || 'Home'
+      }];
+    }
+    return [];
+  });
+
+  // LOGIC
   const mainService = selectedServices[0];
   const addonServices = selectedServices.slice(1);
-  const remainingServices = ALL_SERVICES.filter(
-    (service) => !selectedServices.some((s) => s.id === service.id)
-  );
 
- const servicePrice =
-  (mainService ? BASE_PRICE : 0) +
-  addonServices.length * ADDON_PRICE;
+  // FIXED: Enhanced filter for remaining services - works for ALL categories
+  const remainingServices = mainService 
+    ? ALL_SERVICES.filter(
+        (service) => 
+          service.category === mainService.category && 
+          !selectedServices.some((s) => s.id === service.id)
+      )
+    : [];
 
-const totalPrice = servicePrice + consultationCharge;
+  const showFloorField = mainService?.category === "Home" || mainService?.category === "Commercial";
+  const showAllocationUI = mainService?.category !== "Vehicle" && !mainService?.title?.toLowerCase().includes("chef");
 
+  const servicePrice = (mainService ? BASE_PRICE : 0) + addonServices.length * ADDON_PRICE;
+  const totalPrice = servicePrice + consultationCharge;
 
-  // Check if employee was allocated from EmployeeAllocation screen
   useEffect(() => {
     if (route.params?.allocatedEmployee) {
       setAllocatedEmployee(route.params.allocatedEmployee);
@@ -147,222 +204,96 @@ const totalPrice = servicePrice + consultationCharge;
     }
   }, [route.params?.allocatedEmployee]);
 
-  // Auto-fetch location on mount when default is selected
   useEffect(() => {
-    if (locationType === "default") {
-      getCurrentLocation();
-    }
+    if (locationType === "default") getCurrentLocation();
   }, []);
 
   const requestLocationPermission = async () => {
     try {
       if (Platform.OS === "android") {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-          {
-            title: "Location Permission",
-            message: "This app needs access to your location to show your current address",
-            buttonPositive: "OK",
-            buttonNegative: "Cancel",
-          }
-        );
+        const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
         return granted === PermissionsAndroid.RESULTS.GRANTED;
       } else {
-        // iOS
         const result = await request(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE);
         return result === RESULTS.GRANTED;
       }
-    } catch (err) {
-      console.warn(err);
-      return false;
+    } catch (err) { 
+      return false; 
     }
   };
 
   const getCurrentLocation = async () => {
     const hasPermission = await requestLocationPermission();
-    
-    if (!hasPermission) {
-      Alert.alert(
-        "Permission Denied",
-        "Location permission is required to detect your current location"
-      );
-      return;
-    }
-
+    if (!hasPermission) return;
     setLoadingLocation(true);
-    setCurrentAddress("Detecting location...");
-
     Geolocation.getCurrentPosition(
       async (position) => {
-        const { latitude, longitude } = position.coords;
-
         try {
-const response = await fetch(
-  `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
-  {
-    headers: {
-      "User-Agent": "BookCleaningApp/1.0",
-      "Accept": "application/json",
-    },
-  }
-);
-
-
+          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18&addressdetails=1`);
           const data = await response.json();
-          const address = data.display_name || "Address not found";
-          setCurrentAddress(address);
-          console.log("Address fetched:", address);
-        } 
-        catch (e) {
-  console.error("Geocoding error:", e);
-  Alert.alert("Network Error", "Unable to reach geocoding server");
-  setCurrentAddress("Unable to fetch address. Please try again.");
-}
-finally {
-          setLoadingLocation(false);
+          setCurrentAddress(data.display_name || "Address not found");
+        } catch (e) { 
+          setCurrentAddress("Address fetch error"); 
+        } finally { 
+          setLoadingLocation(false); 
         }
       },
-      (error) => {
-        console.error("Geolocation error:", error);
-        setLoadingLocation(false);
-        setCurrentAddress(`Error: ${error.message || "Unable to get location"}`);
-        
-        Alert.alert(
-          "Location Error",
-          "Unable to get your current location. Please check your GPS settings."
-        );
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 10000,
-        forceRequestLocation: true,
-        showLocationDialog: true,
-      }
+      () => setLoadingLocation(false),
+      { enableHighAccuracy: true, timeout: 15000 }
     );
   };
 
   const addService = (serviceId: string) => {
     const serviceToAdd = remainingServices.find((s) => s.id === serviceId);
-    if (!serviceToAdd) return;
-
-    setSelectedServices((prev) => [...prev, serviceToAdd]);
-  };
-
-  const removeService = (id: string) => {
-    setSelectedServices((prev) => prev.filter((s) => s.id !== id));
-  };
-
-  const onDateChange = (_event: any, pickedDate?: Date) => {
-    setShowDatePicker(false);
-
-    if (pickedDate) {
-      setSelectedDate(pickedDate);
-
-      const formattedDate = pickedDate.toLocaleDateString("en-GB"); // DD/MM/YYYY
-      setDate(formattedDate);
+    if (serviceToAdd) {
+      setSelectedServices((prev) => [...prev, serviceToAdd]);
+      setSelectedAddon(null);
+      setShowAddonPicker(false);
     }
   };
 
-  const onTimeChange = (_event: any, selectedTimeValue?: Date) => {
-  setShowTimePicker(false);
-
-  if (selectedTimeValue) {
-    const formattedTime = selectedTimeValue.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-    setTime(formattedTime);
-  }
-};
-
+  const removeService = (id: string) => setSelectedServices((prev) => prev.filter((s) => s.id !== id));
 
   const handleAllocationTypeChange = (value: "auto" | "manual") => {
     setAllocationType(value);
-
-    if (value === "manual") {
-      // 👉 Manual → open selection screen
-      navigation.navigate("EmployeeAllocation", {
-        isAutoAllocation: false,
-      });
-    } else {
-      // 👉 Auto → open allocation screen with loader
-      setAllocatedEmployee(null);
-
-      navigation.navigate("EmployeeAllocation", {
-        isAutoAllocation: true,
-      });
-    }
+    navigation.navigate("EmployeeAllocation", { isAutoAllocation: value === "auto" });
   };
 
   const handleTakePhoto = async () => {
-  const result = await launchCamera({
-    mediaType: "photo",
-    quality: 0.7,
-    saveToPhotos: true,
-  });
+    const result = await launchCamera({ mediaType: "photo", quality: 0.7 });
+    if (!result.didCancel && result.assets) setImages((prev) => [...prev, ...result.assets!]);
+  };
 
-  if (!result.didCancel && result.assets) {
-    setImages((prev) => [...prev, ...result.assets!]);
-  }
-};
-
-const handlePickFromGallery = async () => {
-  const result = await launchImageLibrary({
-    mediaType: "photo",
-    selectionLimit: 0, // multiple
-    quality: 0.7,
-  });
-
-  if (!result.didCancel && result.assets) {
-    setImages((prev) => [...prev, ...result.assets!]);
-  }
-};
-
-const removeImage = (index: number) => {
-  setImages((prev) => prev.filter((_, i) => i !== index));
-};
-
+  const handlePickFromGallery = async () => {
+    const result = await launchImageLibrary({ mediaType: "photo", selectionLimit: 0, quality: 0.7 });
+    if (!result.didCancel && result.assets) setImages((prev) => [...prev, ...result.assets!]);
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
-      {/* HEADER */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.goBack()}>
             <MaterialIcons name="chevron-left" size={32} color={colors.text} />
-
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Book Cleaning</Text>
+          <Text style={styles.headerTitle}>Book Service</Text>
         </View>
-
         <TouchableOpacity style={styles.iconBtn}>
           <MaterialIcons name="more-horiz" size={24} color="#9CA3AF" />
         </TouchableOpacity>
       </View>
 
-      {/* CONTENT */}
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
-      >
-        {/* JOB DETAILS */}
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         <Text style={styles.sectionTitle}>Job Details</Text>
 
-        {/* LOCATION */}
         <Text style={styles.label}>Location</Text>
         <View style={styles.dropdownBox}>
           <Picker
             selectedValue={locationType}
             onValueChange={(value) => {
               setLocationType(value);
-
-              if (value === "default") {
-                getCurrentLocation(); // 📍 TRIGGER LOCATION
-              } else {
-                // Clear location when switching to "other"
-                setCurrentAddress("");
-              }
+              if (value === "default") getCurrentLocation();
+              else setCurrentAddress("");
             }}
             dropdownIconColor="#9CA3AF"
             style={styles.picker}
@@ -373,1207 +304,295 @@ const removeImage = (index: number) => {
         </View>
 
         {locationType === "default" && (
-          <View style={{ marginBottom: 16 }}>
-            <Text style={styles.label}>Detected Location</Text>
-
-            <View style={styles.detectedLocationBox}>
-              {loadingLocation ? (
-                <View style={styles.locationRow}>
-                  <MaterialIcons name="location-searching" size={20} color="#135BEC" />
-                  <Text style={styles.detectedLocationText}>Detecting your location...</Text>
-                </View>
-              ) : currentAddress ? (
-                <View style={styles.locationRow}>
-                  <MaterialIcons name="location-on" size={20} color="#135BEC" />
-                  <Text style={styles.detectedLocationText}>{currentAddress}</Text>
-                </View>
-              ) : (
-                <TouchableOpacity onPress={getCurrentLocation} style={styles.locationRow}>
-                  <MaterialIcons name="my-location" size={20} color="#9CA3AF" />
-                  <Text style={styles.detectedLocationPlaceholder}>Tap to detect location</Text>
-                </TouchableOpacity>
-              )}
+          <View style={styles.detectedLocationBox}>
+            <View style={styles.locationRow}>
+              <MaterialIcons name={loadingLocation ? "location-searching" : "location-on"} size={20} color="#135BEC" />
+              <Text style={styles.detectedLocationText}>{loadingLocation ? "Detecting..." : currentAddress || "Tap to detect"}</Text>
             </View>
           </View>
         )}
 
-        {/* OTHER LOCATION FIELDS */}
         {locationType === "other" && (
-          <View style={styles.otherLocationFields}>
-            <Text style={styles.label}>Customer Full Name</Text>
-            <TextInput
-              placeholder="Enter name"
-              placeholderTextColor="#9CA3AF"
-              style={styles.input}
-              value={customerName}
-              onChangeText={setCustomerName}
-            />
-
-            <Text style={styles.label}>Contact Number</Text>
-            <TextInput
-              placeholder="+1 (555) 000-0000"
-              placeholderTextColor="#9CA3AF"
-              style={styles.input}
-              keyboardType="phone-pad"
-              value={contactNumber}
-              onChangeText={setContactNumber}
-            />
-
-            <Text style={styles.label}>Location Details</Text>
-            <TextInput
-              placeholder="Street address, building, floor/apartment number..."
-              placeholderTextColor="#9CA3AF"
-              style={[styles.input, styles.textArea]}
-              multiline
-              value={locationDetails}
-              onChangeText={setLocationDetails}
-            />
+          <View>
+            <TextInput placeholder="Customer Name" placeholderTextColor="#9CA3AF" style={styles.input} value={customerName} onChangeText={setCustomerName} />
+            <TextInput placeholder="Contact Number" keyboardType="phone-pad" placeholderTextColor="#9CA3AF" style={styles.input} value={contactNumber} onChangeText={setContactNumber} />
+            <TextInput placeholder="Location Details" multiline style={[styles.input, styles.textArea]} value={locationDetails} onChangeText={setLocationDetails} />
           </View>
         )}
 
-        {/* ALLOCATION TYPE */}
-        {/* <Text style={styles.label}>Allocation Type</Text>
-         */}
-         <Text style={styles.label}>
-  {allocationType === "auto"
-    ? "Allocation Type (Auto)"
-    : "Allocation Type (Manual)"}
-</Text>
+        {showAllocationUI && (
+          <>
+            <Text style={styles.label}>Allocation Type ({allocationType === "auto" ? "Auto" : "Manual"})</Text>
+            <View style={styles.dropdownBox}>
+              <Picker
+                selectedValue={allocationType}
+                onValueChange={handleAllocationTypeChange}
+                dropdownIconColor="#9CA3AF"
+                style={styles.picker}
+              >
+                <Picker.Item label="Auto-Allocation" value="auto" />
+                <Picker.Item label="Manual Allocation" value="manual" />
+              </Picker>
+            </View>
+          </>
+        )}
 
-        <View style={styles.dropdownBox}>
-          <Picker
-            selectedValue={allocationType}
-            onValueChange={(value)=>handleAllocationTypeChange(value)}
-            dropdownIconColor="#9CA3AF"
-            style={styles.picker}
-          >
-            <Picker.Item label="Auto-Allocation (Recommended)" value="auto" />
-            <Picker.Item label="Manual Allocation" value="manual" />
-          </Picker>
-        </View>
-
-        {/* ALLOCATED EMPLOYEE CARD */}
-        {allocatedEmployee && (
+        {showAllocationUI && allocatedEmployee && (
           <View style={styles.allocatedCard}>
             <View style={styles.allocatedHeader}>
               <Text style={styles.allocatedTitle}>Allocated Professional</Text>
-              <TouchableOpacity onPress={() => setAllocatedEmployee(null)}>
-                <MaterialIcons name="close" size={20} color="#9CA3AF" />
-              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setAllocatedEmployee(null)}><MaterialIcons name="close" size={20} color="#9CA3AF" /></TouchableOpacity>
             </View>
-
             <View style={styles.allocatedContent}>
-              <View style={styles.allocatedLeft}>
-                <View>
-                  <Image
-  source={
-    typeof allocatedEmployee?.image === "number"
-      ? allocatedEmployee.image              // local require()
-      : allocatedEmployee?.image
-      ? { uri: allocatedEmployee.image }     // URL
-      : undefined
-  }
-  style={styles.allocatedAvatar}
-/>
-
-                  {allocatedEmployee.verified && (
-                    <View style={styles.verifiedBadge}>
-                      <MaterialIcons name="verified" size={14} color="#facc15" />
-                    </View>
-                  )}
-                </View>
-
-                <View>
-                  <Text style={styles.allocatedName}>{allocatedEmployee.name}</Text>
-                  <Text style={styles.allocatedRole}>{allocatedEmployee.role}</Text>
-
-                  <View style={styles.allocatedMeta}>
-                    <MaterialIcons name="star" size={14} color="#facc15" />
-                    <Text style={styles.metaText}>{allocatedEmployee.rating}</Text>
-                  </View>
-                </View>
+              <Image source={typeof allocatedEmployee.image === "number" ? allocatedEmployee.image : { uri: allocatedEmployee.image }} style={styles.allocatedAvatar} />
+              <View>
+                <Text style={styles.allocatedName}>{allocatedEmployee.name}</Text>
+                <Text style={styles.allocatedRole}>{allocatedEmployee.role} • ⭐ {allocatedEmployee.rating}</Text>
               </View>
             </View>
           </View>
         )}
 
-        {/* Floor Area */}
+        {showFloorField && (
           <View style={styles.section}>
             <Text style={styles.label}>FLOOR AREA (SQFT)</Text>
             <View style={styles.floorInput}>
-              <TextInput
-                style={styles.floorField}
-                placeholder="1400"
-                placeholderTextColor="#a0a0a0"
-                keyboardType="numeric"
-                value={floorArea}
-                onChangeText={setFloorArea}
-              />
+              <TextInput style={styles.floorField} placeholder="1400" keyboardType="numeric" value={floorArea} onChangeText={setFloorArea} />
               <Text style={styles.sqftLabel}>SQFT</Text>
             </View>
           </View>
+        )}
 
-{/* Date and Time */}
-<View style={styles.dateTimeRow}>
-  {/* DATE */}
-  <View style={styles.dateSection}>
-    <Text style={styles.label}>DATE</Text>
-    <TouchableOpacity
-      style={styles.dateInput}
-      onPress={() => setShowDatePicker(true)}
-      activeOpacity={0.8}
-    >
-      <MaterialIcons name="calendar-today" size={20} color="#9CA3AF" />
-      <Text style={styles.dateText}>
-        {date || "Select Date"}
-      </Text>
-    </TouchableOpacity>
-  </View>
-
-  {/* TIME */}
-  <View style={styles.timeSection}>
-    <Text style={styles.label}>START TIME</Text>
-    <TouchableOpacity
-      style={styles.timeInput}
-      onPress={() => setShowTimePicker(true)}
-      activeOpacity={0.8}
-    >
-      <MaterialIcons name="access-time" size={20} color="#9CA3AF" />
-      <Text style={styles.timeText}>
-        {time || "Select Time"}
-      </Text>
-    </TouchableOpacity>
-  </View>
-</View>
-
-          {/* DATE PICKER */}
-{showDatePicker && (
-  <DateTimePicker
-    value={selectedDate || new Date()}
-    mode="date"
-    display={Platform.OS === "ios" ? "spinner" : "default"}
-    minimumDate={new Date()}
-    onChange={onDateChange}
-  />
-)}
-
-{/* TIME PICKER */}
-{showTimePicker && (
-  <DateTimePicker
-    value={new Date()}
-    mode="time"
-    display={Platform.OS === "ios" ? "spinner" : "default"}
-    onChange={onTimeChange}
-  />
-)}
-
-
-    {/* Extra Hours Card */}
-<View style={styles.extraHoursCard}>
-  <View style={styles.extraHoursHeader}>
-    <View>
-      <Text style={styles.extraHoursTitle}>Extra Hours</Text>
-      <Text style={styles.extraHoursSubtitle}>Deep cleaning requirement</Text>
-    </View>
-
-    <View style={styles.counterContainer}>
-      <TouchableOpacity
-        style={styles.counterButton}
-        onPress={() => setExtraHours(Math.max(0, extraHours - 1))}
-      >
-        <Text style={styles.counterIcon}>−</Text>
-      </TouchableOpacity>
-
-      <Text style={styles.counterText}>+{extraHours} hr</Text>
-
-      <TouchableOpacity
-        style={styles.counterButtonPlus}
-        onPress={() => setExtraHours(extraHours + 1)}
-      >
-        <Text style={styles.counterIcon}>+</Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-
-  {/* IMPORTANT REASON SECTION */}
-  {extraHours > 0 && (
-    <View style={styles.reasonSection}>
-      <View style={styles.reasonHeader}>
-        <MaterialIcons name="warning" size={16} color="#F59E0B" />
-        <Text style={styles.reasonLabel}>
-          Reason for Add-on Work <Text style={styles.required}>*</Text>
-        </Text>
-      </View>
-
-      <TextInput
-        style={[
-          styles.textarea,
-          styles.importantTextarea,
-          reasonError && styles.textareaError,
-        ]}
-        placeholder="Explain why additional hours are required"
-        placeholderTextColor="#9CA3AF"
-        multiline
-        numberOfLines={4}
-        value={reason}
-        onChangeText={(text) => {
-          setReason(text);
-          setReasonError(false);
-        }}
-      />
-
-      {reasonError && (
-        <View style={styles.errorMessage}>
-          <MaterialIcons name="error-outline" size={18} color="#EF4444" />
-          <Text style={styles.errorText}>
-            This field is required when extra hours are added
-          </Text>
+        <View style={styles.dateTimeRow}>
+          <TouchableOpacity style={[styles.dateInput, { flex: 1 }]} onPress={() => setShowDatePicker(true)}>
+            <MaterialIcons name="calendar-today" size={20} color="#9CA3AF" />
+            <Text style={styles.dateText}>{date || "Select Date"}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.timeInput, { flex: 1 }]} onPress={() => setShowTimePicker(true)}>
+            <MaterialIcons name="access-time" size={20} color="#9CA3AF" />
+            <Text style={styles.timeText}>{time || "Select Time"}</Text>
+          </TouchableOpacity>
         </View>
-      )}
-    </View>
-  )}
-</View>
 
- {/* Upload Photos */}
-<View style={styles.section}>
-  <Text style={styles.label}>UPLOAD PHOTOS OF AREA</Text>
+        {showDatePicker && <DateTimePicker value={new Date()} mode="date" minimumDate={new Date()} onChange={(e, d) => { setShowDatePicker(false); if (d) setDate(d.toLocaleDateString('en-GB')); }} />}
+        {showTimePicker && <DateTimePicker value={new Date()} mode="time" onChange={(e, t) => { setShowTimePicker(false); if (t) setTime(t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })); }} />}
 
-  <View style={styles.photoContainer}>
-    {/* TAKE PHOTO */}
-    <TouchableOpacity
-      style={styles.photoBoxDashed}
-      onPress={handleTakePhoto}
-      activeOpacity={0.8}
-    >
-      <MaterialIcons name="photo-camera" size={28} color="#135BEC" />
-      <Text style={styles.photoText}>Take Photo</Text>
-    </TouchableOpacity>
+        <View style={styles.extraHoursCard}>
+          <View style={styles.extraHoursHeader}>
+            <Text style={styles.extraHoursTitle}>Extra Hours</Text>
+            <View style={styles.counterContainer}>
+              <TouchableOpacity onPress={() => setExtraHours(Math.max(0, extraHours - 1))}>
+                <Text style={styles.counterIcon}>-</Text>
+              </TouchableOpacity>
+              <Text style={styles.counterText}>+{extraHours} hr</Text>
+              <TouchableOpacity onPress={() => setExtraHours(extraHours + 1)}>
+                <Text style={styles.counterIcon}>+</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          {extraHours > 0 && <TextInput placeholder="Reason for extra hours..." multiline style={styles.textarea} value={reason} onChangeText={setReason} />}
+        </View>
 
-    {/* GALLERY */}
-    <TouchableOpacity
-      style={styles.photoBoxDashed}
-      onPress={handlePickFromGallery}
-      activeOpacity={0.8}
-    >
-      <MaterialIcons name="photo-library" size={28} color="#135BEC" />
-      <Text style={styles.photoText}>Gallery</Text>
-    </TouchableOpacity>
+        <View style={styles.section}>
+          <Text style={styles.label}>UPLOAD PHOTOS</Text>
+          <View style={styles.photoContainer}>
+            <TouchableOpacity style={styles.photoBoxDashed} onPress={handleTakePhoto}><MaterialIcons name="photo-camera" size={28} color="#135BEC" /></TouchableOpacity>
+            <TouchableOpacity style={styles.photoBoxDashed} onPress={handlePickFromGallery}><MaterialIcons name="photo-library" size={28} color="#135BEC" /></TouchableOpacity>
+            {images.map((img, i) => (
+              <View key={i} style={styles.photoPreview}>
+                <Image source={{ uri: img.uri }} style={styles.photoImage} />
+                <TouchableOpacity style={styles.removePhoto} onPress={() => setImages(images.filter((_, idx) => idx !== i))}>
+                  <MaterialIcons name="close" size={14} color="#fff" />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        </View>
 
-    {/* IMAGE PREVIEWS */}
-    {images.map((img, index) => (
-      <View key={index} style={styles.photoPreview}>
-        <Image source={{ uri: img.uri }} style={styles.photoImage} />
-
-        <TouchableOpacity
-          style={styles.removePhoto}
-          onPress={() => removeImage(index)}
-        >
-          <MaterialIcons name="close" size={14} color="#fff" />
-        </TouchableOpacity>
-      </View>
-    ))}
-  </View>
-</View>
-
-
-        {/* DIVIDER */}
         <View style={styles.thinDivider} />
 
-        {/* ADDONS */}
+        {/* FIXED: Add-on Services - Now enabled for ALL categories */}
         <View style={styles.addonHeader}>
-          <Text style={styles.sectionTitle}>Addons</Text>
-          <TouchableOpacity
-            style={styles.addBtn}
+          <Text style={styles.sectionTitle}>Add-on Services</Text>
+          <TouchableOpacity 
+            style={[styles.addBtn, remainingServices.length === 0 && styles.addBtnDisabled]} 
             onPress={() => setShowAddonPicker(true)}
             disabled={remainingServices.length === 0}
           >
-            <MaterialIcons name="add" size={18} color="#2563EB" />
+            <MaterialIcons name="add" size={18} color="#fff" />
             <Text style={styles.addBtnText}>Add New</Text>
           </TouchableOpacity>
         </View>
+
+        {/* DEBUG INFO - Shows category and available services */}
+        {mainService && (
+          <Text style={styles.categoryInfo}>
+            Category: {mainService.category} • {remainingServices.length} services available
+          </Text>
+        )}
+
+        {remainingServices.length === 0 && selectedServices.length > 0 && (
+          <Text style={styles.noAddonsText}>All services in this category are selected</Text>
+        )}
 
         {showAddonPicker && remainingServices.length > 0 && (
           <View style={styles.dropdownBox}>
             <Picker
               selectedValue={selectedAddon}
-              onValueChange={(value) => {
-                if (value) {
-                  addService(value);
-                  setSelectedAddon(null);
-                  setShowAddonPicker(false);
-                }
+              onValueChange={(v) => { 
+                if (v && v !== 'placeholder') { 
+                  addService(v); 
+                } 
               }}
-              dropdownIconColor="#9CA3AF"
               style={styles.picker}
             >
-              <Picker.Item label="Select a service" value={null} />
-              {remainingServices.map((service) => (
-                <Picker.Item key={service.id} label={service.title} value={service.id} />
-              ))}
+              <Picker.Item label="Select Add-on" value="placeholder" />
+              {remainingServices.map(s => <Picker.Item key={s.id} label={s.title} value={s.id} />)}
             </Picker>
           </View>
         )}
 
-        {mainService && (
-          <>
-            <Text style={styles.addonTitle}>MAIN SERVICE</Text>
-
-            <View style={styles.addonCard}>
-              <View style={styles.addonAccent} />
-              <View style={styles.addonContent}>
-                <Text style={styles.addonSelectText}>{mainService.title}</Text>
+        {selectedServices.map((s, i) => (
+          <View key={s.id} style={styles.addonCard}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.addonSelectText}>
+                  {i === 0 ? "MAIN: " : "ADD-ON: "}{s.title}
+                </Text>
+                <Text style={styles.addonCategoryText}>{s.category}</Text>
               </View>
-            </View>
-          </>
-        )}
-        {addonServices.length > 0 && (
-          <>
-            <Text style={styles.sectionTitle}>Add-on Services</Text>
-
-            {addonServices.map((addon, index) => (
-              <View key={addon.id} style={styles.addonCard}>
-                <View style={styles.addonAccent} />
-                <View style={styles.addonContent}>
-                  <View style={styles.addonCardHeader}>
-                    <Text style={styles.addonTitle}>ADD-ON SERVICE #{index + 1}</Text>
-
-                    <TouchableOpacity onPress={() => removeService(addon.id)}>
-                      <MaterialIcons name="delete" size={22} color="#9CA3AF" />
-                    </TouchableOpacity>
-                  </View>
-
-                  <Text style={styles.addonSelectText}>{addon.title}</Text>
-                </View>
-              </View>
-            ))}
-          </>
-        )}
-
-        {/* COST SUMMARY */}
-{/* COST SUMMARY */}
-<View style={styles.summary}>
-  <SummaryRow
-    label={`Add-ons (${addonServices.length})`}
-    value={`$${(addonServices.length * ADDON_PRICE).toFixed(2)}`}
-    styles={styles}
-  />
-
-  {/* 👇 ADD THIS BLOCK */}
-  {consultationCharge > 0 && (
-    <SummaryRow
-      label="Consultation Charge"
-      value={`$${consultationCharge.toFixed(2)}`}
-      styles={styles}
-    />
-  )}
-
-  <View style={styles.summaryDivider} />
-
-  <View style={styles.summaryTotal}>
-    <Text style={styles.summaryTotalLabel}>Estimated Cost</Text>
-    <Text style={styles.summaryTotalValue}>
-      ${totalPrice.toFixed(2)}
-    </Text>
-  </View>
-</View>
-
-
-        {/* BOTTOM SPACING */}
-        <View style={{ height: 140 }} />
-      </ScrollView>
-
-      {/* BOTTOM CTA */}
-      <View style={styles.bottomBar}>
-        <TouchableOpacity
-          style={styles.ctaBtn}
-          activeOpacity={0.8}
-          onPress={() =>
-        navigation.navigate("PaymentScreen", {
-          allocatedEmployee,
-          consultationCharge,
-          totalAmount: totalPrice,
-          bookingDetails: {
-            serviceName: selectedServices[0]?.title,
-            date,
-            time,
-            address: currentAddress,
-          },
-        })
-      }>
-          <MaterialIcons name="shopping-bag" size={22} color="#fff" />
-          <Text style={styles.ctaText}>Add to Cart and Checkout</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* EMPLOYEE ALLOCATED MODAL */}
-      <Modal
-        visible={showEmployeeModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowEmployeeModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <View style={styles.modalAvatarContainer}>
-            <Image
-  source={
-    typeof allocatedEmployee?.image === "number"
-      ? allocatedEmployee.image
-      : { uri: allocatedEmployee?.image }
-  }
-  style={styles.modalAvatar}
-/>
-
-              {allocatedEmployee?.verified && (
-                <View style={styles.modalVerifiedBadge}>
-                  <MaterialIcons name="verified" size={18} color="#facc15" />
-                </View>
+              {i > 0 && (
+                <TouchableOpacity onPress={() => removeService(s.id)}>
+                  <MaterialIcons name="delete" size={20} color="#EF4444" />
+                </TouchableOpacity>
               )}
             </View>
+          </View>
+        ))}
 
-            <Text style={styles.modalName}>{allocatedEmployee?.name}</Text>
-            <Text style={styles.modalSubtitle}>Professional Selected</Text>
-
-            <View style={styles.modalInfoGrid}>
-              <View style={styles.modalInfoRow}>
-                <Text style={styles.modalInfoLabel}>Ratings</Text>
-                <View style={styles.modalRatingRow}>
-                  <MaterialIcons name="star" size={18} color="#facc15" />
-                  <Text style={styles.modalInfoValue}>{allocatedEmployee?.rating}</Text>
-                </View>
-              </View>
-
-              <View style={styles.modalInfoRow}>
-                <Text style={styles.modalInfoLabel}>Service</Text>
-                <Text style={styles.modalInfoValue}>{allocatedEmployee?.role}</Text>
-              </View>
-
-              <View style={styles.modalInfoRow}>
-                <Text style={styles.modalInfoLabel}>Mobile Number</Text>
-                <Text style={styles.modalInfoValue}>{allocatedEmployee?.mobileNumber}</Text>
-              </View>
-            </View>
-
-            <TouchableOpacity
-              style={styles.modalButton}
-              onPress={() => setShowEmployeeModal(false)}
-            >
-              <Text style={styles.modalButtonText}>OK</Text>
-            </TouchableOpacity>
+        <View style={styles.summary}>
+          <SummaryRow label="Services" value={`$${servicePrice}`} styles={styles} />
+          {consultationCharge > 0 && <SummaryRow label="Consultation" value={`$${consultationCharge}`} styles={styles} />}
+          <View style={styles.summaryDivider} />
+          <View style={styles.summaryTotal}>
+            <Text style={styles.summaryTotalLabel}>Total</Text>
+            <Text style={styles.summaryTotalValue}>${totalPrice}</Text>
           </View>
         </View>
-      </Modal>
+
+        <View style={{ height: 100 }} />
+      </ScrollView>
+
+      <View style={styles.bottomBar}>
+        <TouchableOpacity style={styles.ctaBtn} onPress={() => navigation.navigate("PaymentScreen", { totalAmount: totalPrice })}>
+          <Text style={styles.ctaText}>Checkout</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };
 
-export default BookCleaningScreen;
-
-/* =======================
-   SMALL COMPONENTS
-   ======================= */
-
-const SummaryRow = ({ label, value, styles }: { label: string; value: string; styles: any }) => (
+const SummaryRow = ({ label, value, styles }: any) => (
   <View style={styles.summaryRow}>
     <Text style={styles.summaryRowText}>{label}</Text>
     <Text style={styles.summaryRowText}>{value}</Text>
   </View>
 );
 
-/* =======================
-   STYLES
-   ======================= */
-const getStyles = (colors: any) =>
-  StyleSheet.create({
-    safe: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-
-    /* ================= HEADER ================= */
-
-    header: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
-      backgroundColor: colors.surface,
-    },
-
-    headerLeft: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 12,
-    },
-picker: {
-  height: 48,
-  width: '100%',
-},
-
-    iconBtn: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-
-    headerTitle: {
-      color: colors.text,
-      fontSize: 18,
-      fontWeight: "700",
-      letterSpacing: -0.3,
-    },
-
-    /* ================= CONTENT ================= */
-
-    content: {
-      padding: 16,
-    },
-    /* ================= SUMMARY ================= */
-
-    summary: {
-      backgroundColor: colors.card + "0D",
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: colors.border + "33",
-      padding: 16,
-      marginTop: 8,
-    },
-
-    summaryRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      marginBottom: 8,
-    },
-
-    summaryRowText: {
-      color: colors.subText,
-      fontSize: 14,
-    },
-
-    summaryDivider: {
-      height: 1,
-      backgroundColor: colors.border + "33",
-      marginVertical: 12,
-    },
-
-    summaryTotal: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-    },
-
-    summaryTotalLabel: {
-      color: colors.text,
-      fontSize: 16,
-      fontWeight: "700",
-    },
-
-    summaryTotalValue: {
-      color: colors.primary,
-      fontSize: 24,
-      fontWeight: "700",
-    },
-
-    section: {
-      marginBottom: 24,
-    },
-
-    sectionTitle: {
-      color: colors.text,
-      fontSize: 18,
-      fontWeight: "700",
-      marginBottom: 12,
-      letterSpacing: -0.3,
-    },
-
-    label: {
-      color: colors.subText,
-      fontSize: 14,
-      fontWeight: "500",
-      marginBottom: 8,
-    },
-
- input: {
-  backgroundColor: colors.card,
-  borderRadius: 12,
-  borderWidth: 1,
-  borderColor: colors.border,
-  paddingHorizontal: 16,
-  paddingVertical: Platform.OS === "android" ? 12 : 16,
-  minHeight: 56,
-  color: colors.text,
-  fontSize: 16,
-  marginBottom: 16,
-},
-
-
-    textArea: {
-      height: 100,
-      paddingTop: 16,
-      textAlignVertical: "top",
-    },
-
-    textarea: {
-      backgroundColor: colors.background,
-      borderWidth: 2,
-      borderColor: colors.border,
-      borderRadius: 12,
-      padding: 16,
-      color: colors.text,
-      fontSize: 14,
-        minHeight: 100,
-  paddingTop: 12,
-  textAlignVertical: "top",
-    },
-
-    textareaError: {
-      borderColor: colors.error,
-    },
-
-    importantTextarea: {
-      borderColor: colors.warning,
-      backgroundColor: colors.surface,
-    },
-
-    /* ================= LOCATION ================= */
-
-    detectedLocationBox: {
-      backgroundColor: colors.card,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: colors.border,
-      paddingHorizontal: 16,
-      paddingVertical: 14,
-      marginBottom: 16,
-    },
-
-    locationRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 8,
-    },
-
-    detectedLocationText: {
-      color: colors.text,
-      fontSize: 14,
-      flexShrink: 1,
-    },
-
-    detectedLocationPlaceholder: {
-      color: colors.subText,
-      fontSize: 14,
-    },
-
-    /* ================= ROWS ================= */
-
-    row: {
-      flexDirection: "row",
-      gap: 12,
-    },
-
-    halfInput: {
-      flex: 1,
-    },
-
-    /* ================= FLOOR ================= */
-
-    floorInput: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: colors.card,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: colors.border,
-      paddingHorizontal: 16,
-      minHeight: 56,
-      marginBottom: 16,
-    },
-
-    floorField: {
-      flex: 1,
-      color: colors.text,
-      fontSize: 16,
-    },
-
-    sqftLabel: {
-      color: colors.subText,
-      fontSize: 14,
-      fontWeight: "500",
-    },
-
-    /* ================= DATE & TIME ================= */
-
-    dateTimeRow: {
-      flexDirection: "row",
-      gap: 12,
-      marginBottom: 24,
-    },
-
-    dateSection: {
-      flex: 1,
-    },
-
-    timeSection: {
-      flex: 1,
-    },
-
-    dateInput: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: colors.card,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: colors.border,
-      paddingHorizontal: 16,
-      height: 56,
-      gap: 10,
-    },
-
-    timeInput: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: colors.card,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: colors.border,
-      paddingHorizontal: 16,
-      height: 56,
-      gap: 10,
-    },
-
-    dateText: {
-      color: colors.text,
-      fontSize: 15,
-    },
-
-    /* ================= EXTRA HOURS ================= */
-
-    extraHoursCard: {
-      backgroundColor: colors.card,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: colors.border,
-      padding: 20,
-      marginBottom: 24,
-    },
-
-    extraHoursHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: 20,
-    },
-
-    extraHoursTitle: {
-      fontSize: 18,
-      fontWeight: "700",
-      color: colors.text,
-      marginBottom: 4,
-    },
-
-    extraHoursSubtitle: {
-      fontSize: 13,
-      color: colors.subText,
-    },
-
-    counterContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: colors.background,
-      borderRadius: 30,
-      padding: 6,
-      gap: 12,
-    },
-
-    counterButton: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      backgroundColor: colors.surface,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-
-    counterButtonPlus: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      backgroundColor: colors.primary,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-
-    counterText: {
-      fontSize: 16,
-      fontWeight: "600",
-      color: colors.text,
-      minWidth: 50,
-      textAlign: "center",
-    },
-
-    /* ================= REASON ================= */
-
-    reasonHeader: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 6,
-      marginBottom: 10,
-    },
-
-    required: {
-      color: colors.error,
-      fontWeight: "700",
-    },
-
-    errorMessage: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 8,
-      marginTop: 12,
-    },
-
-    errorText: {
-      fontSize: 13,
-      color: colors.error,
-    },
-
-    /* ================= PHOTOS ================= */
-
-    photoContainer: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      gap: 12,
-    },
-
-    photoBoxDashed: {
-      width: 90,
-      height: 90,
-      borderRadius: 16,
-      borderWidth: 2,
-      borderStyle: "dashed",
-      borderColor: colors.border,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-
-    photoText: {
-      color: colors.subText,
-      fontSize: 11,
-      marginTop: 6,
-      textAlign: "center",
-    },
-
-    photoPreview: {
-      width: 90,
-      height: 90,
-      borderRadius: 16,
-      overflow: "hidden",
-      backgroundColor: colors.surface,
-    },
-
-    photoImage: {
-      width: "100%",
-      height: "100%",
-    },
-
-    removePhoto: {
-      position: "absolute",
-      top: -6,
-      right: -6,
-      width: 22,
-      height: 22,
-      borderRadius: 11,
-      backgroundColor: colors.error,
-      alignItems: "center",
-      justifyContent: "center",
-      elevation: 4,
-    },
-
-    /* ================= MISSING STYLES ================= */
-
-    dropdownBox: {
-      backgroundColor: colors.card,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: colors.border,
-      marginBottom: 16,
-    },
-
-    otherLocationFields: {
-      marginBottom: 16,
-    },
-
-    allocatedCard: {
-      backgroundColor: colors.card,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: colors.border,
-      padding: 16,
-      marginBottom: 16,
-    },
-
-    allocatedHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: 12,
-    },
-
-    allocatedTitle: {
-      fontSize: 16,
-      fontWeight: "700",
-      color: colors.text,
-    },
-
-    allocatedContent: {
-      flexDirection: "row",
-      alignItems: "center",
-    },
-
-    allocatedLeft: {
-      flexDirection: "row",
-      alignItems: "center",
-      flex: 1,
-    },
-
-    allocatedAvatar: {
-      width: 50,
-      height: 50,
-      borderRadius: 25,
-      marginRight: 12,
-    },
-
-    verifiedBadge: {
-      position: "absolute",
-      top: -5,
-      right: -5,
-      backgroundColor: colors.background,
-      borderRadius: 10,
-      padding: 2,
-    },
-
-    allocatedName: {
-      fontSize: 16,
-      fontWeight: "600",
-      color: colors.text,
-    },
-
-    allocatedRole: {
-      fontSize: 14,
-      color: colors.subText,
-    },
-
-    allocatedMeta: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginTop: 4,
-    },
-
-    metaText: {
-      fontSize: 12,
-      color: colors.subText,
-      marginLeft: 4,
-    },
-
-    timeText: {
-      color: colors.text,
-      fontSize: 15,
-    },
-
-    counterIcon: {
-      fontSize: 20,
-      color: colors.text,
-    },
-
-    reasonSection: {
-      marginTop: 16,
-    },
-
-    reasonLabel: {
-      fontSize: 14,
-      color: colors.warning,
-      fontWeight: "500",
-    },
-
-    thinDivider: {
-      height: 1,
-      backgroundColor: colors.border,
-      marginVertical: 16,
-    },
-
-    addonHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: 12,
-    },
-
-    addBtn: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: colors.primary,
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      borderRadius: 8,
-    },
-
-    addBtnText: {
-      color: "#fff",
-      fontSize: 14,
-      marginLeft: 4,
-    },
-
-    addonTitle: {
-      fontSize: 16,
-      fontWeight: "600",
-      color: colors.text,
-      marginBottom: 8,
-    },
-
-    addonCard: {
-      backgroundColor: colors.card,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: colors.border,
-      padding: 16,
-      marginBottom: 12,
-    },
-
-    addonAccent: {
-      width: 4,
-      backgroundColor: colors.primary,
-      borderRadius: 2,
-      marginRight: 12,
-    },
-
-    addonContent: {
-      flex: 1,
-    },
-
-    addonSelectText: {
-      fontSize: 16,
-      color: colors.text,
-    },
-
-    addonCardHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: 8,
-    },
-
-    bottomBar: {
-      padding: 16,
-      borderTopWidth: 1,
-      borderTopColor: colors.border,
-      backgroundColor: colors.surface,
-    },
-
-    ctaBtn: {
-      backgroundColor: colors.primary,
-      borderRadius: 12,
-      paddingVertical: 16,
-      alignItems: "center",
-      flexDirection: "row",
-      justifyContent: "center",
-    },
-
-    ctaText: {
-      color: "#fff",
-      fontSize: 16,
-      fontWeight: "600",
-      marginLeft: 8,
-    },
-
-    modalOverlay: {
-      flex: 1,
-      backgroundColor: "rgba(0,0,0,0.5)",
-      justifyContent: "center",
-      alignItems: "center",
-    },
-
-    modalCard: {
-      backgroundColor: colors.surface,
-      borderRadius: 16,
-      padding: 24,
-      width: "80%",
-      alignItems: "center",
-    },
-
-    modalAvatarContainer: {
-      marginBottom: 16,
-    },
-
-    modalAvatar: {
-      width: 80,
-      height: 80,
-      borderRadius: 40,
-    },
-
-    modalVerifiedBadge: {
-      position: "absolute",
-      top: -5,
-      right: -5,
-      backgroundColor: colors.background,
-      borderRadius: 12,
-      padding: 4,
-    },
-
-    modalName: {
-      fontSize: 20,
-      fontWeight: "700",
-      color: colors.text,
-      marginBottom: 4,
-    },
-
-    modalSubtitle: {
-      fontSize: 16,
-      color: colors.subText,
-      marginBottom: 20,
-    },
-
-    modalInfoGrid: {
-      width: "100%",
-      marginBottom: 24,
-    },
-
-    modalInfoRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      marginBottom: 12,
-    },
-
-    modalInfoLabel: {
-      fontSize: 14,
-      color: colors.subText,
-    },
-
-    modalRatingRow: {
-      flexDirection: "row",
-      alignItems: "center",
-    },
-
-    modalInfoValue: {
-      fontSize: 14,
-      color: colors.text,
-    },
-
-    modalButton: {
-      backgroundColor: colors.primary,
-      borderRadius: 12,
-      paddingVertical: 12,
-      paddingHorizontal: 24,
-      alignItems: "center",
-    },
-
-    modalButtonText: {
-      color: "#fff",
-      fontSize: 16,
-      fontWeight: "600",
-    },
-  });
+const getStyles = (colors: any) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: colors.background },
+  header: { 
+    flexDirection: "row", 
+    justifyContent: "space-between", 
+    alignItems: "center", 
+    paddingHorizontal: 16, 
+    paddingVertical: 12, 
+    borderBottomWidth: 1, 
+    borderBottomColor: colors.border, 
+    backgroundColor: colors.surface 
+  },
+  headerLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
+  headerTitle: { color: colors.text, fontSize: 18, fontWeight: "700" },
+  iconBtn: { width: 40, height: 40, justifyContent: "center", alignItems: "center" },
+  content: { padding: 16 },
+  sectionTitle: { color: colors.text, fontSize: 18, fontWeight: "700", marginBottom: 12 },
+  label: { color: colors.subText, fontSize: 14, fontWeight: "500", marginBottom: 8 },
+  dropdownBox: { backgroundColor: colors.card, borderRadius: 12, borderWidth: 1, borderColor: colors.border, marginBottom: 16, overflow: 'hidden' },
+  picker: { height: 50, color: colors.text },
+  input: { backgroundColor: colors.card, borderRadius: 12, borderWidth: 1, borderColor: colors.border, padding: 12, color: colors.text, marginBottom: 16 },
+  textArea: { height: 80, textAlignVertical: 'top' },
+  detectedLocationBox: { backgroundColor: colors.card, borderRadius: 12, padding: 14, marginBottom: 16, borderWidth: 1, borderColor: colors.border },
+  locationRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  detectedLocationText: { color: colors.text, fontSize: 14, flexShrink: 1 },
+  floorInput: { flexDirection: "row", alignItems: "center", backgroundColor: colors.card, borderRadius: 12, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 16, height: 50 },
+  floorField: { flex: 1, color: colors.text },
+  sqftLabel: { color: colors.subText },
+  dateTimeRow: { flexDirection: "row", gap: 12, marginBottom: 16 },
+  dateInput: { flexDirection: "row", alignItems: "center", backgroundColor: colors.card, borderRadius: 12, height: 50, paddingHorizontal: 12, gap: 8, borderWidth: 1, borderColor: colors.border },
+  timeInput: { flexDirection: "row", alignItems: "center", backgroundColor: colors.card, borderRadius: 12, height: 50, paddingHorizontal: 12, gap: 8, borderWidth: 1, borderColor: colors.border },
+  dateText: { color: colors.text },
+  timeText: { color: colors.text },
+  extraHoursCard: { backgroundColor: colors.card, borderRadius: 12, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: colors.border },
+  extraHoursHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  extraHoursTitle: { fontSize: 16, fontWeight: "700", color: colors.text },
+  counterContainer: { flexDirection: "row", alignItems: "center", gap: 15 },
+  counterIcon: { fontSize: 24, color: colors.primary, fontWeight: '700' },
+  counterText: { color: colors.text, fontWeight: '600' },
+  textarea: { backgroundColor: colors.background, borderRadius: 8, padding: 10, marginTop: 10, color: colors.text, height: 60 },
+  photoContainer: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  photoBoxDashed: { width: 70, height: 70, borderRadius: 10, borderStyle: 'dashed', borderWidth: 1, borderColor: colors.primary, justifyContent: 'center', alignItems: 'center' },
+  photoPreview: { width: 70, height: 70, borderRadius: 10, overflow: 'hidden' },
+  photoImage: { width: '100%', height: '100%' },
+  removePhoto: { position: 'absolute', top: 2, right: 2, backgroundColor: 'red', borderRadius: 10 },
+  thinDivider: { height: 1, backgroundColor: colors.border, marginVertical: 20 },
+  
+  // FIXED: Missing Allocated Professional Styles
+  allocatedCard: { backgroundColor: colors.card, borderRadius: 12, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: colors.border },
+  allocatedHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
+  allocatedTitle: { fontSize: 12, fontWeight: "700", color: colors.subText, textTransform: 'uppercase' },
+  allocatedContent: { flexDirection: "row", alignItems: "center", gap: 12 },
+  allocatedAvatar: { width: 50, height: 50, borderRadius: 25 },
+  allocatedName: { fontSize: 16, fontWeight: "700", color: colors.text },
+  allocatedRole: { fontSize: 14, color: colors.subText },
+
+  addonHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
+  addBtn: { backgroundColor: colors.primary, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, flexDirection: 'row', alignItems: 'center' },
+  addBtnDisabled: { backgroundColor: colors.subText, opacity: 0.5 },
+  addBtnText: { color: '#fff', marginLeft: 4, fontWeight: '600' },
+  categoryInfo: { color: colors.primary, fontSize: 13, marginBottom: 12, fontWeight: '500' },
+  noAddonsText: { color: colors.subText, fontSize: 13, fontStyle: 'italic', marginBottom: 12 },
+  addonCard: { backgroundColor: colors.card, padding: 12, borderRadius: 10, marginBottom: 8, borderWidth: 1, borderColor: colors.border },
+  addonSelectText: { color: colors.text, fontWeight: '600', fontSize: 15 },
+  addonCategoryText: { color: colors.subText, fontSize: 12, marginTop: 2 },
+  summary: { backgroundColor: colors.card, borderRadius: 12, padding: 16, marginTop: 10 },
+  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 },
+  summaryRowText: { color: colors.subText },
+  
+  // FIXED: Summary Divider (CSS margin '10px 0' -> marginVertical: 10)
+  summaryDivider: { height: 1, backgroundColor: colors.border, marginVertical: 10 },
+  
+  summaryTotal: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  summaryTotalLabel: { fontSize: 18, fontWeight: "700", color: colors.text },
+  summaryTotalValue: { fontSize: 22, fontWeight: "800", color: colors.primary },
+  section: { marginBottom: 20 },
+
+  // FIXED: Bottom Bar (CSS borderTop and padding fixed)
+  bottomBar: { 
+    padding: 16, 
+    borderTopWidth: 1, 
+    borderTopColor: colors.border, 
+    backgroundColor: colors.surface 
+  },
+  
+  // FIXED: CTA Button (CSS padding, textAlign, cursor, border fixed)
+  ctaBtn: { 
+    backgroundColor: colors.primary, 
+    paddingVertical: 16, 
+    borderRadius: 12, 
+    alignItems: 'center',
+    width: '100%' 
+  },
+  ctaText: { color: '#fff', fontSize: 18, fontWeight: "700" },
+});
+
+export default BookCleaningScreen;
