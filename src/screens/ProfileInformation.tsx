@@ -15,9 +15,12 @@ import {
   UIManager,
   Alert,
   Dimensions,
+  KeyboardAvoidingView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Keyboard } from "react-native";
+
 
 
 
@@ -103,7 +106,85 @@ type RootStackParamList = {
   ProfileInformation: undefined;
   Wishlist: undefined;
 };
+/* --- SUB-COMPONENTS MOVED OUTSIDE --- */
 
+const Divider = ({ styles }: { styles: any }) => (
+  <View style={styles.divider} />
+);
+
+const SectionHeader = ({
+  title,
+  open,
+  onPress,
+  colors,
+  styles,
+}: {
+  title: string;
+  open: boolean;
+  onPress: () => void;
+  colors: any;
+  styles: any;
+}) => (
+  <TouchableOpacity style={styles.sectionHeader} onPress={onPress}>
+    <Text style={styles.sectionTitle}>{title}</Text>
+    <Icon
+      name={open ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+      size={24}
+      color={colors.subText}
+    />
+  </TouchableOpacity>
+);
+
+const Card = ({ children, styles }: { children: React.ReactNode; styles: any }) => (
+  <View style={styles.card}>{children}</View>
+);
+
+const Field = ({
+  label,
+  children,
+  styles,
+}: {
+  label: string;
+  children: React.ReactNode;
+  styles: any;
+}) => (
+  <View style={styles.field}>
+    <Text style={styles.fieldLabel}>{label}</Text>
+    {children}
+  </View>
+);
+
+const ServiceItem = ({
+  icon,
+  title,
+  value,
+  onToggle,
+  colors,
+  styles,
+}: {
+  icon: string;
+  title: string;
+  value: boolean;
+  onToggle: () => void;
+  colors: any;
+  styles: any;
+}) => (
+  <View style={styles.serviceItem}>
+    <View style={styles.serviceLeft}>
+      <Icon name={icon} size={24} color={colors.primary} />
+      <Text style={styles.serviceTitle}>{title}</Text>
+    </View>
+    <Switch
+      value={value}
+      onValueChange={onToggle}
+      trackColor={{
+        false: colors.border,
+        true: colors.primary + "80",
+      }}
+      thumbColor={value ? colors.primary : colors.subText}
+    />
+  </View>
+);
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -112,71 +193,7 @@ const ProfileInformation: React.FC = () => {
   // const { lightMode, toggleTheme } = useTheme();
   const { lightMode, toggleTheme, colors } = useTheme();
   const styles = getStyles(colors);
-  const Divider = () => <View style={styles.divider} />;
 
-  const SectionHeader = ({
-    title,
-    open,
-    onPress,
-  }: {
-    title: string;
-    open: boolean;
-    onPress: () => void;
-  }) => (
-    <TouchableOpacity style={styles.sectionHeader} onPress={onPress}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      <Icon
-        name={open ? "keyboard-arrow-up" : "keyboard-arrow-down"}
-        size={24}
-        color={colors.subText}
-      />
-    </TouchableOpacity>
-  );
-
-  const Card = ({ children }: { children: React.ReactNode }) => (
-    <View style={styles.card}>{children}</View>
-  );
-
-  const Field = ({
-    label,
-    children,
-  }: {
-    label: string;
-    children: React.ReactNode;
-  }) => (
-    <View style={styles.field}>
-      <Text style={styles.fieldLabel}>{label}</Text>
-      {children}
-    </View>
-  );
-
-  const ServiceItem = ({
-    icon,
-    title,
-    value,
-    onToggle,
-  }: {
-    icon: string;
-    title: string;
-    value: boolean;
-    onToggle: () => void;
-  }) => (
-    <View style={styles.serviceItem}>
-      <View style={styles.serviceLeft}>
-        <Icon name={icon} size={24} color={colors.primary} />
-        <Text style={styles.serviceTitle}>{title}</Text>
-      </View>
-      <Switch
-        value={value}
-        onValueChange={onToggle}
-        trackColor={{
-          false: colors.border,
-          true: colors.primary + "80",
-        }}
-        thumbColor={value ? colors.primary : colors.subText}
-      />
-    </View>
-  );
 
 
   /* ================= STATE ================= */
@@ -233,6 +250,8 @@ const [availableToText, setAvailableToText] = useState<string>("06:00 PM");
   // Marketplace & Swachify
   const [marketplaceListings, setMarketplaceListings] = useState<MarketplaceListing[]>([]);
   const [swachifyProducts, setSwachifyProducts] = useState<SwachifyProduct[]>([]);
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+
 
   const [services, setServices] = useState<{
     housing: boolean;
@@ -256,6 +275,20 @@ const [openWishlist, setOpenWishlist] = useState<boolean>(false);
 
 
   /* ================= LOAD USER DATA ================= */
+  useEffect(() => {
+    const show = Keyboard.addListener("keyboardDidShow", () =>
+      setKeyboardOpen(true)
+    );
+    const hide = Keyboard.addListener("keyboardDidHide", () =>
+      setKeyboardOpen(false)
+    );
+
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
+
  useEffect(() => {
   loadUserFromStorage();
   loadMarketplaceListings();
@@ -466,25 +499,38 @@ const [openWishlist, setOpenWishlist] = useState<boolean>(false);
   };
 
   /* ================= HELPERS ================= */
-  const toggleSection = (
-    setter: React.Dispatch<React.SetStateAction<boolean>>,
-  ) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setter((prev: boolean) => !prev);
-  };
+const toggleSection = (
+  setter: React.Dispatch<React.SetStateAction<boolean>>
+) => {
+  if (Platform.OS === "android" && !keyboardOpen) {
+    LayoutAnimation.configureNext(
+      LayoutAnimation.Presets.easeInEaseOut
+    );
+  }
+  setter(prev => !prev);
+};
 
-  const toggleService = async (key: keyof typeof services) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    const newServices = { ...services, [key]: !services[key] };
-    setServices(newServices);
-    
-    // Save preferences to AsyncStorage
-    try {
-      await AsyncStorage.setItem('service_preferences', JSON.stringify(newServices));
-    } catch (error) {
-      console.error('Error saving service preferences:', error);
-    }
-  };
+
+
+const toggleService = async (key: keyof typeof services) => {
+  if (Platform.OS === "android" && !keyboardOpen) {
+    LayoutAnimation.configureNext(
+      LayoutAnimation.Presets.easeInEaseOut
+    );
+  }
+
+  const newServices = { ...services, [key]: !services[key] };
+  setServices(newServices);
+
+  try {
+    await AsyncStorage.setItem(
+      'service_preferences',
+      JSON.stringify(newServices)
+    );
+  } catch (error) {
+    console.error('Error saving service preferences:', error);
+  }
+};
 
   const addService = () => {
     if (newService.trim()) {
@@ -588,7 +634,11 @@ const handleResumeImageUpload = () => {
 
   /* ================= MAIN UI ================= */
   return (
-    <SafeAreaView style={styles.safeArea }>
+     <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined} // Changed to undefined for Android usually works better with ScrollView
+    >
+  <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="#101622" />
 
       {/* HEADER */}
@@ -601,7 +651,11 @@ const handleResumeImageUpload = () => {
         <View style={styles.headerIcon} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+  showsVerticalScrollIndicator={false}
+  keyboardShouldPersistTaps="handled"                
+  keyboardDismissMode="none"
+>
         {/* PROFILE */}
         <View style={styles.profileRow}>
           <Image
@@ -619,7 +673,7 @@ const handleResumeImageUpload = () => {
           </View>
         </View>
 
-        <Divider />
+        <Divider styles={styles} />
 
         {/* BASIC INFORMATION */}
        {/* BASIC INFORMATION */}
@@ -627,10 +681,13 @@ const handleResumeImageUpload = () => {
   title="Basic Information"
   open={openBasic}
   onPress={() => toggleSection(setOpenBasic)}
+   colors={colors} // Added
+  styles={styles} // Added
+
 />
 {openBasic && (
-  <Card>
-    <Field label="Phone Number">
+  <Card styles={styles}>
+    <Field label="Phone Number" styles={styles}>
       <TextInput
         style={styles.input}
         value={phone}
@@ -641,7 +698,7 @@ const handleResumeImageUpload = () => {
       />
     </Field>
 
-    <Field label="Location">
+    <Field label="Location" styles={styles}>
       <TextInput
         style={styles.input}
         value={location}
@@ -652,7 +709,7 @@ const handleResumeImageUpload = () => {
     </Field>
 
     {/* ✅ ADD THIS HERE */}
-   <Field label="AVAILABLE HOURS">
+   <Field label="AVAILABLE HOURS" styles={styles}>
               <View style={styles.timeRow}>
                 <View style={styles.timeField}>
                   <Text style={styles.timeLabel}>FROM</Text>
@@ -685,12 +742,14 @@ const handleResumeImageUpload = () => {
   title="Education Qualification"
   open={openEducation}
   onPress={() => toggleSection(setOpenEducation)}
+  colors={colors} // Added colors prop
+  styles={styles} // Added styles prop
 />
 
 {openEducation && (
-  <Card>
+  <Card styles={styles}>
     {/* Degree */}
-    <Field label="Degree">
+    <Field label="Degree" styles={styles}>
       <TextInput
         style={styles.input}
         value={degree}
@@ -701,7 +760,7 @@ const handleResumeImageUpload = () => {
     </Field>
 
     {/* Institution */}
-    <Field label="Institution">
+    <Field label="Institution" styles={styles}>
       <TextInput
         style={styles.input}
         value={institution}
@@ -712,7 +771,7 @@ const handleResumeImageUpload = () => {
     </Field>
 
     {/* Percentage */}
-    <Field label="Percentage">
+    <Field label="Percentage" styles={styles}>
       <TextInput
         style={styles.input}
         value={percentage}
@@ -723,7 +782,7 @@ const handleResumeImageUpload = () => {
     </Field>
 
     {/* Years in Education */}
-    <Field label="Years in Education (MM/YYYY - MM/YYYY)">
+    <Field label="Years in Education (MM/YYYY - MM/YYYY)" styles={styles}>
       <TextInput
         style={styles.input}
         value={educationDuration}
@@ -734,7 +793,7 @@ const handleResumeImageUpload = () => {
     </Field>
 
     {/* Internship Join Date */}
-    <Field label="Internship Join Date">
+    <Field label="Internship Join Date" styles={styles}>
       <TouchableOpacity
         style={styles.timeInput}
         onPress={() => setShowInternshipPicker(true)}
@@ -747,7 +806,7 @@ const handleResumeImageUpload = () => {
     </Field>
 
     {/* Resume Upload / Download */}
-    <Field label="Resume">
+    <Field label="Resume" styles={styles}>
   <View style={{ flexDirection: "row", gap: 20 }}>
     <TouchableOpacity onPress={handleResumeImageUpload}>
       <Icon name="upload-file" size={28} color={colors.primary} />
@@ -795,13 +854,14 @@ const handleResumeImageUpload = () => {
   title="NOC Details"
   open={openNoc}
   onPress={() => toggleSection(setOpenNoc)}
+  colors={colors} // Added colors prop
+  styles={styles} // Added styles prop
 />
 
 {openNoc && (
-  <Card>
-
+  <Card styles={styles}>
     {/* Candidate Case Clear */}
-    <Field label="Candidate Case Clear">
+    <Field label="Candidate Case Clear" styles={styles}>
       <View style={styles.radioGroup}>
         <TouchableOpacity
           style={styles.radioOption}
@@ -831,7 +891,7 @@ const handleResumeImageUpload = () => {
 
     {/* Case Number OR Certificate Number */}
     {candidateCaseClear === 'yes' ? (
-      <Field label="Case Number">
+      <Field label="Case Number" styles={styles}>
         <TextInput
           style={styles.input}
           value={caseNumber}
@@ -841,7 +901,7 @@ const handleResumeImageUpload = () => {
         />
       </Field>
     ) : (
-      <Field label="Certificate Number">
+      <Field label="Certificate Number"   styles={styles}>
         <TextInput
           style={styles.input}
           value={nocCertificateNumber}
@@ -853,7 +913,7 @@ const handleResumeImageUpload = () => {
     )}
 
     {/* Near Police Station – unchanged */}
-    <Field label="Near Police Station">
+    <Field label="Near Police Station" styles={styles}>
       <TextInput
         style={styles.input}
         value={nocPoliceStation}
@@ -864,7 +924,7 @@ const handleResumeImageUpload = () => {
     </Field>
 
     {/* Issue Year – unchanged */}
-    <Field label="Issue Year">
+    <Field label="Issue Year" styles={styles}>
       <TextInput
         style={styles.input}
         value={nocIssueYear}
@@ -882,10 +942,12 @@ const handleResumeImageUpload = () => {
           title="Freelancer/Employee Expertise"
           open={openExpertise}
           onPress={() => toggleSection(setOpenExpertise)}
+          colors={colors} // Added colors prop
+          styles={styles} // Added styles prop
         />
         {openExpertise && (
-          <Card>
-            <Field label="SERVICES WITH EXPERTISE">
+          <Card styles={styles}>
+            <Field label="SERVICES WITH EXPERTISE" styles={styles}>
               <View style={styles.servicesContainer}>
                 {expertiseServices.map((service, index) => (
                   <View key={index} style={styles.serviceChip}>
@@ -922,7 +984,7 @@ const handleResumeImageUpload = () => {
               </View>
             </Field>
 
-            <Field label="YEARS OF EXPERIENCE">
+            <Field label="YEARS OF EXPERIENCE" styles={styles}>
               <TextInput
                 style={styles.input}
                 value={yearsOfExperience}
@@ -933,7 +995,7 @@ const handleResumeImageUpload = () => {
               />
             </Field>
 
-            <Field label="ADDITIONAL SKILLS">
+            <Field label="ADDITIONAL SKILLS"  styles={styles}>
               <TextInput
                 style={[styles.input, styles.textArea]}
                 value={additionalSkills}
@@ -946,7 +1008,7 @@ const handleResumeImageUpload = () => {
               />
             </Field>
 
-            <Field label="DRIVING LICENSE">
+            <Field label="DRIVING LICENSE" styles={styles}>
               <View style={styles.radioGroup}>
                 <TouchableOpacity 
                   style={styles.radioOption}
@@ -969,7 +1031,7 @@ const handleResumeImageUpload = () => {
               </View>
             </Field>
 
-            <Field label="AVAILABLE HOURS">
+            <Field label="AVAILABLE HOURS" styles={styles}>
               <View style={styles.timeRow}>
                 <View style={styles.timeField}>
                   <Text style={styles.timeLabel}>FROM</Text>
@@ -1031,7 +1093,7 @@ setAvailableToText(formatTime(selectedDate));
           </Card>
         )}
 
-        <Divider />
+        <Divider styles={styles} />
 
         {/* CUSTOMIZE DASHBOARD */}
         <View style={styles.sectionHeaderNoIcon}>
@@ -1067,12 +1129,16 @@ setAvailableToText(formatTime(selectedDate));
           title="Housing & Cleaning"
           value={services.housing}
           onToggle={() => toggleService('housing')}
+           colors={colors} // Added
+            styles={styles} // Added
         />
         <ServiceItem
           icon="school"
           title="Education"
           value={services.education}
           onToggle={() => toggleService('education')}
+           colors={colors} // Added
+            styles={styles} // Added
         />
         
         {/* MARKETPLACE SERVICE ITEM */}
@@ -1081,6 +1147,8 @@ setAvailableToText(formatTime(selectedDate));
           title="Marketplace"
           value={services.marketplace}
           onToggle={() => toggleService('marketplace')}
+           colors={colors} // Added
+            styles={styles} // Added
         />
 
         {/* MARKETPLACE LISTINGS - Only show when marketplace is enabled */}
@@ -1090,9 +1158,11 @@ setAvailableToText(formatTime(selectedDate));
               title={`My Marketplace Listings (${marketplaceListings.length})`}
               open={openMarketplace}
               onPress={() => toggleSection(setOpenMarketplace)}
+               colors={colors} // Added
+            styles={styles} // Added
             />
             {openMarketplace && (
-              <Card>
+              <Card styles={styles}>
                 {marketplaceListings.length === 0 ? (
                   <View style={styles.emptyContainer}>
                     <Icon name="store" size={48} color="#374151" />
@@ -1156,6 +1226,8 @@ setAvailableToText(formatTime(selectedDate));
           title="Swachify"
           value={services.swachify}
           onToggle={() => toggleService('swachify')}
+           colors={colors} // Added
+            styles={styles} // Added
         />
 
         {/* SWACHIFY PRODUCTS - Only show when swachify is enabled */}
@@ -1165,9 +1237,11 @@ setAvailableToText(formatTime(selectedDate));
               title={`My Swachify Products (${swachifyProducts.length})`}
               open={openSwachify}
               onPress={() => toggleSection(setOpenSwachify)}
+               colors={colors} // Added
+            styles={styles} // Added
             />
             {openSwachify && (
-              <Card>
+              <Card styles={styles}>
                 {swachifyProducts.length === 0 ? (
                   <View style={styles.emptyContainer}>
                     <Icon name="eco" size={48} color="#374151" />
@@ -1213,7 +1287,7 @@ setAvailableToText(formatTime(selectedDate));
           </>
         )}
 
-        <Divider />
+        <Divider styles={styles} />
         <View style={styles.serviceItem}>
   <View style={styles.serviceLeft}>
     <Icon name="light-mode" size={24} color="#facc15" />
@@ -1237,7 +1311,40 @@ setAvailableToText(formatTime(selectedDate));
 
         <View style={{ height: 40 }} />
       </ScrollView>
+      {/* FROM TIME PICKER */}
+{showFromPicker && (
+  <DateTimePicker
+    value={availableHoursFrom}
+    mode="time"
+    is24Hour={false}
+    display="default"
+    onChange={(event, selectedDate) => {
+      setShowFromPicker(false);
+      if (selectedDate) {
+        setAvailableHoursFrom(selectedDate);
+      }
+    }}
+  />
+)}
+
+{/* TO TIME PICKER */}
+{showToPicker && (
+  <DateTimePicker
+    value={availableHoursTo}
+    mode="time"
+    is24Hour={false}
+    display="default"
+    onChange={(event, selectedDate) => {
+      setShowToPicker(false);
+      if (selectedDate) {
+        setAvailableHoursTo(selectedDate);
+      }
+    }}
+  />
+)}
+
     </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 };
 
