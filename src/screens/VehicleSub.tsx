@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,648 +6,365 @@ import {
   TouchableOpacity,
   StyleSheet,
   StatusBar,
+  TextInput,
+  Image,
+  Platform,
+  PermissionsAndroid,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import Geolocation from "react-native-geolocation-service";
 import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { RootStackParamList } from "../../App"; // adjust path if needed
+import { SafeAreaView } from "react-native-safe-area-context";
 
-
-
-
-type ServiceType = 'Interior' | 'Exterior' | 'Full Wash';
-
-interface ServicePrice {
-  interior: number;
-  exterior: number;
-  fullWash: number;
-}
-
-interface VehicleCategory {
+// Types
+interface ServiceProvider {
   id: string;
   name: string;
-  icon: string;
-  description: string;
-  duration: string;
-  prices: ServicePrice;
+  type: 'Mechanic' | 'Service Center';
+  rating: number;
+  reviews: number;
+  distance: string;
+  isOpen: boolean;
+  specialty: string[];
+  image: string;
+  isEmergency: boolean;
+  vehicleTypes: string[];
+  mobileNumber: string;
 }
-
-interface BookingCleaning {
-  category: VehicleCategory | undefined;
-  service: ServiceType;
-  price: number;
-  duration: string;
-}
-
 
 const VehicleSub = () => {
-     const navigation = useNavigation<any>();
+  const navigation = useNavigation<any>();
+  const [selectedVehicle, setSelectedVehicle] = useState<string>('car');
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  // Location States
+  const [currentAddress, setCurrentAddress] = useState("Detecting location...");
+  const [loadingLocation, setLoadingLocation] = useState(false);
 
-  const [selectedCategory, setSelectedCategory] = useState<string>('hatchback');
-  const [selectedService, setSelectedService] = useState<ServiceType>('Full Wash');
-  const [expandedItem, setExpandedItem] = useState<string>('hatchback');
+  const vehicleTypes = [
+    { id: 'car', name: 'Car', icon: 'directions-car' },
+    { id: 'bike', name: 'Motorbike', icon: 'two-wheeler' },
+    { id: 'truck', name: 'Heavy', icon: 'local-shipping' },
+    { id: 'ev', name: 'Electric', icon: 'ev-station' },
+    { id: 'cycle', name: 'Bicycle', icon: 'pedal-bike' },
+  ];
 
-  const categories: VehicleCategory[] = [
+  const providers: ServiceProvider[] = [
     {
-      id: 'hatchback',
-      name: 'Hatchback/Sedan',
-      icon: 'directions-car',
-      description: 'Small to medium family cars',
-      duration: '45 - 60 mins',
-      prices: { interior: 35, exterior: 25, fullWash: 45 },
+      id: '1',
+      name: 'Apex Auto Garage',
+      type: 'Service Center',
+      rating: 4.8,
+      reviews: 124,
+      distance: '1.2 km',
+      isOpen: true,
+      specialty: ['Engine', 'Transmission', 'AC'],
+      image: 'https://images.unsplash.com/photo-1486006396123-c775170aa562?q=80&w=400',
+      isEmergency: true,
+      vehicleTypes: ['car', 'ev'],
+      mobileNumber: '+1 234 567 890',
     },
     {
-      id: 'suv',
-      name: 'SUV/Luxury',
-      icon: 'airport-shuttle',
-      description: 'Large vehicles & high-end cars',
-      duration: '60 - 90 mins',
-      prices: { interior: 55, exterior: 40, fullWash: 75 },
+      id: '2',
+      name: 'QuickFix Moto Hub',
+      type: 'Mechanic',
+      rating: 4.5,
+      reviews: 89,
+      distance: '0.8 km',
+      isOpen: true,
+      specialty: ['Tires', 'Brakes', 'Chain'],
+      image: 'https://images.unsplash.com/photo-1558981403-c5f91cbba527?q=80&w=400',
+      isEmergency: false,
+      vehicleTypes: ['bike', 'cycle'],
+      mobileNumber: '+1 987 654 321',
     },
     {
-      id: 'motorcycle',
-      name: 'Motorcycle/Bike',
-      icon: 'two-wheeler',
-      description: 'Two-wheelers and scooters',
-      duration: '20 - 30 mins',
-      prices: { interior: 0, exterior: 15, fullWash: 15 },
+      id: '3',
+      name: 'Elite EV Care',
+      type: 'Service Center',
+      rating: 4.9,
+      reviews: 56,
+      distance: '3.5 km',
+      isOpen: false,
+      specialty: ['Battery', 'Software', 'Diagnostics'],
+      image: 'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?q=80&w=400',
+      isEmergency: false,
+      vehicleTypes: ['car', 'ev'],
+      mobileNumber: '+1 555 444 333',
     },
     {
-      id: 'van',
-      name: 'Commercial Van',
-      icon: 'local-shipping',
-      description: 'Cargo vans and transport vehicles',
-      duration: '75 - 120 mins',
-      prices: { interior: 65, exterior: 50, fullWash: 95 },
+      id: '4',
+      name: 'Truck & Heavy Masters',
+      type: 'Service Center',
+      rating: 4.2,
+      reviews: 210,
+      distance: '5.2 km',
+      isOpen: true,
+      specialty: ['Hydraulics', 'Suspension'],
+      image: 'https://images.unsplash.com/photo-1519003722824-194d4455a60c?q=80&w=400',
+      isEmergency: true,
+      vehicleTypes: ['truck'],
+      mobileNumber: '+1 111 222 333',
     },
     {
-      id: 'bicycle',
-      name: 'Bicycle',
-      icon: 'pedal-bike',
-      description: 'MTB, Road, or Commuter bikes',
-      duration: '15 - 25 mins',
-      prices: { interior: 0, exterior: 10, fullWash: 10 },
+      id: '5',
+      name: 'Precision Cycle Lab',
+      type: 'Mechanic',
+      rating: 4.7,
+      reviews: 42,
+      distance: '2.1 km',
+      isOpen: true,
+      specialty: ['Gears', 'Frames', 'Custom'],
+      image: 'https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?q=80&w=400',
+      isEmergency: false,
+      vehicleTypes: ['cycle'],
+      mobileNumber: '+1 888 777 666',
+    },
+    {
+      id: '6',
+      name: 'Midnight Mechanics',
+      type: 'Mechanic',
+      rating: 4.4,
+      reviews: 156,
+      distance: '4.0 km',
+      isOpen: true,
+      specialty: ['Breakdown', 'Fuel', 'Jumpstart'],
+      image: 'https://images.unsplash.com/photo-1530046339160-ce3e5b0c7a2f?q=80&w=400',
+      isEmergency: true,
+      vehicleTypes: ['car', 'bike', 'truck'],
+      mobileNumber: '+1 000 999 888',
     },
   ];
 
-  const toggleAccordion = (id: string) => {
-    const newExpanded = expandedItem === id ? '' : id;
-    setExpandedItem(newExpanded);
-    if (newExpanded) {
-      setSelectedCategory(newExpanded);
-      // Reset to Full Wash for motorcycles and bicycles (no interior)
-      const cat = categories.find(c => c.id === newExpanded);
-      if (cat && cat.prices.interior === 0) {
-        setSelectedService('Exterior');
-      }
-    }
-  };
+  useEffect(() => {
+    getCurrentLocation();
+  }, []);
 
-  const getCurrentCategory = (): VehicleCategory | undefined => {
-    return categories.find(cat => cat.id === selectedCategory);
-  };
-
-  const getCurrentPrice = (): number => {
-    const category = getCurrentCategory();
-    if (!category) return 0;
-    
-    const serviceMap: Record<ServiceType, keyof ServicePrice> = {
-      'Interior': 'interior',
-      'Exterior': 'exterior',
-      'Full Wash': 'fullWash',
-    };
-    
-    return category.prices[serviceMap[selectedService]];
-  };
-
-  const getCurrentDuration = (): string => {
-    const category = getCurrentCategory();
-    return category?.duration || '45 - 60 mins';
-  };
-
-  const renderServiceSelector = (category: VehicleCategory) => {
-    const availableServices: ServiceType[] = category.prices.interior > 0
-      ? ['Interior', 'Exterior', 'Full Wash']
-      : ['Exterior'];
-
-    return (
-      <View style={styles.serviceSelectorContainer}>
-        <Text style={styles.serviceSelectorLabel}>Choose service depth:</Text>
-        <View style={styles.serviceToggle}>
-          {availableServices.map((service) => (
-            <TouchableOpacity
-              key={service}
-              style={[
-                styles.serviceOption,
-                selectedService === service && styles.serviceOptionActive,
-              ]}
-              onPress={() => {
-                setSelectedService(service);
-                setSelectedCategory(category.id);
-              }}
-            >
-              <Text
-                style={[
-                  styles.serviceOptionText,
-                  selectedService === service && styles.serviceOptionTextActive,
-                ]}
-              >
-                {service.toUpperCase()}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-        <View style={styles.durationContainer}>
-          <Text style={styles.durationLabel}>Estimated Duration</Text>
-          <Text style={styles.durationValue}>{category.duration}</Text>
-        </View>
-        <View style={styles.priceBreakdown}>
-          <Text style={styles.priceBreakdownLabel}>Price Breakdown:</Text>
-          {category.prices.interior > 0 && (
-            <View style={styles.priceRow}>
-              <Text style={styles.priceRowLabel}>Interior Only</Text>
-              <Text style={styles.priceRowValue}>${category.prices.interior}</Text>
-            </View>
-          )}
-          <View style={styles.priceRow}>
-            <Text style={styles.priceRowLabel}>Exterior Only</Text>
-            <Text style={styles.priceRowValue}>${category.prices.exterior}</Text>
-          </View>
-          {category.prices.interior > 0 && (
-            <View style={styles.priceRow}>
-              <Text style={styles.priceRowLabel}>Full Wash (Best Value)</Text>
-              <Text style={[styles.priceRowValue, styles.priceRowValueHighlight]}>
-                ${category.prices.fullWash}
-              </Text>
-            </View>
-          )}
-        </View>
-      </View>
+  const requestLocationPermission = async () => {
+    if (Platform.OS === 'ios') return true;
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
     );
+    return granted === PermissionsAndroid.RESULTS.GRANTED;
+  };
+
+  const getCurrentLocation = async () => {
+    const hasPermission = await requestLocationPermission();
+    if (!hasPermission) {
+      setCurrentAddress("Permission Denied");
+      return;
+    }
+
+    setLoadingLocation(true);
+    Geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18`,
+            { headers: { "User-Agent": "VehicleApp/1.0" } }
+          );
+          const data = await response.json();
+          const address = data.address.road || data.address.suburb || data.display_name.split(',')[0];
+          const city = data.address.city || data.address.town || "";
+          setCurrentAddress(`${address}, ${city}`);
+        } catch (e) {
+          setCurrentAddress("Location Found (Address Error)");
+        } finally {
+          setLoadingLocation(false);
+        }
+      },
+      (error) => {
+        setLoadingLocation(false);
+        setCurrentAddress("Location Unavailable");
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+    );
+  };
+
+  const filteredProviders = useMemo(() => {
+    return providers.filter(p => 
+      p.vehicleTypes.includes(selectedVehicle) && 
+      p.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [selectedVehicle, searchQuery]);
+
+  const handleProviderSelect = (item: ServiceProvider) => {
+    navigation.navigate("BookCleaning", {
+      selectedService: `${item.name} Service`,
+      allocatedEmployee: {
+        id: item.id,
+        name: item.name,
+        role: item.type,
+        rating: item.rating.toString(),
+        distance: item.distance,
+        image: item.image,
+        verified: true,
+        mobileNumber: item.mobileNumber,
+      },
+    });
   };
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-
       <StatusBar barStyle="light-content" backgroundColor="#0a1419" />
       
-      {/* Header */}
+      {/* Dynamic Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-  style={styles.headerButton}
-  onPress={() => navigation.goBack()}
->
+        <View style={styles.topHeader}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconBtn}>
+            <MaterialIcons name="arrow-back-ios" size={20} color="#fff" />
+          </TouchableOpacity>
+          <View style={styles.locationContainer}>
+            <Text style={styles.locationLabel}>MY CURRENT LOCATION</Text>
+            <TouchableOpacity onPress={getCurrentLocation} style={styles.locationRow}>
+              {loadingLocation ? (
+                <ActivityIndicator size="small" color="#135BEC" />
+              ) : (
+                <>
+                  <Text style={styles.locationText} numberOfLines={1}>{currentAddress}</Text>
+                  <MaterialIcons name="my-location" size={16} color="#135BEC" />
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity style={styles.iconBtn}>
+            <MaterialIcons name="notifications-none" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
 
-          <MaterialIcons name="arrow-back-ios" size={20} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Vehicle Cleaning</Text>
-        <TouchableOpacity style={styles.headerButton}>
-          <MaterialIcons name="info-outline" size={24} color="#fff" />
-        </TouchableOpacity>
+        <View style={styles.searchContainer}>
+          <MaterialIcons name="search" size={22} color="#64748b" />
+          <TextInput
+            placeholder={`Search ${selectedVehicle} experts...`}
+            placeholderTextColor="#64748b"
+            style={styles.searchInput}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
       </View>
 
-      <ScrollView 
-        style={styles.content} 
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* Section Header */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Select Vehicle Category</Text>
-          <Text style={styles.sectionSubtitle}>
-            Prices vary based on vehicle dimensions
-          </Text>
-        </View>
-
-        {/* Quick Access Grid */}
-        <View style={styles.quickAccessGrid}>
-          <TouchableOpacity
-            style={[
-              styles.quickAccessCard,
-              selectedCategory === 'hatchback' && styles.quickAccessCardActive
-            ]}
-            onPress={() => {
-              setSelectedCategory('hatchback');
-              setExpandedItem('hatchback');
-            }}
-          >
-            <MaterialIcons 
-              name="directions-car" 
-              size={40} 
-              color={selectedCategory === 'hatchback' ? '#135BEC' : '#64748b'} 
-            />
-            <Text style={styles.quickAccessText}>Sedan</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.quickAccessCard,
-              selectedCategory === 'suv' && styles.quickAccessCardActive
-            ]}
-            onPress={() => {
-              setSelectedCategory('suv');
-              setExpandedItem('suv');
-            }}
-          >
-            <MaterialIcons 
-              name="airport-shuttle" 
-              size={40} 
-              color={selectedCategory === 'suv' ? '#135BEC' : '#64748b'} 
-            />
-            <Text style={styles.quickAccessText}>SUV</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Accordion List */}
-        <View style={styles.accordionContainer}>
-          {categories.map((category) => (
-            <View key={category.id} style={styles.accordionItem}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Vehicle Selection */}
+        <View style={styles.vehicleSection}>
+          <Text style={styles.sectionTitle}>Repair Category</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.vehicleScroll}>
+            {vehicleTypes.map((v) => (
               <TouchableOpacity
-                style={styles.accordionHeader}
-                onPress={() => toggleAccordion(category.id)}
+                key={v.id}
+                style={[styles.vehicleCard, selectedVehicle === v.id && styles.vehicleCardActive]}
+                onPress={() => setSelectedVehicle(v.id)}
               >
-                <View style={styles.accordionHeaderLeft}>
-                  <View
-                    style={[
-                      styles.iconContainer,
-                      expandedItem === category.id && styles.iconContainerActive,
-                    ]}
-                  >
-                    <MaterialIcons
-                      name={category.icon}
-                      size={28}
-                      color={expandedItem === category.id ? '#135BEC' : '#64748b'}
-                    />
-                  </View>
-                  <View style={styles.categoryInfo}>
-                    <Text style={styles.categoryName}>{category.name}</Text>
-                    <Text style={styles.categoryDescription}>
-                      {category.description}
-                    </Text>
-                  </View>
+                <View style={[styles.vIconBox, selectedVehicle === v.id && styles.vIconBoxActive]}>
+                  <MaterialIcons name={v.icon} size={28} color={selectedVehicle === v.id ? '#fff' : '#64748b'} />
                 </View>
-                <MaterialIcons
-                  name={expandedItem === category.id ? 'expand-less' : 'expand-more'}
-                  size={24}
-                  color="#94a3b8"
-                />
+                <Text style={[styles.vText, selectedVehicle === v.id && styles.vTextActive]}>{v.name}</Text>
               </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
 
-              {expandedItem === category.id && (
-                <View style={styles.accordionContent}>
-                  {renderServiceSelector(category)}
+        {/* Professionals List */}
+        <View style={styles.resultsSection}>
+          <Text style={styles.sectionTitle}>Experts Near You</Text>
+
+          {filteredProviders.map((item) => (
+            <TouchableOpacity key={item.id} style={styles.providerCard} activeOpacity={0.9} onPress={() => handleProviderSelect(item)}>
+              <Image source={{ uri: item.image }} style={styles.providerImage} />
+              {item.isEmergency && (
+                <View style={styles.emergencyBadge}>
+                  <MaterialIcons name="bolt" size={14} color="#fff" />
+                  <Text style={styles.emergencyText}>FAST REPAIR</Text>
                 </View>
               )}
-            </View>
+              <View style={styles.cardInfo}>
+                <View style={styles.cardHeader}>
+                  <View>
+                    <Text style={styles.providerName}>{item.name}</Text>
+                    <Text style={styles.providerType}>{item.type} • {item.distance}</Text>
+                  </View>
+                  <View style={styles.ratingBox}>
+                    <MaterialIcons name="star" size={14} color="#fbbf24" />
+                    <Text style={styles.ratingText}>{item.rating}</Text>
+                  </View>
+                </View>
+                <View style={styles.specialtyContainer}>
+                  {item.specialty.map((s, idx) => (
+                    <View key={idx} style={styles.specialtyChip}><Text style={styles.specialtyChipText}>{s}</Text></View>
+                  ))}
+                </View>
+                <View style={styles.cardFooter}>
+                   <View style={styles.statusRow}>
+                      <View style={[styles.statusDot, { backgroundColor: item.isOpen ? '#22c55e' : '#ef4444' }]} />
+                      <Text style={styles.statusText}>{item.isOpen ? 'Available' : 'Closed'}</Text>
+                   </View>
+                   <TouchableOpacity style={styles.bookBtn} onPress={() => handleProviderSelect(item)}>
+                      <Text style={styles.bookBtnText}>Book Now</Text>
+                      <MaterialIcons name="chevron-right" size={18} color="#fff" />
+                   </TouchableOpacity>
+                </View>
+              </View>
+            </TouchableOpacity>
           ))}
+          
+          {filteredProviders.length === 0 && (
+            <View style={styles.emptyState}>
+              <MaterialIcons name="search-off" size={60} color="#1e293a" />
+              <Text style={styles.emptyText}>No {selectedVehicle} specialists match your search.</Text>
+            </View>
+          )}
         </View>
-
-        <View style={{ height: 200 }} />
+        <View style={{ height: 40 }} />
       </ScrollView>
-
-      {/* Bottom Price Card */}
-      <View style={styles.bottomCard}>
-        <View style={styles.priceContainer}>
-          <View>
-            <Text style={styles.priceLabel}>SELECTED PRICE</Text>
-            <Text style={styles.priceValue}>${getCurrentPrice().toFixed(2)}</Text>
-            <Text style={styles.priceSubtext}>
-              {getCurrentCategory()?.name} • {selectedService}
-            </Text>
-          </View>
- <TouchableOpacity
-  style={styles.bookButton}
-  onPress={() =>
-    navigation.navigate("BookCleaning", {
-      category: getCurrentCategory(),
-      service: selectedService,
-      price: getCurrentPrice(),
-      duration: getCurrentDuration(),
-    })
-  }
->
-  <Text style={styles.bookButtonText}>Book Now</Text>
-  <MaterialIcons name="arrow-forward" size={20} color="#fff" />
-</TouchableOpacity>
-
-
-        </View>
-      </View>
-
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem}>
-          <MaterialIcons name="home" size={24} color="#135BEC" />
-          <Text style={[styles.navText, styles.navTextActive]}>Home</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <MaterialIcons name="calendar-today" size={24} color="#64748b" />
-          <Text style={styles.navText}>Bookings</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <MaterialIcons name="account-balance-wallet" size={24} color="#64748b" />
-          <Text style={styles.navText}>Wallet</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <MaterialIcons name="person" size={24} color="#64748b" />
-          <Text style={styles.navText}>Profile</Text>
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0a1419',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#1e293a',
-  },
-  headerButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 20,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  content: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 200,
-  },
-  sectionHeader: {
-    paddingHorizontal: 16,
-    paddingTop: 24,
-    paddingBottom: 8,
-  },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#fff',
-    marginBottom: 4,
-  },
-  sectionSubtitle: {
-    fontSize: 14,
-    color: '#64748b',
-  },
-  quickAccessGrid: {
-    flexDirection: 'row',
-    gap: 12,
-    paddingHorizontal: 16,
-    marginTop: 16,
-  },
-  quickAccessCard: {
-    flex: 1,
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#1a2630',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#1e293a',
-    paddingVertical: 20,
-    gap: 12,
-  },
-  quickAccessCardActive: {
-    backgroundColor: 'rgba(19, 164, 236, 0.1)',
-    borderColor: '#135BEC',
-    borderWidth: 2,
-  },
-  quickAccessText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  accordionContainer: {
-    paddingHorizontal: 16,
-    marginTop: 16,
-    gap: 16,
-  },
-  accordionItem: {
-    backgroundColor: '#111618',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#1e293a',
-    overflow: 'hidden',
-  },
-  accordionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    backgroundColor: '#1a2630',
-  },
-  accordionHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-    flex: 1,
-  },
-  iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 8,
-    backgroundColor: '#1a2630',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconContainerActive: {
-    backgroundColor: 'rgba(19, 164, 236, 0.2)',
-  },
-  categoryInfo: {
-    flex: 1,
-  },
-  categoryName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  categoryDescription: {
-    fontSize: 12,
-    color: '#64748b',
-    marginTop: 2,
-  },
-  accordionContent: {
-    padding: 16,
-    backgroundColor: '#111618',
-    borderTopWidth: 1,
-    borderTopColor: '#1e293a',
-  },
-  serviceSelectorContainer: {
-    gap: 16,
-  },
-  serviceSelectorLabel: {
-    fontSize: 14,
-    color: '#64748b',
-    fontWeight: '500',
-  },
-  serviceToggle: {
-    flexDirection: 'row',
-    backgroundColor: '#1a2630',
-    borderRadius: 12,
-    padding: 4,
-    gap: 4,
-  },
-  serviceOption: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 8,
-  },
-  serviceOptionActive: {
-    backgroundColor: '#0a1419',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  serviceOptionText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#64748b',
-    letterSpacing: 1,
-  },
-  serviceOptionTextActive: {
-    color: '#135BEC',
-  },
-  durationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  durationLabel: {
-    fontSize: 14,
-    color: '#64748b',
-  },
-  durationValue: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  priceBreakdown: {
-    backgroundColor: '#1a2630',
-    borderRadius: 8,
-    padding: 12,
-    gap: 8,
-  },
-  priceBreakdownLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#94a3b8',
-    marginBottom: 4,
-  },
-  priceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  priceRowLabel: {
-    fontSize: 13,
-    color: '#cbd5e1',
-  },
-  priceRowValue: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  priceRowValueHighlight: {
-    color: '#135BEC',
-  },
-  bottomCard: {
-    position: 'absolute',
-    bottom: 72,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(10, 20, 25, 0.98)',
-    borderTopWidth: 1,
-    borderTopColor: '#1e293a',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-   // backdropFilter: 'blur(10px)',
-  },
-  priceContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  priceLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#64748b',
-    letterSpacing: 1.5,
-  },
-  priceValue: {
-    fontSize: 28,
-    fontWeight: '900',
-    color: '#135BEC',
-    marginTop: 4,
-  },
-  priceSubtext: {
-    fontSize: 11,
-    color: '#64748b',
-    marginTop: 2,
-  },
-  bookButton: {
-    backgroundColor: '#135BEC',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
-    shadowColor: '#135BEC',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  bookButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    backgroundColor: '#0a1419',
-    borderTopWidth: 1,
-    borderTopColor: '#1e293a',
-    paddingVertical: 8,
-    paddingHorizontal: 8,
-    height: 72,
-  },
-  navItem: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-  },
-  navText: {
-    fontSize: 10,
-    fontWeight: '500',
-    color: '#64748b',
-  },
-  navTextActive: {
-    color: '#135BEC',
-    fontWeight: '700',
-  },
+  container: { flex: 1, backgroundColor: '#0a1419' },
+  header: { paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#0a1419', borderBottomWidth: 1, borderBottomColor: '#1e293a' },
+  topHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
+  iconBtn: { width: 40, height: 40, backgroundColor: '#1a2630', borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  locationContainer: { flex: 1, alignItems: 'center', paddingHorizontal: 10 },
+  locationLabel: { fontSize: 9, color: '#64748b', fontWeight: '800', letterSpacing: 1 },
+  locationRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
+  locationText: { color: '#fff', fontSize: 13, fontWeight: '600', maxWidth: 160 },
+  searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1a2630', borderRadius: 12, paddingHorizontal: 12, height: 48 },
+  searchInput: { flex: 1, color: '#fff', fontSize: 14, marginLeft: 8 },
+  vehicleSection: { marginTop: 20 },
+  sectionTitle: { fontSize: 18, fontWeight: '800', color: '#fff', marginLeft: 16, marginBottom: 16 },
+  vehicleScroll: { paddingHorizontal: 16, gap: 16 },
+  vehicleCard: { alignItems: 'center', gap: 8, marginRight: 12 },
+  vehicleCardActive: { transform: [{ scale: 1.05 }] },
+  vIconBox: { width: 62, height: 62, borderRadius: 18, backgroundColor: '#1a2630', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#1e293a' },
+  vIconBoxActive: { backgroundColor: '#135BEC', borderColor: '#3b82f6' },
+  vText: { fontSize: 11, fontWeight: '600', color: '#64748b' },
+  vTextActive: { color: '#fff' },
+  resultsSection: { marginTop: 24, paddingHorizontal: 16 },
+  providerCard: { backgroundColor: '#1a2630', borderRadius: 16, marginBottom: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#1e293a' },
+  providerImage: { width: '100%', height: 110 },
+  emergencyBadge: { position: 'absolute', top: 10, left: 10, backgroundColor: '#ef4444', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, gap: 4 },
+  emergencyText: { color: '#fff', fontSize: 9, fontWeight: '900' },
+  cardInfo: { padding: 14 },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between' },
+  providerName: { fontSize: 17, fontWeight: '700', color: '#fff' },
+  providerType: { fontSize: 12, color: '#64748b', marginTop: 2 },
+  ratingBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#0a1419', paddingHorizontal: 6, paddingVertical: 3, borderRadius: 6, gap: 3, alignSelf: 'flex-start' },
+  ratingText: { color: '#fff', fontWeight: '700', fontSize: 12 },
+  specialtyContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10 },
+  specialtyChip: { backgroundColor: '#111b21', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 5, borderWidth: 1, borderColor: '#1e293a' },
+  specialtyChipText: { color: '#94a3b8', fontSize: 10, fontWeight: '600' },
+  cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, paddingTop: 14, borderTopWidth: 1, borderTopColor: '#1e293a' },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  statusDot: { width: 7, height: 7, borderRadius: 4 },
+  statusText: { fontSize: 12, color: '#64748b' },
+  bookBtn: { backgroundColor: '#135BEC', borderRadius: 10, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 8, gap: 4 },
+  bookBtnText: { color: '#fff', fontSize: 13, fontWeight: '700' },
+  emptyState: { alignItems: 'center', paddingVertical: 60 },
+  emptyText: { color: '#64748b', marginTop: 12, textAlign: 'center', fontSize: 14 }
 });
 
 export default VehicleSub;

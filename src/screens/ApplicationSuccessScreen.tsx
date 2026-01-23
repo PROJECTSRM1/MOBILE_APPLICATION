@@ -10,10 +10,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import LinearGradient from "react-native-linear-gradient";
 import { useTheme } from "../context/ThemeContext";
+import { useNavigation } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
 
 const ApplicationSuccessScreen: React.FC = () => {
+  const navigation = useNavigation();
+
   const { colors } = useTheme();
   const styles = getStyles(colors);
 
@@ -28,6 +31,18 @@ const ApplicationSuccessScreen: React.FC = () => {
         ]}
         style={styles.container}
       >
+        <TouchableOpacity
+  onPress={() => navigation.goBack()}
+  style={{
+    position: "absolute",
+    top: 16,
+    left: 16,
+    zIndex: 10,
+  }}
+>
+  <Icon name="arrow-back" size={24} color={colors.text} />
+</TouchableOpacity>
+
         {/* Success Icon */}
         <View style={styles.iconWrapper}>
           <View style={styles.iconCircle}>

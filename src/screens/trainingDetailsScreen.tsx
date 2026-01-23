@@ -311,12 +311,12 @@ const getStyles = (colors: any) =>
       fontSize: 11,
       fontWeight: "800",
     },
+imageTitle: {
+  color: colors.subText ?? "#dfe3ea",
+  fontSize: 26,
+  fontWeight: "800",
+},
 
-    imageTitle: {
-      color: colors.text ?? "#ffffff",
-      fontSize: 26,
-      fontWeight: "800",
-    },
 
     /* ================= INFO ROW ================= */
     infoRow: {

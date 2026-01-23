@@ -37,7 +37,6 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import { useTheme } from "../context/ThemeContext";
 
 
-
 // const { lightMode, toggleTheme } = useTheme();
 
 
