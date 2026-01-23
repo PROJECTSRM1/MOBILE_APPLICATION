@@ -75,238 +75,6 @@ const PROFESSIONALS: Professional[] = [
   },
 ];
 
-const EmployeeAllocation = () => {
-  const navigation = useNavigation<any>();
-  const route = useRoute<any>();
-  const scrollViewRef = useRef<ScrollView>(null);
- const { colors } = useTheme();
-    const styles = getStyles(colors);
-  const [selectedId, setSelectedId] = useState<string>("1");
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isAutoAllocating, setIsAutoAllocating] = useState(false);
-
-  // Check if coming from booking with auto-allocation
-  const isAutoAllocation = route.params?.isAutoAllocation || false;
-
-  useEffect(() => {
-    if (isAutoAllocation) {
-      handleAutoAllocation();
-    }
-  }, [isAutoAllocation]);
-
-  const handleAutoAllocation = () => {
-    setIsAutoAllocating(true);
-
-    // Find employee with highest rating
-    setTimeout(() => {
-      const sortedByRating = [...PROFESSIONALS].sort(
-        (a, b) => b.ratingValue - a.ratingValue
-      );
-      const topEmployee = sortedByRating[0];
-
-      setIsAutoAllocating(false);
-      navigation.navigate("BookCleaning", {
-        allocatedEmployee: topEmployee,
-      });
-    }, 2500);
-  };
-
-  const handleScroll = (event: any) => {
-    const scrollPosition = event.nativeEvent.contentOffset.x;
-    const index = Math.round(scrollPosition / (CARD_WIDTH + CARD_MARGIN * 2));
-    setCurrentIndex(index);
-
-    if (PROFESSIONALS[index]) {
-      setSelectedId(PROFESSIONALS[index].id);
-    }
-  };
-
-  const scrollToIndex = (index: number) => {
-    scrollViewRef.current?.scrollTo({
-      x: index * (CARD_WIDTH + CARD_MARGIN * 2),
-      animated: true,
-    });
-  };
-
-  const handleConfirm = () => {
-    const selectedEmployee = PROFESSIONALS.find((p) => p.id === selectedId);
-    if (selectedEmployee) {
-      navigation.navigate("BookCleaning", {
-        allocatedEmployee: selectedEmployee,
-      });
-    }
-  };
-
-  if (isAutoAllocating) {
-    return (
-      <SafeAreaView style={styles.safe}>
-       <StatusBar
-  barStyle={colors.background === "#ffffff" ? "dark-content" : "light-content"}
-/>
-
-        <LinearGradient
-  colors={[colors.gradientStart, colors.gradientEnd]}
-  style={styles.container}
->
-
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#1a5cff" />
-            <Text style={styles.loadingText}>Allocating best professional for you...</Text>
-            <Text style={styles.loadingSubtext}>
-              Finding the highest rated professional in your area
-            </Text>
-          </View>
-        </LinearGradient>
-      </SafeAreaView>
-    );
-  }
-
-  return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="light-content" />
-
-    <LinearGradient
-  colors={[colors.gradientStart, colors.gradientEnd]}
-  style={styles.container}
->
-
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Icon name="arrow-back-ios-new" size={22} color="#fff" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Select Professional</Text>
-          <View style={{ width: 24 }} />
-        </View>
-
-        {/* List Header */}
-        <View style={styles.listHeader}>
-          <Text style={styles.listTitle}>Available Professionals</Text>
-          <Text style={styles.sortText}>Sorted by: Location</Text>
-        </View>
-
-        {/* Horizontal Scrolling Cards */}
-        <ScrollView
-          ref={scrollViewRef}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onScroll={handleScroll}
-          scrollEventThrottle={16}
-          decelerationRate="fast"
-          snapToInterval={CARD_WIDTH + CARD_MARGIN * 2}
-          snapToAlignment="center"
-          contentContainerStyle={styles.scrollContent}
-        >
-          {PROFESSIONALS.map((item, index) => {
-            const selected = selectedId === item.id;
-
-            return (
-              <TouchableOpacity
-                key={item.id}
-                activeOpacity={0.95}
-                onPress={() => {
-                  setSelectedId(item.id);
-                  scrollToIndex(index);
-                }}
-                style={[styles.card, selected && styles.cardSelected]}
-              >
-                {/* Professional Image */}
-                <View style={styles.imageContainer}>
-                  <Image
-  source={{ uri: item.image }}
-  style={styles.avatar}
-/>
-                  {item.verified && (
-                    <View style={styles.verified}>
-                      <Icon name="verified" size={20} color="#facc15" />
-                    </View>
-                  )}
-                </View>
-
-                {/* Professional Info */}
-                <View style={styles.infoContainer}>
-                  <Text style={styles.name}>{item.name}</Text>
-                  <Text style={[styles.role, selected && { color: "#1a5cff" }]}>
-                    {item.role}
-                  </Text>
-
-                  {/* Rating & Distance */}
-                  <View style={styles.metaContainer}>
-                    <View style={styles.metaRow}>
-                      <View style={styles.ratingBox}>
-                        <Icon name="star" size={16} color="#facc15" />
-                        <Text style={styles.meta}>{item.rating}</Text>
-                      </View>
-                    </View>
-
-                    <View style={styles.metaRow}>
-                      <View style={styles.distanceBox}>
-                        <Icon name="near-me" size={16} color="#1a5cff" />
-                        <Text style={styles.meta}>{item.distance}</Text>
-                      </View>
-                    </View>
-                  </View>
-
-                  {/* Mobile Number */}
-                  <View style={styles.mobileContainer}>
-                    <Text style={styles.mobileLabel}>Mobile Number</Text>
-                    <Text style={styles.mobileNumber}>{item.mobileNumber}</Text>
-                  </View>
-                </View>
-
-                {/* Selection Indicator */}
-                <View style={styles.selectionContainer}>
-                  <View style={[styles.radio, selected && styles.radioSelected]}>
-                    {selected && <View style={styles.radioInner} />}
-                  </View>
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-
-        {/* Pagination Dots */}
-        <View style={styles.pagination}>
-          {PROFESSIONALS.map((_, index) => (
-            <TouchableOpacity
-              key={index}
-              onPress={() => scrollToIndex(index)}
-              style={[styles.dot, currentIndex === index && styles.dotActive]}
-            />
-          ))}
-        </View>
-
-        {/* Footer */}
-        <View style={styles.footer}>
-          <View style={styles.filters}>
-            <View style={styles.filterBtn}>
-              <Icon name="tune" size={18} color="#1a5cff" />
-              <Text style={styles.filterText}>Service: Deep Clean</Text>
-            </View>
-            <View style={styles.filterBtn}>
-              <Icon name="sort" size={18} color="#1a5cff" />
-              <Text style={styles.filterText}>Sort: Nearby</Text>
-            </View>
-          </View>
-
-          <TouchableOpacity onPress={handleConfirm}>
-            <LinearGradient
-              colors={["#1a5cff", "#0f4ae0"]}
-              style={styles.confirmBtn}
-            >
-              <Text style={styles.confirmText}>Confirm Allocation</Text>
-              <Icon name="check" size={20} color="#fff" />
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
-    </SafeAreaView>
-  );
-};
-
-export default EmployeeAllocation;
-
 const getStyles = (colors: any) =>
   StyleSheet.create({
     safe: {
@@ -598,3 +366,257 @@ const getStyles = (colors: any) =>
       textAlign: "center",
     },
   });
+
+const EmployeeAllocation = () => {
+  const navigation = useNavigation<any>();
+  const route = useRoute<any>();
+  const scrollViewRef = useRef<ScrollView>(null);
+ const { colors } = useTheme();
+    const styles = getStyles(colors);
+  const [selectedId, setSelectedId] = useState<string>("1");
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isAutoAllocating, setIsAutoAllocating] = useState(false);
+
+  // Check if coming from booking with auto-allocation
+  const isAutoAllocation = route.params?.isAutoAllocation || false;
+
+  useEffect(() => {
+    if (isAutoAllocation) {
+      handleAutoAllocation();
+    }
+  }, [isAutoAllocation]);
+
+  const handleAutoAllocation = () => {
+    setIsAutoAllocating(true);
+
+    // Find employee with highest rating
+    setTimeout(() => {
+      const sortedByRating = [...PROFESSIONALS].sort(
+        (a, b) => b.ratingValue - a.ratingValue
+      );
+      const topEmployee = sortedByRating[0];
+
+      setIsAutoAllocating(false);
+      // navigation.navigate("BookCleaning", {
+      //   allocatedEmployee: topEmployee,
+      // });
+ navigation.navigate({
+  name: "BookCleaning",
+  params: { 
+    allocatedEmployee: topEmployee,
+    // PRESERVE ORIGINAL DATA
+    selectedServices: route.params?.selectedServices,
+    allServices: route.params?.selectedServices, // Use allServices for consistency
+    consultationCharge: route.params?.consultationCharge,
+  },
+  merge: true,
+});
+    }, 2000);
+  };
+
+  const handleScroll = (event: any) => {
+    const scrollPosition = event.nativeEvent.contentOffset.x;
+    const index = Math.round(scrollPosition / (CARD_WIDTH + CARD_MARGIN * 2));
+    setCurrentIndex(index);
+
+    if (PROFESSIONALS[index]) {
+      setSelectedId(PROFESSIONALS[index].id);
+    }
+  };
+
+  const scrollToIndex = (index: number) => {
+    scrollViewRef.current?.scrollTo({
+      x: index * (CARD_WIDTH + CARD_MARGIN * 2),
+      animated: true,
+    });
+  };
+
+  const handleConfirm = () => {
+    const selectedEmployee = PROFESSIONALS.find((p) => p.id === selectedId);
+    if (selectedEmployee) {
+      // navigation.navigate("BookCleaning", {
+      //   allocatedEmployee: selectedEmployee,
+      // });
+   navigation.navigate({
+  name: "BookCleaning",
+  params: { 
+    allocatedEmployee: selectedEmployee,
+    // PRESERVE ORIGINAL DATA
+    selectedServices: route.params?.selectedServices,
+    allServices: route.params?.selectedServices,
+    consultationCharge: route.params?.consultationCharge,
+  },
+  merge: true,
+});
+    }
+  };
+
+  if (isAutoAllocating) {
+    return (
+      <SafeAreaView style={styles.safe}>
+       <StatusBar
+  barStyle={colors.background === "#ffffff" ? "dark-content" : "light-content"}
+/>
+
+        <LinearGradient
+  colors={[colors.gradientStart, colors.gradientEnd]}
+  style={styles.container}
+>
+
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#1a5cff" />
+            <Text style={styles.loadingText}>Allocating best professional for you...</Text>
+            <Text style={styles.loadingSubtext}>
+              Finding the highest rated professional in your area
+            </Text>
+          </View>
+        </LinearGradient>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <StatusBar barStyle="light-content" />
+
+    <LinearGradient
+  colors={[colors.gradientStart, colors.gradientEnd]}
+  style={styles.container}
+>
+
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Icon name="arrow-back-ios-new" size={22} color="#fff" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Select Professional</Text>
+          <View style={{ width: 24 }} />
+        </View>
+
+        {/* List Header */}
+        <View style={styles.listHeader}>
+          <Text style={styles.listTitle}>Available Professionals</Text>
+          <Text style={styles.sortText}>Sorted by: Location</Text>
+        </View>
+
+        {/* Horizontal Scrolling Cards */}
+        <ScrollView
+          ref={scrollViewRef}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          decelerationRate="fast"
+          snapToInterval={CARD_WIDTH + CARD_MARGIN * 2}
+          snapToAlignment="center"
+          contentContainerStyle={styles.scrollContent}
+        >
+          {PROFESSIONALS.map((item, index) => {
+            const selected = selectedId === item.id;
+
+            return (
+              <TouchableOpacity
+                key={item.id}
+                activeOpacity={0.95}
+                onPress={() => {
+                  setSelectedId(item.id);
+                  scrollToIndex(index);
+                }}
+                style={[styles.card, selected && styles.cardSelected]}
+              >
+                {/* Professional Image */}
+                <View style={styles.imageContainer}>
+                  <Image
+  source={{ uri: item.image }}
+  style={styles.avatar}
+/>
+                  {item.verified && (
+                    <View style={styles.verified}>
+                      <Icon name="verified" size={20} color="#facc15" />
+                    </View>
+                  )}
+                </View>
+
+                {/* Professional Info */}
+                <View style={styles.infoContainer}>
+                  <Text style={styles.name}>{item.name}</Text>
+                  <Text style={[styles.role, selected && { color: "#1a5cff" }]}>
+                    {item.role}
+                  </Text>
+
+                  {/* Rating & Distance */}
+                  <View style={styles.metaContainer}>
+                    <View style={styles.metaRow}>
+                      <View style={styles.ratingBox}>
+                        <Icon name="star" size={16} color="#facc15" />
+                        <Text style={styles.meta}>{item.rating}</Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.metaRow}>
+                      <View style={styles.distanceBox}>
+                        <Icon name="near-me" size={16} color="#1a5cff" />
+                        <Text style={styles.meta}>{item.distance}</Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* Mobile Number */}
+                  <View style={styles.mobileContainer}>
+                    <Text style={styles.mobileLabel}>Mobile Number</Text>
+                    <Text style={styles.mobileNumber}>{item.mobileNumber}</Text>
+                  </View>
+                </View>
+
+                {/* Selection Indicator */}
+                <View style={styles.selectionContainer}>
+                  <View style={[styles.radio, selected && styles.radioSelected]}>
+                    {selected && <View style={styles.radioInner} />}
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+
+        {/* Pagination Dots */}
+        <View style={styles.pagination}>
+          {PROFESSIONALS.map((_, index) => (
+            <TouchableOpacity
+              key={index}
+              onPress={() => scrollToIndex(index)}
+              style={[styles.dot, currentIndex === index && styles.dotActive]}
+            />
+          ))}
+        </View>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <View style={styles.filters}>
+            <View style={styles.filterBtn}>
+              <Icon name="tune" size={18} color="#1a5cff" />
+              <Text style={styles.filterText}>Service: Deep Clean</Text>
+            </View>
+            <View style={styles.filterBtn}>
+              <Icon name="sort" size={18} color="#1a5cff" />
+              <Text style={styles.filterText}>Sort: Nearby</Text>
+            </View>
+          </View>
+
+          <TouchableOpacity onPress={handleConfirm}>
+            <LinearGradient
+              colors={["#1a5cff", "#0f4ae0"]}
+              style={styles.confirmBtn}
+            >
+              <Text style={styles.confirmText}>Confirm Allocation</Text>
+              <Icon name="check" size={20} color="#fff" />
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      </LinearGradient>
+    </SafeAreaView>
+  );
+};
+
+export default EmployeeAllocation;

@@ -28,7 +28,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTheme } from "../context/ThemeContext";
-import DocumentPicker from "react-native-document-picker";
+import { launchImageLibrary, launchCamera } from "react-native-image-picker";
+
 
 /* =========================
    TYPES
@@ -51,28 +52,6 @@ type RootStackParamList = {
 ========================= */
 
 const CandidateProfile = () => {
-  const handleUploadResume = async () => {
-  try {
-    const res = await DocumentPicker.pickSingle({
-      type: [
-        DocumentPicker.types.pdf,
-        DocumentPicker.types.doc,
-        DocumentPicker.types.docx,
-      ],
-    });
-
-    console.log("Selected resume:", res);
-    // res.uri  -> file path
-    // res.name -> file name
-  } catch (err: any) {
-    if (DocumentPicker.isCancel(err)) {
-      console.log("User cancelled upload");
-    } else {
-      console.log("Upload error:", err);
-    }
-  }
-};
-
   const navigation = useNavigation();
   const route =
     useRoute<RouteProp<RootStackParamList, "CandidateProfile">>();
@@ -103,6 +82,40 @@ const CandidateProfile = () => {
 
   /* ===== VERIFICATION ===== */
   const [isVerified, setIsVerified] = useState<boolean>(false);
+
+  /* ===== UPLOAD RESUME HANDLER ===== */
+  const handleUploadResume = async () => {
+    launchImageLibrary(
+      {
+        mediaType: "photo",
+        quality: 0.8,
+      },
+      (response) => {
+        if (response.didCancel) {
+          console.log("User cancelled image picker");
+          return;
+        }
+
+        if (response.errorCode) {
+          console.log("ImagePicker Error: ", response.errorMessage);
+          return;
+        }
+
+        if (response.assets && response.assets.length > 0) {
+          const file = response.assets[0];
+
+          console.log("Selected file:", {
+            uri: file.uri,
+            name: file.fileName,
+            type: file.type,
+            size: file.fileSize,
+          });
+
+          // TODO: upload this file to server
+        }
+      }
+    );
+  };
 
   useEffect(() => {
     const loadStatus = async () => {
@@ -203,32 +216,33 @@ const CandidateProfile = () => {
         </Section>
 
         {/* ACTION BUTTONS */}
-       {/* ACTION BUTTONS */}
-<View style={styles.actionRow}>
-  {/* DOWNLOAD RESUME */}
-  <TouchableOpacity style={styles.secondaryBtn}>
-    <Download size={16} color={colors.text} />
-    <Text style={styles.secondaryText}>Download Resume</Text>
-  </TouchableOpacity>
+        <View style={styles.actionRow}>
+          {/* DOWNLOAD RESUME */}
+          <TouchableOpacity style={styles.secondaryBtn}>
+            <Download size={16} color={colors.text} />
+            <Text style={styles.secondaryText}>Download Resume</Text>
+          </TouchableOpacity>
 
-  {/* UPLOAD RESUME */}
-  <TouchableOpacity style={styles.secondaryBtn}>
-    <UploadCloud size={16} color={colors.text} />
-    <Text style={styles.secondaryText}>Upload Resume</Text>
-  </TouchableOpacity>
+          {/* UPLOAD RESUME */}
+          <TouchableOpacity
+            style={styles.secondaryBtn}
+            onPress={handleUploadResume}
+          >
+            <UploadCloud size={16} color={colors.text} />
+            <Text style={styles.secondaryText}>Upload Resume</Text>
+          </TouchableOpacity>
 
-  {/* EDIT PROFILE */}
-  <TouchableOpacity
-    style={styles.primaryBtn}
-    onPress={() => setEditMode(!editMode)}
-  >
-    <Edit3 size={16} color="#fff" />
-    <Text style={styles.primaryText}>
-      {editMode ? "Save Profile" : "Edit Profile"}
-    </Text>
-  </TouchableOpacity>
-</View>
-
+          {/* EDIT PROFILE */}
+          <TouchableOpacity
+            style={styles.primaryBtn}
+            onPress={() => setEditMode(!editMode)}
+          >
+            <Edit3 size={16} color="#fff" />
+            <Text style={styles.primaryText}>
+              {editMode ? "Save Profile" : "Edit Profile"}
+            </Text>
+          </TouchableOpacity>
+        </View>
 
         {/* EDUCATION */}
         <EducationCard
