@@ -96,6 +96,7 @@ const navigation = useNavigation<InternshipListNavProp>();
   const [activeTab, setActiveTab] = useState<number>(1);
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<number>>(new Set());
   const [showBookmarks, setShowBookmarks] = useState<boolean>(false);
+const [showFilterModal, setShowFilterModal] = useState(false);
 
   // Toggle bookmark
   const toggleBookmark = (id: number) => {
@@ -281,9 +282,10 @@ const navigation = useNavigation<InternshipListNavProp>();
                 value={searchQuery}
                 onChangeText={setSearchQuery}
               />
-              <TouchableOpacity>
-                <Icon name="tune" size={24} color="#135bec" style={styles.filterIcon} />
-              </TouchableOpacity>
+             <TouchableOpacity onPress={() => setShowFilterModal(true)}>
+  <Icon name="tune" size={24} color="#135bec" style={styles.filterIcon} />
+</TouchableOpacity>
+
             </View>
           </View>
         )}
@@ -312,7 +314,36 @@ const navigation = useNavigation<InternshipListNavProp>();
               </TouchableOpacity>
             ))}
           </ScrollView>
+          
         )}
+{/* Filter Modal */}
+{showFilterModal && (
+  <View style={styles.modalOverlay}>
+    <View style={styles.modalContent}>
+      <Text style={styles.modalTitle}>Select Filter</Text>
+      
+      {filters.slice(1).map((filter, index) => (
+        <TouchableOpacity
+          key={filter}
+          style={styles.modalOption}
+          onPress={() => {
+            setActiveFilter(index + 1); // +1 because filters[0] is "All"
+            setShowFilterModal(false);
+          }}
+        >
+          <Text style={styles.modalOptionText}>{filter}</Text>
+        </TouchableOpacity>
+      ))}
+
+      <TouchableOpacity
+        style={styles.modalCloseButton}
+        onPress={() => setShowFilterModal(false)}
+      >
+        <Text style={styles.modalCloseText}>Cancel</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+)}
 
         {/* Internship Cards */}
         <ScrollView 
@@ -630,6 +661,66 @@ const getStyles = (colors: any) =>
       fontWeight: "500",
       color: colors.subText,
     },
+/* ================= FILTER MODAL ================= */
+modalOverlay: {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  backgroundColor: 'rgba(0,0,0,0.5)',
+  justifyContent: 'center',
+  alignItems: 'center',
+  zIndex: 1000,
+},
+
+modalContent: {
+  width: '80%',
+  backgroundColor: colors.surface,
+  borderRadius: 16,
+  padding: 20,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.25,
+  shadowRadius: 4,
+  elevation: 5,
+},
+
+modalTitle: {
+  fontSize: 18,
+  fontWeight: '700',
+  color: colors.text,
+  marginBottom: 16,
+  textAlign: 'center',
+},
+
+modalOption: {
+  paddingVertical: 12,
+  paddingHorizontal: 16,
+  borderRadius: 12,
+  backgroundColor: colors.card,
+  marginBottom: 8,
+},
+
+modalOptionText: {
+  fontSize: 16,
+  color: colors.text,
+  fontWeight: '500',
+},
+
+modalCloseButton: {
+  marginTop: 12,
+  paddingVertical: 12,
+  borderRadius: 12,
+  backgroundColor: colors.muted,
+  alignItems: 'center',
+},
+
+modalCloseText: {
+  fontSize: 16,
+  fontWeight: '600',
+  color: colors.text,
+},
 
     description: {
       fontSize: 14,
