@@ -87,6 +87,10 @@ const ADDON_PRICE = 25;
 
 // FIXED: Enhanced category detection function
 const detectCategoryFromTitle = (serviceTitle: string): string | null => {
+    if (!serviceTitle || typeof serviceTitle !== 'string') {
+    console.warn('Invalid service title:', serviceTitle);
+    return null;
+  }
   const cleanTitle = serviceTitle.toLowerCase().replace(/ service$/i, '').trim();
   
   // First, try exact match in ALL_SERVICES
@@ -148,44 +152,60 @@ const BookCleaningScreen: React.FC = () => {
   const incomingSelectedService = route.params?.selectedService; // From Commercial/Vehicle
   const incomingServiceArray = route.params?.selectedServices;  // From ServiceDetails (Plumbing/Painting/etc)
   const incomingAllServices = route.params?.allServices;
-  // const [selectedServices, setSelectedServices] = useState<Service[]>(() => {
-  //   // 1. If we got an array of services (from ServiceDetailsScreen)
-  // if (incomingAllServices && incomingAllServices.length > 0) {
-  //   return incomingAllServices.map((title: string) => {
-  //     // Find the full service object from ALL_SERVICES by title
-  //     const match = ALL_SERVICES.find(s => s.title === title);
-  //     return match || {
-  //       id: 'virtual-' + Math.random(),
-  //       title: title,
-  //       category: detectCategoryFromTitle(title) || 'Home'
-  //     };
-  //   });
-  // }
+  
 
-  //   // 2. If we got a single service title (from Commercial/Home/Vehicle)
-  //   if (incomingServiceArray && incomingServiceArray.length > 0) {
-  //     const match = ALL_SERVICES.find(s => 
-  //       s.title.toLowerCase().includes(incomingSelectedService.toLowerCase()) ||
-  //       incomingSelectedService.toLowerCase().includes(s.title.toLowerCase())
-  //     );
-      
-  //     if (match) return [match];
+//   const [selectedServices, setSelectedServices] = useState<Service[]>(() => {
+//   // PRIORITY 1: Check if we have allServices (from navigation back)
+//   if (incomingAllServices && incomingAllServices.length > 0) {
+//     return incomingAllServices.map((title: string) => {
+//       const match = ALL_SERVICES.find(s => s.title === title);
+//       return match || {
+//         id: 'virtual-' + Math.random(),
+//         title: title,
+//         category: detectCategoryFromTitle(title) || 'Home'
+//       };
+//     });
+//   }
 
-  //     // Fallback virtual service
-  //     const cat = detectCategoryFromTitle(incomingSelectedService);
-  //     return [{
-  //       id: 'virtual-' + Date.now(),
-  //       title: incomingSelectedService,
-  //       category: cat || 'Home'
-  //     }];
-  //   }
-  //   return [];
-  // });
+//   // PRIORITY 2: Check if we have selectedServices array from EmployeeAllocation
+//   if (route.params?.selectedServices && route.params.selectedServices.length > 0) {
+//     return route.params.selectedServices.map((title: string) => {
+//       const match = ALL_SERVICES.find(s => s.title === title);
+//       return match || {
+//         id: 'virtual-' + Math.random(),
+//         title: title,
+//         category: detectCategoryFromTitle(title) || 'Home'
+//       };
+//     });
+//   }
 
-  const [selectedServices, setSelectedServices] = useState<Service[]>(() => {
+//   // PRIORITY 3: Single service from Commercial/Home/Vehicle
+//   if (incomingSelectedService) {
+//     const match = ALL_SERVICES.find(s => 
+//       s.title.toLowerCase().includes(incomingSelectedService.toLowerCase()) ||
+//       incomingSelectedService.toLowerCase().includes(s.title.toLowerCase())
+//     );
+    
+//     if (match) return [match];
+
+//     const cat = detectCategoryFromTitle(incomingSelectedService);
+//     return [{
+//       id: 'virtual-' + Date.now(),
+//       title: incomingSelectedService,
+//       category: cat || 'Home'
+//     }];
+//   }
+  
+//   return [];
+// });
+
+
+const [selectedServices, setSelectedServices] = useState<Service[]>(() => {
   // PRIORITY 1: Check if we have allServices (from navigation back)
   if (incomingAllServices && incomingAllServices.length > 0) {
-    return incomingAllServices.map((title: string) => {
+    return incomingAllServices.map((item: any) => {
+      // SAFETY: Ensure we have a string title
+      const title = typeof item === 'string' ? item : item?.title || '';
       const match = ALL_SERVICES.find(s => s.title === title);
       return match || {
         id: 'virtual-' + Math.random(),
@@ -197,7 +217,9 @@ const BookCleaningScreen: React.FC = () => {
 
   // PRIORITY 2: Check if we have selectedServices array from EmployeeAllocation
   if (route.params?.selectedServices && route.params.selectedServices.length > 0) {
-    return route.params.selectedServices.map((title: string) => {
+    return route.params.selectedServices.map((item: any) => {
+      // SAFETY: Ensure we have a string title
+      const title = typeof item === 'string' ? item : item?.title || '';
       const match = ALL_SERVICES.find(s => s.title === title);
       return match || {
         id: 'virtual-' + Math.random(),
@@ -209,24 +231,28 @@ const BookCleaningScreen: React.FC = () => {
 
   // PRIORITY 3: Single service from Commercial/Home/Vehicle
   if (incomingSelectedService) {
+    // SAFETY: Ensure it's a string
+    const serviceStr = typeof incomingSelectedService === 'string' 
+      ? incomingSelectedService 
+      : incomingSelectedService?.title || '';
+      
     const match = ALL_SERVICES.find(s => 
-      s.title.toLowerCase().includes(incomingSelectedService.toLowerCase()) ||
-      incomingSelectedService.toLowerCase().includes(s.title.toLowerCase())
+      s.title.toLowerCase().includes(serviceStr.toLowerCase()) ||
+      serviceStr.toLowerCase().includes(s.title.toLowerCase())
     );
     
     if (match) return [match];
 
-    const cat = detectCategoryFromTitle(incomingSelectedService);
+    const cat = detectCategoryFromTitle(serviceStr);
     return [{
       id: 'virtual-' + Date.now(),
-      title: incomingSelectedService,
+      title: serviceStr,
       category: cat || 'Home'
     }];
   }
   
   return [];
 });
-
   // LOGIC
   const mainService = selectedServices[0];
   const addonServices = selectedServices.slice(1);
