@@ -293,23 +293,23 @@ const AuthScreen = () => {
               <Input label="Aadhaar Number" value={aadhaar} onChange={setAadhaar} />
               <Input label="Location" value={location} onChange={setLocation} />
 
-              <Text style={styles.label}>Select Role</Text>
-              <View style={styles.dropdownWrapper}>
-                <Picker
-                  selectedValue={role}
-                  onValueChange={setRole}
-                  style={styles.picker}
-                  dropdownIconColor="#ffffff"
-                >
-                
+            {hasHealthService && (
+  <>
+    <Text style={styles.label}>Select Role</Text>
+    <View style={styles.dropdownWrapper}>
+      <Picker
+        selectedValue={role}
+        onValueChange={setRole}
+        style={styles.picker}
+        dropdownIconColor="#ffffff"
+      >
+        <Picker.Item label="Select role" value="" />
+        <Picker.Item label="Doctor" value="doctor" />
+      </Picker>
+    </View>
+  </>
+)}
 
-                  {hasHealthService && (
-                    <Picker.Item label="Doctor" value="doctor" />
-                  )}
-
-                 
-                </Picker>
-              </View>
 
               {/* DOCTOR-SPECIFIC FIELDS */}
               {role === 'doctor' && (
