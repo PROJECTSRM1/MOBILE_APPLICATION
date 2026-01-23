@@ -512,12 +512,11 @@ const Landing = () => {
           ))}
         </ScrollView>
 
-        {/* ================= CORE SERVICES ================= */}
-        <View style={styles.sectionHeader}>
+        {/* <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Core Services</Text>
-        </View>
+        </View> */}
 
-        <View style={styles.grid}>
+        {/* <View style={styles.grid}>
   {[
     { name: "Housing / Cleaning", icon: "home" },
     { name: "Education", icon: "school" },
@@ -585,7 +584,7 @@ const Landing = () => {
       </TouchableOpacity>
     );
   })}
-</View>
+</View> */}
 
 
         {/* ================= TRENDING ================= */}
@@ -654,7 +653,7 @@ const Landing = () => {
           })}
         </View>
 
-        {/* ================= TRENDING - WITH FIXED AUTOSCROLL ================= */}
+         {/* ================= TRENDING - WITH FIXED AUTOSCROLL ================= */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Trending Near You</Text>
           <TouchableOpacity onPress={() => navigation.navigate("Marketplace")}>
