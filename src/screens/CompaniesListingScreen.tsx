@@ -150,7 +150,8 @@ const CompaniesScreen = () => {
   const [activeTab, setActiveTab] = useState<number>(2);
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<number>>(new Set());
   const [showBookmarks, setShowBookmarks] = useState<boolean>(false);
-  
+  const [sortBy, setSortBy] = useState<'name' | 'location' | 'size' | null>(null);
+
   // Dropdown states
   const [showIndustryDropdown, setShowIndustryDropdown] = useState<boolean>(false);
   const [showLocationDropdown, setShowLocationDropdown] = useState<boolean>(false);
@@ -213,9 +214,24 @@ const CompaniesScreen = () => {
         );
       }
     }
+// Apply sorting
+if (sortBy) {
+  result = [...result].sort((a, b) => {
+    switch (sortBy) {
+      case 'name':
+        return a.name.localeCompare(b.name);
+      case 'location':
+        return a.location.localeCompare(b.location);
+      case 'size':
+        return a.size.localeCompare(b.size);
+      default:
+        return 0;
+    }
+  });
+}
 
     return result;
-  }, [selectedIndustry, selectedLocation, selectedSize, searchQuery, showBookmarks, bookmarkedIds]);
+  }, [selectedIndustry, selectedLocation, selectedSize, searchQuery, showBookmarks, bookmarkedIds, sortBy,]);
 
   // Companies to display (with pagination)
   const displayedCompanies = showBookmarks ? filteredCompanies : filteredCompanies.slice(0, displayCount);
@@ -225,7 +241,15 @@ const CompaniesScreen = () => {
     setDisplayCount(prev => Math.min(prev + 4, filteredCompanies.length));
   };
 
- const CompanyCard = ({ company }: { company: Company }) => {
+const CompanyCard = ({ 
+  company, 
+  bookmarkedIds, 
+  toggleBookmark 
+}: { 
+  company: Company; 
+  bookmarkedIds: Set<number>;
+  toggleBookmark: (id: number) => void;
+}) => {
   const isBookmarked = bookmarkedIds.has(company.id);
   
   const handleViewDetails = () => {
@@ -247,17 +271,18 @@ const CompaniesScreen = () => {
             </View>
           </View>
           <TouchableOpacity 
-            onPress={(e) => {
-              e.stopPropagation(); // Prevent card click when bookmarking
-              toggleBookmark(company.id);
-            }}
-          >
-            <MaterialIcons 
-              name={isBookmarked ? "bookmark" : "bookmark-border"} 
-              size={24} 
-              color={isBookmarked ? "#135bec" : "#9da6b9"} 
-            />
-          </TouchableOpacity>
+  onPress={(e) => {
+    e.stopPropagation(); // Prevent card click when bookmarking
+    toggleBookmark(company.id);
+  }}
+>
+  <MaterialIcons 
+    name={isBookmarked ? "bookmark" : "bookmark-border"} 
+    size={24} 
+    color={isBookmarked ? colors.primary : "#9da6b9"} 
+  />
+</TouchableOpacity>
+
         </View>
 
         <Text style={styles.description} numberOfLines={2}>
@@ -373,9 +398,13 @@ const CompaniesScreen = () => {
       
         {/* Top Bar */}
         <View style={styles.topBar}>
-          <TouchableOpacity style={styles.iconButton}>
-            <MaterialIcons name="arrow-back" size={24} color={colors.text} />
-          </TouchableOpacity>
+          <TouchableOpacity 
+  style={styles.iconButton} 
+  onPress={() => navigation.goBack()}
+>
+  <MaterialIcons name="arrow-back" size={24} color={colors.text} />
+</TouchableOpacity>
+
           <Text style={styles.pageTitle}>
             {showBookmarks ? 'Bookmarks' : 'Companies'}
           </Text>
@@ -486,7 +515,20 @@ const CompaniesScreen = () => {
             <Text style={styles.resultsText}>
               Showing {filteredCompanies.length} companies
             </Text>
-            <TouchableOpacity style={styles.sortButton}>
+            <TouchableOpacity
+  style={styles.sortButton}
+  onPress={() => {
+    setSortBy(prev =>
+      prev === 'name'
+        ? 'location'
+        : prev === 'location'
+        ? 'size'
+        : 'name'
+    );
+    setDisplayCount(4); // reset pagination
+  }}
+>
+
               <Text style={styles.sortText}>Sort by</Text>
               <MaterialIcons name="sort" size={18} color="#135bec" />
             </TouchableOpacity>
@@ -501,9 +543,15 @@ const CompaniesScreen = () => {
         >
           {displayedCompanies.length > 0 ? (
             <>
-              {displayedCompanies.map((company) => (
-                <CompanyCard key={company.id} company={company} />
-              ))}
+            {displayedCompanies.map((company) => (
+  <CompanyCard 
+    key={company.id} 
+    company={company} 
+    bookmarkedIds={bookmarkedIds} 
+    toggleBookmark={toggleBookmark} 
+  />
+))}
+
               
               {/* Load More Button - Only show when there are more companies to load */}
               {hasMoreCompanies && (
@@ -611,15 +659,21 @@ const getStyles = (colors: any) =>
       flex: 1,
       backgroundColor: colors.background,
     },
-
-    topBar: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      backgroundColor: colors.background,
-    },
+topBar: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  paddingHorizontal: 16,
+  paddingVertical: 12,
+  backgroundColor: '#cfd4d8', // match StatusBar
+},
+pageTitle: {
+  fontSize: 18,
+  fontWeight: '700',
+  color: '#050505', // white text
+  flex: 1,
+  textAlign: 'center',
+},
 
     iconButton: {
       width: 40,
@@ -629,13 +683,13 @@ const getStyles = (colors: any) =>
       borderRadius: 20,
     },
 
-    pageTitle: {
-      fontSize: 18,
-      fontWeight: '700',
-      color: colors.text,
-      flex: 1,
-      textAlign: 'center',
-    },
+    // pageTitle: {
+    //   fontSize: 18,
+    //   fontWeight: '700',
+    //   color: colors.text,
+    //   flex: 1,
+    //   textAlign: 'center',
+    // },
 
     bookmarkBadge: {
       position: 'absolute',

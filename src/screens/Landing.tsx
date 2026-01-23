@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect,useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -8,16 +7,14 @@ import {
   Image,
   TouchableOpacity,
   TextInput,
-  
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { useNavigation, useRoute, useFocusEffect } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Animated } from "react-native";
 import { useTheme } from "../context/ThemeContext";
-
 
 interface UserProfile {
   firstName: string;
@@ -29,24 +26,39 @@ interface UserProfile {
 
 const Landing = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
-  const route = useRoute<any>();
-  const verticalScrollRef = useRef<ScrollView>(null);
-  const scrollY = useRef(new Animated.Value(0)).current;
   const { colors } = useTheme();
-const styles = getStyles(colors);
+  const styles = getStyles(colors);
 
-
+  // ALL useRef HOOKS MUST BE AT THE TOP - BEFORE ANY CONDITIONS
+  const scrollRef = useRef<ScrollView>(null);
+  const currentIndex = useRef(0);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const translateYAnim = useRef(new Animated.Value(0)).current;
+  const trendingScrollRef = useRef<ScrollView>(null);
+  const trendingCurrentIndex = useRef(0);
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   /* ================= STATE ================= */
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [userLocation, setUserLocation] = useState<string>("New York, NY");
   const [userName, setUserName] = useState<string>("");
-  const [showMoreOptions, setShowMoreOptions] = useState(false);
-const scrollRef = useRef<ScrollView>(null);
-const currentIndex = useRef(0);
-const [showRoleMenu, setShowRoleMenu] = useState(false);
+  const [showRoleMenu, setShowRoleMenu] = useState(false);
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
 
-
+  // Placeholder texts array
+  const placeholders = [
+    "Find Housing/Cleaning services...",
+    "Find Jobs...",
+    "Find Swachify Products...",
+    "Find Education & Courses...",
+    "Find Freelance services...",
+    "Find Buy/Sell items...",
+    "Find Health Care services...",
+    "Find Raw Materials...",
+    "Find Just Ride services...",
+  ];
 
   /* ================= LOAD USER DATA ================= */
   useEffect(() => {
@@ -60,7 +72,6 @@ const [showRoleMenu, setShowRoleMenu] = useState(false);
     }, [])
   );
 
-  
   const checkLoginStatus = async () => {
     try {
       const storedUser = await AsyncStorage.getItem("userProfile");
@@ -69,12 +80,10 @@ const [showRoleMenu, setShowRoleMenu] = useState(false);
         const parsed: UserProfile = JSON.parse(storedUser);
         setIsLoggedIn(true);
 
-        // Set user location if available
         if (parsed.location) {
           setUserLocation(parsed.location);
         }
 
-        // Set user name for display
         if (parsed.firstName) {
           setUserName(parsed.firstName);
         }
@@ -88,128 +97,224 @@ const [showRoleMenu, setShowRoleMenu] = useState(false);
       setIsLoggedIn(false);
     }
   };
+
+  /* ================= ANIMATED PLACEHOLDER EFFECT - FIXED ================= */
+  useEffect(() => {
+    // Don't animate when search is focused or has text
+    if (isSearchFocused || searchQuery) return;
+
+    const animatePlaceholder = () => {
+      // Animate out (move up and fade)
+      Animated.parallel([
+        Animated.timing(translateYAnim, {
+          toValue: -20,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        // Change placeholder to next one
+        setPlaceholderIndex((prev) => (prev + 1) % placeholders.length);
+
+        // Reset position immediately (no animation)
+        translateYAnim.setValue(20);
+        fadeAnim.setValue(0);
+
+        // Small delay before animating in
+        setTimeout(() => {
+          // Animate in (move to position and fade in)
+          Animated.parallel([
+            Animated.timing(translateYAnim, {
+              toValue: 0,
+              duration: 400,
+              useNativeDriver: true,
+            }),
+            Animated.timing(fadeAnim, {
+              toValue: 1,
+              duration: 400,
+              useNativeDriver: true,
+            }),
+          ]).start();
+        }, 50);
+      });
+    };
+
+    // Longer interval to avoid rapid cycling
+    const interval = setInterval(animatePlaceholder, 3500);
+    return () => clearInterval(interval);
+  }, [placeholders.length, fadeAnim, translateYAnim, isSearchFocused, searchQuery]);
+
+  /* ================= SEARCH HANDLER ================= */
+  const handleSearch = () => {
+    if (!isLoggedIn) {
+      navigation.navigate("AuthScreen");
+      return;
+    }
+
+    if (searchQuery.trim()) {
+      // You can navigate to a search results screen or perform search logic here
+      console.log("Searching for:", searchQuery);
+      // navigation.navigate("SearchResults", { query: searchQuery });
+    }
+  };
+
   /* ================= BANNERS ================= */
+  const banners = [
+    {
+      id: "1",
+      badge: "LIMITED OFFER",
+      title: "50% Off Home Cleaning",
+      action: "Book Now",
+      image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=1200&q=80",
+      route: "CleaningCategory",
+    },
+    {
+      id: "2",
+      badge: "NEW",
+      title: "Swachify Eco Products",
+      action: "Shop Now",
+      image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=1200&q=80",
+      route: "ProductScreen",
+    },
+    {
+      id: "3",
+      badge: "TRENDING",
+      title: "Education & Skill Courses",
+      action: "Explore",
+      image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1200&q=80",
+      route: "EducationHome",
+    },
+    {
+      id: "4",
+      badge: "HOT DEAL",
+      title: "Buy & Sell Essentials",
+      action: "Browse",
+      image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=1200&q=80",
+      route: "Marketplace",
+    },
+    {
+      id: "5",
+      badge: "INDUSTRY",
+      title: "Raw Materials Marketplace",
+      action: "Know More",
+      image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=1200&q=80",
+      route: "RawMaterial",
+    },
+  ];
 
-const banners = [
-  {
-    id: "1",
-    badge: "LIMITED OFFER",
-    title: "50% Off Home Cleaning",
-    action: "Book Now",
-    image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=1200&q=80",
-    route: "CleaningCategory",
-  },
-  {
-    id: "2",
-    badge: "NEW",
-    title: "Swachify Eco Products",
-    action: "Shop Now",
-    image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=1200&q=80",
-    route: "ProductScreen",
-  },
-  {
-    id: "3",
-    badge: "TRENDING",
-    title: "Education & Skill Courses",
-    action: "Explore",
-    image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1200&q=80",
-    route: "EducationHome",
-  },
-  {
-    id: "4",
-    badge: "HOT DEAL",
-    title: "Buy & Sell Essentials",
-    action: "Browse",
-    image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=1200&q=80",
-    route: "Marketplace",
-  },
-{
-  id: "5",
-  badge: "INDUSTRY",
-  title: "Raw Materials Marketplace",
-  action: "Know More",
-  image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=1200&q=80",
-  route: "RawMaterial",
-},
+  useEffect(() => {
+    if (!banners.length) return;
 
-];
+    const interval = setInterval(() => {
+      currentIndex.current = (currentIndex.current + 1) % banners.length;
 
+      scrollRef.current?.scrollTo({
+        x: currentIndex.current * 300,
+        animated: true,
+      });
+    }, 3000);
 
-useEffect(() => {
-  if (!banners.length) return;
+    return () => clearInterval(interval);
+  }, [banners.length]);
 
-  const interval = setInterval(() => {
-    currentIndex.current =
-      (currentIndex.current + 1) % banners.length;
+  const trendingServices = [
+    {
+      id: "1",
+      title: "Bathroom Deep Cleaning",
+      category: "Housing / Cleaning",
+      distance: "0.4 km away",
+      price: "₹899",
+      action: "Book",
+      image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600",
+    },
+    {
+      id: "2",
+      title: "Math Home Tutor (Class 10)",
+      category: "Education",
+      distance: "0.7 km away",
+      price: "₹500/hr",
+      action: "Book",
+      image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600",
+    },
+    {
+      id: "3",
+      title: "Electrician – Power Issue",
+      category: "Freelance",
+      distance: "Nearby",
+      price: "QUOTE",
+      action: "Call",
+      image: "https://images.unsplash.com/photo-1581090700227-1e37b190418e?w=600",
+    },
+    {
+      id: "4",
+      title: "Car Interior Cleaning",
+      category: "Housing / Cleaning",
+      distance: "0.8 km away",
+      price: "₹799",
+      action: "Book",
+      image: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=600",
+    },
+    {
+      id: "5",
+      title: "Kitchen Deep Cleaning",
+      category: "Housing / Cleaning",
+      distance: "0.9 km away",
+      price: "₹1,199",
+      action: "Book",
+      image: "https://images.unsplash.com/photo-1556911220-bff31c812dba?w=600",
+    },
+    {
+      id: "6",
+      title: "Plumber – Pipe Repair",
+      category: "Freelance",
+      distance: "0.5 km away",
+      price: "₹350",
+      action: "Call",
+      image: "https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=600",
+    },
+    {
+      id: "7",
+      title: "Office Commercial Cleaning",
+      category: "Housing / Cleaning",
+      distance: "1.5 km away",
+      price: "₹2,999",
+      action: "Book",
+      image: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600",
+    },
+    {
+      id: "8",
+      title: "Doctor Consultation",
+      category: "Health Care",
+      distance: "1.8 km away",
+      price: "₹500",
+      action: "Book",
+      image: "https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?w=600",
+    },
+  ];
 
-    scrollRef.current?.scrollTo({
-      x: currentIndex.current * 300,
-      animated: true,
-    });
-  }, 3000);
+  /* ================= AUTO-SCROLL FOR TRENDING ITEMS - FIXED ================= */
+  useEffect(() => {
+    if (!trendingServices.length) return;
 
-  return () => clearInterval(interval);
-}, [banners.length]);
+    const interval = setInterval(() => {
+      trendingCurrentIndex.current = (trendingCurrentIndex.current + 1) % trendingServices.length;
 
-const trendingServices = [
-  {
-    id: "1",
-    title: "Bathroom Deep Cleaning",
-    category: "Housing / Cleaning",
-    distance: "0.4 km away",
-    price: "₹899",
-    action: "Book",
-    image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600",
-  },
-  {
-    id: "2",
-    title: "Math Home Tutor (Class 10)",
-    category: "Education",
-    distance: "0.7 km away",
-    price: "₹500/hr",
-    action: "Book",
-    image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600",
-  },
-  {
-    id: "3",
-    title: "Electrician – Power Issue",
-    category: "Freelance",
-    distance: "Nearby",
-    price: "QUOTE",
-    action: "Call",
-    image: "https://images.unsplash.com/photo-1581090700227-1e37b190418e?w=600",
-  },
-  // {
-  //   id: "4",
-  //   title: "AC Gas Refill",
-  //   category: "Housing / Cleaning",
-  //   distance: "1.1 km away",
-  //   price: "₹1,299",
-  //   action: "Book",
-  //   image: "https://images.unsplash.com/photo-1597007097974-31b78c71c0e4?w=600",
-  // },
-  // {
-  //   id: "5",
-  //   title: "Second-hand Refrigerator",
-  //   category: "Buy / Sell",
-  //   distance: "1.8 km away",
-  //   price: "₹6,500",
-  //   action: "View",
-  //   image: "https://images.unsplash.com/photo-1581574208520-6a6a1d7c6b2c?w=600",
-  // },
-  // {
-  //   id: "6",
-  //   title: "Physiotherapy Home Visit",
-  //   category: "Health Care",
-  //   distance: "0.9 km away",
-  //   price: "₹1,200",
-  //   action: "Book",
-  //   image: "https://images.unsplash.com/photo-1580281658629-1e0c8c8b72c7?w=600",
-  // },
-];
+      // Calculate the exact scroll position
+      // Each card height: 80 (image) + 24 (padding) + 14 (margin) = 118px
+      const CARD_HEIGHT = 118;
+      
+      trendingScrollRef.current?.scrollTo({
+        y: trendingCurrentIndex.current * CARD_HEIGHT,
+        animated: true,
+      });
+    }, 1200);
 
-// const scrollY = useRef(new Animated.Value(0)).current;
-
+    return () => clearInterval(interval);
+  }, [trendingServices.length]);
 
   return (
     <View style={styles.container}>
@@ -256,165 +361,161 @@ const trendingServices = [
           </View>
         </View>
 
-        {/* BELL */}
-        
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+          <TouchableOpacity
+            onPress={() => setShowRoleMenu((prev) => !prev)}
+            activeOpacity={0.7}
+            style={{ flexDirection: "row", alignItems: "center" }}
+          >
+            <Text
+              style={{
+                color: colors.text,
+                fontSize: 13,
+                marginRight: 2,
+                fontWeight: "500",
+              }}
+            >
+              Select Type
+            </Text>
+            <MaterialIcons name="expand-more" size={26} color={colors.text} />
+          </TouchableOpacity>
 
-  <TouchableOpacity
-  onPress={() => setShowRoleMenu((prev) => !prev)}
-  activeOpacity={0.7}
-  style={{ flexDirection: "row", alignItems: "center" }}
->
-  <Text
-    style={{
-      color: colors.text,
-      fontSize: 13,
-      marginRight: 2,
-      fontWeight: "500",
-    }}
-  >
-    Select Type
-  </Text>
-  <MaterialIcons name="expand-more" size={26} color={colors.text} />
-</TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate("Cart")}>
+            <MaterialIcons name="shopping-cart" size={24} color={colors.text} />
+          </TouchableOpacity>
 
-<TouchableOpacity onPress={() => navigation.navigate("Cart")}>
-  <MaterialIcons name="shopping-cart" size={24} color={colors.text} />
-</TouchableOpacity>
+          <TouchableOpacity
+            style={styles.notificationWrapper}
+            onPress={() => navigation.navigate("Notifications")}
+            activeOpacity={0.7}
+          >
+            <MaterialIcons name="notifications" size={24} color={colors.text} />
+            {!isLoggedIn && <View style={styles.notificationDot} />}
+          </TouchableOpacity>
+        </View>
 
-  {/* BELL */}
-    <TouchableOpacity
-      style={styles.notificationWrapper}
-      onPress={() => navigation.navigate("Notifications")}
-      activeOpacity={0.7}
-    >
-      <MaterialIcons name="notifications" size={24} color={colors.text} />
-      {!isLoggedIn && <View style={styles.notificationDot} />}
-    </TouchableOpacity>
-  </View>
-  {showRoleMenu && (
-    <View style={styles.roleMenu}>
-      <TouchableOpacity
-        style={styles.roleItem}
-        onPress={() => {
-          setShowRoleMenu(false);
-          // Customer = stay on Landing
-        }}
-      >
-        <Text style={styles.roleText}>Customer</Text>
-      </TouchableOpacity>
+        {showRoleMenu && (
+          <View style={styles.roleMenu}>
+            <TouchableOpacity
+              style={styles.roleItem}
+              onPress={() => {
+                setShowRoleMenu(false);
+              }}
+            >
+              <Text style={styles.roleText}>Customer</Text>
+            </TouchableOpacity>
 
-      <TouchableOpacity
-        style={styles.roleItem}
-        onPress={() => {
-          setShowRoleMenu(false);
-          navigation.navigate("EmployeeHomeScreen");
-        }}
-      >
-        <Text style={styles.roleText}>Employee</Text>
-      </TouchableOpacity>
-    </View>
-  )}
-
+            <TouchableOpacity
+              style={styles.roleItem}
+              onPress={() => {
+                setShowRoleMenu(false);
+                navigation.navigate("EmployeeHomeScreen");
+              }}
+            >
+              <Text style={styles.roleText}>Employee</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
-      {/* ================= SEARCH ================= */}
+      {/* ================= SEARCH WITH ANIMATED PLACEHOLDER ================= */}
       <View style={styles.searchBox}>
         <MaterialIcons name="search" size={20} color="#3b82f6" />
-        <TextInput
-          placeholder="Find services, jobs, or homes..."
-          placeholderTextColor="#9ca3af"
-          style={styles.searchInput}
-        />
-        <MaterialIcons name="mic" size={20} color="#3b82f6" />
-      </View>
-
-      {/* <ScrollView showsVerticalScrollIndicator={false}>
-       */}
-
-       <Animated.ScrollView
-  showsVerticalScrollIndicator={false}
-  onScroll={Animated.event(
-    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-    { useNativeDriver: true }
-  )}
-  scrollEventThrottle={16}
->
-
-        {/* ================= BANNER ================= */}
-
-        {/* <ScrollView
-  horizontal
-  showsHorizontalScrollIndicator={false}
-  ref={scrollRef}
->
-  {banners.map((item) => (
-    <View key={item.id} style={styles.banner}>
-      <Text style={styles.badge}>{item.badge}</Text>
-      <Text style={styles.bannerTitle}>{item.title}</Text>
-      <TouchableOpacity style={styles.bannerBtn}>
-        <Text style={styles.bannerBtnText}>{item.action}</Text>
-      </TouchableOpacity>
-    </View>
-  ))}
-</ScrollView> */}
-
-<ScrollView
-  horizontal
-  showsHorizontalScrollIndicator={false}
-  ref={scrollRef}
->
-  {banners.map((item) => (
-    <TouchableOpacity
-      key={item.id}
-      style={styles.banner}
-      activeOpacity={0.9}
-      onPress={() => {
-        if (!isLoggedIn) {
-          navigation.navigate("AuthScreen");
-          return;
-        }
-        navigation.navigate(item.route);
-      }}
-    >
-      {/* Background Image */}
-    <Image
-  source={
-    typeof item.image === 'string' 
-      ? { uri: item.image } 
-      : item.image
-  }
-  style={styles.bannerImage}
-/>
-      {/* Overlay */}
-      <View style={styles.bannerOverlay}>
-        <Text style={styles.badge}>{item.badge}</Text>
-        <Text style={styles.bannerTitle}>{item.title}</Text>
-
-        <TouchableOpacity
-          style={styles.bannerBtn}
-          onPress={() => {
-            if (!isLoggedIn) {
-              navigation.navigate("AuthScreen");
-              return;
-            }
-            navigation.navigate(item.route);
-          }}
-        >
-          <Text style={styles.bannerBtnText}>{item.action}</Text>
+        <View style={{ flex: 1, overflow: "hidden", height: 20, justifyContent: "center" }}>
+          {/* Show animated placeholder only when input is empty and not focused */}
+          {!searchQuery && !isSearchFocused && (
+            <Animated.Text
+              style={[
+                styles.searchPlaceholder,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ translateY: translateYAnim }],
+                },
+              ]}
+              pointerEvents="none"
+            >
+              {placeholders[placeholderIndex]}
+            </Animated.Text>
+          )}
+          {/* TextInput for actual search functionality */}
+          <TextInput
+            style={styles.searchInput}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            onFocus={() => {
+              if (!isLoggedIn) {
+                navigation.navigate("AuthScreen");
+              } else {
+                setIsSearchFocused(true);
+              }
+            }}
+            onBlur={() => setIsSearchFocused(false)}
+            onSubmitEditing={handleSearch}
+            returnKeyType="search"
+            placeholderTextColor="#9ca3af"
+          />
+        </View>
+        <TouchableOpacity onPress={handleSearch}>
+          <MaterialIcons name="mic" size={20} color="#3b82f6" />
         </TouchableOpacity>
       </View>
-    </TouchableOpacity>
-  ))}
-</ScrollView>
 
+      <Animated.ScrollView
+        showsVerticalScrollIndicator={false}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
+        scrollEventThrottle={16}
+      >
+        {/* ================= BANNER ================= */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          ref={scrollRef}
+        >
+          {banners.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              style={styles.banner}
+              activeOpacity={0.9}
+              onPress={() => {
+                if (!isLoggedIn) {
+                  navigation.navigate("AuthScreen");
+                  return;
+                }
+                navigation.navigate(item.route);
+              }}
+            >
+              <Image
+                source={{ uri: item.image }}
+                style={styles.bannerImage}
+              />
+              <View style={styles.bannerOverlay}>
+                <Text style={styles.badge}>{item.badge}</Text>
+                <Text style={styles.bannerTitle}>{item.title}</Text>
 
+                <TouchableOpacity
+                  style={styles.bannerBtn}
+                  onPress={() => {
+                    if (!isLoggedIn) {
+                      navigation.navigate("AuthScreen");
+                      return;
+                    }
+                    navigation.navigate(item.route);
+                  }}
+                >
+                  <Text style={styles.bannerBtnText}>{item.action}</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
 
         {/* ================= CORE SERVICES ================= */}
-        {/* <Text style={styles.sectionTitle}>Core Services</Text> */}
         <View style={styles.sectionHeader}>
-  <Text style={styles.sectionTitle}>Core Services</Text>
-</View>
+          <Text style={styles.sectionTitle}>Core Services</Text>
+        </View>
 
         <View style={styles.grid}>
   {[
@@ -506,57 +607,99 @@ const trendingServices = [
     (index + 1) * 120,
   ];
 
-  const opacity = scrollY.interpolate({
-    inputRange,
-    outputRange: [0, 1, 1],
-    extrapolate: "clamp",
-  });
+                  switch (item.name) {
+                    case "Housing / Cleaning":
+                      navigation.navigate("CleaningCategory");
+                      break;
 
-  const translateY = scrollY.interpolate({
-    inputRange,
-    outputRange: [20, 0, 0],
-    extrapolate: "clamp",
-  });
+                    case "Education":
+                      navigation.navigate("EducationHome");
+                      break;
 
-  return (
-    <Animated.View
-      key={item.id}
-      style={[
-        styles.card,
-        {
-          opacity,
-          transform: [{ translateY }],
-        },
-      ]}
-    >
-     <Image 
-  source={
-    typeof item.image === 'string' 
-      ? { uri: item.image } 
-      : item.image
-  } 
-  style={styles.cardImage} 
-/>
+                    case "Freelance":
+                      navigation.navigate("Freelancer");
+                      break;
 
-      <View style={{ flex: 1 }}>
-        <Text style={styles.cardTitle}>{item.title}</Text>
-        <Text style={styles.cardSub}>
-          {item.category} • {item.distance}
-        </Text>
+                    case "Buy/Sell":
+                      navigation.navigate("Marketplace");
+                      break;
 
-        <View style={styles.cardFooter}>
-          <Text style={styles.price}>{item.price}</Text>
-          <TouchableOpacity style={styles.cardBtn}>
-            <Text style={styles.cardBtnText}>{item.action}</Text>
+                    case "Swachify Products":
+                      navigation.navigate("ProductScreen");
+                      break;
+
+                    case "Raw Materials":
+                      navigation.navigate("RawMaterial");
+                      break;
+
+                    case "Just Ride":
+                      navigation.navigate("JustRideMultiStop");
+                      break;
+
+                    case "Health Care":
+                      navigation.navigate("Health");
+                      break;
+
+                    default:
+                      break;
+                  }
+                }}
+              >
+                <View style={styles.gridIcon}>
+                  <MaterialIcons name={item.icon} size={28} color="#3b82f6" />
+                </View>
+                <Text style={styles.gridText}>{item.name}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {/* ================= TRENDING - WITH FIXED AUTOSCROLL ================= */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Trending Near You</Text>
+          <TouchableOpacity onPress={() => navigation.navigate("Marketplace")}>
+            <Text style={[styles.viewAllText, { marginTop: 10 }]}>View All</Text>
           </TouchableOpacity>
         </View>
-      </View>
-    </Animated.View>
-  );
-})}
 
+        {/* FIXED CONTAINER WITH HEIGHT */}
+        <View style={styles.trendingContainer}>
+          <ScrollView
+            ref={trendingScrollRef}
+            showsVerticalScrollIndicator={false}
+            scrollEnabled={false}
+            nestedScrollEnabled={true}
+          >
+            {trendingServices.map((item) => {
+              return (
+                <View
+                  key={item.id}
+                  style={styles.card}
+                >
+                  <Image
+                    source={{ uri: item.image }}
+                    style={styles.cardImage}
+                  />
 
-    
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.cardTitle}>{item.title}</Text>
+                    <Text style={styles.cardSub}>
+                      {item.category} • {item.distance}
+                    </Text>
+
+                    <View style={styles.cardFooter}>
+                      <Text style={styles.price}>{item.price}</Text>
+                      <TouchableOpacity style={styles.cardBtn}>
+                        <Text style={styles.cardBtnText}>{item.action}</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              );
+            })}
+          </ScrollView>
+        </View>
+
         {/* ================= REFER & EARN ================= */}
         <View style={styles.referBox}>
           <View>
@@ -569,9 +712,6 @@ const trendingServices = [
         </View>
 
         <View style={{ height: 90 }} />
-    
-      
-
       </Animated.ScrollView>
 
       {/* ================= BOTTOM TAB ================= */}
@@ -600,7 +740,6 @@ const trendingServices = [
         )}
       </View>
     </View>
-    
   );
 };
 
@@ -608,18 +747,15 @@ export default Landing;
 
 const getStyles = (colors: any) =>
   StyleSheet.create({
-    /* ================= ROOT ================= */
     container: {
       flex: 1,
       backgroundColor: colors.background,
     },
 
     safeHeader: {
-  backgroundColor: colors.surface,
-},
+      backgroundColor: colors.surface,
+    },
 
-
-    /* ================= HEADER ================= */
     header: {
       flexDirection: "row",
       justifyContent: "space-between",
@@ -637,7 +773,6 @@ const getStyles = (colors: any) =>
       gap: 12,
     },
 
-    /* ================= PROFILE ================= */
     profileWrapper: {
       position: "relative",
     },
@@ -681,7 +816,6 @@ const getStyles = (colors: any) =>
       fontWeight: "500",
     },
 
-    /* ================= LOCATION ================= */
     locationLabel: {
       fontSize: 11,
       color: colors.subText,
@@ -694,7 +828,6 @@ const getStyles = (colors: any) =>
       color: colors.text,
     },
 
-    /* ================= NOTIFICATION ================= */
     notificationWrapper: {
       position: "relative",
     },
@@ -709,7 +842,6 @@ const getStyles = (colors: any) =>
       backgroundColor: colors.danger,
     },
 
-    /* ================= SEARCH ================= */
     searchBox: {
       flexDirection: "row",
       alignItems: "center",
@@ -724,13 +856,21 @@ const getStyles = (colors: any) =>
       borderColor: colors.border,
     },
 
-    searchInput: {
-      flex: 1,
-      color: colors.text,
+    searchPlaceholder: {
+      color: "#9ca3af",
       fontSize: 14,
+      position: "absolute",
     },
 
-    /* ================= BANNER ================= */
+    searchInput: {
+      color: colors.text,
+      fontSize: 14,
+      flex: 1,
+      padding: 0,
+      margin: 0,
+      height: 20,
+    },
+
     banner: {
       width: 300,
       height: 160,
@@ -784,7 +924,6 @@ const getStyles = (colors: any) =>
       fontWeight: "700",
     },
 
-    /* ================= SECTION ================= */
     sectionTitle: {
       color: colors.text,
       fontSize: 18,
@@ -807,7 +946,6 @@ const getStyles = (colors: any) =>
       marginRight: 16,
     },
 
-    /* ================= CORE SERVICES ================= */
     grid: {
       flexDirection: "row",
       flexWrap: "wrap",
@@ -842,7 +980,13 @@ const getStyles = (colors: any) =>
       height: 28,
     },
 
-    /* ================= TRENDING CARD ================= */
+    // NEW STYLE FOR TRENDING CONTAINER
+    trendingContainer: {
+      height: 360,
+      overflow: "hidden",
+      marginBottom: 16,
+    },
+
     card: {
       flexDirection: "row",
       backgroundColor: colors.surface,
@@ -898,7 +1042,6 @@ const getStyles = (colors: any) =>
       fontWeight: "700",
     },
 
-    /* ================= REFER ================= */
     referBox: {
       margin: 16,
       padding: 18,
@@ -933,7 +1076,6 @@ const getStyles = (colors: any) =>
       fontWeight: "700",
     },
 
-    /* ================= BOTTOM TAB ================= */
     bottomTab: {
       position: "absolute",
       bottom: 0,
@@ -948,7 +1090,6 @@ const getStyles = (colors: any) =>
       borderTopColor: colors.border,
     },
 
-    /* ================= ROLE MENU ================= */
     roleMenu: {
       position: "absolute",
       top: 70,
@@ -973,4 +1114,4 @@ const getStyles = (colors: any) =>
       fontSize: 14,
       fontWeight: "600",
     },
-  });
+  });  

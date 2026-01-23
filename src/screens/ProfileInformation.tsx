@@ -15,9 +15,12 @@ import {
   UIManager,
   Alert,
   Dimensions,
+  KeyboardAvoidingView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Keyboard } from "react-native";
+
 
 
 
@@ -70,6 +73,8 @@ interface UserProfile {
   availableHoursFrom?: string;
   availableHoursTo?: string;
   resumeImage?: string;
+   role?: string;                 // ✅ ADD
+  selectedServices?: number[]; 
 
 }
 
@@ -103,7 +108,85 @@ type RootStackParamList = {
   ProfileInformation: undefined;
   Wishlist: undefined;
 };
+/* --- SUB-COMPONENTS MOVED OUTSIDE --- */
 
+const Divider = ({ styles }: { styles: any }) => (
+  <View style={styles.divider} />
+);
+
+const SectionHeader = ({
+  title,
+  open,
+  onPress,
+  colors,
+  styles,
+}: {
+  title: string;
+  open: boolean;
+  onPress: () => void;
+  colors: any;
+  styles: any;
+}) => (
+  <TouchableOpacity style={styles.sectionHeader} onPress={onPress}>
+    <Text style={styles.sectionTitle}>{title}</Text>
+    <Icon
+      name={open ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+      size={24}
+      color={colors.subText}
+    />
+  </TouchableOpacity>
+);
+
+const Card = ({ children, styles }: { children: React.ReactNode; styles: any }) => (
+  <View style={styles.card}>{children}</View>
+);
+
+const Field = ({
+  label,
+  children,
+  styles,
+}: {
+  label: string;
+  children: React.ReactNode;
+  styles: any;
+}) => (
+  <View style={styles.field}>
+    <Text style={styles.fieldLabel}>{label}</Text>
+    {children}
+  </View>
+);
+
+const ServiceItem = ({
+  icon,
+  title,
+  value,
+  onToggle,
+  colors,
+  styles,
+}: {
+  icon: string;
+  title: string;
+  value: boolean;
+  onToggle: () => void;
+  colors: any;
+  styles: any;
+}) => (
+  <View style={styles.serviceItem}>
+    <View style={styles.serviceLeft}>
+      <Icon name={icon} size={24} color={colors.primary} />
+      <Text style={styles.serviceTitle}>{title}</Text>
+    </View>
+    <Switch
+      value={value}
+      onValueChange={onToggle}
+      trackColor={{
+        false: colors.border,
+        true: colors.primary + "80",
+      }}
+      thumbColor={value ? colors.primary : colors.subText}
+    />
+  </View>
+);
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -112,75 +195,16 @@ const ProfileInformation: React.FC = () => {
   // const { lightMode, toggleTheme } = useTheme();
   const { lightMode, toggleTheme, colors } = useTheme();
   const styles = getStyles(colors);
-  const Divider = () => <View style={styles.divider} />;
 
-  const SectionHeader = ({
-    title,
-    open,
-    onPress,
-  }: {
-    title: string;
-    open: boolean;
-    onPress: () => void;
-  }) => (
-    <TouchableOpacity style={styles.sectionHeader} onPress={onPress}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      <Icon
-        name={open ? "keyboard-arrow-up" : "keyboard-arrow-down"}
-        size={24}
-        color={colors.subText}
-      />
-    </TouchableOpacity>
-  );
-
-  const Card = ({ children }: { children: React.ReactNode }) => (
-    <View style={styles.card}>{children}</View>
-  );
-
-  const Field = ({
-    label,
-    children,
-  }: {
-    label: string;
-    children: React.ReactNode;
-  }) => (
-    <View style={styles.field}>
-      <Text style={styles.fieldLabel}>{label}</Text>
-      {children}
-    </View>
-  );
-
-  const ServiceItem = ({
-    icon,
-    title,
-    value,
-    onToggle,
-  }: {
-    icon: string;
-    title: string;
-    value: boolean;
-    onToggle: () => void;
-  }) => (
-    <View style={styles.serviceItem}>
-      <View style={styles.serviceLeft}>
-        <Icon name={icon} size={24} color={colors.primary} />
-        <Text style={styles.serviceTitle}>{title}</Text>
-      </View>
-      <Switch
-        value={value}
-        onValueChange={onToggle}
-        trackColor={{
-          false: colors.border,
-          true: colors.primary + "80",
-        }}
-        thumbColor={value ? colors.primary : colors.subText}
-      />
-    </View>
-  );
 
 
   /* ================= STATE ================= */
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+
+  const isDoctor = user?.role === 'doctor';
+const hasHealthService = user?.selectedServices?.includes(7) ?? false;
+
   const [loading, setLoading] = useState<boolean>(true);
 
   const [openBasic, setOpenBasic] = useState<boolean>(true);
@@ -233,6 +257,8 @@ const [availableToText, setAvailableToText] = useState<string>("06:00 PM");
   // Marketplace & Swachify
   const [marketplaceListings, setMarketplaceListings] = useState<MarketplaceListing[]>([]);
   const [swachifyProducts, setSwachifyProducts] = useState<SwachifyProduct[]>([]);
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+
 
   const [services, setServices] = useState<{
     housing: boolean;
@@ -256,6 +282,20 @@ const [openWishlist, setOpenWishlist] = useState<boolean>(false);
 
 
   /* ================= LOAD USER DATA ================= */
+  useEffect(() => {
+    const show = Keyboard.addListener("keyboardDidShow", () =>
+      setKeyboardOpen(true)
+    );
+    const hide = Keyboard.addListener("keyboardDidHide", () =>
+      setKeyboardOpen(false)
+    );
+
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
+
  useEffect(() => {
   loadUserFromStorage();
   loadMarketplaceListings();
@@ -466,25 +506,38 @@ const [openWishlist, setOpenWishlist] = useState<boolean>(false);
   };
 
   /* ================= HELPERS ================= */
-  const toggleSection = (
-    setter: React.Dispatch<React.SetStateAction<boolean>>,
-  ) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setter((prev: boolean) => !prev);
-  };
+const toggleSection = (
+  setter: React.Dispatch<React.SetStateAction<boolean>>
+) => {
+  if (Platform.OS === "android" && !keyboardOpen) {
+    LayoutAnimation.configureNext(
+      LayoutAnimation.Presets.easeInEaseOut
+    );
+  }
+  setter(prev => !prev);
+};
 
-  const toggleService = async (key: keyof typeof services) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    const newServices = { ...services, [key]: !services[key] };
-    setServices(newServices);
-    
-    // Save preferences to AsyncStorage
-    try {
-      await AsyncStorage.setItem('service_preferences', JSON.stringify(newServices));
-    } catch (error) {
-      console.error('Error saving service preferences:', error);
-    }
-  };
+
+
+const toggleService = async (key: keyof typeof services) => {
+  if (Platform.OS === "android" && !keyboardOpen) {
+    LayoutAnimation.configureNext(
+      LayoutAnimation.Presets.easeInEaseOut
+    );
+  }
+
+  const newServices = { ...services, [key]: !services[key] };
+  setServices(newServices);
+
+  try {
+    await AsyncStorage.setItem(
+      'service_preferences',
+      JSON.stringify(newServices)
+    );
+  } catch (error) {
+    console.error('Error saving service preferences:', error);
+  }
+};
 
   const addService = () => {
     if (newService.trim()) {
@@ -588,7 +641,11 @@ const handleResumeImageUpload = () => {
 
   /* ================= MAIN UI ================= */
   return (
-    <SafeAreaView style={styles.safeArea }>
+     <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined} // Changed to undefined for Android usually works better with ScrollView
+    >
+  <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="#101622" />
 
       {/* HEADER */}
@@ -601,7 +658,11 @@ const handleResumeImageUpload = () => {
         <View style={styles.headerIcon} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+  showsVerticalScrollIndicator={false}
+  keyboardShouldPersistTaps="handled"                
+  keyboardDismissMode="none"
+>
         {/* PROFILE */}
         <View style={styles.profileRow}>
           <Image
@@ -613,13 +674,16 @@ const handleResumeImageUpload = () => {
               {user.firstName} {user.lastName}
             </Text>
             <Text style={styles.email}>{user.email}</Text>
-            <TouchableOpacity onPress={saveUserData}>
-              <Text style={styles.edit}>Edit Profile</Text>
-            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setIsEditing(true)}>
+  <Text style={styles.edit}>
+    {isEditing ? "Editing..." : "Edit Profile"}
+  </Text>
+</TouchableOpacity>
+
           </View>
         </View>
 
-        <Divider />
+        <Divider styles={styles} />
 
         {/* BASIC INFORMATION */}
        {/* BASIC INFORMATION */}
@@ -627,56 +691,113 @@ const handleResumeImageUpload = () => {
   title="Basic Information"
   open={openBasic}
   onPress={() => toggleSection(setOpenBasic)}
+   colors={colors} // Added
+  styles={styles} // Added
+
 />
 {openBasic && (
-  <Card>
-    <Field label="Phone Number">
+  <Card styles={styles}>
+    <Field label="Phone Number" styles={styles}>
       <TextInput
         style={styles.input}
         value={phone}
         onChangeText={setPhone}
+         editable={isEditing}
+  selectTextOnFocus={isEditing}
         placeholder="+1 (555) 123-4567"
         placeholderTextColor="#6b7280"
         keyboardType="phone-pad"
       />
     </Field>
 
-    <Field label="Location">
+    <Field label="Location" styles={styles}>
       <TextInput
         style={styles.input}
         value={location}
         onChangeText={setLocation}
+             editable={isEditing}
+  selectTextOnFocus={isEditing}
         placeholder="San Francisco, CA"
         placeholderTextColor="#6b7280"
       />
     </Field>
 
-    {/* ✅ ADD THIS HERE */}
-   <Field label="AVAILABLE HOURS">
-              <View style={styles.timeRow}>
-                <View style={styles.timeField}>
-                  <Text style={styles.timeLabel}>FROM</Text>
-                  <TouchableOpacity 
-                    style={styles.timeInput}
-                    onPress={() => setShowFromPicker(true)}
-                  >
-                    <Text style={styles.timeText}>{formatTime(availableHoursFrom)}</Text>
-                    <Icon name="access-time" size={20} color="#6b7280" />
-                  </TouchableOpacity>
-                </View>
+    {isEditing && isDoctor && (
+  <Field label="HEALTH SERVICE" styles={styles}>
+    <TouchableOpacity
+      style={styles.timeInput}
+      onPress={async () => {
+        const updatedServices = hasHealthService
+          ? user!.selectedServices!.filter(id => id !== 7)
+          : [...(user!.selectedServices ?? []), 7];
 
-                <View style={styles.timeField}>
-                  <Text style={styles.timeLabel}>TO</Text>
-                  <TouchableOpacity 
-                    style={styles.timeInput}
-                    onPress={() => setShowToPicker(true)}
-                  >
-                    <Text style={styles.timeText}>{formatTime(availableHoursTo)}</Text>
-                    <Icon name="access-time" size={20} color="#6b7280" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Field>
+        const updatedUser = {
+          ...user!,
+          selectedServices: updatedServices,
+        };
+
+        await AsyncStorage.setItem(
+          "userProfile",
+          JSON.stringify(updatedUser)
+        );
+
+        setUser(updatedUser);
+      }}
+    >
+      <Text style={styles.timeText}>
+        {hasHealthService ? "Health Service Enabled" : "Enable Health Service"}
+      </Text>
+
+      <Icon
+        name={hasHealthService ? "check-circle" : "cancel"}
+        size={20}
+        color={hasHealthService ? "#22c55e" : "#ef4444"}
+      />
+    </TouchableOpacity>
+  </Field>
+)}
+
+
+    {/* ✅ ADD THIS HERE */}
+  {isDoctor && (
+  <Field label="AVAILABLE HOURS" styles={styles}>
+    {hasHealthService ? (
+      <View style={styles.timeRow}>
+        <View style={styles.timeField}>
+          <Text style={styles.timeLabel}>FROM</Text>
+          <TouchableOpacity
+            style={styles.timeInput}
+            onPress={() => setShowFromPicker(true)}
+          >
+            <Text style={styles.timeText}>
+              {formatTime(availableHoursFrom)}
+            </Text>
+            <Icon name="access-time" size={20} color="#6b7280" />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.timeField}>
+          <Text style={styles.timeLabel}>TO</Text>
+          <TouchableOpacity
+            style={styles.timeInput}
+            onPress={() => setShowToPicker(true)}
+          >
+            <Text style={styles.timeText}>
+              {formatTime(availableHoursTo)}
+            </Text>
+            <Icon name="access-time" size={20} color="#6b7280" />
+          </TouchableOpacity>
+        </View>
+      </View>
+    ) : (
+      <Text style={styles.warningText}>
+        Select Health Service first
+      </Text>
+    )}
+  </Field>
+)}
+
+
   </Card>
 )}
 
@@ -685,56 +806,66 @@ const handleResumeImageUpload = () => {
   title="Education Qualification"
   open={openEducation}
   onPress={() => toggleSection(setOpenEducation)}
+  colors={colors} // Added colors prop
+  styles={styles} // Added styles prop
 />
 
 {openEducation && (
-  <Card>
+  <Card styles={styles}>
     {/* Degree */}
-    <Field label="Degree">
+    <Field label="Degree" styles={styles}>
       <TextInput
         style={styles.input}
         value={degree}
         onChangeText={setDegree}
+             editable={isEditing}
+       selectTextOnFocus={isEditing}
         placeholder="e.g. B.Tech Computer Science"
         placeholderTextColor="#6b7280"
       />
     </Field>
 
     {/* Institution */}
-    <Field label="Institution">
+    <Field label="Institution" styles={styles}>
       <TextInput
         style={styles.input}
         value={institution}
         onChangeText={setInstitution}
+             editable={isEditing}
+       selectTextOnFocus={isEditing}
         placeholder="e.g. Stanford University"
         placeholderTextColor="#6b7280"
       />
     </Field>
 
     {/* Percentage */}
-    <Field label="Percentage">
+    <Field label="Percentage" styles={styles}>
       <TextInput
         style={styles.input}
         value={percentage}
         onChangeText={setPercentage}
+             editable={isEditing}
+         selectTextOnFocus={isEditing}
         placeholder="e.g. 85%"
         placeholderTextColor="#6b7280"
       />
     </Field>
 
     {/* Years in Education */}
-    <Field label="Years in Education (MM/YYYY - MM/YYYY)">
+    <Field label="Years in Education (MM/YYYY - MM/YYYY)" styles={styles}>
       <TextInput
         style={styles.input}
         value={educationDuration}
         onChangeText={setEducationDuration}
+             editable={isEditing}
+       selectTextOnFocus={isEditing}
         placeholder="06/2019 - 05/2023"
         placeholderTextColor="#6b7280"
       />
     </Field>
 
     {/* Internship Join Date */}
-    <Field label="Internship Join Date">
+    <Field label="Internship Join Date" styles={styles}>
       <TouchableOpacity
         style={styles.timeInput}
         onPress={() => setShowInternshipPicker(true)}
@@ -747,7 +878,7 @@ const handleResumeImageUpload = () => {
     </Field>
 
     {/* Resume Upload / Download */}
-    <Field label="Resume">
+    <Field label="Resume" styles={styles}>
   <View style={{ flexDirection: "row", gap: 20 }}>
     <TouchableOpacity onPress={handleResumeImageUpload}>
       <Icon name="upload-file" size={28} color={colors.primary} />
@@ -795,13 +926,14 @@ const handleResumeImageUpload = () => {
   title="NOC Details"
   open={openNoc}
   onPress={() => toggleSection(setOpenNoc)}
+  colors={colors} // Added colors prop
+  styles={styles} // Added styles prop
 />
 
 {openNoc && (
-  <Card>
-
+  <Card styles={styles}>
     {/* Candidate Case Clear */}
-    <Field label="Candidate Case Clear">
+    <Field label="Candidate Case Clear" styles={styles}>
       <View style={styles.radioGroup}>
         <TouchableOpacity
           style={styles.radioOption}
@@ -831,21 +963,25 @@ const handleResumeImageUpload = () => {
 
     {/* Case Number OR Certificate Number */}
     {candidateCaseClear === 'yes' ? (
-      <Field label="Case Number">
+      <Field label="Case Number" styles={styles}>
         <TextInput
           style={styles.input}
           value={caseNumber}
           onChangeText={setCaseNumber}
+               editable={isEditing}
+           selectTextOnFocus={isEditing}
           placeholder="Enter case number"
           placeholderTextColor="#6b7280"
         />
       </Field>
     ) : (
-      <Field label="Certificate Number">
+      <Field label="Certificate Number"   styles={styles}>
         <TextInput
           style={styles.input}
           value={nocCertificateNumber}
           onChangeText={setNocCertificateNumber}
+               editable={isEditing}
+          selectTextOnFocus={isEditing}
           placeholder="Enter certificate number"
           placeholderTextColor="#6b7280"
         />
@@ -853,22 +989,26 @@ const handleResumeImageUpload = () => {
     )}
 
     {/* Near Police Station – unchanged */}
-    <Field label="Near Police Station">
+    <Field label="Near Police Station" styles={styles}>
       <TextInput
         style={styles.input}
         value={nocPoliceStation}
         onChangeText={setNocPoliceStation}
+             editable={isEditing}
+          selectTextOnFocus={isEditing}
         placeholder="Enter police station"
         placeholderTextColor="#6b7280"
       />
     </Field>
 
     {/* Issue Year – unchanged */}
-    <Field label="Issue Year">
+    <Field label="Issue Year" styles={styles}>
       <TextInput
         style={styles.input}
         value={nocIssueYear}
         onChangeText={setNocIssueYear}
+             editable={isEditing}
+          selectTextOnFocus={isEditing}
         placeholder="e.g. 2024"
         placeholderTextColor="#6b7280"
       />
@@ -882,10 +1022,12 @@ const handleResumeImageUpload = () => {
           title="Freelancer/Employee Expertise"
           open={openExpertise}
           onPress={() => toggleSection(setOpenExpertise)}
+          colors={colors} // Added colors prop
+          styles={styles} // Added styles prop
         />
         {openExpertise && (
-          <Card>
-            <Field label="SERVICES WITH EXPERTISE">
+          <Card styles={styles}>
+            <Field label="SERVICES WITH EXPERTISE" styles={styles}>
               <View style={styles.servicesContainer}>
                 {expertiseServices.map((service, index) => (
                   <View key={index} style={styles.serviceChip}>
@@ -922,22 +1064,26 @@ const handleResumeImageUpload = () => {
               </View>
             </Field>
 
-            <Field label="YEARS OF EXPERIENCE">
+            <Field label="YEARS OF EXPERIENCE" styles={styles}>
               <TextInput
                 style={styles.input}
                 value={yearsOfExperience}
                 onChangeText={setYearsOfExperience}
+                     editable={isEditing}
+                 selectTextOnFocus={isEditing}
                 placeholder="e.g. 5"
                 placeholderTextColor="#6b7280"
                 keyboardType="numeric"
               />
             </Field>
 
-            <Field label="ADDITIONAL SKILLS">
+            <Field label="ADDITIONAL SKILLS"  styles={styles}>
               <TextInput
                 style={[styles.input, styles.textArea]}
                 value={additionalSkills}
                 onChangeText={setAdditionalSkills}
+                     editable={isEditing}
+              selectTextOnFocus={isEditing}
                 placeholder="Describe your specialized skills..."
                 placeholderTextColor="#6b7280"
                 multiline
@@ -946,7 +1092,7 @@ const handleResumeImageUpload = () => {
               />
             </Field>
 
-            <Field label="DRIVING LICENSE">
+            <Field label="DRIVING LICENSE" styles={styles}>
               <View style={styles.radioGroup}>
                 <TouchableOpacity 
                   style={styles.radioOption}
@@ -969,32 +1115,43 @@ const handleResumeImageUpload = () => {
               </View>
             </Field>
 
-            <Field label="AVAILABLE HOURS">
-              <View style={styles.timeRow}>
-                <View style={styles.timeField}>
-                  <Text style={styles.timeLabel}>FROM</Text>
-                  <TouchableOpacity 
-                    style={styles.timeInput}
-                    onPress={() => setShowFromPicker(true)}
-                  >
-                    <Text style={styles.timeText}>{formatTime(availableHoursFrom)}</Text>
-                    <Icon name="access-time" size={20} color="#6b7280" />
-                  </TouchableOpacity>
-                </View>
+              {isDoctor && (
+  <Field label="AVAILABLE HOURS" styles={styles}>
+    {hasHealthService ? (
+      <View style={styles.timeRow}>
+        <View style={styles.timeField}>
+          <Text style={styles.timeLabel}>FROM</Text>
+          <TouchableOpacity
+            style={styles.timeInput}
+            onPress={() => setShowFromPicker(true)}
+          >
+            <Text style={styles.timeText}>
+              {formatTime(availableHoursFrom)}
+            </Text>
+            <Icon name="access-time" size={20} color="#6b7280" />
+          </TouchableOpacity>
+        </View>
 
-                <View style={styles.timeField}>
-                  <Text style={styles.timeLabel}>TO</Text>
-                  <TouchableOpacity 
-                    style={styles.timeInput}
-                    onPress={() => setShowToPicker(true)}
-                  >
-                    <Text style={styles.timeText}>{formatTime(availableHoursTo)}</Text>
-                    <Icon name="access-time" size={20} color="#6b7280" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Field>
-
+        <View style={styles.timeField}>
+          <Text style={styles.timeLabel}>TO</Text>
+          <TouchableOpacity
+            style={styles.timeInput}
+            onPress={() => setShowToPicker(true)}
+          >
+            <Text style={styles.timeText}>
+              {formatTime(availableHoursTo)}
+            </Text>
+            <Icon name="access-time" size={20} color="#6b7280" />
+          </TouchableOpacity>
+        </View>
+      </View>
+    ) : (
+      <Text style={styles.warningText}>
+        Select Health Service first
+      </Text>
+    )}
+  </Field>
+)}
             {showFromPicker && (
               <DateTimePicker
                 value={availableHoursFrom}
@@ -1031,7 +1188,7 @@ setAvailableToText(formatTime(selectedDate));
           </Card>
         )}
 
-        <Divider />
+        <Divider styles={styles} />
 
         {/* CUSTOMIZE DASHBOARD */}
         <View style={styles.sectionHeaderNoIcon}>
@@ -1067,12 +1224,16 @@ setAvailableToText(formatTime(selectedDate));
           title="Housing & Cleaning"
           value={services.housing}
           onToggle={() => toggleService('housing')}
+           colors={colors} // Added
+            styles={styles} // Added
         />
         <ServiceItem
           icon="school"
           title="Education"
           value={services.education}
           onToggle={() => toggleService('education')}
+           colors={colors} // Added
+            styles={styles} // Added
         />
         
         {/* MARKETPLACE SERVICE ITEM */}
@@ -1081,6 +1242,8 @@ setAvailableToText(formatTime(selectedDate));
           title="Marketplace"
           value={services.marketplace}
           onToggle={() => toggleService('marketplace')}
+           colors={colors} // Added
+            styles={styles} // Added
         />
 
         {/* MARKETPLACE LISTINGS - Only show when marketplace is enabled */}
@@ -1090,9 +1253,11 @@ setAvailableToText(formatTime(selectedDate));
               title={`My Marketplace Listings (${marketplaceListings.length})`}
               open={openMarketplace}
               onPress={() => toggleSection(setOpenMarketplace)}
+               colors={colors} // Added
+            styles={styles} // Added
             />
             {openMarketplace && (
-              <Card>
+              <Card styles={styles}>
                 {marketplaceListings.length === 0 ? (
                   <View style={styles.emptyContainer}>
                     <Icon name="store" size={48} color="#374151" />
@@ -1156,6 +1321,8 @@ setAvailableToText(formatTime(selectedDate));
           title="Swachify"
           value={services.swachify}
           onToggle={() => toggleService('swachify')}
+           colors={colors} // Added
+            styles={styles} // Added
         />
 
         {/* SWACHIFY PRODUCTS - Only show when swachify is enabled */}
@@ -1165,9 +1332,11 @@ setAvailableToText(formatTime(selectedDate));
               title={`My Swachify Products (${swachifyProducts.length})`}
               open={openSwachify}
               onPress={() => toggleSection(setOpenSwachify)}
+               colors={colors} // Added
+            styles={styles} // Added
             />
             {openSwachify && (
-              <Card>
+              <Card styles={styles}>
                 {swachifyProducts.length === 0 ? (
                   <View style={styles.emptyContainer}>
                     <Icon name="eco" size={48} color="#374151" />
@@ -1213,7 +1382,7 @@ setAvailableToText(formatTime(selectedDate));
           </>
         )}
 
-        <Divider />
+        <Divider styles={styles} />
         <View style={styles.serviceItem}>
   <View style={styles.serviceLeft}>
     <Icon name="light-mode" size={24} color="#facc15" />
@@ -1227,6 +1396,34 @@ setAvailableToText(formatTime(selectedDate));
     thumbColor={lightMode ? "#facc15" : "#9ca3af"}
   />
 </View>
+{isEditing && (
+  <View style={{ flexDirection: "row", gap: 12, marginHorizontal: 16 }}>
+    <TouchableOpacity
+      style={[
+        styles.logoutButton,
+        { flex: 1, borderColor: colors.primary }
+      ]}
+      onPress={() => {
+        saveUserData();
+        setIsEditing(false);
+      }}
+    >
+      <Text style={{ color: colors.primary, fontWeight: "600" }}>
+        Save Changes
+      </Text>
+    </TouchableOpacity>
+
+    <TouchableOpacity
+      style={[styles.logoutButton, { flex: 1 }]}
+      onPress={() => {
+        loadUserFromStorage(); // revert changes
+        setIsEditing(false);
+      }}
+    >
+      <Text style={styles.logoutText}>Cancel</Text>
+    </TouchableOpacity>
+  </View>
+)}
 
 
         {/* LOGOUT BUTTON */}
@@ -1237,7 +1434,40 @@ setAvailableToText(formatTime(selectedDate));
 
         <View style={{ height: 40 }} />
       </ScrollView>
+      {/* FROM TIME PICKER */}
+{showFromPicker && (
+  <DateTimePicker
+    value={availableHoursFrom}
+    mode="time"
+    is24Hour={false}
+    display="default"
+    onChange={(event, selectedDate) => {
+      setShowFromPicker(false);
+      if (selectedDate) {
+        setAvailableHoursFrom(selectedDate);
+      }
+    }}
+  />
+)}
+
+{/* TO TIME PICKER */}
+{showToPicker && (
+  <DateTimePicker
+    value={availableHoursTo}
+    mode="time"
+    is24Hour={false}
+    display="default"
+    onChange={(event, selectedDate) => {
+      setShowToPicker(false);
+      if (selectedDate) {
+        setAvailableHoursTo(selectedDate);
+      }
+    }}
+  />
+)}
+
     </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -1693,6 +1923,15 @@ timeInputText: {
   color: colors.text,
   paddingVertical: 0,       // 🔥 ANDROID FIX
 },
+warningText: {
+  color: '#facc15',
+  fontSize: 14,
+  fontWeight: '600',
+  backgroundColor: '#78350f',
+  padding: 12,
+  borderRadius: 8,
+},
+
 
 
   });

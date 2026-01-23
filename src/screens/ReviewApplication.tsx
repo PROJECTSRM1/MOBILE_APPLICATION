@@ -20,7 +20,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
 import { useNavigation } from "@react-navigation/native";
-import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 
 /* =========================
    MAIN SCREEN
@@ -30,28 +30,42 @@ const ReviewApplication = () => {
   const styles = getStyles(colors);
   const navigation = useNavigation();
 
-  // 🔹 Edit mode
-  const [editMode, setEditMode] = useState(false);
+  /* 🔹 SECTION EDIT MODES */
+  const [basicEdit, setBasicEdit] = useState(false);
+  const [educationEdit, setEducationEdit] = useState(false);
+  const [contactEdit, setContactEdit] = useState(false);
 
-  // 🔹 Editable state values
+  /* 🔹 Editable values */
   const [dob, setDob] = useState("January 15, 2001");
   const [gender, setGender] = useState("Non-binary");
   const [degree, setDegree] = useState("B.Sc. Computer Science");
   const [college, setCollege] = useState("Stanford University, 2024");
   const [email, setEmail] = useState("alex.johnson@edu-mail.com");
   const [phone, setPhone] = useState("+1 (555) 012-3456");
+const [isDeclared, setIsDeclared] = useState(false);
+
+  /* 🔹 Edit All handler */
+  const toggleEditAll = () => {
+    const enable = !(basicEdit && educationEdit && contactEdit);
+    setBasicEdit(enable);
+    setEducationEdit(enable);
+    setContactEdit(enable);
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* HEADER */}
         <View style={styles.header}>
-          <ChevronLeft size={22} color={colors.text} />
+         <TouchableOpacity onPress={() => navigation.goBack()}>
+  <ChevronLeft size={22} color={colors.text} />
+</TouchableOpacity>
+
           <Text style={styles.headerTitle}>Review Application</Text>
 
-          <TouchableOpacity onPress={() => setEditMode(!editMode)}>
+          <TouchableOpacity onPress={toggleEditAll}>
             <Text style={styles.editAll}>
-              {editMode ? "Save" : "Edit All"}
+              {basicEdit && educationEdit && contactEdit ? "Save" : "Edit All"}
             </Text>
           </TouchableOpacity>
         </View>
@@ -76,12 +90,17 @@ const ReviewApplication = () => {
         </View>
 
         {/* BASIC INFO */}
-        <Section title="Basic Info" onEdit={() => setEditMode(!editMode)} styles={styles} colors={colors}>
+        <Section
+          title="Basic Info"
+          onEdit={() => setBasicEdit(!basicEdit)}
+          styles={styles}
+          colors={colors}
+        >
           <EditableRow
             icon={<Calendar size={18} color={colors.primary} />}
             label="DATE OF BIRTH"
             value={dob}
-            editable={editMode}
+            editable={basicEdit}
             onChange={setDob}
             styles={styles}
           />
@@ -90,20 +109,25 @@ const ReviewApplication = () => {
             icon={<User size={18} color={colors.primary} />}
             label="GENDER"
             value={gender}
-            editable={editMode}
+            editable={basicEdit}
             onChange={setGender}
             styles={styles}
           />
         </Section>
 
         {/* EDUCATION */}
-        <Section title="Educational Qualifications" onEdit={() => setEditMode(!editMode)} styles={styles} colors={colors}>
+        <Section
+          title="Educational Qualifications"
+          onEdit={() => setEducationEdit(!educationEdit)}
+          styles={styles}
+          colors={colors}
+        >
           <EditableRow
             icon={<GraduationCap size={18} color={colors.primary} />}
             label="DEGREE"
             value={degree}
             subValue={college}
-            editable={editMode}
+            editable={educationEdit}
             onChange={setDegree}
             onSubChange={setCollege}
             styles={styles}
@@ -111,12 +135,17 @@ const ReviewApplication = () => {
         </Section>
 
         {/* CONTACT INFO */}
-        <Section title="Contact Information" onEdit={() => setEditMode(!editMode)} styles={styles} colors={colors}>
+        <Section
+          title="Contact Information"
+          onEdit={() => setContactEdit(!contactEdit)}
+          styles={styles}
+          colors={colors}
+        >
           <EditableRow
             icon={<Mail size={18} color={colors.primary} />}
             label="EMAIL"
             value={email}
-            editable={editMode}
+            editable={contactEdit}
             onChange={setEmail}
             styles={styles}
           />
@@ -125,25 +154,42 @@ const ReviewApplication = () => {
             icon={<Phone size={18} color={colors.primary} />}
             label="PHONE"
             value={phone}
-            editable={editMode}
+            editable={contactEdit}
             onChange={setPhone}
             styles={styles}
           />
         </Section>
 
         {/* DECLARATION */}
-        <View style={styles.declaration}>
-          <View style={styles.checkbox} />
+      <View style={styles.declaration}>
+ <TouchableOpacity
+  style={[
+    styles.checkbox,
+    isDeclared && { backgroundColor: colors.primary },
+  ]}
+  onPress={() => setIsDeclared(!isDeclared)}
+  activeOpacity={0.8}
+>
+  {isDeclared && (
+    <MaterialIcons name="check" size={16} color="#fff" />
+  )}
+</TouchableOpacity>
+
+
           <Text style={styles.declarationText}>
             I hereby certify that the information provided is accurate and true
             to the best of my knowledge.
           </Text>
         </View>
 
-        {/* SUBMIT BUTTON */}
+        {/* SUBMIT */}
         <TouchableOpacity
           style={styles.submitBtn}
-          onPress={() => navigation.navigate("ApplicationSuccess" as never)}
+        onPress={() => {
+  if (!isDeclared) return;
+  navigation.navigate("ApplicationSuccess" as never);
+}}
+
         >
           <Text style={styles.submitText}>Submit Application ➜</Text>
         </TouchableOpacity>
@@ -211,8 +257,9 @@ const EditableRow = ({
 );
 
 /* =========================
-   STYLES
+   STYLES (UNCHANGED)
 ========================= */
+
 
 const getStyles = (colors: any) =>
   StyleSheet.create({
@@ -380,6 +427,8 @@ const getStyles = (colors: any) =>
       borderWidth: 2,
       borderColor: colors.primary,
       marginTop: 4,
+      alignItems: "center",
+      justifyContent: "center",
     },
 
     declarationText: {

@@ -32,6 +32,15 @@ const CommercialPropertyScreen = () => {
   const insets = useSafeAreaInsets();
   const [selectedProperty, setSelectedProperty] = useState<PropertyType>('medium');
 
+const handleContinue = () => {
+  const selectedData = properties.find(p => p.id === selectedProperty);
+  
+  // Wrap 'navigation' in parentheses and add 'as any'
+  (navigation as any).navigate("BookCleaning", { 
+    selectedService: selectedData ? `${selectedData.title} Cleaning` : "Small Office Cleaning" 
+  });
+};
+
   const properties: PropertyOption[] = [
     {
       id: 'small',
@@ -157,7 +166,7 @@ const CommercialPropertyScreen = () => {
         <View style={styles.actionButtonContainer}>
           <TouchableOpacity
             style={styles.continueButton}
-            onPress={() => navigation.navigate("BookCleaning")}
+            onPress={handleContinue}
             activeOpacity={0.9}
           >
             <Text style={styles.continueButtonText}>
