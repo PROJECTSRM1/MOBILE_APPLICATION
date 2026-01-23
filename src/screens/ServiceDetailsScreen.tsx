@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Picker } from "@react-native-picker/picker";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useNavigation, useRoute } from "@react-navigation/native";
-
+import {useTheme} from "../context/ThemeContext"; 
 /* ---------------- CONSTANTS ---------------- */
 
 const PROPERTY_TYPES = [
@@ -86,7 +86,8 @@ const ServiceDetailsScreen = () => {
   const route = useRoute<any>();
   const { service } = route.params;
   const data: ServiceItem[] = INTERNAL_SERVICES[service.title as keyof typeof INTERNAL_SERVICES] || [];
-
+ const { colors } = useTheme();
+    const styles = getStyles(colors);
   const [propertyType, setPropertyType] = useState("2bhk");
   const [selectedServices, setSelectedServices] = useState<SelectedServiceWithFloor[]>([]);
   const [floorSelections, setFloorSelections] = useState<{ [key: string]: number }>({});
@@ -125,7 +126,7 @@ const ServiceDetailsScreen = () => {
 
   const needsConsultation = selectedServices.length > 1;
 
-  const handleProceed = () => {
+   const handleProceed = () => {
     if (selectedServices.length === 0) {
       Alert.alert("Selection Required", "Please select at least one service");
       return;
@@ -139,14 +140,16 @@ const ServiceDetailsScreen = () => {
       return;
     }
 
+    // Map services to include the category (e.g., "Plumbing") so Add-ons work
+    const mappedServices = selectedServices.map((s) => ({
+      id: s.id,
+      title: s.title,
+      category: service.title, 
+      selectedFloor: s.needsFloorInfo ? floorSelections[s.id] : undefined,
+    }));
+
     navigation.navigate("BookCleaning", {
-      selectedServices: selectedServices.map((s) => ({
-        ...service,
-        subService: s.title,
-        subServiceId: s.id,
-        selectedFloor: s.needsFloorInfo ? floorSelections[s.id] : undefined,
-      })),
-      propertyType,
+      selectedServices: mappedServices,
       consultationCharge: needsConsultation ? CONSULTATION_CHARGE : 0,
     });
   };
@@ -154,11 +157,9 @@ const ServiceDetailsScreen = () => {
   const renderServiceCard = (item: ServiceItem) => {
     const selected = isSelected(item.id);
     const currentFloor = floorSelections[item.id] || 1;
-    
-    console.log(`Rendering ${item.title}, selected: ${selected}, floor: ${currentFloor}`);
 
     return (
-      <View style={styles.cardWrapper} key={`${item.id}-${currentFloor}`}>
+      <View style={styles.cardWrapper} key={item.id}>
         <TouchableOpacity
           style={[styles.card, selected && styles.cardSelected]}
           onPress={() => toggleService(item)}
@@ -185,11 +186,7 @@ const ServiceDetailsScreen = () => {
           <View style={styles.floorCounter}>
             <TouchableOpacity
               style={styles.counterBtn}
-              onPress={() => {
-                const newFloor = Math.max(1, currentFloor - 1);
-                console.log('Decrement clicked:', item.id, 'from', currentFloor, 'to', newFloor);
-                updateFloorSelection(item.id, newFloor);
-              }}
+              onPress={() => updateFloorSelection(item.id, Math.max(1, currentFloor - 1))}
             >
               <Icon name="remove" size={18} color="#fff" />
             </TouchableOpacity>
@@ -198,11 +195,7 @@ const ServiceDetailsScreen = () => {
 
             <TouchableOpacity
               style={styles.counterBtn}
-              onPress={() => {
-                const newFloor = Math.min(maxFloors, currentFloor + 1);
-                console.log('Increment clicked:', item.id, 'from', currentFloor, 'to', newFloor);
-                updateFloorSelection(item.id, newFloor);
-              }}
+              onPress={() => updateFloorSelection(item.id, Math.min(maxFloors, currentFloor + 1))}
             >
               <Icon name="add" size={18} color="#fff" />
             </TouchableOpacity>
@@ -217,7 +210,7 @@ const ServiceDetailsScreen = () => {
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Icon name="arrow-back" size={24} color="#fff" />
+            <Icon name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{service.title}</Text>
           <View style={{ width: 24 }} />
@@ -316,215 +309,255 @@ const ServiceDetailsScreen = () => {
 export default ServiceDetailsScreen;
 
 /* ---------------- STYLES ---------------- */
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#0d1321" },
-  container: { flex: 1, backgroundColor: "#101622" },
-  header: {
-    flexDirection: "row",
-    padding: 16,
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderBottomWidth: 1,
-    borderBottomColor: "#1c2433",
-  },
-  headerTitle: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  section: {
-    paddingHorizontal: 16,
-    marginTop: 20,
-  },
-  label: {
-    color: "#9CA3AF",
-    fontSize: 13,
-    fontWeight: "600",
-    marginBottom: 8,
-    letterSpacing: 0.5,
-  },
-  dropdownBox: {
-    backgroundColor: "#1C1F27",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#3B4354",
-    height: 56,
-    justifyContent: "center",
-  },
-  picker: {
-    color: "#fff",
-    height: 56,
-  },
-  propertyInfo: {
-    color: "#60a5fa",
-    fontSize: 13,
-    marginTop: 8,
-    fontWeight: "600",
-  },
-  question: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "700",
-    paddingHorizontal: 16,
-    marginTop: 24,
-  },
-  subQuestion: {
-    color: "#9CA3AF",
-    fontSize: 13,
-    paddingHorizontal: 16,
-    marginTop: 4,
-    marginBottom: 16,
-  },
-  gridContainer: {
-    paddingHorizontal: 10,
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 12,
-  },
-  cardWrapper: {
-    width: "47%",
-  },
-  card: {
-    width: "100%",
-    backgroundColor: "#1c212b",
-    borderRadius: 16,
-    padding: 12,
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: "transparent",
-    position: "relative",
-  },
-  cardSelected: {
-    borderColor: "#10b981",
-    backgroundColor: "#1e2a26",
-  },
-  checkBadge: {
-    position: "absolute",
-    top: 8,
-    right: 8,
-    zIndex: 10,
-  },
-  image: {
-    width: "100%",
-    height: 110,
-    borderRadius: 12,
-  },
-  cardText: {
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: "600",
-    marginTop: 8,
-    textAlign: "center",
-  },
-  floorBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginTop: 6,
-    backgroundColor: "rgba(96, 165, 250, 0.1)",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  floorBadgeText: {
-    color: "#60a5fa",
-    fontSize: 10,
-    fontWeight: "600",
-  },
-  floorCounter: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#1c212b",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginTop: 8,
-    borderWidth: 1,
-    borderColor: "#10b981",
-  },
-  counterBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#10b981",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  floorCount: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  bottomBar: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: "#101622",
-    borderTopWidth: 1,
-    borderTopColor: "#1F2937",
-  },
-  consultationBanner: {
-    backgroundColor: "rgba(250, 204, 21, 0.1)",
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(250, 204, 21, 0.3)",
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 12,
-    gap: 8,
-  },
-  consultationText: {
-    color: "#facc15",
-    fontSize: 12,
-    fontWeight: "600",
-    flex: 1,
-  },
-  bottomContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 16,
-    paddingBottom: 24,
-  },
-  selectionInfo: {
-    flex: 1,
-  },
-  selectionCount: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  selectionHint: {
-    color: "#9CA3AF",
-    fontSize: 12,
-    marginTop: 2,
-  },
-  proceedBtn: {
-    backgroundColor: "#135BEC",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 12,
-    shadowColor: "#135BEC",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  proceedBtnDisabled: {
-    backgroundColor: "#3B4354",
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  proceedText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-});
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+
+    header: {
+      flexDirection: "row",
+      padding: 16,
+      alignItems: "center",
+      justifyContent: "space-between",
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      backgroundColor: colors.surface,
+    },
+
+    headerTitle: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: "600",
+    },
+
+    section: {
+      paddingHorizontal: 16,
+      marginTop: 20,
+    },
+
+    label: {
+      color: colors.subText,
+      fontSize: 13,
+      fontWeight: "600",
+      marginBottom: 8,
+      letterSpacing: 0.5,
+    },
+
+    dropdownBox: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      height: 56,
+      justifyContent: "center",
+    },
+
+    picker: {
+      color: colors.text,
+      height: 56,
+    },
+
+    propertyInfo: {
+      color: colors.primary,
+      fontSize: 13,
+      marginTop: 8,
+      fontWeight: "600",
+    },
+
+    question: {
+      color: colors.text,
+      fontSize: 20,
+      fontWeight: "700",
+      paddingHorizontal: 16,
+      marginTop: 24,
+    },
+
+    subQuestion: {
+      color: colors.subText,
+      fontSize: 13,
+      paddingHorizontal: 16,
+      marginTop: 4,
+      marginBottom: 16,
+    },
+
+    gridContainer: {
+      paddingHorizontal: 10,
+    },
+
+    row: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: 12,
+    },
+
+    cardWrapper: {
+      width: "47%",
+    },
+
+    card: {
+      width: "100%",
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      padding: 12,
+      alignItems: "center",
+      borderWidth: 2,
+      borderColor: "transparent",
+      position: "relative",
+    },
+
+    cardSelected: {
+      borderColor: colors.primary,
+      backgroundColor: colors.surface,
+    },
+
+    checkBadge: {
+      position: "absolute",
+      top: 8,
+      right: 8,
+      zIndex: 10,
+    },
+
+    image: {
+      width: "100%",
+      height: 110,
+      borderRadius: 12,
+    },
+
+    cardText: {
+      color: colors.text,
+      fontSize: 15,
+      fontWeight: "600",
+      marginTop: 8,
+      textAlign: "center",
+    },
+
+    floorBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+      marginTop: 6,
+      backgroundColor: colors.primary + "20",
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 6,
+    },
+
+    floorBadgeText: {
+      color: colors.primary,
+      fontSize: 10,
+      fontWeight: "600",
+    },
+
+    floorCounter: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: colors.card,
+      borderRadius: 10,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      marginTop: 8,
+      borderWidth: 1,
+      borderColor: colors.primary,
+    },
+
+    counterBtn: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: colors.primary,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    floorCount: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: "700",
+    },
+
+    bottomBar: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: colors.surface,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+
+    consultationBanner: {
+      backgroundColor: colors.warningBg,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.warningBorder,
+      flexDirection: "row",
+      alignItems: "center",
+      padding: 12,
+      gap: 8,
+    },
+
+    consultationText: {
+      color: colors.warningText,
+      fontSize: 12,
+      fontWeight: "600",
+      flex: 1,
+    },
+
+    bottomContent: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: 16,
+      paddingBottom: 24,
+    },
+
+    selectionInfo: {
+      flex: 1,
+    },
+
+    selectionCount: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: "700",
+    },
+
+    selectionHint: {
+      color: colors.subText,
+      fontSize: 12,
+      marginTop: 2,
+    },
+
+    proceedBtn: {
+      backgroundColor: colors.primary,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      paddingHorizontal: 24,
+      paddingVertical: 14,
+      borderRadius: 12,
+      shadowColor: colors.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 8,
+    },
+
+    proceedBtnDisabled: {
+      backgroundColor: colors.disabled,
+      shadowOpacity: 0,
+      elevation: 0,
+    },
+
+    proceedText: {
+      color: "#fff",
+      fontSize: 16,
+      fontWeight: "700",
+    },
+  });

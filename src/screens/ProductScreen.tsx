@@ -220,13 +220,13 @@ export default function SwachifyMarketScreen() {
 
       <SafeAreaView>
         <View style={styles.header}>
-          <MaterialIcons name="menu" size={24} color="#fff" />
+          <MaterialIcons name="menu" size={24} color={colors.text} />
           <Text style={styles.headerTitle}>
             Swachify <Text style={{ color: "#135bec" }}>Market</Text>
           </Text>
 
           <View>
-            <MaterialIcons name="shopping-bag" size={24} color="#fff" />
+            <MaterialIcons name="shopping-bag" size={24} color={colors.text} />
             {cartCount > 0 && (
               <View style={styles.cartBadge}>
                 <Text style={styles.cartText}>{cartCount}</Text>
@@ -269,7 +269,7 @@ export default function SwachifyMarketScreen() {
 
         {/* Category Filters */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chips}>
-          <Filter label="All Products" value="all" active={activeFilter} setActive={setActiveFilter} colors={colors}styles={styles} />
+          <Filter label="All Products" value="all" active={activeFilter} setActive={setActiveFilter} color={colors.text}styles={styles} />
           <Filter label="Sustainable" value="sustainable" icon="eco" active={activeFilter} setActive={setActiveFilter} colors={colors} styles={styles} />
           <Filter label="Recycled" value="recycled" icon="recycling" active={activeFilter} setActive={setActiveFilter} colors={colors} styles={styles} />
           <Filter label="Cleaners" value="cleaners" icon="sanitizer" active={activeFilter} setActive={setActiveFilter} colors={colors} styles={styles} />

@@ -13,6 +13,7 @@ import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRoute } from "@react-navigation/native";
 import RazorpayCheckout from "react-native-razorpay";
+import { useTheme } from '../context/ThemeContext';
 import { createOrder, verifyPayment } from "../services/paymentApi";
 
 /* ---------------- CONSTANTS ---------------- */
@@ -35,6 +36,9 @@ const PaymentScreen = ({ navigation }: any) => {
     allocatedEmployee,
     bookingDetails,
   } = route.params || {};
+
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
 
   const TOTAL_AMOUNT = 14750;
   const BOOKING_ID = 26;
@@ -204,191 +208,197 @@ export default PaymentScreen;
 
 /* ---------------- STYLES ---------------- */
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#020617",
-  },
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 15,
-  },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      paddingVertical: 15,
+      backgroundColor: colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
 
-  headerTitle: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "700",
-  },
+    headerTitle: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: "700",
+    },
 
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 100,
-  },
+    scrollContent: {
+      paddingHorizontal: 16,
+      paddingBottom: 100,
+    },
 
-  sectionLabel: {
-    color: "#64748b",
-    fontSize: 12,
-    fontWeight: "600",
-    marginTop: 25,
-    marginBottom: 10,
-    letterSpacing: 0.5,
-  },
+    sectionLabel: {
+      color: colors.subText,
+      fontSize: 12,
+      fontWeight: "600",
+      marginTop: 25,
+      marginBottom: 10,
+      letterSpacing: 0.5,
+    },
 
-  card: {
-    backgroundColor: "#0f172a",
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
-    marginBottom: 12,
-  },
+    card: {
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      padding: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+      marginBottom: 12,
+    },
 
-  serviceRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
+    serviceRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
 
-  serviceInfo: {
-    flex: 1,
-    marginRight: 12,
-  },
+    serviceInfo: {
+      flex: 1,
+      marginRight: 12,
+    },
 
-  serviceName: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "700",
-    marginBottom: 8,
-  },
+    serviceName: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: "700",
+      marginBottom: 8,
+    },
 
-  tagRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-  },
+    tagRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 12,
+    },
 
-  blueTag: {
-    backgroundColor: "#1e3a8a",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-    marginRight: 8,
-  },
+    blueTag: {
+      backgroundColor: colors.primary + "33",
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 4,
+      marginRight: 8,
+    },
 
-  blueTagText: {
-    color: "#3b82f6",
-    fontSize: 10,
-    fontWeight: "700",
-  },
+    blueTagText: {
+      color: colors.primary,
+      fontSize: 10,
+      fontWeight: "700",
+    },
 
-  subInfoText: {
-    color: "#94a3b8",
-    fontSize: 13,
-  },
+    subInfoText: {
+      color: colors.subText,
+      fontSize: 13,
+    },
 
-  dateRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
+    dateRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+    },
 
-  dateText: {
-    color: "#94a3b8",
-    fontSize: 14,
-  },
+    dateText: {
+      color: colors.subText,
+      fontSize: 14,
+    },
 
-  serviceImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 12,
-  },
+    serviceImage: {
+      width: 100,
+      height: 100,
+      borderRadius: 12,
+    },
 
-  totalRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
+    totalRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
 
-  totalLabel: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "700",
-  },
+    totalLabel: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: "700",
+    },
 
-  totalValue: {
-    color: "#2563eb",
-    fontSize: 22,
-    fontWeight: "800",
-  },
+    totalValue: {
+      color: colors.primary,
+      fontSize: 22,
+      fontWeight: "800",
+    },
 
-  footer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: "#020617",
-    padding: 16,
-    paddingBottom: 30,
-  },
+    footer: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: colors.surface,
+      padding: 16,
+      paddingBottom: 30,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
 
-  checkoutBtn: {
-    backgroundColor: "#2563eb",
-    borderRadius: 12,
-    height: 56,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+    checkoutBtn: {
+      backgroundColor: colors.primary,
+      borderRadius: 12,
+      height: 56,
+      justifyContent: "center",
+      alignItems: "center",
+    },
 
-  checkoutText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
-  },
+    checkoutText: {
+      color: "#fff",
+      fontSize: 16,
+      fontWeight: "700",
+    },
 
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.6)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
 
-  modalCard: {
-    width: "85%",
-    backgroundColor: "#0f172a",
-    borderRadius: 20,
-    padding: 24,
-    alignItems: "center",
-  },
+    modalCard: {
+      width: "85%",
+      backgroundColor: colors.card,
+      borderRadius: 20,
+      padding: 24,
+      alignItems: "center",
+    },
 
-  modalTitle: {
-    color: "#fff",
-    fontSize: 22,
-    fontWeight: "800",
-    marginBottom: 8,
-  },
+    modalTitle: {
+      color: colors.text,
+      fontSize: 22,
+      fontWeight: "800",
+      marginBottom: 8,
+    },
 
-  modalSub: {
-    color: "#94a3b8",
-    fontSize: 14,
-    textAlign: "center",
-    marginBottom: 24,
-  },
+    modalSub: {
+      color: colors.subText,
+      fontSize: 14,
+      textAlign: "center",
+      marginBottom: 24,
+    },
 
-  modalBtn: {
-    backgroundColor: "#22c55e",
-    borderRadius: 12,
-    height: 48,
-    paddingHorizontal: 40,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+    modalBtn: {
+      backgroundColor: colors.success || "#22c55e",
+      borderRadius: 12,
+      height: 48,
+      paddingHorizontal: 40,
+      justifyContent: "center",
+      alignItems: "center",
+    },
 
-  modalBtnText: {
-    color: "#020617",
-    fontSize: 16,
-    fontWeight: "800",
-  },
-});
+    modalBtnText: {
+      color: colors.background,
+      fontSize: 16,
+      fontWeight: "800",
+    },
+  });

@@ -16,6 +16,8 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import TrainingScreen from "./TrainingScreen";
+import { useTheme } from "../context/ThemeContext";
+import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
 
 interface UserProfile {
@@ -24,12 +26,144 @@ interface UserProfile {
   email: string;
   avatar?: string;
 }
+interface Student {
+  id: number;
+  name: string;
+  program: string;
+  avatar: string;
+  academicScore: number;
+    rating: number;
+  status: "active" | "completed";
+  shift: string;
+  skills: string[];
+}
+const studentsData: Student[] = [
+  {
+    id: 2045,
+    name: "Sarah Jenkins",
+    program: "B.Tech Computer Science",
+    rating: 4.8,
+    status: "active",
+    academicScore: 92,
+    shift: "10:00 AM - 07:00 PM",
+    skills: ["Java", "Python"],
+    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200",
+  },
+  {
+    id: 1988,
+    name: "Michael Chen",
+    program: "M.S. Data Science",
+    rating: 4.5,
+    status: "completed",
+    academicScore: 88,
+    shift: "10:00 AM - 07:00 PM",
+    skills: ["Python", "Angular"],
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200",
+  },
+  {
+    id: 2092,
+    name: "Emily Rodriguez",
+    program: "B.E. Information Tech",
+    rating: 4.9,
+    status: "active",
+    academicScore: 95,
+    shift: "10:00 AM - 07:00 PM",
+    skills: ["React"],
+    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200",
+  },
+  {
+    id: 2101,
+    name: "David Kim",
+    program: "B.S. Software Eng",
+    rating: 4.7,
+    status: "completed",
+    academicScore: 90,
+    shift: "10:00 AM - 07:00 PM",
+    skills: ["Java"],
+    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200",
+  },
+
+  /* ======= NEW PROFILES ADDED ======= */
+
+  {
+    id: 2125,
+    name: "Ananya Rao",
+    program: "B.Tech AI & ML",
+    rating: 4.6,
+    status: "active",
+    academicScore: 91,
+    shift: "09:00 AM - 06:00 PM",
+    skills: ["Python", "React"],
+    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200",
+  },
+  {
+    id: 2131,
+    name: "Rahul Mehta",
+    program: "B.E. Computer Science",
+    rating: 4.4,
+    status: "completed",
+    academicScore: 84,
+    shift: "10:00 AM - 07:00 PM",
+    skills: ["Angular", "Java"],
+    avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200",
+  },
+  {
+    id: 2140,
+    name: "Sneha Iyer",
+    program: "B.Tech Information Technology",
+    rating: 4.9,
+    status: "active",
+    academicScore: 97,
+    shift: "09:30 AM - 06:30 PM",
+    skills: ["Java", "React"],
+    avatar: "https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=200",
+  },
+  {
+    id: 2146,
+    name: "Arjun Patel",
+    program: "B.S. Data Analytics",
+    rating: 4.3,
+    status: "completed",
+    academicScore: 78,
+    shift: "10:00 AM - 07:00 PM",
+    skills: ["Python"],
+    avatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200",
+  },
+  {
+    id: 2152,
+    name: "Neha Kapoor",
+    program: "M.Tech Software Systems",
+    rating: 4.7,
+    status: "active",
+    academicScore: 89,
+    shift: "11:00 AM - 08:00 PM",
+    skills: ["React", "Angular"],
+    avatar: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=200",
+  },
+];
+const trendingStudents = studentsData
+  .filter((student) => student.academicScore > 80)
+  .sort((a, b) => b.academicScore - a.academicScore); // sort descending
+
 
 const { width } = Dimensions.get("window");
 
 const EducationHome = () => {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
   const navigation = useNavigation<any>();
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [searchText, setSearchText] = useState("");
+const filteredTrendingStudents = trendingStudents.filter(
+  (student) =>
+    student.name.toLowerCase().includes(searchText.toLowerCase()) ||
+    student.program.toLowerCase().includes(searchText.toLowerCase()) ||
+    student.skills.some((skill) =>
+      skill.toLowerCase().includes(searchText.toLowerCase())
+    )
+);
+
+const [showAllTrending, setShowAllTrending] = useState(false); // NEW
 
   /* ===== LOAD USER FROM STORAGE ===== */
   useEffect(() => {
@@ -78,7 +212,13 @@ const EducationHome = () => {
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="light-content" />
 
-      <LinearGradient colors={["#0d1321", "#101622"]} style={styles.container}>
+<LinearGradient
+  colors={[
+    colors.gradientStart ?? colors.background,
+    colors.gradientEnd ?? colors.surface,
+  ]}
+  style={styles.container}
+>
         {/* HEADER */}
         <SafeAreaView edges={["top"]} style={styles.headerSafe}></SafeAreaView>
         <View style={styles.header}>
@@ -94,9 +234,12 @@ const EducationHome = () => {
               </Text>
             </View>
           </View>
-          <TouchableOpacity style={styles.bell}>
-            <Icon name="notifications" size={22} color="#fff" />
-            <View style={styles.dot} />
+     <TouchableOpacity
+  style={styles.bell}
+  onPress={() => navigation.navigate("Notifications")}
+>
+  <Icon name="notifications-none" size={28} color={colors.text} />
+  {/* <View style={styles.dot} /> */}
           </TouchableOpacity>
         </View>
 
@@ -107,6 +250,8 @@ const EducationHome = () => {
             placeholder="Search for colleges, jobs..."
             placeholderTextColor="#9da6b9"
             style={styles.searchInput}
+             value={searchText}                    // ✅ ADD
+  onChangeText={setSearchText}  
           />
           <Icon name="mic" size={20} color="#1a5cff" />
         </View>
@@ -142,8 +287,11 @@ const EducationHome = () => {
 
           {/* CATEGORIES - UPDATED ICON GRID LAYOUT */}
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Explore Categories</Text>
-            <Text style={styles.viewAll}>View All</Text>
+            <Text style={[styles.sectionTitle, { color: colors.primary }]}>
+  Explore Categories
+</Text>
+
+            {/* <Text style={styles.viewAll}>View All</Text> */}
           </View>
 
           <View style={styles.categoriesGrid}>
@@ -171,42 +319,51 @@ const EducationHome = () => {
             ))}
           </View>
 
+          
           {/* TRENDING */}
-          <Text style={styles.trendingTitle}>Trending Now</Text>
+<View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginHorizontal: 16 }}>
+  <Text style={styles.trendingTitle}>Trending Now</Text>
+  <TouchableOpacity onPress={() => setShowAllTrending(!showAllTrending)}>
+    <Text style={{ color: colors.primary, fontSize: 14 }}>
+      {showAllTrending ? "Show Less" : "View All"}
+    </Text>
+  </TouchableOpacity>
+</View>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {[
-              {
-                title: "Google Internship",
-                sub: "Software Engineering • Remote",
-                tag: "New",
-                image:
-                  "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800",
-              },
-              {
-                title: "Harvard University",
-                sub: "Business Administration",
-                tag: "Fall 2024",
-                image:
-                  "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800",
-              },
-            ].map((item, index) => (
-              <View key={index} style={styles.trendingCard}>
-                <Image
-                  source={{ uri: item.image }}
-                  style={styles.trendingImage}
-                />
-                <View style={styles.trendingBody}>
-                  <Text style={styles.trendingName}>{item.title}</Text>
-                  <Text style={styles.trendingSub}>{item.sub}</Text>
-                  <View style={styles.trendingRow}>
-                    <Text style={styles.trendingTag}>{item.tag}</Text>
-                    <Text style={styles.apply}>APPLY</Text>
-                  </View>
-                </View>
-              </View>
-            ))}
-          </ScrollView>
+
+<View style={{ paddingHorizontal: 16 }}>
+  {(showAllTrending ? filteredTrendingStudents : filteredTrendingStudents.slice(0, 4)).map((student) => (
+  <TouchableOpacity
+  key={student.id}
+  style={styles.trendingRowCard}
+  activeOpacity={0.8}
+  onPress={() =>
+    navigation.navigate("CandidateProfile", {
+      student: student,
+    })
+  }
+>
+    <Image source={{ uri: student.avatar }} style={styles.trendingAvatar} />
+    <View style={styles.trendingInfo}>
+      <Text style={styles.trendingName}>{student.name}</Text>
+      <Text style={styles.trendingSub}>{student.program}</Text>
+      <Text style={styles.trendingScore}>{student.academicScore}% Academic Score</Text>
+      <View style={styles.trendingFooter}>
+        <Text style={styles.rating}>⭐ {student.rating}</Text>
+        <Text style={[styles.status, student.status === "active" ? styles.active : styles.completed]}>
+          {student.status.toUpperCase()}
+        </Text>
+      </View>
+      <Text style={styles.shift}>{student.shift}</Text>
+    </View>
+ </TouchableOpacity>
+
+))}
+
+</View>
+
+
+
         </ScrollView>
 
         {/* BOTTOM NAV */}
@@ -241,167 +398,342 @@ const EducationHome = () => {
 
 export default EducationHome;
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#0d1321" },
-  container: { flex: 1 },
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: 16,
-    alignItems: "center",
-  },
-  headerLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
-  avatar: { width: 44, height: 44, borderRadius: 22 },
-  welcome: { color: "#9da6b9", fontSize: 12 },
-  username: { color: "#fff", fontSize: 18, fontWeight: "700" },
-  bell: { position: "relative" },
-  dot: {
-    position: "absolute",
-    top: 2,
-    right: 2,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#ef4444",
-  },
+    container: { flex: 1 },
 
-  searchBox: {
-    marginHorizontal: 16,
-    height: 48,
-    backgroundColor: "#1c1f27",
-    borderRadius: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    gap: 8,
-  },
-  searchInput: { flex: 1, color: "#fff", fontSize: 15 },
+    /* ================= HEADER ================= */
+    headerSafe: {
+      backgroundColor: colors.background,
+    },
 
-  featured: {
-    margin: 16,
-    height: 180,
-    borderRadius: 20,
-    overflow: "hidden",
-  },
-  featuredImage: { width: "100%", height: "100%" },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.55)",
-  },
-  featuredContent: {
-    position: "absolute",
-    bottom: 16,
-    left: 16,
-    right: 16,
-  },
-  featuredTag: {
-    backgroundColor: "#1a5cff",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    alignSelf: "flex-start",
-  },
-  featuredTagText: { color: "#fff", fontSize: 11, fontWeight: "700" },
-  featuredTitle: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "700",
-    marginTop: 8,
-  },
-  featuredSub: { color: "#d1d5db", fontSize: 13, marginTop: 4 },
-  featuredLink: { color: "#fff", fontSize: 14, marginTop: 8 },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      padding: 16,
+      alignItems: "center",
+      backgroundColor: colors.background,
+    },
 
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginHorizontal: 16,
-    marginBottom: 16,
-  },
-  sectionTitle: { color: "#fff", fontSize: 20, fontWeight: "700" },
-  viewAll: { color: "#1a5cff", fontSize: 14 },
+    headerLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
 
-  // NEW: Category Icon Grid Styles
-  categoriesGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginHorizontal: 16,
-    marginBottom: 8,
-    gap: 20,
-  },
-  categoryIconCard: {
-    alignItems: "center",
-    width: (width - 32 - 60) / 4, // 4 items per row with gaps
-  },
-  categoryIconCircle: {
-    width: 50,
-    height: 50,
-    borderRadius: 28,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 8,
-  },
-  categoryIconTitle: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "500",
-    textAlign: "center",
-  },
+    avatar: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+    },
 
-  trendingTitle: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "700",
-    margin: 16,
-  },
-  trendingCard: {
-    width: 260,
-    marginLeft: 16,
-    backgroundColor: "#1c1f27",
-    borderRadius: 16,
-    overflow: "hidden",
-  },
-  trendingImage: {
-    width: "100%",
-    height: 120,
-  },
-  trendingBody: { padding: 12 },
-  trendingName: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  trendingSub: { color: "#9da6b9", fontSize: 12, marginTop: 4 },
-  trendingRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 8,
-  },
-  trendingTag: {
-    backgroundColor: "#22c55e30",
-    color: "#22c55e",
-    fontSize: 12,
-    paddingHorizontal: 8,
-    borderRadius: 6,
-  },
-  apply: { color: "#1a5cff", fontSize: 12, fontWeight: "700" },
+    welcome: {
+      color: colors.subText,
+      fontSize: 12,
+    },
 
-  bottomNav: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 76,
-    backgroundColor: "#1c1f27",
-    borderTopWidth: 1,
-    borderTopColor: "#2a3140",
-    flexDirection: "row",
-    paddingBottom: 12,
-  },
-  headerSafe: {
-    backgroundColor: "#0d1321",
-  },
-  navItem: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "flex-end",
-    gap: 4,
-  },
-  navText: { color: "#9da6b9", fontSize: 11 },
-});
+    username: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: "700",
+    },
+
+    bell: { position: "relative" },
+
+    dot: {
+      position: "absolute",
+      top: 2,
+      right: 2,
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: colors.danger ?? "#ef4444",
+    },
+
+    /* ================= SEARCH ================= */
+    searchBox: {
+      marginHorizontal: 16,
+      height: 48,
+      backgroundColor: colors.surface,
+      borderRadius: 14,
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 12,
+      gap: 8,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    searchInput: {
+      flex: 1,
+      color: colors.text,
+      fontSize: 15,
+    },
+
+    /* ================= FEATURED ================= */
+    featured: {
+      margin: 16,
+      height: 180,
+      borderRadius: 20,
+      overflow: "hidden",
+    },
+
+    featuredImage: {
+      width: "100%",
+      height: "100%",
+    },
+
+    overlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: "rgba(0,0,0,0.55)",
+    },
+
+    featuredContent: {
+      position: "absolute",
+      bottom: 16,
+      left: 16,
+      right: 16,
+    },
+
+    featuredTag: {
+      backgroundColor: colors.primary,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 6,
+      alignSelf: "flex-start",
+    },
+
+    featuredTagText: {
+      color: "#ffffff",
+      fontSize: 11,
+      fontWeight: "700",
+    },
+
+    featuredTitle: {
+      color: "#ffffff",
+      fontSize: 20,
+      fontWeight: "700",
+      marginTop: 8,
+    },
+
+    featuredSub: {
+      color: "#e5e7eb",
+      fontSize: 13,
+      marginTop: 4,
+    },
+
+    featuredLink: {
+      color: "#ffffff",
+      fontSize: 14,
+      marginTop: 8,
+    },
+
+    /* ================= SECTION ================= */
+    sectionHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginHorizontal: 16,
+      marginBottom: 16,
+    },
+
+    sectionTitle: {
+      color: colors.text,
+      fontSize: 20,
+      fontWeight: "700",
+    },
+
+    viewAll: {
+      color: colors.primary,
+      fontSize: 14,
+    },
+
+    /* ================= CATEGORIES ================= */
+    categoriesGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      marginHorizontal: 16,
+      marginBottom: 8,
+      gap: 20,
+    },
+
+    categoryIconCard: {
+      alignItems: "center",
+      width: (width - 32 - 60) / 4,
+    },
+
+    categoryIconCircle: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: 8,
+      backgroundColor: colors.surfaceAlt,
+    },
+
+    categoryIconTitle: {
+      color: colors.text,
+      fontSize: 12,
+      fontWeight: "500",
+      textAlign: "center",
+    },
+
+    /* ================= TRENDING ================= */
+    trendingTitle: {
+      color: colors.text,
+      fontSize: 20,
+      fontWeight: "700",
+      margin: 16,
+    },
+
+    trendingCard: {
+      width: "90%",
+      marginHorizontal: 16,
+      marginBottom: 16,
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      overflow: "hidden",
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    trendingImage: {
+      width: "100%",
+      height: 190,
+      resizeMode: "cover",
+    },
+
+    trendingBody: { padding: 12 },
+
+    trendingName: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: "600",
+    },
+
+    trendingSub: {
+      color: colors.subText,
+      fontSize: 12,
+      marginTop: 4,
+    },
+
+    trendingRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginTop: 8,
+    },
+
+    trendingTag: {
+      backgroundColor: colors.success + "30",
+      color: colors.success,
+      fontSize: 12,
+      paddingHorizontal: 8,
+      borderRadius: 6,
+    },
+
+    apply: {
+      color: colors.primary,
+      fontSize: 12,
+      fontWeight: "700",
+    },
+
+    /* ================= BOTTOM NAV ================= */
+    bottomNav: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: 76,
+      backgroundColor: colors.surface,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      flexDirection: "row",
+      paddingBottom: 12,
+    },
+
+    navItem: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "flex-end",
+      gap: 4,
+    },
+
+    navText: {
+      color: colors.subText,
+      fontSize: 11,
+    },
+    /* ================= TRENDING ROW CARD ================= */
+
+trendingRowCard: {
+  flexDirection: "row",
+  alignItems: "center",
+  backgroundColor: colors.card,
+  borderRadius: 12,
+  padding: 12,
+  marginBottom: 12,
+  borderWidth: 1,
+  borderColor: colors.border,
+},
+
+trendingAvatar: {
+  width: 60,
+  height: 60,
+  borderRadius: 30,
+  marginRight: 12,
+},
+
+trendingInfo: {
+  flex: 1,
+},
+
+trendingScore: {
+  color: colors.subText,
+  fontSize: 12,
+  marginTop: 2,
+},
+
+trendingFooter: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  marginTop: 4,
+},
+
+rating: {
+  color: colors.warning ?? "#facc15",
+  fontSize: 12,
+  fontWeight: "600",
+},
+
+status: {
+  fontSize: 12,
+  fontWeight: "700",
+  paddingHorizontal: 8,
+  paddingVertical: 2,
+  borderRadius: 12,
+  textAlign: "center",
+},
+
+active: {
+  backgroundColor: (colors.success ?? "#22c55e") + "30",
+  color: colors.success ?? "#22c55e",
+},
+
+completed: {
+  backgroundColor: colors.subText + "30",
+  color: colors.subText,
+},
+
+shift: {
+  color: colors.subText,
+  fontSize: 11,
+  marginTop: 2,
+},
+
+
+
+  });

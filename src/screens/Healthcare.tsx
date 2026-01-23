@@ -7,11 +7,11 @@ import {
   TouchableOpacity,
   Image,
   StatusBar,
-  SafeAreaView,
   StyleSheet,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 const DoctorListScreen = () => {
@@ -123,7 +123,13 @@ const DoctorListScreen = () => {
 
         {/* Book Ambulance Card */}
         <View style={styles.ambulanceContainer}>
-          <TouchableOpacity style={styles.ambulanceCard}>
+           <TouchableOpacity 
+            style={styles.ambulanceCard}
+            onPress={() => {
+              navigation.navigate("AmbulanceBooking");
+            }}
+
+          >
             <View style={styles.ambulanceIconContainer}>
               <Icon name="local-hospital" size={32} color="#dc2626" />
             </View>
@@ -131,7 +137,13 @@ const DoctorListScreen = () => {
               <Text style={styles.ambulanceTitle}>Emergency Ambulance</Text>
               <Text style={styles.ambulanceSubtitle}>Available 24/7 for urgent care</Text>
             </View>
-            <TouchableOpacity style={styles.ambulanceButton}>
+            <TouchableOpacity 
+
+              style={styles.ambulanceButton}
+              onPress={() => {
+                navigation.navigate("Ambulance");
+              }}
+            >
               <Text style={styles.ambulanceButtonText}>Book Now</Text>
               <Icon name="arrow-forward" size={16} color="#ffffff" />
             </TouchableOpacity>

@@ -1,20 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  Image,
-  StatusBar,
-  Modal,
-  Dimensions,
+  View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity,
+  Image, StatusBar, Modal, Dimensions, Alert
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from "../context/ThemeContext";
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 interface Property {
   id: string;
@@ -40,9 +34,15 @@ interface Property {
   year?: string;
   mobileNumber?: string;
   itemCondition?: string;
+  registrationStatus?: 'registered' | 'non-registered';
+  registrationValue?: string;
+  marketValue?: string;
+  documentImages?: string[];
 }
 
 const BuyerPage = ({ route, navigation }: any) => {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
   const { property } = route.params as { property: Property };
   
   const [fullName, setFullName] = useState('');
@@ -50,311 +50,217 @@ const BuyerPage = ({ route, navigation }: any) => {
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [isWishlisted, setIsWishlisted] = useState(false); // Wishlist State
+
+  // Document Viewer State
+  const [isDocViewerVisible, setIsDocViewerVisible] = useState(false);
+  const [selectedDocImage, setSelectedDocImage] = useState<string | null>(null);
 
   const images = property.images || [property.image || 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=500'];
 
-  const validateForm = () => {
-    if (!fullName.trim()) {
-      alert('Please enter your full name');
-      return false;
+  // Check if item is already wishlisted on load
+  useEffect(() => {
+    checkWishlistStatus();
+  }, []);
+
+  const checkWishlistStatus = async () => {
+    try {
+      const storedWishlist = await AsyncStorage.getItem('marketplace_wishlist');
+      if (storedWishlist) {
+        const wishlist: Property[] = JSON.parse(storedWishlist);
+        const exists = wishlist.some(item => item.id === property.id);
+        setIsWishlisted(exists);
+      }
+    } catch (error) {
+      console.error("Error checking wishlist", error);
     }
-    if (!mobileNumber.trim() || mobileNumber.length < 10) {
-      alert('Please enter a valid mobile number');
-      return false;
+  };
+
+  const toggleWishlist = async () => {
+    try {
+      const storedWishlist = await AsyncStorage.getItem('marketplace_wishlist');
+      let wishlist: Property[] = storedWishlist ? JSON.parse(storedWishlist) : [];
+
+      if (isWishlisted) {
+        // Remove from wishlist
+        wishlist = wishlist.filter(item => item.id !== property.id);
+        setIsWishlisted(false);
+      } else {
+        // Add to wishlist
+        wishlist.push(property);
+        setIsWishlisted(true);
+      }
+
+      await AsyncStorage.setItem('marketplace_wishlist', JSON.stringify(wishlist));
+    } catch (error) {
+      Alert.alert("Error", "Could not update wishlist");
     }
-    if (!deliveryAddress.trim()) {
-      alert('Please enter your delivery address');
-      return false;
-    }
-    return true;
+  };
+
+  const formatCurrency = (val: string | undefined) => {
+    if (!val) return 'N/A';
+    return `₹${parseFloat(val).toLocaleString('en-IN')}`;
   };
 
   const handleBuyProperty = () => {
-    if (validateForm()) {
-      setShowSuccessModal(true);
+    if (!fullName || !mobileNumber || !deliveryAddress) {
+      Alert.alert('Error', 'Please fill all fields');
+      return;
     }
-  };
-
-  const handleCloseSuccessModal = () => {
-    setShowSuccessModal(false);
-    navigation.goBack();
+    setShowSuccessModal(true);
   };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="light-content" backgroundColor="#0a0c10" />
       
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <MaterialIcons name="arrow-back-ios" size={20} color="#fff" />
+          <MaterialIcons name="arrow-back-ios" size={20} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Property Details</Text>
-        <TouchableOpacity style={styles.favoriteButton}>
-          <MaterialIcons name="favorite-border" size={24} color="#fff" />
+        <Text style={styles.headerTitle}>Details</Text>
+        
+        {/* Wishlist Heart Icon */}
+        <TouchableOpacity style={styles.favoriteButton} onPress={toggleWishlist}>
+          <MaterialIcons 
+            name={isWishlisted ? "favorite" : "favorite-border"} 
+            size={26} 
+            color={isWishlisted ? "#ef4444" : colors.text} 
+          />
         </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Main Image Slider */}
         <View style={styles.imageSection}>
           <ScrollView
-            horizontal
-            pagingEnabled
+            horizontal pagingEnabled
             showsHorizontalScrollIndicator={false}
-            onScroll={(e) => {
-              const index = Math.round(e.nativeEvent.contentOffset.x / width);
-              setActiveImageIndex(index);
-            }}
+            onScroll={(e) => setActiveImageIndex(Math.round(e.nativeEvent.contentOffset.x / width))}
             scrollEventThrottle={16}
           >
             {images.map((img, index) => (
               <Image key={index} source={{ uri: img }} style={styles.propertyImage} />
             ))}
           </ScrollView>
-          
           <View style={styles.imageIndicatorContainer}>
             {images.map((_, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.imageIndicator,
-                  activeImageIndex === index && styles.activeImageIndicator,
-                ]}
-              />
+              <View key={index} style={[styles.imageIndicator, activeImageIndex === index && styles.activeImageIndicator]} />
             ))}
-          </View>
-
-          <View style={styles.badgesContainer}>
-            <View style={property.listingType === 'buy' ? styles.saleBadge : styles.rentBadge}>
-              <Text style={styles.badgeText}>
-                {property.listingType === 'buy' ? 'FOR SALE' : 'FOR RENT'}
-              </Text>
-            </View>
-            {property.itemCondition && (
-              <View style={[
-                styles.conditionBadge,
-                property.itemCondition === 'New Item' ? styles.newConditionBadge : styles.oldConditionBadge
-              ]}>
-                <Text style={styles.badgeText}>
-                  {property.itemCondition === 'New Item' ? 'NEW' : 'USED'}
-                </Text>
-              </View>
-            )}
           </View>
         </View>
 
         <View style={styles.detailsSection}>
-          <View style={styles.titleRow}>
-            <Text style={styles.propertyTitle}>{property.title}</Text>
-            {property.rating && (
-              <View style={styles.ratingContainer}>
-                <MaterialIcons name="star" size={16} color="#fbbf24" />
-                <Text style={styles.ratingText}>{property.rating.toFixed(1)}</Text>
-              </View>
-            )}
-          </View>
-
+          <Text style={styles.propertyTitle}>{property.title}</Text>
           <Text style={styles.propertyPrice}>{property.price}</Text>
 
-          {property.propertyType && (
-            <View style={styles.infoRow}>
-              <MaterialIcons name="category" size={16} color="#64748b" />
-              <Text style={styles.infoText}>{property.propertyType}</Text>
-            </View>
-          )}
+          <View style={styles.infoRow}>
+            <MaterialIcons name="location-on" size={16} color="#64748b" />
+            <Text style={styles.infoText}>{property.location}, {property.area}</Text>
+          </View>
 
-          {property.location && (
-            <View style={styles.infoRow}>
-              <MaterialIcons name="location-on" size={16} color="#64748b" />
-              <Text style={styles.infoText}>{property.location}</Text>
-            </View>
-          )}
-
-          {property.area && (
-            <View style={styles.infoRow}>
-              <MaterialIcons name="place" size={16} color="#64748b" />
-              <Text style={styles.infoText}>{property.area}</Text>
-            </View>
-          )}
-
-          {property.distance && (
-            <View style={styles.infoRow}>
-              <MaterialIcons name="near-me" size={16} color="#64748b" />
-              <Text style={styles.infoText}>{property.distance}</Text>
+          {property.propertyType === 'Land' && (
+            <View style={[styles.landStatusBadge, property.registrationStatus === 'registered' ? styles.regBg : styles.nonRegBg]}>
+              <MaterialIcons name={property.registrationStatus === 'registered' ? "verified" : "gavel"} size={16} color="#fff" />
+              <Text style={styles.landStatusText}>
+                {property.registrationStatus === 'registered' ? 'Registered Land' : 'Non-Registered (Attested Copy)'}
+              </Text>
             </View>
           )}
 
           <View style={styles.detailsGrid}>
-            {property.sqft && (
-              <View style={styles.detailCard}>
-                <MaterialIcons name="square-foot" size={24} color="#135bec" />
-                <Text style={styles.detailValue}>{property.sqft}</Text>
-                <Text style={styles.detailLabel}>Sq. Ft.</Text>
-              </View>
+            {property.sqft && <DetailCard icon="square-foot" label="Sq. Ft." value={property.sqft} />}
+            {property.landType && <DetailCard icon="landscape" label="Land Type" value={property.landType} />}
+            
+            {property.propertyType === 'Land' && (
+              <>
+                <DetailCard icon="account-balance" label="Reg. Value" value={formatCurrency(property.registrationValue)} />
+                <DetailCard icon="trending-up" label="Market Value" value={formatCurrency(property.marketValue)} />
+              </>
             )}
-            {property.bhk && (
-              <View style={styles.detailCard}>
-                <MaterialIcons name="bed" size={24} color="#135bec" />
-                <Text style={styles.detailValue}>{property.bhk}</Text>
-                <Text style={styles.detailLabel}>Type</Text>
-              </View>
-            )}
-            {property.furnishingType && (
-              <View style={styles.detailCard}>
-                <MaterialIcons name="chair" size={24} color="#135bec" />
-                <Text style={styles.detailValue}>{property.furnishingType}</Text>
-                <Text style={styles.detailLabel}>Furnishing</Text>
-              </View>
-            )}
-            {property.landType && (
-              <View style={styles.detailCard}>
-                <MaterialIcons name="landscape" size={24} color="#135bec" />
-                <Text style={styles.detailValue}>{property.landType}</Text>
-                <Text style={styles.detailLabel}>Land Type</Text>
-              </View>
-            )}
-            {property.brand && (
-              <View style={styles.detailCard}>
-                <MaterialIcons name="directions-car" size={24} color="#135bec" />
-                <Text style={styles.detailValue}>{property.brand}</Text>
-                <Text style={styles.detailLabel}>Brand</Text>
-              </View>
-            )}
-            {property.model && (
-              <View style={styles.detailCard}>
-                <MaterialIcons name="info" size={24} color="#135bec" />
-                <Text style={styles.detailValue}>{property.model}</Text>
-                <Text style={styles.detailLabel}>Model</Text>
-              </View>
-            )}
-            {property.year && (
-              <View style={styles.detailCard}>
-                <MaterialIcons name="calendar-today" size={24} color="#135bec" />
-                <Text style={styles.detailValue}>{property.year}</Text>
-                <Text style={styles.detailLabel}>Year</Text>
-              </View>
-            )}
+            {property.bhk && <DetailCard icon="bed" label="BHK" value={property.bhk} />}
           </View>
 
           {property.description && (
-            <View style={styles.descriptionSection}>
+            <View style={styles.section}>
               <Text style={styles.sectionTitle}>Description</Text>
               <Text style={styles.descriptionText}>{property.description}</Text>
             </View>
           )}
 
+          {property.documentImages && property.documentImages.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Legal Documents</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 10 }}>
+                {property.documentImages.map((doc, idx) => (
+                  <TouchableOpacity key={idx} style={styles.docWrapper} onPress={() => { setSelectedDocImage(doc); setIsDocViewerVisible(true); }}>
+                    <Image source={{ uri: doc }} style={styles.docThumb} />
+                    <View style={styles.docOverlay}>
+                      <MaterialIcons name="visibility" size={24} color="#fff" />
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+
           {property.ownerName && (
-            <View style={styles.ownerSection}>
-              <Text style={styles.sectionTitle}>Owner Details</Text>
-              <View style={styles.ownerCard}>
-                <View style={styles.ownerAvatar}>
-                  <MaterialIcons name="person" size={32} color="#135bec" />
-                </View>
-                <View style={styles.ownerInfo}>
-                  <Text style={styles.ownerName}>{property.ownerName}</Text>
-                  {property.mobileNumber && (
-                    <Text style={styles.ownerContact}>{property.mobileNumber}</Text>
-                  )}
-                </View>
-                <TouchableOpacity style={styles.callButton}>
-                  <MaterialIcons name="phone" size={20} color="#fff" />
-                </TouchableOpacity>
+            <View style={styles.ownerCard}>
+              <View style={styles.ownerAvatar}><MaterialIcons name="person" size={30} color="#135bec" /></View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.ownerName}>{property.ownerName}</Text>
+                <Text style={styles.ownerContact}>{property.mobileNumber}</Text>
               </View>
+              <TouchableOpacity style={styles.callButton}><MaterialIcons name="phone" size={20} color="#fff" /></TouchableOpacity>
             </View>
           )}
 
           <View style={styles.formSection}>
-            <Text style={styles.sectionTitle}>Your Information</Text>
-            
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>FULL NAME</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter your full name"
-                placeholderTextColor="#4b5563"
-                value={fullName}
-                onChangeText={setFullName}
-              />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>MOBILE NUMBER</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="+91 98765 43210"
-                placeholderTextColor="#4b5563"
-                keyboardType="phone-pad"
-                value={mobileNumber}
-                onChangeText={setMobileNumber}
-              />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>DELIVERY ADDRESS</Text>
-              <TextInput
-                style={[styles.input, styles.textArea]}
-                placeholder="Enter your complete delivery address"
-                placeholderTextColor="#4b5563"
-                multiline
-                numberOfLines={4}
-                value={deliveryAddress}
-                onChangeText={setDeliveryAddress}
-              />
-            </View>
+            <Text style={styles.sectionTitle}>Inquiry Form</Text>
+            <CustomInput label="FULL NAME" value={fullName} onChange={setFullName} placeholder="John Doe" />
+            <CustomInput label="MOBILE" value={mobileNumber} onChange={setMobileNumber} placeholder="10 Digit Number" keyboard="phone-pad" />
+            <CustomInput label="ADDRESS" value={deliveryAddress} onChange={setDeliveryAddress} placeholder="Detailed Address" multiline />
           </View>
         </View>
-
-        <View style={{ height: 120 }} />
+        <View style={{ height: 100 }} />
       </ScrollView>
 
+      {/* Footer Price/Action */}
       <View style={styles.bottomSection}>
-        <View style={styles.priceContainer}>
-          <Text style={styles.bottomPriceLabel}>Total Amount</Text>
+        <View>
+          <Text style={styles.bottomPriceLabel}>Price</Text>
           <Text style={styles.bottomPrice}>{property.price}</Text>
         </View>
         <TouchableOpacity style={styles.buyButton} onPress={handleBuyProperty}>
-          <MaterialIcons name="shopping-cart" size={20} color="#fff" />
-          <Text style={styles.buyButtonText}>
-            {property.listingType === 'buy' ? 'Buy Property' : 'Book Property'}
-          </Text>
+          <Text style={styles.buyButtonText}>Contact Seller</Text>
         </TouchableOpacity>
       </View>
 
-      <Modal
-        visible={showSuccessModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={handleCloseSuccessModal}
-      >
+      {/* Document Viewer Modal */}
+      <Modal visible={isDocViewerVisible} transparent={false} animationType="fade" onRequestClose={() => setIsDocViewerVisible(false)}>
+        <View style={styles.fullScreenContainer}>
+          <View style={styles.fullScreenHeader}>
+            <TouchableOpacity onPress={() => setIsDocViewerVisible(false)} style={styles.closeFullBtn}>
+              <MaterialIcons name="close" size={30} color="#fff" />
+            </TouchableOpacity>
+            <Text style={styles.fullScreenTitle}>Document View</Text>
+            <View style={{ width: 40 }} />
+          </View>
+          <View style={styles.fullScreenImageContent}>
+            {selectedDocImage && <Image source={{ uri: selectedDocImage }} style={styles.fullScreenImage} resizeMode="contain" />}
+          </View>
+        </View>
+      </Modal>
+
+      {/* Success Modal */}
+      <Modal visible={showSuccessModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.successModal}>
-            <View style={styles.successIconContainer}>
-              <MaterialIcons name="check-circle" size={80} color="#10b981" />
-            </View>
-            <Text style={styles.successTitle}>Property Booked Successfully!</Text>
-            <Text style={styles.successMessage}>
-              Your booking request has been submitted. The property owner will contact you shortly.
-            </Text>
-            <View style={styles.successDetails}>
-              <View style={styles.successDetailRow}>
-                <Text style={styles.successDetailLabel}>Name:</Text>
-                <Text style={styles.successDetailValue}>{fullName}</Text>
-              </View>
-              <View style={styles.successDetailRow}>
-                <Text style={styles.successDetailLabel}>Mobile:</Text>
-                <Text style={styles.successDetailValue}>{mobileNumber}</Text>
-              </View>
-              <View style={styles.successDetailRow}>
-                <Text style={styles.successDetailLabel}>Property:</Text>
-                <Text style={styles.successDetailValue} numberOfLines={1}>
-                  {property.title}
-                </Text>
-              </View>
-              <View style={styles.successDetailRow}>
-                <Text style={styles.successDetailLabel}>Amount:</Text>
-                <Text style={styles.successDetailValue}>{property.price}</Text>
-              </View>
-            </View>
-            <TouchableOpacity style={styles.successButton} onPress={handleCloseSuccessModal}>
+            <MaterialIcons name="check-circle" size={80} color="#10b981" />
+            <Text style={styles.successTitle}>Inquiry Sent!</Text>
+            <Text style={styles.successMessage}>The owner has been notified. They will contact you shortly.</Text>
+            <TouchableOpacity style={styles.successButton} onPress={() => { setShowSuccessModal(false); navigation.goBack(); }}>
               <Text style={styles.successButtonText}>Done</Text>
             </TouchableOpacity>
           </View>
@@ -364,377 +270,90 @@ const BuyerPage = ({ route, navigation }: any) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0a0c10',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#232936',
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  favoriteButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  content: {
-    flex: 1,
-  },
-  imageSection: {
-    position: 'relative',
-  },
-  propertyImage: {
-    width: width,
-    height: width * 1.1,
-    backgroundColor: '#161b26',
-  },
-  imageIndicatorContainer: {
-    position: 'absolute',
-    bottom: 16,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  imageIndicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  activeImageIndicator: {
-    backgroundColor: '#fff',
-    width: 24,
-  },
-  badgesContainer: {
-    position: 'absolute',
-    top: 16,
-    left: 16,
-    flexDirection: 'column',
-    gap: 6,
-  },
-  saleBadge: {
-    backgroundColor: '#3b82f6',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  rentBadge: {
-    backgroundColor: '#f59e0b',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  conditionBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  newConditionBadge: {
-    backgroundColor: '#8b5cf6',
-  },
-  oldConditionBadge: {
-    backgroundColor: '#6b7280',
-  },
-  badgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#fff',
-    letterSpacing: 0.5,
-  },
-  detailsSection: {
-    padding: 16,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 8,
-  },
-  propertyTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#fff',
-    flex: 1,
-    marginRight: 12,
-  },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#161b26',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-    gap: 4,
-  },
-  ratingText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  propertyPrice: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#135bec',
-    marginBottom: 16,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
-  },
-  infoText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#94a3b8',
-  },
-  detailsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    marginTop: 20,
-    marginBottom: 24,
-  },
-  detailCard: {
-    backgroundColor: '#161b26',
-    borderWidth: 1,
-    borderColor: '#232936',
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    minWidth: (width - 56) / 3,
-    flex: 1,
-  },
-  detailValue: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#fff',
-    marginTop: 8,
-  },
-  detailLabel: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: '#64748b',
-    marginTop: 4,
-  },
-  descriptionSection: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: 12,
-  },
-  descriptionText: {
-    fontSize: 14,
-    fontWeight: '400',
-    color: '#94a3b8',
-    lineHeight: 22,
-  },
-  ownerSection: {
-    marginBottom: 24,
-  },
-  ownerCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#161b26',
-    borderWidth: 1,
-    borderColor: '#232936',
-    borderRadius: 12,
-    padding: 16,
-  },
-  ownerAvatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: 'rgba(19, 91, 236, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  ownerInfo: {
-    flex: 1,
-  },
-  ownerName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: 4,
-  },
-  ownerContact: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#94a3b8',
-  },
-  callButton: {
-    backgroundColor: '#135bec',
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  formSection: {
-    marginBottom: 24,
-  },
-  inputContainer: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#94a3b8',
-    marginBottom: 8,
-    letterSpacing: 1,
-  },
-  input: {
-    backgroundColor: '#161b26',
-    borderWidth: 1,
-    borderColor: '#232936',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#fff',
-  },
-  textArea: {
-    minHeight: 100,
-    textAlignVertical: 'top',
-  },
-  bottomSection: {
-    backgroundColor: 'rgba(10, 12, 16, 0.98)',
-    borderTopWidth: 1,
-    borderTopColor: '#232936',
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 24,
-  },
-  priceContainer: {
-    marginBottom: 12,
-  },
-  bottomPriceLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#64748b',
-    letterSpacing: 1,
-    marginBottom: 4,
-  },
-  bottomPrice: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#135bec',
-  },
-  buyButton: {
-    backgroundColor: '#135bec',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 12,
-    gap: 8,
-  },
-  buyButtonText: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#fff',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.85)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  successModal: {
-    backgroundColor: '#161b26',
-    borderRadius: 24,
-    padding: 32,
-    width: '100%',
-    maxWidth: 400,
-    alignItems: 'center',
-  },
-  successIconContainer: {
-    marginBottom: 20,
-  },
-  successTitle: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#fff',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  successMessage: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#94a3b8',
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 22,
-  },
-  successDetails: {
-    width: '100%',
-    backgroundColor: '#0a0c10',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
-  },
-  successDetailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  successDetailLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#64748b',
-  },
-  successDetailValue: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#fff',
-    flex: 1,
-    textAlign: 'right',
-    marginLeft: 12,
-  },
-  successButton: {
-    backgroundColor: '#135bec',
-    paddingHorizontal: 48,
-    paddingVertical: 14,
-    borderRadius: 12,
-    width: '100%',
-    alignItems: 'center',
-  },
-  successButtonText: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#fff',
-  },
+// Sub-components
+const DetailCard = ({ icon, label, value }: any) => {
+  const { colors } = useTheme();
+  return (
+    <View style={{
+      backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border,
+      borderRadius: 12, padding: 12, alignItems: 'center', width: (width - 44) / 2, marginBottom: 12
+    }}>
+      <MaterialIcons name={icon} size={22} color="#135bec" />
+      <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text, marginTop: 4 }}>{value}</Text>
+      <Text style={{ fontSize: 10, color: colors.subText }}>{label}</Text>
+    </View>
+  );
+};
+
+const CustomInput = ({ label, value, onChange, placeholder, keyboard, multiline }: any) => {
+  const { colors } = useTheme();
+  return (
+    <View style={{ marginBottom: 16 }}>
+      <Text style={{ fontSize: 11, fontWeight: '700', color: colors.subText, marginBottom: 8 }}>{label}</Text>
+      <TextInput
+        value={value} onChangeText={onChange} placeholder={placeholder}
+        placeholderTextColor="#4b5563" keyboardType={keyboard} multiline={multiline}
+        style={{
+          backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border,
+          borderRadius: 12, padding: 14, color: colors.text, textAlignVertical: multiline ? 'top' : 'center',
+          minHeight: multiline ? 80 : 50
+        }}
+      />
+    </View>
+  );
+};
+
+const getStyles = (colors: any) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderBottomWidth: 1, borderBottomColor: colors.border },
+  backButton: { width: 40, height: 40, justifyContent: 'center' },
+  headerTitle: { fontSize: 18, fontWeight: '700', color: colors.text },
+  favoriteButton: { width: 40, height: 40, alignItems: 'flex-end', justifyContent: 'center' },
+  content: { flex: 1 },
+  imageSection: { position: 'relative' },
+  propertyImage: { width, height: width * 0.9, backgroundColor: colors.card },
+  imageIndicatorContainer: { position: 'absolute', bottom: 16, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', gap: 6 },
+  imageIndicator: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.4)' },
+  activeImageIndicator: { backgroundColor: '#fff', width: 18 },
+  detailsSection: { padding: 16 },
+  propertyTitle: { fontSize: 22, fontWeight: '800', color: colors.text, marginBottom: 4 },
+  propertyPrice: { fontSize: 26, fontWeight: '800', color: colors.primary, marginBottom: 12 },
+  infoRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 16 },
+  infoText: { fontSize: 14, color: colors.subText },
+  landStatusBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderRadius: 12, marginBottom: 20 },
+  regBg: { backgroundColor: '#065f46' },
+  nonRegBg: { backgroundColor: '#92400e' },
+  landStatusText: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  detailsGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
+  section: { marginTop: 24 },
+  sectionTitle: { fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: 12 },
+  descriptionText: { fontSize: 14, color: colors.subText, lineHeight: 22 },
+  docWrapper: { marginRight: 12, width: 110, height: 140, borderRadius: 12, overflow: 'hidden', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+  docThumb: { width: '100%', height: '100%' },
+  docOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' },
+  ownerCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, padding: 16, borderRadius: 16, marginTop: 24, borderWidth: 1, borderColor: colors.border },
+  ownerAvatar: { width: 50, height: 50, borderRadius: 25, backgroundColor: colors.primary + '20', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  ownerName: { fontSize: 16, fontWeight: '700', color: colors.text },
+  ownerContact: { fontSize: 13, color: colors.subText },
+  callButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'center' },
+  formSection: { marginTop: 32 },
+  bottomSection: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, backgroundColor: colors.background, borderTopWidth: 1, borderTopColor: colors.border },
+  bottomPriceLabel: { fontSize: 12, color: colors.subText, fontWeight: '700' },
+  bottomPrice: { fontSize: 20, fontWeight: '800', color: colors.primary },
+  buyButton: { backgroundColor: colors.primary, paddingHorizontal: 32, paddingVertical: 14, borderRadius: 12 },
+  buyButtonText: { color: '#fff', fontWeight: '800', fontSize: 15 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', padding: 24 },
+  successModal: { backgroundColor: colors.card, borderRadius: 24, padding: 32, alignItems: 'center' },
+  successTitle: { fontSize: 22, fontWeight: '800', color: colors.text, marginTop: 16 },
+  successMessage: { fontSize: 14, color: colors.subText, textAlign: 'center', marginTop: 8, marginBottom: 24 },
+  successButton: { backgroundColor: colors.primary, width: '100%', padding: 14, borderRadius: 12, alignItems: 'center' },
+  successButtonText: { color: '#fff', fontWeight: '700' },
+  fullScreenContainer: { flex: 1, backgroundColor: '#000' },
+  fullScreenHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#222' },
+  closeFullBtn: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
+  fullScreenTitle: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  fullScreenImageContent: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  fullScreenImage: { width: width, height: height * 0.8 }
 });
 
 export default BuyerPage;
-
-function alert(arg0: string) {
-    throw new Error('Function not implemented.');
-}
