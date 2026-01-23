@@ -30,7 +30,8 @@ const PaymentScreen = ({ navigation }: any) => {
   const route = useRoute<any>();
 
   const {
-    addons = [],
+    totalAmount = 0,
+    selectedServices = [],
     floorArea,
     selectedTime,
     allocatedEmployee,
@@ -40,7 +41,9 @@ const PaymentScreen = ({ navigation }: any) => {
   const { colors } = useTheme();
   const styles = getStyles(colors);
 
-  const TOTAL_AMOUNT = 14750;
+  // const TOTAL_AMOUNT = 14750;
+  // const BOOKING_ID = 26;
+   const TOTAL_AMOUNT = totalAmount * 100; 
   const BOOKING_ID = 26;
 
   /* ---------------- PAYMENT HANDLER ---------------- */
@@ -107,57 +110,51 @@ const PaymentScreen = ({ navigation }: any) => {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.sectionLabel}>SERVICE DETAILS</Text>
 
-        {addons.map((addon: any, index: number) => (
-          <View key={index} style={styles.card}>
-            <View style={styles.serviceRow}>
-              <View style={styles.serviceInfo}>
-                <Text style={styles.serviceName}>{addon.service}</Text>
+     {selectedServices.map((service: any, index: number) => (
+  <View key={index} style={styles.card}>
+    <View style={styles.serviceRow}>
+      <View style={styles.serviceInfo}>
+        <Text style={styles.serviceName}>{service.service}</Text>
 
-                <View style={styles.tagRow}>
-                  <View style={styles.blueTag}>
-                    <Text style={styles.blueTagText}>{floorArea} sqft</Text>
-                  </View>
-                  <Text style={styles.subInfoText}>{addon.duration}</Text>
-                </View>
-
-                <View style={styles.dateRow}>
-                  <MaterialIcons
-                    name="calendar-today"
-                    size={14}
-                    color="#94a3b8"
-                  />
-                  <Text style={styles.dateText}>
-                    {addon.date} • {selectedTime}
-                  </Text>
-                </View>
-              </View>
-
-              <Image
-                source={{
-                  uri: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a",
-                }}
-                style={styles.serviceImage}
-              />
-            </View>
+        <View style={styles.tagRow}>
+          <View style={styles.blueTag}>
+            <Text style={styles.blueTagText}>{floorArea} sqft</Text>
           </View>
-        ))}
+          <Text style={styles.subInfoText}>{service.duration}</Text>
+        </View>
+
+        <View style={styles.dateRow}>
+          <MaterialIcons name="calendar-today" size={14} color="#94a3b8" />
+          <Text style={styles.dateText}>
+            {service.date} • {selectedTime}
+          </Text>
+        </View>
+      </View>
+
+      <Image
+        source={{ uri: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a" }}
+        style={styles.serviceImage}
+      />
+    </View>
+  </View>
+))}
 
         <Text style={styles.sectionLabel}>PAYMENT BREAKDOWN</Text>
 
-        <View style={styles.card}>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Total Payable</Text>
-            <Text style={styles.totalValue}>₹147.50</Text>
-          </View>
-        </View>
+       <View style={styles.card}>
+  <View style={styles.totalRow}>
+    <Text style={styles.totalLabel}>Total Payable</Text>
+    <Text style={styles.totalValue}>₹{totalAmount}</Text>
+  </View>
+</View>
       </ScrollView>
 
       {/* FOOTER */}
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.checkoutBtn} onPress={handlePayment}>
-          <Text style={styles.checkoutText}>Checkout ₹147.50</Text>
-        </TouchableOpacity>
-      </View>
+  <TouchableOpacity style={styles.checkoutBtn} onPress={handlePayment}>
+    <Text style={styles.checkoutText}>Checkout ₹{totalAmount}</Text>
+  </TouchableOpacity>
+</View>
 
       {/* SUCCESS MODAL */}
       <Modal visible={paymentSuccess} transparent animationType="fade">

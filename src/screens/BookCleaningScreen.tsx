@@ -147,36 +147,85 @@ const BookCleaningScreen: React.FC = () => {
 // --- UPDATED INITIAL DATA LOGIC ---
   const incomingSelectedService = route.params?.selectedService; // From Commercial/Vehicle
   const incomingServiceArray = route.params?.selectedServices;  // From ServiceDetails (Plumbing/Painting/etc)
+  const incomingAllServices = route.params?.allServices;
+  // const [selectedServices, setSelectedServices] = useState<Service[]>(() => {
+  //   // 1. If we got an array of services (from ServiceDetailsScreen)
+  // if (incomingAllServices && incomingAllServices.length > 0) {
+  //   return incomingAllServices.map((title: string) => {
+  //     // Find the full service object from ALL_SERVICES by title
+  //     const match = ALL_SERVICES.find(s => s.title === title);
+  //     return match || {
+  //       id: 'virtual-' + Math.random(),
+  //       title: title,
+  //       category: detectCategoryFromTitle(title) || 'Home'
+  //     };
+  //   });
+  // }
+
+  //   // 2. If we got a single service title (from Commercial/Home/Vehicle)
+  //   if (incomingServiceArray && incomingServiceArray.length > 0) {
+  //     const match = ALL_SERVICES.find(s => 
+  //       s.title.toLowerCase().includes(incomingSelectedService.toLowerCase()) ||
+  //       incomingSelectedService.toLowerCase().includes(s.title.toLowerCase())
+  //     );
+      
+  //     if (match) return [match];
+
+  //     // Fallback virtual service
+  //     const cat = detectCategoryFromTitle(incomingSelectedService);
+  //     return [{
+  //       id: 'virtual-' + Date.now(),
+  //       title: incomingSelectedService,
+  //       category: cat || 'Home'
+  //     }];
+  //   }
+  //   return [];
+  // });
 
   const [selectedServices, setSelectedServices] = useState<Service[]>(() => {
-    // 1. If we got an array of services (from ServiceDetailsScreen)
-    if (incomingServiceArray && incomingServiceArray.length > 0) {
-      return incomingServiceArray.map((s: any) => ({
-        id: s.subServiceId || s.id,
-        title: s.subService || s.title,
-        category: detectCategoryFromTitle(s.subService || s.title) || s.category
-      }));
-    }
+  // PRIORITY 1: Check if we have allServices (from navigation back)
+  if (incomingAllServices && incomingAllServices.length > 0) {
+    return incomingAllServices.map((title: string) => {
+      const match = ALL_SERVICES.find(s => s.title === title);
+      return match || {
+        id: 'virtual-' + Math.random(),
+        title: title,
+        category: detectCategoryFromTitle(title) || 'Home'
+      };
+    });
+  }
 
-    // 2. If we got a single service title (from Commercial/Home/Vehicle)
-    if (incomingSelectedService) {
-      const match = ALL_SERVICES.find(s => 
-        s.title.toLowerCase().includes(incomingSelectedService.toLowerCase()) ||
-        incomingSelectedService.toLowerCase().includes(s.title.toLowerCase())
-      );
-      
-      if (match) return [match];
+  // PRIORITY 2: Check if we have selectedServices array from EmployeeAllocation
+  if (route.params?.selectedServices && route.params.selectedServices.length > 0) {
+    return route.params.selectedServices.map((title: string) => {
+      const match = ALL_SERVICES.find(s => s.title === title);
+      return match || {
+        id: 'virtual-' + Math.random(),
+        title: title,
+        category: detectCategoryFromTitle(title) || 'Home'
+      };
+    });
+  }
 
-      // Fallback virtual service
-      const cat = detectCategoryFromTitle(incomingSelectedService);
-      return [{
-        id: 'virtual-' + Date.now(),
-        title: incomingSelectedService,
-        category: cat || 'Home'
-      }];
-    }
-    return [];
-  });
+  // PRIORITY 3: Single service from Commercial/Home/Vehicle
+  if (incomingSelectedService) {
+    const match = ALL_SERVICES.find(s => 
+      s.title.toLowerCase().includes(incomingSelectedService.toLowerCase()) ||
+      incomingSelectedService.toLowerCase().includes(s.title.toLowerCase())
+    );
+    
+    if (match) return [match];
+
+    const cat = detectCategoryFromTitle(incomingSelectedService);
+    return [{
+      id: 'virtual-' + Date.now(),
+      title: incomingSelectedService,
+      category: cat || 'Home'
+    }];
+  }
+  
+  return [];
+});
 
   // LOGIC
   const mainService = selectedServices[0];
@@ -192,8 +241,8 @@ const BookCleaningScreen: React.FC = () => {
     : [];
 
   const showFloorField = mainService?.category === "Home" || mainService?.category === "Commercial";
-  const showAllocationUI = mainService?.category !== "Vehicle" && !mainService?.title?.toLowerCase().includes("chef");
-
+// Allow showing UI if an employee is already allocated (passed from VehicleSub)
+const showAllocationUI = (mainService?.category !== "Vehicle" && !mainService?.title?.toLowerCase().includes("chef")) || !!allocatedEmployee;
   const servicePrice = (mainService ? BASE_PRICE : 0) + addonServices.length * ADDON_PRICE;
   const totalPrice = servicePrice + consultationCharge;
 
@@ -222,27 +271,59 @@ const BookCleaningScreen: React.FC = () => {
     }
   };
 
-  const getCurrentLocation = async () => {
+const getCurrentLocation = async () => {
     const hasPermission = await requestLocationPermission();
     if (!hasPermission) return;
+    
     setLoadingLocation(true);
     Geolocation.getCurrentPosition(
       async (position) => {
         try {
-          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18&addressdetails=1`);
+          // 1. Added 'format=jsonv2' for better data structure
+          // 2. Added 'accept-language=en' to ensure English results
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${position.coords.latitude}&lon=${position.coords.longitude}&accept-language=en`,
+            {
+              headers: {
+                'User-Agent': 'ServiceBookingApp/1.0', // IMPORTANT: Nominatim requires a User-Agent or it might fail
+              }
+            }
+          );
+          
           const data = await response.json();
-          setCurrentAddress(data.display_name || "Address not found");
-        } catch (e) { 
-          setCurrentAddress("Address fetch error"); 
-        } finally { 
-          setLoadingLocation(false); 
+          
+          // Construct a cleaner address instead of just using display_name (which is often too long)
+          const addr = data.address;
+          const road = addr.road || addr.suburb || addr.neighbourhood || "";
+          const city = addr.city || addr.town || addr.village || "";
+          const state = addr.state || "";
+          const postcode = addr.postcode || "";
+
+          // Join parts, filtering out empty strings
+          const formattedAddress = [road, city, state, postcode]
+            .filter(part => part.length > 0)
+            .join(", ");
+
+          setCurrentAddress(formattedAddress || data.display_name || "Location detected");
+        } catch (e) {
+          console.error("Location Fetch Error:", e);
+          setCurrentAddress("Error fetching address details");
+        } finally {
+          setLoadingLocation(false);
         }
       },
-      () => setLoadingLocation(false),
-      { enableHighAccuracy: true, timeout: 15000 }
+      (error) => {
+        console.error("GPS Error:", error);
+        setLoadingLocation(false);
+        Alert.alert("Location Error", "Please ensure GPS is enabled and try again.");
+      },
+      { 
+        enableHighAccuracy: true, 
+        timeout: 15000, 
+        maximumAge: 10000 // Cache location for 10 seconds
+      }
     );
   };
-
   const addService = (serviceId: string) => {
     const serviceToAdd = remainingServices.find((s) => s.id === serviceId);
     if (serviceToAdd) {
@@ -254,11 +335,20 @@ const BookCleaningScreen: React.FC = () => {
 
   const removeService = (id: string) => setSelectedServices((prev) => prev.filter((s) => s.id !== id));
 
-  const handleAllocationTypeChange = (value: "auto" | "manual") => {
-    setAllocationType(value);
-    navigation.navigate("EmployeeAllocation", { isAutoAllocation: value === "auto" });
-  };
-
+  // const handleAllocationTypeChange = (value: "auto" | "manual") => {
+  //   setAllocationType(value);
+  //   navigation.navigate("EmployeeAllocation", { isAutoAllocation: value === "auto" });
+  // };
+const handleAllocationTypeChange = (value: "auto" | "manual") => {
+  setAllocationType(value);
+  navigation.navigate("EmployeeAllocation", { 
+    isAutoAllocation: value === "auto",
+    // ADD THESE LINES TO PRESERVE YOUR DATA
+    selectedServices: selectedServices.map(s => s.title), // Pass as titles
+    consultationCharge: consultationCharge,
+    mainCategory: mainService?.category,
+  });
+};
   const handleTakePhoto = async () => {
     const result = await launchCamera({ mediaType: "photo", quality: 0.7 });
     if (!result.didCancel && result.assets) setImages((prev) => [...prev, ...result.assets!]);
@@ -320,7 +410,7 @@ const BookCleaningScreen: React.FC = () => {
           </View>
         )}
 
-        {showAllocationUI && (
+        {showAllocationUI && !route.params?.allocatedEmployee &&  (
           <>
             <Text style={styles.label}>Allocation Type ({allocationType === "auto" ? "Auto" : "Manual"})</Text>
             <View style={styles.dropdownBox}>
@@ -470,7 +560,7 @@ const BookCleaningScreen: React.FC = () => {
           </View>
         ))}
 
-        <View style={styles.summary}>
+        {/* <View style={styles.summary}>
           <SummaryRow label="Services" value={`$${servicePrice}`} styles={styles} />
           {consultationCharge > 0 && <SummaryRow label="Consultation" value={`$${consultationCharge}`} styles={styles} />}
           <View style={styles.summaryDivider} />
@@ -478,16 +568,53 @@ const BookCleaningScreen: React.FC = () => {
             <Text style={styles.summaryTotalLabel}>Total</Text>
             <Text style={styles.summaryTotalValue}>${totalPrice}</Text>
           </View>
-        </View>
+        </View> */}
+        <View style={styles.summary}>
+  <SummaryRow label="Services" value={`₹${servicePrice}`} styles={styles} />
+  {consultationCharge > 0 && <SummaryRow label="Consultation" value={`₹${consultationCharge}`} styles={styles} />}
+  <View style={styles.summaryDivider} />
+  <View style={styles.summaryTotal}>
+    <Text style={styles.summaryTotalLabel}>Total</Text>
+    <Text style={styles.summaryTotalValue}>₹{totalPrice}</Text>
+  </View>
+</View>
 
         <View style={{ height: 100 }} />
       </ScrollView>
-
+{/* 
       <View style={styles.bottomBar}>
         <TouchableOpacity style={styles.ctaBtn} onPress={() => navigation.navigate("PaymentScreen", { totalAmount: totalPrice })}>
           <Text style={styles.ctaText}>Checkout</Text>
         </TouchableOpacity>
-      </View>
+      </View> */}
+      <View style={styles.bottomBar}>
+  <TouchableOpacity 
+    style={styles.ctaBtn} 
+    onPress={() => navigation.navigate("PaymentScreen", { 
+      totalAmount: totalPrice,
+      selectedServices: selectedServices.map(s => ({
+        service: s.title,
+        category: s.category,
+        duration: "2-3 hours",
+        date: date || "Not selected"
+      })),
+      floorArea: floorArea || "N/A",
+      selectedTime: time || "10:00 AM",
+      allocatedEmployee: allocatedEmployee,
+      bookingDetails: {
+        location: locationType === "default" ? currentAddress : locationDetails,
+        customerName: customerName,
+        contactNumber: contactNumber,
+        extraHours: extraHours,
+        reason: reason,
+        date: date,
+        time: time
+      }
+    })}
+  >
+    <Text style={styles.ctaText}>Checkout</Text>
+  </TouchableOpacity>
+</View>
     </SafeAreaView>
   );
 };
