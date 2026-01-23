@@ -35,7 +35,7 @@ import { launchImageLibrary } from 'react-native-image-picker';
 
 // import { getLightMode, setLightMode } from "../utils/theme";
 import { useTheme } from "../context/ThemeContext";
-import { RootStackParamList } from "../../App";
+
 
 
 // const { lightMode, toggleTheme } = useTheme();
@@ -74,6 +74,8 @@ interface UserProfile {
   availableHoursFrom?: string;
   availableHoursTo?: string;
   resumeImage?: string;
+   role?: string;                 // ✅ ADD
+  selectedServices?: number[]; 
 
 }
 
@@ -199,6 +201,11 @@ const ProfileInformation: React.FC = () => {
 
   /* ================= STATE ================= */
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+
+  const isDoctor = user?.role === 'doctor';
+const hasHealthService = user?.selectedServices?.includes(7) ?? false;
+
   const [loading, setLoading] = useState<boolean>(true);
 
   const [openBasic, setOpenBasic] = useState<boolean>(true);
@@ -668,9 +675,12 @@ const handleResumeImageUpload = () => {
               {user.firstName} {user.lastName}
             </Text>
             <Text style={styles.email}>{user.email}</Text>
-            <TouchableOpacity onPress={saveUserData}>
-              <Text style={styles.edit}>Edit Profile</Text>
-            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setIsEditing(true)}>
+  <Text style={styles.edit}>
+    {isEditing ? "Editing..." : "Edit Profile"}
+  </Text>
+</TouchableOpacity>
+
           </View>
         </View>
 
@@ -693,6 +703,8 @@ const handleResumeImageUpload = () => {
         style={styles.input}
         value={phone}
         onChangeText={setPhone}
+         editable={isEditing}
+  selectTextOnFocus={isEditing}
         placeholder="+1 (555) 123-4567"
         placeholderTextColor="#6b7280"
         keyboardType="phone-pad"
@@ -704,37 +716,89 @@ const handleResumeImageUpload = () => {
         style={styles.input}
         value={location}
         onChangeText={setLocation}
+             editable={isEditing}
+  selectTextOnFocus={isEditing}
         placeholder="San Francisco, CA"
         placeholderTextColor="#6b7280"
       />
     </Field>
 
-    {/* ✅ ADD THIS HERE */}
-   <Field label="AVAILABLE HOURS" styles={styles}>
-              <View style={styles.timeRow}>
-                <View style={styles.timeField}>
-                  <Text style={styles.timeLabel}>FROM</Text>
-                  <TouchableOpacity 
-                    style={styles.timeInput}
-                    onPress={() => setShowFromPicker(true)}
-                  >
-                    <Text style={styles.timeText}>{formatTime(availableHoursFrom)}</Text>
-                    <Icon name="access-time" size={20} color="#6b7280" />
-                  </TouchableOpacity>
-                </View>
+    {isEditing && isDoctor && (
+  <Field label="HEALTH SERVICE" styles={styles}>
+    <TouchableOpacity
+      style={styles.timeInput}
+      onPress={async () => {
+        const updatedServices = hasHealthService
+          ? user!.selectedServices!.filter(id => id !== 7)
+          : [...(user!.selectedServices ?? []), 7];
 
-                <View style={styles.timeField}>
-                  <Text style={styles.timeLabel}>TO</Text>
-                  <TouchableOpacity 
-                    style={styles.timeInput}
-                    onPress={() => setShowToPicker(true)}
-                  >
-                    <Text style={styles.timeText}>{formatTime(availableHoursTo)}</Text>
-                    <Icon name="access-time" size={20} color="#6b7280" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Field>
+        const updatedUser = {
+          ...user!,
+          selectedServices: updatedServices,
+        };
+
+        await AsyncStorage.setItem(
+          "userProfile",
+          JSON.stringify(updatedUser)
+        );
+
+        setUser(updatedUser);
+      }}
+    >
+      <Text style={styles.timeText}>
+        {hasHealthService ? "Health Service Enabled" : "Enable Health Service"}
+      </Text>
+
+      <Icon
+        name={hasHealthService ? "check-circle" : "cancel"}
+        size={20}
+        color={hasHealthService ? "#22c55e" : "#ef4444"}
+      />
+    </TouchableOpacity>
+  </Field>
+)}
+
+
+    {/* ✅ ADD THIS HERE */}
+  {isDoctor && (
+  <Field label="AVAILABLE HOURS" styles={styles}>
+    {hasHealthService ? (
+      <View style={styles.timeRow}>
+        <View style={styles.timeField}>
+          <Text style={styles.timeLabel}>FROM</Text>
+          <TouchableOpacity
+            style={styles.timeInput}
+            onPress={() => setShowFromPicker(true)}
+          >
+            <Text style={styles.timeText}>
+              {formatTime(availableHoursFrom)}
+            </Text>
+            <Icon name="access-time" size={20} color="#6b7280" />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.timeField}>
+          <Text style={styles.timeLabel}>TO</Text>
+          <TouchableOpacity
+            style={styles.timeInput}
+            onPress={() => setShowToPicker(true)}
+          >
+            <Text style={styles.timeText}>
+              {formatTime(availableHoursTo)}
+            </Text>
+            <Icon name="access-time" size={20} color="#6b7280" />
+          </TouchableOpacity>
+        </View>
+      </View>
+    ) : (
+      <Text style={styles.warningText}>
+        Select Health Service first
+      </Text>
+    )}
+  </Field>
+)}
+
+
   </Card>
 )}
 
@@ -755,6 +819,8 @@ const handleResumeImageUpload = () => {
         style={styles.input}
         value={degree}
         onChangeText={setDegree}
+             editable={isEditing}
+       selectTextOnFocus={isEditing}
         placeholder="e.g. B.Tech Computer Science"
         placeholderTextColor="#6b7280"
       />
@@ -766,6 +832,8 @@ const handleResumeImageUpload = () => {
         style={styles.input}
         value={institution}
         onChangeText={setInstitution}
+             editable={isEditing}
+       selectTextOnFocus={isEditing}
         placeholder="e.g. Stanford University"
         placeholderTextColor="#6b7280"
       />
@@ -777,6 +845,8 @@ const handleResumeImageUpload = () => {
         style={styles.input}
         value={percentage}
         onChangeText={setPercentage}
+             editable={isEditing}
+         selectTextOnFocus={isEditing}
         placeholder="e.g. 85%"
         placeholderTextColor="#6b7280"
       />
@@ -788,6 +858,8 @@ const handleResumeImageUpload = () => {
         style={styles.input}
         value={educationDuration}
         onChangeText={setEducationDuration}
+             editable={isEditing}
+       selectTextOnFocus={isEditing}
         placeholder="06/2019 - 05/2023"
         placeholderTextColor="#6b7280"
       />
@@ -897,6 +969,8 @@ const handleResumeImageUpload = () => {
           style={styles.input}
           value={caseNumber}
           onChangeText={setCaseNumber}
+               editable={isEditing}
+           selectTextOnFocus={isEditing}
           placeholder="Enter case number"
           placeholderTextColor="#6b7280"
         />
@@ -907,6 +981,8 @@ const handleResumeImageUpload = () => {
           style={styles.input}
           value={nocCertificateNumber}
           onChangeText={setNocCertificateNumber}
+               editable={isEditing}
+          selectTextOnFocus={isEditing}
           placeholder="Enter certificate number"
           placeholderTextColor="#6b7280"
         />
@@ -919,6 +995,8 @@ const handleResumeImageUpload = () => {
         style={styles.input}
         value={nocPoliceStation}
         onChangeText={setNocPoliceStation}
+             editable={isEditing}
+          selectTextOnFocus={isEditing}
         placeholder="Enter police station"
         placeholderTextColor="#6b7280"
       />
@@ -930,6 +1008,8 @@ const handleResumeImageUpload = () => {
         style={styles.input}
         value={nocIssueYear}
         onChangeText={setNocIssueYear}
+             editable={isEditing}
+          selectTextOnFocus={isEditing}
         placeholder="e.g. 2024"
         placeholderTextColor="#6b7280"
       />
@@ -990,6 +1070,8 @@ const handleResumeImageUpload = () => {
                 style={styles.input}
                 value={yearsOfExperience}
                 onChangeText={setYearsOfExperience}
+                     editable={isEditing}
+                 selectTextOnFocus={isEditing}
                 placeholder="e.g. 5"
                 placeholderTextColor="#6b7280"
                 keyboardType="numeric"
@@ -1001,6 +1083,8 @@ const handleResumeImageUpload = () => {
                 style={[styles.input, styles.textArea]}
                 value={additionalSkills}
                 onChangeText={setAdditionalSkills}
+                     editable={isEditing}
+              selectTextOnFocus={isEditing}
                 placeholder="Describe your specialized skills..."
                 placeholderTextColor="#6b7280"
                 multiline
@@ -1032,32 +1116,43 @@ const handleResumeImageUpload = () => {
               </View>
             </Field>
 
-            <Field label="AVAILABLE HOURS" styles={styles}>
-              <View style={styles.timeRow}>
-                <View style={styles.timeField}>
-                  <Text style={styles.timeLabel}>FROM</Text>
-                  <TouchableOpacity 
-                    style={styles.timeInput}
-                    onPress={() => setShowFromPicker(true)}
-                  >
-                    <Text style={styles.timeText}>{formatTime(availableHoursFrom)}</Text>
-                    <Icon name="access-time" size={20} color="#6b7280" />
-                  </TouchableOpacity>
-                </View>
+              {isDoctor && (
+  <Field label="AVAILABLE HOURS" styles={styles}>
+    {hasHealthService ? (
+      <View style={styles.timeRow}>
+        <View style={styles.timeField}>
+          <Text style={styles.timeLabel}>FROM</Text>
+          <TouchableOpacity
+            style={styles.timeInput}
+            onPress={() => setShowFromPicker(true)}
+          >
+            <Text style={styles.timeText}>
+              {formatTime(availableHoursFrom)}
+            </Text>
+            <Icon name="access-time" size={20} color="#6b7280" />
+          </TouchableOpacity>
+        </View>
 
-                <View style={styles.timeField}>
-                  <Text style={styles.timeLabel}>TO</Text>
-                  <TouchableOpacity 
-                    style={styles.timeInput}
-                    onPress={() => setShowToPicker(true)}
-                  >
-                    <Text style={styles.timeText}>{formatTime(availableHoursTo)}</Text>
-                    <Icon name="access-time" size={20} color="#6b7280" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Field>
-
+        <View style={styles.timeField}>
+          <Text style={styles.timeLabel}>TO</Text>
+          <TouchableOpacity
+            style={styles.timeInput}
+            onPress={() => setShowToPicker(true)}
+          >
+            <Text style={styles.timeText}>
+              {formatTime(availableHoursTo)}
+            </Text>
+            <Icon name="access-time" size={20} color="#6b7280" />
+          </TouchableOpacity>
+        </View>
+      </View>
+    ) : (
+      <Text style={styles.warningText}>
+        Select Health Service first
+      </Text>
+    )}
+  </Field>
+)}
             {showFromPicker && (
               <DateTimePicker
                 value={availableHoursFrom}
@@ -1302,6 +1397,34 @@ setAvailableToText(formatTime(selectedDate));
     thumbColor={lightMode ? "#facc15" : "#9ca3af"}
   />
 </View>
+{isEditing && (
+  <View style={{ flexDirection: "row", gap: 12, marginHorizontal: 16 }}>
+    <TouchableOpacity
+      style={[
+        styles.logoutButton,
+        { flex: 1, borderColor: colors.primary }
+      ]}
+      onPress={() => {
+        saveUserData();
+        setIsEditing(false);
+      }}
+    >
+      <Text style={{ color: colors.primary, fontWeight: "600" }}>
+        Save Changes
+      </Text>
+    </TouchableOpacity>
+
+    <TouchableOpacity
+      style={[styles.logoutButton, { flex: 1 }]}
+      onPress={() => {
+        loadUserFromStorage(); // revert changes
+        setIsEditing(false);
+      }}
+    >
+      <Text style={styles.logoutText}>Cancel</Text>
+    </TouchableOpacity>
+  </View>
+)}
 
 
         {/* LOGOUT BUTTON */}
@@ -1801,6 +1924,15 @@ timeInputText: {
   color: colors.text,
   paddingVertical: 0,       // 🔥 ANDROID FIX
 },
+warningText: {
+  color: '#facc15',
+  fontSize: 14,
+  fontWeight: '600',
+  backgroundColor: '#78350f',
+  padding: 12,
+  borderRadius: 8,
+},
+
 
 
   });

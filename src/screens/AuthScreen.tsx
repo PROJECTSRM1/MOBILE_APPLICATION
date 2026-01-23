@@ -54,18 +54,22 @@ const AuthScreen = () => {
   const [vehicleModel, setVehicleModel] = useState('');
 
   /* ===== SERVICE OPTIONS ===== */
-  const serviceOptions = [
-    { label: 'Cleaning & Home Services', value: 1 },
-    { label: 'Go Ride', value: 2 },
-    { label: 'Buy/Sell/Rental', value: 3 },
-    { label: 'Raw Materials', value: 4 },
-    { label: 'Education', value: 5 },
-    { label: 'Swachify Products', value: 6 },
-  ];
+ const serviceOptions = [
+  { label: 'Cleaning & Home Services', value: 1 },
+  { label: 'Go Ride', value: 2 },
+  { label: 'Buy/Sell/Rental', value: 3 },
+  { label: 'Raw Materials', value: 4 },
+  { label: 'Education', value: 5 },
+  { label: 'Swachify Products', value: 6 },
+  { label: 'Health Services', value: 7 }, // ✅ ADD THIS LINE
+];
+
 
   /* ================= HELPER FUNCTIONS ================= */
   const hasJustRide = selectedServices.includes(2);
   const showDriverFields = hasJustRide && workType === 'looking';
+  const hasHealthService = selectedServices.includes(7); // ✅ ADD THIS
+
 
   /* ================= REGISTER ================= */
 
@@ -188,15 +192,25 @@ const AuthScreen = () => {
   };
 
   /* ================= HANDLE SERVICE SELECTION ================= */
-  const handleServiceToggle = (serviceValue: number) => {
-    setSelectedServices((prev) => {
-      if (prev.includes(serviceValue)) {
-        return prev.filter((s) => s !== serviceValue);
-      } else {
-        return [...prev, serviceValue];
-      }
-    });
-  };
+ const handleServiceToggle = (serviceValue: number) => {
+  setSelectedServices((prev) => {
+    let updated;
+
+    if (prev.includes(serviceValue)) {
+      updated = prev.filter((s) => s !== serviceValue);
+    } else {
+      updated = [...prev, serviceValue];
+    }
+
+    // ✅ If Health Service removed, reset doctor role
+    if (!updated.includes(7) && role === 'doctor') {
+      setRole('');
+    }
+
+    return updated;
+  });
+};
+
 
   const getSelectedServiceLabels = () => {
     if (selectedServices.length === 0) return 'Select services';
@@ -287,10 +301,13 @@ const AuthScreen = () => {
                   style={styles.picker}
                   dropdownIconColor="#ffffff"
                 >
-                  <Picker.Item label="Choose role" value="" />
-                  <Picker.Item label="Doctor" value="doctor" />
-                  <Picker.Item label="Patient" value="patient" />
-                  <Picker.Item label="Other" value="other" />
+                
+
+                  {hasHealthService && (
+                    <Picker.Item label="Doctor" value="doctor" />
+                  )}
+
+                 
                 </Picker>
               </View>
 
@@ -319,20 +336,26 @@ const AuthScreen = () => {
                 </>
               )}
 
-              <Text style={styles.label}>Select Work Type</Text>
-              <View style={styles.dropdownWrapper}>
-                <Picker
-                  selectedValue={workType}
-                  onValueChange={setWorkType}
-                  style={styles.picker}
-                  dropdownIconColor="#ffffff"
-                >
-                  <Picker.Item label="Choose work type" value="" />
-                  <Picker.Item label="Assigning for work" value="assigning" />
-                  <Picker.Item label="Looking for Work" value="looking" />
-                  <Picker.Item label="Both" value="both" />
-                </Picker>
-              </View>
+            {role !== 'doctor' && (
+  <>
+    <Text style={styles.label}>Select Work Type</Text>
+
+    <View style={styles.dropdownWrapper}>
+      <Picker
+        selectedValue={workType}
+        onValueChange={setWorkType}
+        style={styles.picker}
+        dropdownIconColor="#ffffff"
+      >
+        <Picker.Item label="Choose work type" value="" />
+        <Picker.Item label="Assigning for work" value="assigning" />
+        <Picker.Item label="Looking for Work" value="looking" />
+        <Picker.Item label="Both" value="both" />
+      </Picker>
+    </View>
+  </>
+)}
+
 
               {/* JUSTRIDE DRIVER FIELDS */}
               {showDriverFields && (
@@ -447,7 +470,9 @@ const AuthScreen = () => {
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.modalScrollView}>
+            <ScrollView style={styles.modalScrollView}
+             contentContainerStyle={{ paddingBottom: 120 }} 
+            >
               {serviceOptions.map((service) => (
                 <TouchableOpacity
                   key={service.value}
@@ -663,14 +688,15 @@ const styles = StyleSheet.create({
     fontSize: 15,
     flex: 1,
   },
-  modalDoneBtn: {
-    backgroundColor: '#2563eb',
-    margin: 20,
-    marginTop: 10,
-    padding: 16,
-    borderRadius: 14,
-    alignItems: 'center',
-  },
+ modalDoneBtn: {
+  backgroundColor: '#2563eb',
+  marginHorizontal: 20,
+  marginBottom: 30, // ✅ MORE SPACE FROM LIST
+  padding: 16,
+  borderRadius: 14,
+  alignItems: 'center',
+},
+
   modalDoneText: {
     color: '#fff',
     fontWeight: '700',
