@@ -518,94 +518,26 @@ const Landing = () => {
         </View>
 
         <View style={styles.grid}>
-  {[
-    { name: "Housing / Cleaning", icon: "home" },
-    { name: "Education", icon: "school" },
-    { name: "Freelance", icon: "work" },
-    { name: "Buy/Sell", icon: "shopping-bag" },
-    { name: "Swachify Products", icon: "shopping-bag" },
-    { name: "Health Care", icon: "local-hospital" },
-    { name: "Raw Materials", icon: "factory" },
-    { name: "Just Ride", icon: "local-shipping" },
-  ].map((item, i) => {
-    return (
-      <TouchableOpacity
-        key={i}
-        style={styles.gridItem}
-        activeOpacity={0.8}
-        onPress={() => {
-          if (!isLoggedIn) {
-            navigation.navigate("AuthScreen");
-            return;
-          }
-
-          switch (item.name) {
-            case "Housing / Cleaning":
-              navigation.navigate("CleaningCategory"); 
-              break;
-
-            case "Education":
-              navigation.navigate("EducationHome");
-              break;
-
-            case "Freelance":
-              navigation.navigate("Freelancer");
-              break;
-
-            case "Buy/Sell":
-              navigation.navigate("Marketplace");
-              break;
-
-            case "Swachify Products":
-              navigation.navigate("ProductScreen");
-              break;
-
-            case "Raw Materials":
-              navigation.navigate("RawMaterial");
-              break;
-
-            case "Just Ride":
-  navigation.navigate("JustRideMultiStop");
-  break;
-
-
-            case "Health Care":
-              navigation.navigate("Health");
-              break;
-
-            default:
-              break;
-          }
-        }}
-      >
-        <View style={styles.gridIcon}>
-          <MaterialIcons name={item.icon} size={28} color="#3b82f6" />
-        </View>
-        <Text style={styles.gridText}>{item.name}</Text>
-      </TouchableOpacity>
-    );
-  })}
-</View>
-
-
-        {/* ================= TRENDING ================= */}
-
-<View style={styles.sectionHeader}>
-  <Text style={styles.sectionTitle}>Trending Near You</Text>
-  <TouchableOpacity
-  onPress={() => navigation.navigate("Marketplace")}
->
-  <Text style={[styles.viewAllText,{marginTop:10}]}>View All</Text>
-</TouchableOpacity>
-</View>
-
-
-{trendingServices.map((item, index) => {
-  const inputRange = [
-    (index - 1) * 120,
-    index * 120,
-    (index + 1) * 120,
-  ];
+          {[
+            { name: "Housing / Cleaning", icon: "home" },
+            { name: "Education", icon: "school" },
+            { name: "Freelance", icon: "work" },
+            { name: "Buy/Sell", icon: "shopping-bag" },
+            { name: "Swachify Products", icon: "shopping-bag" },
+            { name: "Health Care", icon: "local-hospital" },
+            { name: "Raw Materials", icon: "factory" },
+            { name: "Just Ride", icon: "local-shipping" },
+          ].map((item, i) => {
+            return (
+              <TouchableOpacity
+                key={i}
+                style={styles.gridItem}
+                activeOpacity={0.8}
+                onPress={() => {
+                  if (!isLoggedIn) {
+                    navigation.navigate("AuthScreen");
+                    return;
+                  }
 
                   switch (item.name) {
                     case "Housing / Cleaning":
@@ -1114,4 +1046,4 @@ const getStyles = (colors: any) =>
       fontSize: 14,
       fontWeight: "600",
     },
-  });  
+  });
