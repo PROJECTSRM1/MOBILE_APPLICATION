@@ -43,35 +43,48 @@ interface Property {
   registrationValue?: string;
   marketValue?: string;
   documentImages?: string[];
+  hostelType?: string;
+  totalRooms?: string;
+  foodIncluded?: string;
 }
 
 const getDummyData = (): Property[] => [
-  { id: 'dummy_1', title: '3 BHK Apartment in Downtown', price: '₹85,00,000', image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=500', images: ['https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=500'], rating: 4.8, distance: '1.2 km away', propertyType: 'Apartment', listingType: 'buy', sqft: '1450', bhk: '3 BHK', location: '123 Park Avenue, Downtown', area: 'Downtown', furnishingType: 'Full', itemCondition: 'New Item', createdAt: new Date(Date.now() - 2 * 86400000).toISOString() },
-  { id: 'dummy_2', title: '2 BHK Apartment in Suburb', price: '₹18,000/month', image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=500', images: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=500'], rating: 4.5, distance: '2.8 km away', propertyType: 'Apartment', listingType: 'rent', sqft: '1100', bhk: '2 BHK', location: '45 Green Valley, Suburb', area: 'Green Valley', furnishingType: 'Semi', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 5 * 86400000).toISOString() },
-  { id: 'dummy_3', title: 'Honda City 2022', price: '₹12,50,000', image: 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=500', images: ['https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=500'], rating: 4.7, distance: '3.5 km away', propertyType: 'Car', listingType: 'buy', brand: 'Honda', model: 'City', year: '2022', ownerName: 'Rajesh Kumar', mobileNumber: '+91 98765 43210', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 86400000).toISOString() },
-  { id: 'dummy_4', title: 'Villa in Greenfield Estate', price: '₹1,85,00,000', image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500', images: ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500'], rating: 4.9, distance: '4.2 km away', propertyType: 'Villa', listingType: 'buy', sqft: '3200', bhk: '4 BHK', location: 'Plot 12, Greenfield Estate', area: 'Greenfield', furnishingType: 'Full', itemCondition: 'New Item', createdAt: new Date(Date.now() - 3 * 86400000).toISOString() },
-  { id: 'dummy_5', title: 'Commercial Land in Industrial Hub', price: '₹2,50,00,000', image: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=500', images: ['https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=500'], rating: 4.6, distance: '8.1 km away', propertyType: 'Land', listingType: 'buy', sqft: '10000', landType: 'Commercial', location: 'Sector 5, Industrial Area', area: 'Industrial Hub', ownerName: 'Suresh Enterprises', marketValue: '2,50,00,000', registrationStatus: 'registered', itemCondition: 'New Item', createdAt: new Date(Date.now() - 10 * 86400000).toISOString() },
-  { id: 'dummy_6', title: 'Royal Enfield Classic 350', price: '₹1,45,000', image: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500', images: ['https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500'], rating: 4.4, distance: '1.9 km away', propertyType: 'Bike', listingType: 'buy', brand: 'Royal Enfield', model: 'Classic 350', year: '2021', ownerName: 'Amit Sharma', mobileNumber: '+91 98123 45678', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 7 * 86400000).toISOString() },
-  { id: 'dummy_7', title: 'Independent House in Riverside', price: '₹45,000/month', image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=500', images: ['https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=500'], rating: 4.7, distance: '5.3 km away', propertyType: 'Independent House', listingType: 'rent', sqft: '2200', bhk: '3 BHK', location: '78 River Road, Riverside', area: 'Riverside', furnishingType: 'Unfurnished', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 4 * 86400000).toISOString() },
-  { id: 'dummy_8', title: 'Office Space in Business District', price: '₹75,000/month', image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=500', images: ['https://images.unsplash.com/photo-1497366216548-37526070297c?w=500'], rating: 4.8, distance: '6.7 km away', propertyType: 'Office', listingType: 'rent', sqft: '1800', location: 'Tower B, Tech Park', area: 'Business District', itemCondition: 'New Item', createdAt: new Date(Date.now() - 2 * 86400000).toISOString() },
-  { id: 'dummy_9', title: 'Maruti Suzuki Swift 2023', price: '₹7,85,000', image: 'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=500', images: ['https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=500'], rating: 4.9, distance: '2.4 km away', propertyType: 'Car', listingType: 'buy', brand: 'Maruti Suzuki', model: 'Swift', year: '2023', ownerName: 'Priya Singh', mobileNumber: '+91 99876 54321', itemCondition: 'New Item', createdAt: new Date(Date.now() - 86400000).toISOString() },
-  { id: 'dummy_10', title: 'Agriculture Land in Rural Area', price: '₹45,00,000', image: 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=500', images: ['https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=500'], rating: 4.3, distance: '15.2 km away', propertyType: 'Land', listingType: 'buy', sqft: '43560', landType: 'Agriculture', location: 'Village Road, Rural District', area: 'Countryside', ownerName: 'Ramesh Patel', marketValue: '45,00,000', registrationStatus: 'registered', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 15 * 86400000).toISOString() },
-  { id: 'dummy_11', title: '1 BHK Apartment in City Center', price: '₹12,000/month', image: 'https://images.unsplash.com/photo-1502672260066-6bc35f0a1f80?w=500', images: ['https://images.unsplash.com/photo-1502672260066-6bc35f0a1f80?w=500'], rating: 4.5, distance: '0.8 km away', propertyType: 'Apartment', listingType: 'rent', sqft: '650', bhk: '1 BHK', location: '12 Main Street, City Center', area: 'City Center', furnishingType: 'Semi', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 6 * 86400000).toISOString() },
-  { id: 'dummy_12', title: 'Tata Ace Lorry 2020', price: '₹4,25,000', image: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=500', images: ['https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=500'], rating: 4.2, distance: '7.6 km away', propertyType: 'Lorry', listingType: 'buy', brand: 'Tata', model: 'Ace', year: '2020', ownerName: 'Vijay Transport', mobileNumber: '+91 97654 32109', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 12 * 86400000).toISOString() },
-  { id: 'dummy_13', title: '4 BHK Villa in Luxury Enclave', price: '₹95,000/month', image: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=500', images: ['https://images.unsplash.com/photo-1613977257363-707ba9348227?w=500'], rating: 4.9, distance: '9.4 km away', propertyType: 'Villa', listingType: 'rent', sqft: '3800', bhk: '4 BHK', location: 'Villa 7, Luxury Enclave', area: 'Posh Area', furnishingType: 'Full', itemCondition: 'New Item', createdAt: new Date(Date.now() - 3 * 86400000).toISOString() },
-  { id: 'dummy_14', title: 'Bajaj Pulsar NS200', price: '₹95,000', image: 'https://images.unsplash.com/photo-1609630875171-b1321377ee65?w=500', images: ['https://images.unsplash.com/photo-1609630875171-b1321377ee65?w=500'], rating: 4.6, distance: '3.1 km away', propertyType: 'Bike', listingType: 'buy', brand: 'Bajaj', model: 'Pulsar NS200', year: '2022', ownerName: 'Rohan Verma', mobileNumber: '+91 98234 56789', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 8 * 86400000).toISOString() },
-  { id: 'dummy_15', title: 'Commercial Space in Mall', price: '₹1,25,00,000', image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500', images: ['https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500'], rating: 4.7, distance: '5.9 km away', propertyType: 'Commercial Space', listingType: 'buy', sqft: '2500', location: 'Shop 23, Metro Mall', area: 'Shopping District', itemCondition: 'New Item', createdAt: new Date(Date.now() - 5 * 86400000).toISOString() },
-  { id: 'dummy_16', title: 'Hyundai Creta 2021', price: '₹14,50,000', image: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=500', images: ['https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=500'], rating: 4.8, distance: '4.3 km away', propertyType: 'Car', listingType: 'buy', brand: 'Hyundai', model: 'Creta', year: '2021', ownerName: 'Anjali Mehta', mobileNumber: '+91 96543 21098', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 9 * 86400000).toISOString() },
-  { id: 'dummy_17', title: '2 BHK Independent House in Suburb', price: '₹62,00,000', image: 'https://images.unsplash.com/photo-1592595896551-12b371d546d5?w=500', images: ['https://images.unsplash.com/photo-1592595896551-12b371d546d5?w=500'], rating: 4.4, distance: '6.8 km away', propertyType: 'Independent House', listingType: 'buy', sqft: '1600', bhk: '2 BHK', location: '34 Garden Lane, Suburb', area: 'Garden Colony', furnishingType: 'Unfurnished', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 20 * 86400000).toISOString() },
-  { id: 'dummy_18', title: 'Hospital Building for Rent', price: '₹2,50,000/month', image: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=500', images: ['https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=500'], rating: 4.6, distance: '11.2 km away', propertyType: 'Hospital', listingType: 'rent', sqft: '8500', location: 'Medical District, Hospital Road', area: 'Medical Hub', itemCondition: 'New Item', createdAt: new Date(Date.now() - 4 * 86400000).toISOString() },
-  { id: 'dummy_19', title: 'TVS Jupiter Scooter', price: '₹52,000', image: 'https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=500', images: ['https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=500'], rating: 4.3, distance: '2.7 km away', propertyType: 'Bike', listingType: 'buy', brand: 'TVS', model: 'Jupiter', year: '2020', ownerName: 'Sneha Reddy', mobileNumber: '+91 95432 10987', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 11 * 86400000).toISOString() },
-  { id: 'dummy_20', title: '3 BHK Apartment in Tech Park Area', price: '₹35,000/month', image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=500', images: ['https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=500'], rating: 4.7, distance: '3.9 km away', propertyType: 'Apartment', listingType: 'rent', sqft: '1550', bhk: '3 BHK', location: 'Apartment 305, Tech Towers', area: 'Tech Park', furnishingType: 'Full', itemCondition: 'New Item', createdAt: new Date(Date.now() - 2 * 86400000).toISOString() },
+  { id: 'dummy_1', title: '3 BHK Apartment in Gachibowli', price: '₹85,00,000', image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=500', images: ['https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=500'], rating: 4.8, distance: '1.2 km away', propertyType: 'Apartment', listingType: 'buy', sqft: '1450', bhk: '3 BHK', location: '123 Park Avenue, Gachibowli, Hyderabad', area: 'Gachibowli', furnishingType: 'Full', itemCondition: 'New Item', createdAt: new Date(Date.now() - 2 * 86400000).toISOString() },
+  { id: 'dummy_2', title: '2 BHK Apartment in Madhapur', price: '₹18,000/month', image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=500', images: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=500'], rating: 4.5, distance: '2.8 km away', propertyType: 'Apartment', listingType: 'rent', sqft: '1100', bhk: '2 BHK', location: '45 Green Valley, Madhapur, Hyderabad', area: 'Madhapur', furnishingType: 'Semi', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 5 * 86400000).toISOString() },
+  { id: 'dummy_3', title: 'Honda City 2022', price: '₹12,50,000', image: 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=500', images: ['https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=500'], rating: 4.7, distance: '3.5 km away', propertyType: 'Car', listingType: 'buy', brand: 'Honda', model: 'City', year: '2022', ownerName: 'Rajesh Kumar', mobileNumber: '+91 98765 43210', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 86400000).toISOString(), location: 'Kondapur, Hyderabad', area: 'Kondapur' },
+  { id: 'dummy_4', title: 'Villa in Jubilee Hills', price: '₹1,85,00,000', image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500', images: ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500'], rating: 4.9, distance: '4.2 km away', propertyType: 'Villa', listingType: 'buy', sqft: '3200', bhk: '4 BHK', location: 'Plot 12, Road No 45, Jubilee Hills, Hyderabad', area: 'Jubilee Hills', furnishingType: 'Full', itemCondition: 'New Item', createdAt: new Date(Date.now() - 3 * 86400000).toISOString() },
+  { id: 'dummy_5', title: 'Commercial Land in Patancheru', price: '₹2,50,00,000', image: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=500', images: ['https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=500'], rating: 4.6, distance: '8.1 km away', propertyType: 'Land', listingType: 'buy', sqft: '10000', landType: 'Commercial', location: 'Sector 5, IDA Patancheru, Hyderabad', area: 'Patancheru', ownerName: 'Suresh Enterprises', marketValue: '2,50,00,000', registrationStatus: 'registered', itemCondition: 'New Item', createdAt: new Date(Date.now() - 10 * 86400000).toISOString() },
+  { id: 'dummy_6', title: 'Royal Enfield Classic 350', price: '₹1,45,000', image: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500', images: ['https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500'], rating: 4.4, distance: '1.9 km away', propertyType: 'Bike', listingType: 'buy', brand: 'Royal Enfield', model: 'Classic 350', year: '2021', ownerName: 'Amit Sharma', mobileNumber: '+91 98123 45678', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 7 * 86400000).toISOString(), location: 'Hitech City, Hyderabad', area: 'Hitech City' },
+  { id: 'dummy_7', title: 'Independent House in Banjara Hills', price: '₹45,000/month', image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=500', images: ['https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=500'], rating: 4.7, distance: '5.3 km away', propertyType: 'Independent House', listingType: 'rent', sqft: '2200', bhk: '3 BHK', location: '78 Road No 12, Banjara Hills, Hyderabad', area: 'Banjara Hills', furnishingType: 'Unfurnished', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 4 * 86400000).toISOString() },
+  { id: 'dummy_8', title: 'Office Space in Financial District', price: '₹75,000/month', image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=500', images: ['https://images.unsplash.com/photo-1497366216548-37526070297c?w=500'], rating: 4.8, distance: '6.7 km away', propertyType: 'Office', listingType: 'rent', sqft: '1800', location: 'Tower B, Nanakramguda, Financial District, Hyderabad', area: 'Financial District', itemCondition: 'New Item', createdAt: new Date(Date.now() - 2 * 86400000).toISOString() },
+  { id: 'dummy_9', title: 'Maruti Suzuki Swift 2023', price: '₹7,85,000', image: 'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=500', images: ['https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=500'], rating: 4.9, distance: '2.4 km away', propertyType: 'Car', listingType: 'buy', brand: 'Maruti Suzuki', model: 'Swift', year: '2023', ownerName: 'Priya Singh', mobileNumber: '+91 99876 54321', itemCondition: 'New Item', createdAt: new Date(Date.now() - 86400000).toISOString(), location: 'Kukatpally, Hyderabad', area: 'Kukatpally' },
+  { id: 'dummy_10', title: 'Agriculture Land in Shamshabad', price: '₹45,00,000', image: 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=500', images: ['https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=500'], rating: 4.3, distance: '15.2 km away', propertyType: 'Land', listingType: 'buy', sqft: '43560', landType: 'Agriculture', location: 'Survey No 234, Shamshabad, Hyderabad', area: 'Shamshabad', ownerName: 'Ramesh Patel', marketValue: '45,00,000', registrationStatus: 'registered', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 15 * 86400000).toISOString() },
+  { id: 'dummy_11', title: '1 BHK Apartment in Ameerpet', price: '₹12,000/month', image: 'https://images.unsplash.com/photo-1502672260066-6bc35f0a1f80?w=500', images: ['https://images.unsplash.com/photo-1502672260066-6bc35f0a1f80?w=500'], rating: 4.5, distance: '0.8 km away', propertyType: 'Apartment', listingType: 'rent', sqft: '650', bhk: '1 BHK', location: '12 SR Nagar Main Road, Ameerpet, Hyderabad', area: 'Ameerpet', furnishingType: 'Semi', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 6 * 86400000).toISOString() },
+  { id: 'dummy_12', title: 'Tata Ace Lorry 2020', price: '₹4,25,000', image: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=500', images: ['https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=500'], rating: 4.2, distance: '7.6 km away', propertyType: 'Lorry', listingType: 'buy', brand: 'Tata', model: 'Ace', year: '2020', ownerName: 'Vijay Transport', mobileNumber: '+91 97654 32109', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 12 * 86400000).toISOString(), location: 'LB Nagar, Hyderabad', area: 'LB Nagar' },
+  { id: 'dummy_13', title: '4 BHK Villa in Kokapet', price: '₹95,000/month', image: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=500', images: ['https://images.unsplash.com/photo-1613977257363-707ba9348227?w=500'], rating: 4.9, distance: '9.4 km away', propertyType: 'Villa', listingType: 'rent', sqft: '3800', bhk: '4 BHK', location: 'Villa 7, Aparna Zenon, Kokapet, Hyderabad', area: 'Kokapet', furnishingType: 'Full', itemCondition: 'New Item', createdAt: new Date(Date.now() - 3 * 86400000).toISOString() },
+  { id: 'dummy_14', title: 'Bajaj Pulsar NS200', price: '₹95,000', image: 'https://images.unsplash.com/photo-1609630875171-b1321377ee65?w=500', images: ['https://images.unsplash.com/photo-1609630875171-b1321377ee65?w=500'], rating: 4.6, distance: '3.1 km away', propertyType: 'Bike', listingType: 'buy', brand: 'Bajaj', model: 'Pulsar NS200', year: '2022', ownerName: 'Rohan Verma', mobileNumber: '+91 98234 56789', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 8 * 86400000).toISOString(), location: 'Dilsukhnagar, Hyderabad', area: 'Dilsukhnagar' },
+  { id: 'dummy_15', title: 'Commercial Space in Begumpet', price: '₹1,25,00,000', image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500', images: ['https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500'], rating: 4.7, distance: '5.9 km away', propertyType: 'Commercial Space', listingType: 'buy', sqft: '2500', location: 'Shop 23, Paradise Circle, Begumpet, Hyderabad', area: 'Begumpet', itemCondition: 'New Item', createdAt: new Date(Date.now() - 5 * 86400000).toISOString() },
+  { id: 'dummy_16', title: 'Hyundai Creta 2021', price: '₹14,50,000', image: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=500', images: ['https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=500'], rating: 4.8, distance: '4.3 km away', propertyType: 'Car', listingType: 'buy', brand: 'Hyundai', model: 'Creta', year: '2021', ownerName: 'Anjali Mehta', mobileNumber: '+91 96543 21098', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 9 * 86400000).toISOString(), location: 'Miyapur, Hyderabad', area: 'Miyapur' },
+  { id: 'dummy_17', title: '2 BHK Independent House in Uppal', price: '₹62,00,000', image: 'https://images.unsplash.com/photo-1592595896551-12b371d546d5?w=500', images: ['https://images.unsplash.com/photo-1592595896551-12b371d546d5?w=500'], rating: 4.4, distance: '6.8 km away', propertyType: 'Independent House', listingType: 'buy', sqft: '1600', bhk: '2 BHK', location: '34 Garden Lane, Uppal, Hyderabad', area: 'Uppal', furnishingType: 'Unfurnished', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 20 * 86400000).toISOString() },
+  { id: 'dummy_18', title: 'Hospital Building in Secunderabad', price: '₹2,50,000/month', image: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=500', images: ['https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=500'], rating: 4.6, distance: '11.2 km away', propertyType: 'Hospital', listingType: 'rent', sqft: '8500', location: 'MG Road, Secunderabad, Hyderabad', area: 'Secunderabad', itemCondition: 'New Item', createdAt: new Date(Date.now() - 4 * 86400000).toISOString() },
+  { id: 'dummy_19', title: 'TVS Jupiter Scooter', price: '₹52,000', image: 'https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=500', images: ['https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=500'], rating: 4.3, distance: '2.7 km away', propertyType: 'Bike', listingType: 'buy', brand: 'TVS', model: 'Jupiter', year: '2020', ownerName: 'Sneha Reddy', mobileNumber: '+91 95432 10987', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 11 * 86400000).toISOString(), location: 'Kompally, Hyderabad', area: 'Kompally' },
+  { id: 'dummy_20', title: '3 BHK Apartment in Manikonda', price: '₹35,000/month', image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=500', images: ['https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=500'], rating: 4.7, distance: '3.9 km away', propertyType: 'Apartment', listingType: 'rent', sqft: '1550', bhk: '3 BHK', location: 'Apartment 305, My Home Bhooja, Manikonda, Hyderabad', area: 'Manikonda', furnishingType: 'Full', itemCondition: 'New Item', createdAt: new Date(Date.now() - 2 * 86400000).toISOString() },
+  
+  // HOSTEL DUMMY DATA
+  { id: 'hostel_1', title: 'Boys Hostel in Kukatpally', price: '₹8,500/month', image: 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=500', images: ['https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=500'], rating: 4.5, distance: '1.5 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '25', hostelType: 'Boys', foodIncluded: 'Yes', location: '45 KPHB Colony, Kukatpally, Hyderabad', area: 'Kukatpally', itemCondition: 'New Item', createdAt: new Date(Date.now() - 3 * 86400000).toISOString() },
+  { id: 'hostel_2', title: 'Girls Hostel in Gachibowli', price: '₹10,000/month', image: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=500', images: ['https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=500'], rating: 4.8, distance: '0.8 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '30', hostelType: 'Girls', foodIncluded: 'Yes', location: '12 Vinayak Nagar, Gachibowli, Hyderabad', area: 'Gachibowli', itemCondition: 'New Item', createdAt: new Date(Date.now() - 1 * 86400000).toISOString() },
+  { id: 'hostel_3', title: 'Co-living Hostel in Madhapur', price: '₹9,000/month', image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=500', images: ['https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=500'], rating: 4.6, distance: '2.1 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '40', hostelType: 'Co-living', foodIncluded: 'No', location: '23 Kavuri Hills, Madhapur, Hyderabad', area: 'Madhapur', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 5 * 86400000).toISOString() },
+  { id: 'hostel_4', title: 'Boys PG in Ameerpet', price: '₹7,500/month', image: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=500', images: ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=500'], rating: 4.3, distance: '1.2 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '20', hostelType: 'Boys', foodIncluded: 'Yes', location: '56 Punjagutta Main Road, Ameerpet, Hyderabad', area: 'Ameerpet', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 7 * 86400000).toISOString() },
+  { id: 'hostel_5', title: 'Girls PG in Hitech City', price: '₹11,000/month', image: 'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=500', images: ['https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=500'], rating: 4.9, distance: '0.5 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '18', hostelType: 'Girls', foodIncluded: 'Yes', location: '78 Cyber Towers Road, Hitech City, Hyderabad', area: 'Hitech City', itemCondition: 'New Item', createdAt: new Date(Date.now() - 2 * 86400000).toISOString() },
+  { id: 'hostel_6', title: 'Student Hostel in Dilsukhnagar', price: '₹6,500/month', image: 'https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=500', images: ['https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=500'], rating: 4.2, distance: '3.5 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '35', hostelType: 'Co-living', foodIncluded: 'No', location: '90 Moosarambagh, Dilsukhnagar, Hyderabad', area: 'Dilsukhnagar', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 10 * 86400000).toISOString() },
+  { id: 'hostel_7', title: 'Premium Boys Hostel in Kondapur', price: '₹12,000/month', image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=500', images: ['https://images.unsplash.com/photo-1566073771259-6a8506099945?w=500'], rating: 4.7, distance: '2.8 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '22', hostelType: 'Boys', foodIncluded: 'Yes', location: '34 Botanical Garden Road, Kondapur, Hyderabad', area: 'Kondapur', itemCondition: 'New Item', createdAt: new Date(Date.now() - 4 * 86400000).toISOString() },
+  { id: 'hostel_8', title: 'Working Women Hostel in Banjara Hills', price: '₹13,500/month', image: 'https://images.unsplash.com/photo-1502672260066-6bc35f0a1f80?w=500', images: ['https://images.unsplash.com/photo-1502672260066-6bc35f0a1f80?w=500'], rating: 4.8, distance: '4.2 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '15', hostelType: 'Girls', foodIncluded: 'Yes', location: 'Road No 3, Banjara Hills, Hyderabad', area: 'Banjara Hills', itemCondition: 'New Item', createdAt: new Date(Date.now() - 3 * 86400000).toISOString() },
 ];
 
 const Marketplace = ({ navigation }: any) => {
   const [activeTab, setActiveTab] = useState<'buy' | 'rent'>('buy');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [location, setLocation] = useState('Near Hyderabad, Telangana');
+  const [location, setLocation] = useState('Gachibowli, Hyderabad');
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [showListingTypeModal, setShowListingTypeModal] = useState(false);
@@ -118,56 +131,88 @@ const Marketplace = ({ navigation }: any) => {
     }
   };
 
-  const loadListings = async () => {
-    try {
-      const storedListings = await AsyncStorage.getItem('marketplace_listings');
-      let userListings: Property[] = [];
+  // Only showing the loadListings function - rest of the file remains the same
+
+const loadListings = async () => {
+  try {
+    const storedListings = await AsyncStorage.getItem('marketplace_listings');
+    let userListings: Property[] = [];
+    
+    if (storedListings) {
+      const parsedListings = JSON.parse(storedListings);
+      const verifiedListings = parsedListings.filter((listing: any) => listing.isVerified === true);
       
-      if (storedListings) {
-        const parsedListings = JSON.parse(storedListings);
-        const verifiedListings = parsedListings.filter((listing: any) => listing.isVerified === true);
+      userListings = verifiedListings.map((listing: any) => {
+        const isNew = listing.createdAt && 
+          (new Date().getTime() - new Date(listing.createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000;
         
-        userListings = verifiedListings.map((listing: any) => {
-          const isNew = listing.createdAt && 
-            (new Date().getTime() - new Date(listing.createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000;
-          
-          let title = '';
-          if (['Apartment', 'Villa', 'Independent House'].includes(listing.propertyType)) {
-            title = `${listing.bhk || ''} ${listing.propertyType} in ${listing.area || 'Unknown'}`;
-          } else if (listing.propertyType === 'Land') {
-            title = `${listing.landType || ''} Land in ${listing.area || 'Unknown'}`;
-          } else if (['Bike', 'Car', 'Lorry', 'Auto', 'Bus'].includes(listing.propertyType)) {
-            title = `${listing.brand || ''} ${listing.model || ''} ${listing.year || ''}`.trim();
-          } else {
-            title = `${listing.propertyType} in ${listing.area || 'Unknown'}`;
-          }
+        let title = '';
+        if (['Apartment', 'Villa', 'Independent House'].includes(listing.propertyType)) {
+          title = `${listing.bhk || ''} ${listing.propertyType} in ${listing.area || 'Unknown'}`;
+        } else if (listing.propertyType === 'Land') {
+          title = `${listing.landType || ''} Land in ${listing.area || 'Unknown'}`;
+        } else if (['Bike', 'Car', 'Lorry', 'Auto', 'Bus'].includes(listing.propertyType)) {
+          title = `${listing.brand || ''} ${listing.model || ''} ${listing.year || ''}`.trim();
+        } else if (listing.propertyType === 'Hostel') {
+          title = `${listing.hostelType || ''} Hostel in ${listing.area || 'Unknown'}`;
+        } else {
+          title = `${listing.propertyType} in ${listing.area || 'Unknown'}`;
+        }
 
-          return {
-            id: listing.id, title: title || listing.propertyType,
-            price: `₹${parseFloat(listing.price).toLocaleString('en-IN')}`,
-            image: listing.images?.[0] || 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=500',
-            images: listing.images, rating: 4.5 + Math.random() * 0.5,
-            distance: `${(Math.random() * 5).toFixed(1)} km away`,
-            type: listing.propertyType, propertyType: listing.propertyType,
-            listingType: listing.type, isNew, isFavorite: false,
-            description: listing.description, sqft: listing.sqft, bhk: listing.bhk,
-            location: listing.location, area: listing.area, furnishingType: listing.furnishingType,
-            landType: listing.landType, ownerName: listing.ownerName, brand: listing.brand,
-            model: listing.model, year: listing.year, mobileNumber: listing.mobileNumber,
-            createdAt: listing.createdAt, itemCondition: listing.itemCondition,
-            registrationStatus: listing.registrationStatus, marketValue: listing.marketValue,
-            registrationValue: listing.registrationValue,
-            documentImages: listing.documentImages,
-            
-          };
-        });
-      }
+        return {
+          id: listing.id, 
+          title: title || listing.propertyType,
+          price: `₹${parseFloat(listing.price).toLocaleString('en-IN')}`,
+          image: listing.images?.[0] || 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=500',
+          images: listing.images, 
+          rating: 4.5 + Math.random() * 0.5,
+          distance: `${(Math.random() * 5).toFixed(1)} km away`,
+          type: listing.propertyType, 
+          propertyType: listing.propertyType,
+          listingType: listing.type, 
+          isNew, 
+          isFavorite: false,
+          description: listing.description, 
+          sqft: listing.sqft, 
+          bhk: listing.bhk,
+          location: listing.location, 
+          area: listing.area, 
+          furnishingType: listing.furnishingType,
+          landType: listing.landType, 
+          ownerName: listing.ownerName, 
+          brand: listing.brand,
+          model: listing.model, 
+          year: listing.year, 
+          mobileNumber: listing.mobileNumber,
+          createdAt: listing.createdAt, 
+          itemCondition: listing.itemCondition,
+          registrationStatus: listing.registrationStatus, 
+          marketValue: listing.marketValue,
+          registrationValue: listing.registrationValue,
+          documentImages: listing.documentImages,
+          // HOSTEL FIELDS - Make sure ALL are passed through
+          hostelType: listing.hostelType,
+          totalRooms: listing.totalRooms,
+          availableRooms: listing.availableRooms, // THIS WAS MISSING
+          foodIncluded: listing.foodIncluded,
+          // AMENITIES - Make sure ALL are passed through
+          hasAC: listing.hasAC,
+          hasWifi: listing.hasWifi,
+          hasTV: listing.hasTV,
+          hasLaundry: listing.hasLaundry,
+          hasParking: listing.hasParking,
+          hasSecurity: listing.hasSecurity,
+        };
+      });
+    }
 
-      const allListings = [...getDummyData(), ...userListings];
-      setProperties(allListings);
-    } catch (error) {
-      console.error('Error loading listings:', error);
-      setProperties(getDummyData());
+    const allListings = [...getDummyData(), ...userListings];
+    setProperties(allListings);
+  } catch (error) {
+    console.error('Error loading listings:', error);
+    setProperties(getDummyData());
+  }
+};
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -192,18 +237,17 @@ const Marketplace = ({ navigation }: any) => {
         try {
           const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`, { headers: { 'User-Agent': 'MarketplaceApp/1.0', 'Accept': 'application/json' } });
           const data = await response.json();
-          const city = data?.address?.city || data?.address?.town || data?.address?.village || data?.address?.suburb || 'Your Area';
-          const state = data?.address?.state || '';
-          setLocation(`Near ${city}, ${state}`);
-        } catch (error) { setLocation('Location detected'); }
+          const suburb = data?.address?.suburb || data?.address?.neighbourhood || '';
+          const city = data?.address?.city || data?.address?.town || 'Hyderabad';
+          setLocation(`${suburb}, ${city}`);
+        } catch (error) { setLocation('Gachibowli, Hyderabad'); }
       },
-      (error) => setLocation('Location unavailable'),
+      (error) => setLocation('Gachibowli, Hyderabad'),
       { enableHighAccuracy: true, timeout: 20000, maximumAge: 0, forceRequestLocation: true, showLocationDialog: true }
     );
   };
 
   const filteredProperties = properties.filter((property) => {
-    // Wishlist Filter logic
     if (isWishlistActive && !wishlistIds.includes(property.id)) return false;
 
     const matchesTab = property.listingType === activeTab;
@@ -212,7 +256,8 @@ const Marketplace = ({ navigation }: any) => {
       selectedCategory === 'Apartment' ? property.propertyType === 'Apartment' :
       selectedCategory === 'Vehicle' ? ['Bike', 'Car', 'Lorry', 'Auto', 'Bus'].includes(property.propertyType || '') :
       selectedCategory === 'House' ? ['Villa', 'Independent House'].includes(property.propertyType || '') :
-      selectedCategory === 'Commercial' ? ['Office', 'Hospital', 'Commercial Space'].includes(property.propertyType || '') : true;
+      selectedCategory === 'Commercial' ? ['Office', 'Hospital', 'Commercial Space'].includes(property.propertyType || '') :
+      selectedCategory === 'Hostel' ? property.propertyType === 'Hostel' : true;
     
     const matchesPropertyType = selectedPropertyType === 'All' ? true : property.propertyType === selectedPropertyType;
     
@@ -238,15 +283,6 @@ const Marketplace = ({ navigation }: any) => {
     
     return matchesTab && matchesCategory && matchesPropertyType && matchesDate && matchesRating && matchesSearch;
   });
-
-  const categories = [
-    { id: 'All', icon: 'apps', label: 'All' },
-    { id: 'Land', icon: 'landscape', label: 'Land' },
-    { id: 'Apartment', icon: 'apartment', label: 'Apartment' },
-    { id: 'Vehicle', icon: 'directions-car', label: 'Vehicle' },
-    { id: 'House', icon: 'home', label: 'House' },
-    { id: 'Commercial', icon: 'business', label: 'Commercial' },
-  ];
 
   const FilterModal = ({ visible, onClose, options, selectedValue, onSelect, title }: any) => (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -279,14 +315,20 @@ const Marketplace = ({ navigation }: any) => {
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Text style={styles.headerTitle}>Marketplace</Text>
-          <TouchableOpacity style={styles.listingTypeDropdown} onPress={() => setShowListingTypeModal(true)}>
-            <Text style={styles.listingTypeText}>{activeTab === 'buy' ? 'Buy' : 'Rent'}</Text>
-            <MaterialIcons name="expand-more" size={16} color={colors.text} />
-          </TouchableOpacity>
         </View>
         <TouchableOpacity style={styles.sellButton} onPress={() => navigation.navigate('SellItem')}>
           <MaterialIcons name="add" size={16} color="#fff" />
           <Text style={styles.sellButtonText}>Sell/Rent</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.listingTypeSection}>
+        <TouchableOpacity style={styles.listingTypeMainDropdown} onPress={() => setShowListingTypeModal(true)}>
+          <View style={styles.listingTypeContent}>
+            <MaterialIcons name={activeTab === 'buy' ? 'shopping-cart' : 'home'} size={20} color={colors.primary} />
+            <Text style={styles.listingTypeMainText}>{activeTab === 'buy' ? 'Buy' : 'Rent'}</Text>
+          </View>
+          <MaterialIcons name="expand-more" size={24} color={colors.text} />
         </TouchableOpacity>
       </View>
 
@@ -307,7 +349,6 @@ const Marketplace = ({ navigation }: any) => {
             <MaterialIcons name="expand-more" size={12} color={colors.text} />
           </TouchableOpacity>
 
-          {/* New Smaller Wishlist Pill placed after Ratings */}
           <TouchableOpacity 
             style={[styles.filterPill, isWishlistActive && { borderColor: '#ef4444', backgroundColor: colors.card }]}
             onPress={() => setIsWishlistActive(!isWishlistActive)}
@@ -327,7 +368,7 @@ const Marketplace = ({ navigation }: any) => {
       >
         <View style={styles.searchContainer}>
           <MaterialIcons name="search" size={20} color="#94a3b8" style={styles.searchIcon} />
-          <TextInput style={styles.searchInput} placeholder="Search homes, cars, land..." placeholderTextColor="#4b5563" value={searchQuery} onChangeText={setSearchQuery} />
+          <TextInput style={styles.searchInput} placeholder="Search homes, cars, land, hostels..." placeholderTextColor="#4b5563" value={searchQuery} onChangeText={setSearchQuery} />
         </View>
 
         <View style={styles.locationContainer}>
@@ -338,7 +379,6 @@ const Marketplace = ({ navigation }: any) => {
               <Text style={styles.locationText}>{location}</Text>
             </View>
           </View>
-          <TouchableOpacity onPress={requestLocationPermission}><Text style={styles.changeText}>Change</Text></TouchableOpacity>
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
@@ -349,6 +389,7 @@ const Marketplace = ({ navigation }: any) => {
             { id: 'Vehicle', icon: 'directions-car', label: 'Vehicle' },
             { id: 'House', icon: 'home', label: 'House' },
             { id: 'Commercial', icon: 'business', label: 'Commercial' },
+            { id: 'Hostel', icon: 'hotel', label: 'Hostel' },
           ].map((category) => (
             <TouchableOpacity key={category.id} style={[styles.categoryButton, selectedCategory === category.id && styles.activeCategoryButton]} onPress={() => setSelectedCategory(category.id)}>
               <MaterialIcons name={category.icon} size={18} color={selectedCategory === category.id ? '#fff' : '#94a3b8'} />
@@ -364,9 +405,9 @@ const Marketplace = ({ navigation }: any) => {
 
         {filteredProperties.length === 0 ? (
           <View style={styles.emptyState}>
-            <MaterialIcons name="search-off" size={64} color="#232936" />
-            <Text style={styles.emptyTitle}>No Properties Found</Text>
-            <Text style={styles.emptySubtitle}>Try adjusting your filters or search</Text>
+            <MaterialIcons name={isWishlistActive ? "favorite-border" : "search-off"} size={64} color="#232936" />
+            <Text style={styles.emptyTitle}>{isWishlistActive ? "No Saved Items" : "No Properties Found"}</Text>
+            <Text style={styles.emptySubtitle}>{isWishlistActive ? "Items you heart will appear here" : "Try adjusting your filters or search"}</Text>
             <TouchableOpacity style={styles.emptyButton} onPress={() => navigation.navigate('SellItem')}>
               <Text style={styles.emptyButtonText}>Post a Listing</Text>
             </TouchableOpacity>
@@ -414,6 +455,7 @@ const Marketplace = ({ navigation }: any) => {
                   <View style={styles.cardDetails}>
                     {property.sqft && <View style={styles.detailItem}><MaterialIcons name="square-foot" size={12} color="#64748b" /><Text style={styles.detailText}>{property.sqft} sqft</Text></View>}
                     {property.bhk && <View style={styles.detailItem}><MaterialIcons name="bed" size={12} color="#64748b" /><Text style={styles.detailText}>{property.bhk}</Text></View>}
+                    {property.totalRooms && <View style={styles.detailItem}><MaterialIcons name="meeting-room" size={12} color="#64748b" /><Text style={styles.detailText}>{property.totalRooms} rooms</Text></View>}
                   </View>
                 </View>
               </TouchableOpacity>
@@ -430,7 +472,7 @@ const Marketplace = ({ navigation }: any) => {
       </View>
 
       <FilterModal visible={showListingTypeModal} onClose={() => setShowListingTypeModal(false)} options={['Buy', 'Rent']} selectedValue={activeTab === 'buy' ? 'Buy' : 'Rent'} onSelect={(v: string) => setActiveTab(v.toLowerCase() as any)} title="Select Listing Type" />
-      <FilterModal visible={showPropertyTypeModal} onClose={() => setShowPropertyTypeModal(false)} options={['All', 'Apartment', 'Villa', 'Independent House', 'Land', 'Bike', 'Car', 'Lorry', 'Auto', 'Bus', 'Office', 'Hospital', 'Commercial Space']} selectedValue={selectedPropertyType} onSelect={setSelectedPropertyType} title="Select Property Type" />
+      <FilterModal visible={showPropertyTypeModal} onClose={() => setShowPropertyTypeModal(false)} options={['All', 'Apartment', 'Villa', 'Independent House', 'Land', 'Bike', 'Car', 'Lorry', 'Auto', 'Bus', 'Office', 'Hospital', 'Commercial Space', 'Hostel']} selectedValue={selectedPropertyType} onSelect={setSelectedPropertyType} title="Select Property Type" />
       <FilterModal visible={showDateModal} onClose={() => setShowDateModal(false)} options={['All Time', 'Today', 'Last 7 Days', 'Last 30 Days', 'Last 3 Months']} selectedValue={selectedDateFilter} onSelect={setSelectedDateFilter} title="Filter by Date" />
       <FilterModal visible={showRatingModal} onClose={() => setShowRatingModal(false)} options={['All Ratings', '4.5+ Stars', '4.0+ Stars', '3.5+ Stars', '3.0+ Stars']} selectedValue={selectedRatingFilter} onSelect={setSelectedRatingFilter} title="Filter by Rating" />
     </SafeAreaView>
@@ -444,11 +486,13 @@ const getStyles = (colors: any) =>
     container: { flex: 1, backgroundColor: colors.background },
     header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.border },
     headerLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
-    headerTitle: { fontSize: 16, fontWeight: "800", color: colors.text },
-    listingTypeDropdown: { flexDirection: "row", alignItems: "center", backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, gap: 4 },
-    listingTypeText: { fontSize: 12, fontWeight: "700", color: colors.text },
-    sellButton: { flexDirection: "row", alignItems: "center", backgroundColor: colors.primary, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, gap: 4 },
-    sellButtonText: { fontSize: 12, fontWeight: "700", color: colors.onPrimary ?? "#fff" },
+    headerTitle: { fontSize: 20, fontWeight: "800", color: colors.text },
+    sellButton: { flexDirection: "row", alignItems: "center", backgroundColor: colors.primary, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, gap: 5 },
+    sellButtonText: { fontSize: 13, fontWeight: "700", color: colors.onPrimary ?? "#fff" },
+    listingTypeSection: { paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.border, backgroundColor: colors.surface },
+    listingTypeMainDropdown: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: colors.card, borderWidth: 2, borderColor: colors.primary, paddingHorizontal: 16, paddingVertical: 12, borderRadius: 12 },
+    listingTypeContent: { flexDirection: "row", alignItems: "center", gap: 10 },
+    listingTypeMainText: { fontSize: 16, fontWeight: "800", color: colors.text, letterSpacing: 0.5 },
     filterContainer: { paddingHorizontal: 16, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border },
     filterPill: { flexDirection: "row", alignItems: "center", backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 14.7, paddingVertical: 5, borderRadius: 16, marginRight: 6, gap: 4 },
     filterText: { fontSize: 10, fontWeight: "700", color: colors.text },
@@ -457,11 +501,10 @@ const getStyles = (colors: any) =>
     searchIcon: { marginRight: 8 },
     searchInput: { flex: 1, fontSize: 14, color: colors.text, paddingVertical: 12 },
     locationContainer: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, marginBottom: 24 },
-    locationLeft: { flexDirection: "row", alignItems: "center", gap: 8 },
+    locationLeft: { flexDirection: "row", alignItems: "center", gap: 8, flex: 1 },
     locationIconContainer: { backgroundColor: colors.primary + "1A", padding: 6, borderRadius: 8 },
     locationLabel: { fontSize: 10, fontWeight: "700", color: colors.subText, letterSpacing: 1 },
     locationText: { fontSize: 14, fontWeight: "800", color: colors.text },
-    changeText: { fontSize: 11, fontWeight: "700", color: colors.primary },
     categoryScroll: { paddingHorizontal: 16, marginBottom: 32 },
     categoryButton: { flexDirection: "row", alignItems: "center", height: 40, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 16, borderRadius: 12, marginRight: 8, gap: 8 },
     activeCategoryButton: { backgroundColor: colors.primary, borderColor: colors.primary },
@@ -474,6 +517,8 @@ const getStyles = (colors: any) =>
     emptyState: { alignItems: "center", justifyContent: "center", paddingVertical: 60, paddingHorizontal: 32 },
     emptyTitle: { fontSize: 20, fontWeight: "800", color: colors.text, marginTop: 16, marginBottom: 8 },
     emptySubtitle: { fontSize: 14, fontWeight: "500", color: colors.subText, textAlign: "center", marginBottom: 24 },
+    emptyButton: { backgroundColor: colors.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 },
+    emptyButtonText: { fontSize: 14, fontWeight: "700", color: "#fff" },
     bottomNav: { flexDirection: "row", justifyContent: "space-around", alignItems: "center", backgroundColor: colors.background + "F2", borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 12, paddingBottom: 24 },
     navItem: { alignItems: "center", gap: 4 },
     navText: { fontSize: 10, fontWeight: "700", color: colors.subText },
@@ -504,8 +549,13 @@ const getStyles = (colors: any) =>
     locationDetailText: { fontSize: 10, fontWeight: '500', color: '#64748b', flex: 1 },
     areaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 6 },
     areaDetailText: { fontSize: 10, fontWeight: '500', color: '#64748b', flex: 1 },
-    saleBadge: { position: 'absolute', top: 8, left: 8, backgroundColor: '#135bec', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
+    topBadgesContainer: { position: 'absolute', top: 8, left: 8, flexDirection: 'row', gap: 6 },
+    saleBadge: { backgroundColor: '#135bec', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
     saleBadgeText: { fontSize: 9, fontWeight: '800', color: '#fff' },
-    rentBadge: { position: 'absolute', top: 8, left: 8, backgroundColor: '#f59e0b', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
+    rentBadge: { backgroundColor: '#f59e0b', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
     rentBadgeText: { fontSize: 9, fontWeight: '800', color: '#fff' },
+    conditionBadge: { paddingHorizontal: 6, paddingVertical: 3, borderRadius: 4 },
+    newConditionBadge: { backgroundColor: '#10b981' },
+    oldConditionBadge: { backgroundColor: '#6b7280' },
+    conditionBadgeText: { fontSize: 8, fontWeight: '800', color: '#fff' },
   });

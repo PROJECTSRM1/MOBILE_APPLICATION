@@ -38,6 +38,16 @@ interface Property {
   registrationValue?: string;
   marketValue?: string;
   documentImages?: string[];
+  hostelType?: string;
+  totalRooms?: string;
+  availableRooms?: string;
+  foodIncluded?: string;
+  hasAC?: boolean;
+  hasWifi?: boolean;
+  hasTV?: boolean;
+  hasLaundry?: boolean;
+  hasParking?: boolean;
+  hasSecurity?: boolean;
 }
 
 const BuyerPage = ({ route, navigation }: any) => {
@@ -50,15 +60,33 @@ const BuyerPage = ({ route, navigation }: any) => {
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const [isWishlisted, setIsWishlisted] = useState(false); // Wishlist State
+  const [isWishlisted, setIsWishlisted] = useState(false);
 
-  // Document Viewer State
   const [isDocViewerVisible, setIsDocViewerVisible] = useState(false);
   const [selectedDocImage, setSelectedDocImage] = useState<string | null>(null);
 
   const images = property.images || [property.image || 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=500'];
 
-  // Check if item is already wishlisted on load
+  const isHostel = property.propertyType === 'Hostel';
+  const isLand = property.propertyType === 'Land';
+
+  // Check if this is a dummy hostel (starts with 'hostel_')
+  const isDummyHostel = property.id.startsWith('hostel_');
+
+  // Smart hostel data handling - use actual data if available, otherwise use defaults only for dummy data
+  const hostelData = isHostel ? {
+    hostelType: property.hostelType || 'Boys',
+    totalRooms: property.totalRooms || (isDummyHostel ? '20' : 'N/A'),
+    availableRooms: property.availableRooms || (isDummyHostel ? '5' : 'N/A'),
+    foodIncluded: property.foodIncluded || (isDummyHostel ? 'Yes' : 'No'),
+    hasAC: property.hasAC !== undefined ? property.hasAC : isDummyHostel,
+    hasWifi: property.hasWifi !== undefined ? property.hasWifi : isDummyHostel,
+    hasTV: property.hasTV !== undefined ? property.hasTV : false,
+    hasLaundry: property.hasLaundry !== undefined ? property.hasLaundry : isDummyHostel,
+    hasParking: property.hasParking !== undefined ? property.hasParking : isDummyHostel,
+    hasSecurity: property.hasSecurity !== undefined ? property.hasSecurity : isDummyHostel,
+  } : null;
+
   useEffect(() => {
     checkWishlistStatus();
   }, []);
@@ -82,11 +110,9 @@ const BuyerPage = ({ route, navigation }: any) => {
       let wishlist: Property[] = storedWishlist ? JSON.parse(storedWishlist) : [];
 
       if (isWishlisted) {
-        // Remove from wishlist
         wishlist = wishlist.filter(item => item.id !== property.id);
         setIsWishlisted(false);
       } else {
-        // Add to wishlist
         wishlist.push(property);
         setIsWishlisted(true);
       }
@@ -110,18 +136,29 @@ const BuyerPage = ({ route, navigation }: any) => {
     setShowSuccessModal(true);
   };
 
+  const getAvailableAmenities = () => {
+    if (!isHostel || !hostelData) return [];
+    
+    const amenities = [];
+    if (hostelData.hasAC) amenities.push({ icon: 'ac-unit', label: 'AC' });
+    if (hostelData.hasWifi) amenities.push({ icon: 'wifi', label: 'WiFi' });
+    if (hostelData.hasTV) amenities.push({ icon: 'tv', label: 'TV' });
+    if (hostelData.hasLaundry) amenities.push({ icon: 'local-laundry-service', label: 'Laundry' });
+    if (hostelData.hasParking) amenities.push({ icon: 'local-parking', label: 'Parking' });
+    if (hostelData.hasSecurity) amenities.push({ icon: 'security', label: 'Security' });
+    return amenities;
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="light-content" backgroundColor="#0a0c10" />
       
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <MaterialIcons name="arrow-back-ios" size={20} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Details</Text>
         
-        {/* Wishlist Heart Icon */}
         <TouchableOpacity style={styles.favoriteButton} onPress={toggleWishlist}>
           <MaterialIcons 
             name={isWishlisted ? "favorite" : "favorite-border"} 
@@ -132,7 +169,6 @@ const BuyerPage = ({ route, navigation }: any) => {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Main Image Slider */}
         <View style={styles.imageSection}>
           <ScrollView
             horizontal pagingEnabled
@@ -152,7 +188,7 @@ const BuyerPage = ({ route, navigation }: any) => {
         </View>
 
         <View style={styles.detailsSection}>
-          <Text style={styles.propertyTitle}>{property.title}</Text>
+          <Text style={styles.propertyTitle}>{property.title || property.propertyType}</Text>
           <Text style={styles.propertyPrice}>{property.price}</Text>
 
           <View style={styles.infoRow}>
@@ -160,7 +196,14 @@ const BuyerPage = ({ route, navigation }: any) => {
             <Text style={styles.infoText}>{property.location}, {property.area}</Text>
           </View>
 
-          {property.propertyType === 'Land' && (
+          {isHostel && hostelData && (
+            <View style={styles.hostelTypeBadge}>
+              <MaterialIcons name="domain" size={16} color="#fff" />
+              <Text style={styles.hostelTypeText}>{hostelData.hostelType} Hostel</Text>
+            </View>
+          )}
+
+          {isLand && (
             <View style={[styles.landStatusBadge, property.registrationStatus === 'registered' ? styles.regBg : styles.nonRegBg]}>
               <MaterialIcons name={property.registrationStatus === 'registered' ? "verified" : "gavel"} size={16} color="#fff" />
               <Text style={styles.landStatusText}>
@@ -169,18 +212,43 @@ const BuyerPage = ({ route, navigation }: any) => {
             </View>
           )}
 
-          <View style={styles.detailsGrid}>
-            {property.sqft && <DetailCard icon="square-foot" label="Sq. Ft." value={property.sqft} />}
-            {property.landType && <DetailCard icon="landscape" label="Land Type" value={property.landType} />}
-            
-            {property.propertyType === 'Land' && (
-              <>
-                <DetailCard icon="account-balance" label="Reg. Value" value={formatCurrency(property.registrationValue)} />
-                <DetailCard icon="trending-up" label="Market Value" value={formatCurrency(property.marketValue)} />
-              </>
-            )}
-            {property.bhk && <DetailCard icon="bed" label="BHK" value={property.bhk} />}
-          </View>
+          {isHostel && hostelData ? (
+            <View style={styles.detailsGrid}>
+              <DetailCard icon="meeting-room" label="Total Rooms" value={hostelData.totalRooms} />
+              <DetailCard icon="check-circle" label="Available" value={hostelData.availableRooms} />
+              <DetailCard icon="restaurant" label="Food" value={hostelData.foodIncluded} />
+              <DetailCard icon="new-releases" label="Condition" value={property.itemCondition || 'N/A'} />
+            </View>
+          ) : (
+            <View style={styles.detailsGrid}>
+              {property.sqft && <DetailCard icon="square-foot" label="Sq. Ft." value={property.sqft} />}
+              {property.landType && <DetailCard icon="landscape" label="Land Type" value={property.landType} />}
+              
+              {isLand && (
+                <>
+                  <DetailCard icon="account-balance" label="Reg. Value" value={formatCurrency(property.registrationValue)} />
+                  <DetailCard icon="trending-up" label="Market Value" value={formatCurrency(property.marketValue)} />
+                </>
+              )}
+              {property.bhk && <DetailCard icon="bed" label="BHK" value={property.bhk} />}
+            </View>
+          )}
+
+          {isHostel && getAvailableAmenities().length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Amenities & Services</Text>
+              <View style={styles.amenitiesGrid}>
+                {getAvailableAmenities().map((amenity, index) => (
+                  <View key={index} style={styles.amenityCard}>
+                    <View style={styles.amenityIconContainer}>
+                      <MaterialIcons name={amenity.icon} size={24} color="#135bec" />
+                    </View>
+                    <Text style={styles.amenityLabel}>{amenity.label}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
 
           {property.description && (
             <View style={styles.section}>
@@ -226,18 +294,16 @@ const BuyerPage = ({ route, navigation }: any) => {
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      {/* Footer Price/Action */}
       <View style={styles.bottomSection}>
         <View>
           <Text style={styles.bottomPriceLabel}>Price</Text>
-          <Text style={styles.bottomPrice}>{property.price}</Text>
+          <Text style={styles.bottomPrice}>{property.price}/month</Text>
         </View>
         <TouchableOpacity style={styles.buyButton} onPress={handleBuyProperty}>
           <Text style={styles.buyButtonText}>Contact Seller</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Document Viewer Modal */}
       <Modal visible={isDocViewerVisible} transparent={false} animationType="fade" onRequestClose={() => setIsDocViewerVisible(false)}>
         <View style={styles.fullScreenContainer}>
           <View style={styles.fullScreenHeader}>
@@ -253,7 +319,6 @@ const BuyerPage = ({ route, navigation }: any) => {
         </View>
       </Modal>
 
-      {/* Success Modal */}
       <Modal visible={showSuccessModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.successModal}>
@@ -270,7 +335,6 @@ const BuyerPage = ({ route, navigation }: any) => {
   );
 };
 
-// Sub-components
 const DetailCard = ({ icon, label, value }: any) => {
   const { colors } = useTheme();
   return (
@@ -320,6 +384,21 @@ const getStyles = (colors: any) => StyleSheet.create({
   propertyPrice: { fontSize: 26, fontWeight: '800', color: colors.primary, marginBottom: 12 },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 16 },
   infoText: { fontSize: 14, color: colors.subText },
+  hostelTypeBadge: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: 8, 
+    padding: 12, 
+    borderRadius: 12, 
+    marginBottom: 20,
+    backgroundColor: '#1e40af',
+    alignSelf: 'flex-start'
+  },
+  hostelTypeText: { 
+    color: '#fff', 
+    fontWeight: '700', 
+    fontSize: 13 
+  },
   landStatusBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderRadius: 12, marginBottom: 20 },
   regBg: { backgroundColor: '#065f46' },
   nonRegBg: { backgroundColor: '#92400e' },
@@ -328,6 +407,36 @@ const getStyles = (colors: any) => StyleSheet.create({
   section: { marginTop: 24 },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: 12 },
   descriptionText: { fontSize: 14, color: colors.subText, lineHeight: 22 },
+  amenitiesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginTop: 8,
+  },
+  amenityCard: {
+    width: (width - 56) / 3,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    padding: 12,
+    alignItems: 'center',
+  },
+  amenityIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.primary + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  amenityLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.text,
+    textAlign: 'center',
+  },
   docWrapper: { marginRight: 12, width: 110, height: 140, borderRadius: 12, overflow: 'hidden', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
   docThumb: { width: '100%', height: '100%' },
   docOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' },

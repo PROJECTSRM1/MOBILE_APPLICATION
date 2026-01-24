@@ -7,6 +7,8 @@ import {
   Image,
   TouchableOpacity,
   TextInput,
+  Modal,
+  ActivityIndicator,
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
@@ -22,6 +24,33 @@ interface UserProfile {
   email: string;
   mobile?: string;
   location?: string;
+}
+
+type WorkStatus = 'inactive' | 'waiting' | 'assigned';
+
+interface OrganisationDetails {
+  orgName: string;
+  gstin: string;
+  group: Number;
+}
+
+interface ServiceProvider {
+  id: string;
+  name: string;
+  service: string;
+  role: string;
+  tasksCompleted: number;
+  certifications: string[];
+  workStatus: WorkStatus;
+  rating: number;
+  reviews: number;
+  skills: string[];
+  hourlyRate: number;
+  image: string;
+  isActive: boolean;
+  isEnrolled: boolean;
+  organisation?: OrganisationDetails;
+  cuisineStyle?: 'North' | 'South';
 }
 
 const Landing = () => {
@@ -46,6 +75,9 @@ const Landing = () => {
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
+  const [userRole, setUserRole] = useState<'customer' | 'employee'>('customer');
+  const [showNavigationModal, setShowNavigationModal] = useState(false);
+  const [navigationTarget, setNavigationTarget] = useState<'customer' | 'employee'>('customer');
 
   // Placeholder texts array
   const placeholders = [
@@ -58,6 +90,153 @@ const Landing = () => {
     "Find Health Care services...",
     "Find Raw Materials...",
     "Find Just Ride services...",
+  ];
+
+  /* ================= FREELANCERS DATA ================= */
+  const serviceProviders: ServiceProvider[] = [
+    {
+      id: '1',
+      name: 'Ramesh Kumar',
+      service: 'Plumber',
+      role: 'Senior Plumber',
+      tasksCompleted: 156,
+      certifications: ['Licensed Plumber', 'Safety Certified'],
+      workStatus: 'assigned',
+      rating: 4.8,
+      reviews: 156,
+      skills: ['Pipe Fitting', 'Drainage'],
+      hourlyRate: 350,
+      image: 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=400&h=400&fit=crop',
+      isActive: true,
+      isEnrolled: true,
+    },
+    {
+      id: '2',
+      name: 'Lakshmi Devi',
+      service: 'Cleaner',
+      role: 'Professional Cleaner',
+      tasksCompleted: 203,
+      certifications: ['Hygiene Certified', 'Deep Cleaning Expert'],
+      workStatus: 'inactive',
+      rating: 5.0,
+      reviews: 203,
+      skills: ['Deep Cleaning', 'Sanitization'],
+      hourlyRate: 250,
+      image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
+      isActive: false,
+      isEnrolled: true,
+    },
+    {
+      id: '3',
+      name: 'Suresh Reddy',
+      service: 'Electrician',
+      role: 'Certified Electrician',
+      tasksCompleted: 98,
+      certifications: ['Electrical License', 'Industrial Wiring'],
+      workStatus: 'waiting',
+      rating: 4.7,
+      reviews: 98,
+      skills: ['Wiring', 'Repair'],
+      hourlyRate: 400,
+      image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop',
+      isActive: true,
+      isEnrolled: true,
+      organisation: {
+        orgName: "Sparkle Cleaning Pvt Ltd",
+        gstin: "29ABCDE1234F1Z5",
+        group: 10
+      }
+    },
+    {
+      id: '4',
+      name: 'Priya Sharma',
+      service: 'Washer',
+      role: 'Laundry Specialist',
+      tasksCompleted: 142,
+      certifications: ['Dry Cleaning Certified'],
+      workStatus: 'inactive',
+      rating: 4.9,
+      reviews: 142,
+      skills: ['Machine Wash', 'Dry Cleaning'],
+      hourlyRate: 200,
+      image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop',
+      isActive: false,
+      isEnrolled: true,
+    },
+    {
+      id: '5',
+      name: 'Vijay Rao',
+      service: 'Plumber',
+      role: 'Plumbing Technician',
+      tasksCompleted: 87,
+      certifications: ['Plumbing License'],
+      workStatus: 'waiting',
+      rating: 4.6,
+      reviews: 87,
+      skills: ['Installation', 'Maintenance'],
+      hourlyRate: 320,
+      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+      isActive: true,
+      isEnrolled: false,
+    },
+    {
+      id: '6',
+      name: 'Anita Patel',
+      service: 'Cleaner',
+      role: 'Home Cleaning Expert',
+      tasksCompleted: 175,
+      certifications: ['Kitchen Hygiene Certified'],
+      workStatus: 'assigned',
+      rating: 4.8,
+      reviews: 175,
+      skills: ['Home Cleaning', 'Kitchen'],
+      hourlyRate: 280,
+      image: 'https://images.unsplash.com/photo-1531123897727-8f129e16fd3c?w=400&h=400&fit=crop',
+      isActive: true,
+      isEnrolled: false,
+    },
+    {
+      id: '7',
+      name: 'Karthik Menon',
+      service: 'Electrician',
+      role: 'Smart Home Specialist',
+      tasksCompleted: 134,
+      certifications: ['Smart Home Certified', 'IoT Installation'],
+      workStatus: 'inactive',
+      rating: 4.9,
+      reviews: 134,
+      skills: ['Smart Home', 'Installation'],
+      hourlyRate: 450,
+      image: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=400&h=400&fit=crop',
+      isActive: false,
+      isEnrolled: true,
+      organisation: {
+        orgName: "Sparkle Cleaning Pvt Ltd",
+        gstin: "29ABCDE1234F1Z5",
+        group: 11,
+      }
+    },
+    {
+      id: '8',
+      name: 'Deepa Singh',
+      service: 'Washer',
+      role: 'Laundry Professional',
+      tasksCompleted: 98,
+      certifications: ['Fabric Care Expert'],
+      workStatus: 'assigned',
+      rating: 4.7,
+      reviews: 98,
+      skills: ['Laundry', 'Ironing'],
+      hourlyRate: 220,
+      image: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=400&h=400&fit=crop',
+      isActive: true,
+      isEnrolled: true,
+      organisation: {
+        orgName: "Sparkle Cleaning Pvt Ltd",
+        gstin: "29ABCDE1234F1Z5",
+        group: 12
+      }
+    },
   ];
 
   /* ================= LOAD USER DATA ================= */
@@ -147,6 +326,19 @@ const Landing = () => {
     const interval = setInterval(animatePlaceholder, 3500);
     return () => clearInterval(interval);
   }, [placeholders.length, fadeAnim, translateYAnim, isSearchFocused, searchQuery]);
+
+  /* ================= ROLE SWITCH HANDLER ================= */
+  const handleRoleSwitch = (role: 'customer' | 'employee') => {
+    setNavigationTarget(role);
+    setShowRoleMenu(false);
+    setShowNavigationModal(true);
+
+    // Simulate loading and then switch role
+    setTimeout(() => {
+      setUserRole(role);
+      setShowNavigationModal(false);
+    }, 2000);
+  };
 
   /* ================= SEARCH HANDLER ================= */
   const handleSearch = () => {
@@ -296,28 +488,76 @@ const Landing = () => {
     },
   ];
 
-  /* ================= AUTO-SCROLL FOR TRENDING ITEMS - FIXED ================= */
+  /* ================= AUTO-SCROLL FOR TRENDING ITEMS - CONTINUOUS LOOP ================= */
   useEffect(() => {
-    if (!trendingServices.length) return;
+    const itemsToScroll = userRole === 'customer' 
+      ? serviceProviders.filter(p => p.isEnrolled) 
+      : trendingServices;
+    
+    if (!itemsToScroll.length) return;
+
+    const CARD_HEIGHT = 118; // Card height + margin
+    let scrollPosition = 0;
+    const totalHeight = itemsToScroll.length * CARD_HEIGHT;
 
     const interval = setInterval(() => {
-      trendingCurrentIndex.current = (trendingCurrentIndex.current + 1) % trendingServices.length;
+      scrollPosition += CARD_HEIGHT;
 
-      // Calculate the exact scroll position
-      // Each card height: 80 (image) + 24 (padding) + 14 (margin) = 118px
-      const CARD_HEIGHT = 118;
-      
-      trendingScrollRef.current?.scrollTo({
-        y: trendingCurrentIndex.current * CARD_HEIGHT,
-        animated: true,
-      });
+      // When we reach the end, reset to start seamlessly
+      if (scrollPosition >= totalHeight) {
+        // Jump to start instantly (no animation)
+        trendingScrollRef.current?.scrollTo({
+          y: 0,
+          animated: false,
+        });
+        scrollPosition = CARD_HEIGHT; // Set to first item position
+        
+        // Then animate to first item after a tiny delay
+        setTimeout(() => {
+          trendingScrollRef.current?.scrollTo({
+            y: scrollPosition,
+            animated: true,
+          });
+        }, 50);
+      } else {
+        // Normal scroll
+        trendingScrollRef.current?.scrollTo({
+          y: scrollPosition,
+          animated: true,
+        });
+      }
     }, 1200);
 
     return () => clearInterval(interval);
-  }, [trendingServices.length]);
+  }, [userRole, trendingServices.length, serviceProviders.length]);
+
+  const getStatusUI = (status: WorkStatus) => {
+    switch (status) {
+      case 'inactive': return { label: 'Inactive', color: '#64748b', bg: '#f1f5f9' };
+      case 'waiting': return { label: 'Available', color: '#22c55e', bg: '#f0fdf4' };
+      case 'assigned': return { label: 'Busy', color: '#f59e0b', bg: '#fffbeb' };
+      default: return { label: 'Unknown', color: '#000', bg: '#fff' };
+    }
+  };
 
   return (
     <View style={styles.container}>
+      {/* ================= NAVIGATION MODAL ================= */}
+      <Modal
+        visible={showNavigationModal}
+        transparent={true}
+        animationType="fade"
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={styles.modalText}>
+              You are navigating to {navigationTarget === 'customer' ? 'Customer' : 'Employee'} Dashboard
+            </Text>
+          </View>
+        </View>
+      </Modal>
+
       {/* ================= HEADER ================= */}
       <SafeAreaView edges={["top"]} style={styles.safeHeader}></SafeAreaView>
       <View style={styles.header}>
@@ -375,7 +615,7 @@ const Landing = () => {
                 fontWeight: "500",
               }}
             >
-              Select Type
+              {userRole === 'customer' ? 'Customer' : 'Employee'}
             </Text>
             <MaterialIcons name="expand-more" size={26} color={colors.text} />
           </TouchableOpacity>
@@ -398,19 +638,14 @@ const Landing = () => {
           <View style={styles.roleMenu}>
             <TouchableOpacity
               style={styles.roleItem}
-              onPress={() => {
-                setShowRoleMenu(false);
-              }}
+              onPress={() => handleRoleSwitch('customer')}
             >
               <Text style={styles.roleText}>Customer</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.roleItem}
-              onPress={() => {
-                setShowRoleMenu(false);
-                navigation.navigate("EmployeeHomeScreen");
-              }}
+              onPress={() => handleRoleSwitch('employee')}
             >
               <Text style={styles.roleText}>Employee</Text>
             </TouchableOpacity>
@@ -518,94 +753,26 @@ const Landing = () => {
         </View>
 
         <View style={styles.grid}>
-  {[
-    { name: "Housing / Cleaning", icon: "home" },
-    { name: "Education", icon: "school" },
-    { name: "Freelance", icon: "work" },
-    { name: "Buy/Sell", icon: "shopping-bag" },
-    { name: "Swachify Products", icon: "shopping-bag" },
-    { name: "Health Care", icon: "local-hospital" },
-    { name: "Raw Materials", icon: "factory" },
-    { name: "Just Ride", icon: "local-shipping" },
-  ].map((item, i) => {
-    return (
-      <TouchableOpacity
-        key={i}
-        style={styles.gridItem}
-        activeOpacity={0.8}
-        onPress={() => {
-          if (!isLoggedIn) {
-            navigation.navigate("AuthScreen");
-            return;
-          }
-
-          switch (item.name) {
-            case "Housing / Cleaning":
-              navigation.navigate("CleaningCategory"); 
-              break;
-
-            case "Education":
-              navigation.navigate("EducationHome");
-              break;
-
-            case "Freelance":
-              navigation.navigate("Freelancer");
-              break;
-
-            case "Buy/Sell":
-              navigation.navigate("Marketplace");
-              break;
-
-            case "Swachify Products":
-              navigation.navigate("ProductScreen");
-              break;
-
-            case "Raw Materials":
-              navigation.navigate("RawMaterial");
-              break;
-
-            case "Just Ride":
-  navigation.navigate("JustRideMultiStop");
-  break;
-
-
-            case "Health Care":
-              navigation.navigate("Health");
-              break;
-
-            default:
-              break;
-          }
-        }}
-      >
-        <View style={styles.gridIcon}>
-          <MaterialIcons name={item.icon} size={28} color="#3b82f6" />
-        </View>
-        <Text style={styles.gridText}>{item.name}</Text>
-      </TouchableOpacity>
-    );
-  })}
-</View>
-
-
-        {/* ================= TRENDING ================= */}
-
-<View style={styles.sectionHeader}>
-  <Text style={styles.sectionTitle}>Trending Near You</Text>
-  <TouchableOpacity
-  onPress={() => navigation.navigate("Marketplace")}
->
-  <Text style={[styles.viewAllText,{marginTop:10}]}>View All</Text>
-</TouchableOpacity>
-</View>
-
-
-{trendingServices.map((item, index) => {
-  const inputRange = [
-    (index - 1) * 120,
-    index * 120,
-    (index + 1) * 120,
-  ];
+          {[
+            { name: "Housing / Cleaning", icon: "home" },
+            { name: "Education", icon: "school" },
+            { name: "Freelance", icon: "work" },
+            { name: "Buy/Sell", icon: "shopping-bag" },
+            { name: "Swachify Products", icon: "shopping-bag" },
+            { name: "Health Care", icon: "local-hospital" },
+            { name: "Raw Materials", icon: "factory" },
+            { name: "Just Ride", icon: "local-shipping" },
+          ].map((item, i) => {
+            return (
+              <TouchableOpacity
+                key={i}
+                style={styles.gridItem}
+                activeOpacity={0.8}
+                onPress={() => {
+                  if (!isLoggedIn) {
+                    navigation.navigate("AuthScreen");
+                    return;
+                  }
 
                   switch (item.name) {
                     case "Housing / Cleaning":
@@ -654,9 +821,11 @@ const Landing = () => {
           })}
         </View>
 
-        {/* ================= TRENDING - WITH FIXED AUTOSCROLL ================= */}
+        {/* ================= TRENDING - CUSTOMER/EMPLOYEE MODE ================= */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Trending Near You</Text>
+          <Text style={styles.sectionTitle}>
+            {userRole === 'customer' ? 'Trending Employees Near You' : 'Trending Near You'}
+          </Text>
           <TouchableOpacity onPress={() => navigation.navigate("Marketplace")}>
             <Text style={[styles.viewAllText, { marginTop: 10 }]}>View All</Text>
           </TouchableOpacity>
@@ -670,448 +839,602 @@ const Landing = () => {
             scrollEnabled={false}
             nestedScrollEnabled={true}
           >
-            {trendingServices.map((item) => {
-              return (
-                <View
-                  key={item.id}
-                  style={styles.card}
-                >
-                  <Image
-                    source={{ uri: item.image }}
-                    style={styles.cardImage}
-                  />
-
+            {userRole === 'customer' ? (
+              // CUSTOMER MODE - Show Freelancers (duplicated for continuous scroll)
+              <>
+                {serviceProviders.filter(p => p.isEnrolled).map((provider) => {
+                  const statusUI = getStatusUI(provider.workStatus);
+                  
+                  return (
+    <View key={provider.id} style={styles.card}>
+      <Image source={{ uri: provider.image }} style={styles.cardImage} />
+      <View style={{ flex: 1 }}>
+        <View style={styles.employeeCardHeader}>
+          <Text style={styles.cardTitle}>{provider.name}</Text>
+          <View style={[styles.statusBadgeMini, { backgroundColor: statusUI.bg }]}>
+            <View style={[styles.statusDot, { backgroundColor: statusUI.color }]} />
+            <Text style={[styles.statusLabel, { color: statusUI.color }]}>
+              {statusUI.label}
+            </Text>
+          </View>
+        </View>
+        <Text style={styles.cardSub}>
+          {provider.service} • {provider.tasksCompleted} tasks
+        </Text>
+        <View style={styles.cardFooter}>
+          <View style={styles.ratingContainer}>
+            <MaterialIcons name="star" size={14} color="#facc15" />
+            <Text style={styles.ratingText}>{provider.rating}</Text>
+            <Text style={styles.reviewCount}>({provider.reviews})</Text>
+          </View>
+          <Text style={styles.price}>₹{provider.hourlyRate}/hr</Text>
+        </View>
+      </View>
+    </View>
+  );
+})}
+{/* Duplicate items for seamless loop */}
+{serviceProviders.filter(p => p.isEnrolled).map((provider) => {
+const statusUI = getStatusUI(provider.workStatus);
+return (
+                <View key={`${provider.id}-duplicate`} style={styles.card}>
+                  <Image source={{ uri: provider.image }} style={styles.cardImage} />
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.cardTitle}>{item.title}</Text>
+                    <View style={styles.employeeCardHeader}>
+                      <Text style={styles.cardTitle}>{provider.name}</Text>
+                      <View style={[styles.statusBadgeMini, { backgroundColor: statusUI.bg }]}>
+                        <View style={[styles.statusDot, { backgroundColor: statusUI.color }]} />
+                        <Text style={[styles.statusLabel, { color: statusUI.color }]}>
+                          {statusUI.label}
+                        </Text>
+                      </View>
+                    </View>
                     <Text style={styles.cardSub}>
-                      {item.category} • {item.distance}
+                      {provider.service} • {provider.tasksCompleted} tasks
                     </Text>
-
                     <View style={styles.cardFooter}>
-                      <Text style={styles.price}>{item.price}</Text>
-                      <TouchableOpacity style={styles.cardBtn}>
-                        <Text style={styles.cardBtnText}>{item.action}</Text>
-                      </TouchableOpacity>
+                      <View style={styles.ratingContainer}>
+                        <MaterialIcons name="star" size={14} color="#facc15" />
+                        <Text style={styles.ratingText}>{provider.rating}</Text>
+                        <Text style={styles.reviewCount}>({provider.reviews})</Text>
+                      </View>
+                      <Text style={styles.price}>₹{provider.hourlyRate}/hr</Text>
                     </View>
                   </View>
                 </View>
               );
             })}
-          </ScrollView>
-        </View>
-
-        {/* ================= REFER & EARN ================= */}
-        <View style={styles.referBox}>
-          <View>
-            <Text style={styles.referTitle}>Refer & Earn</Text>
-            <Text style={styles.referSub}>Invite friends to earn rewards</Text>
-          </View>
-          <TouchableOpacity style={styles.inviteBtn}>
-            <Text style={styles.inviteText}>Invite</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={{ height: 90 }} />
-      </Animated.ScrollView>
-
-      {/* ================= BOTTOM TAB ================= */}
-      <View style={styles.bottomTab}>
-        {["home", "calendar-month", "account-balance-wallet", "chat", "person"].map(
-          (icon, i) => (
-            <TouchableOpacity
-              key={i}
-              onPress={() => {
-                if (i === 4) {
-                  if (!isLoggedIn) {
-                    navigation.navigate("AuthScreen");
-                  } else {
-                    navigation.navigate("ProfileInformation");
-                  }
-                }
-              }}
-            >
-              <MaterialIcons
-                name={icon}
-                size={26}
-                color={i === 0 ? "#3b82f6" : "#9ca3af"}
-              />
-            </TouchableOpacity>
-          )
+          </>
+        ) : (
+          // EMPLOYEE MODE - Show Services (duplicated for continuous scroll)
+          <>
+            {trendingServices.map((item) => (
+              <View key={item.id} style={styles.card}>
+                <Image source={{ uri: item.image }} style={styles.cardImage} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.cardTitle}>{item.title}</Text>
+                  <Text style={styles.cardSub}>
+                    {item.category} • {item.distance}
+                  </Text>
+                  <View style={styles.cardFooter}>
+                    <Text style={styles.price}>{item.price}</Text>
+                    <TouchableOpacity style={styles.cardBtn}>
+                      <Text style={styles.cardBtnText}>{item.action}</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            ))}
+            {/* Duplicate items for seamless loop */}
+            {trendingServices.map((item) => (
+              <View key={`${item.id}-duplicate`} style={styles.card}>
+                <Image source={{ uri: item.image }} style={styles.cardImage} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.cardTitle}>{item.title}</Text>
+                  <Text style={styles.cardSub}>
+                    {item.category} • {item.distance}
+                  </Text>
+                  <View style={styles.cardFooter}>
+                    <Text style={styles.price}>{item.price}</Text>
+                    <TouchableOpacity style={styles.cardBtn}>
+                      <Text style={styles.cardBtnText}>{item.action}</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            ))}
+          </>
         )}
-      </View>
+      </ScrollView>
     </View>
-  );
-};
 
+    {/* ================= REFER & EARN ================= */}
+    <View style={styles.referBox}>
+      <View>
+        <Text style={styles.referTitle}>Refer & Earn</Text>
+        <Text style={styles.referSub}>Invite your friends and earn 49/-</Text>
+      </View>
+      <TouchableOpacity style={styles.inviteBtn}>
+        <Text style={styles.inviteText}>Invite</Text>
+      </TouchableOpacity>
+    </View>
+
+    <View style={{ height: 90 }} />
+  </Animated.ScrollView>
+
+  {/* ================= BOTTOM TAB ================= */}
+  <View style={styles.bottomTab}>
+    {["home", "calendar-month", "account-balance-wallet", "chat", "person"].map(
+      (icon, i) => (
+        <TouchableOpacity
+          key={i}
+          onPress={() => {
+            if (i === 4) {
+              if (!isLoggedIn) {
+                navigation.navigate("AuthScreen");
+              } else {
+                navigation.navigate("ProfileInformation");
+              }
+            }
+          }}
+        >
+          <MaterialIcons
+            name={icon}
+            size={26}
+            color={i === 0 ? "#3b82f6" : "#9ca3af"}
+          />
+        </TouchableOpacity>
+      )
+    )}
+  </View>
+</View>
+
+);
+};
 export default Landing;
 
 const getStyles = (colors: any) =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
+StyleSheet.create({
+container: {
+flex: 1,
+backgroundColor: colors.background,
+},
+safeHeader: {
+  backgroundColor: colors.surface,
+},
 
-    safeHeader: {
-      backgroundColor: colors.surface,
-    },
+header: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  paddingHorizontal: 16,
+  paddingVertical: 12,
+  backgroundColor: colors.surface,
+  borderBottomWidth: 1,
+  borderBottomColor: colors.border,
+  zIndex: 10,
+},
 
-    header: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      backgroundColor: colors.surface,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
-    },
+headerLeft: {
+  flexDirection: "row",
+  alignItems: "center",
+  gap: 12,
+},
 
-    headerLeft: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 12,
-    },
+profileWrapper: {
+  position: "relative",
+},
 
-    profileWrapper: {
-      position: "relative",
-    },
+avatar: {
+  width: 40,
+  height: 40,
+  borderRadius: 20,
+  backgroundColor: colors.card,
+  alignItems: "center",
+  justifyContent: "center",
+  borderWidth: 1,
+  borderColor: colors.border,
+},
 
-    avatar: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: colors.card,
-      alignItems: "center",
-      justifyContent: "center",
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
+avatarText: {
+  color: colors.text,
+  fontSize: 16,
+  fontWeight: "700",
+},
 
-    avatarText: {
-      color: colors.text,
-      fontSize: 16,
-      fontWeight: "700",
-    },
+profileTooltip: {
+  position: "absolute",
+  top: 50,
+  left: 0,
+  backgroundColor: colors.surface,
+  paddingHorizontal: 14,
+  paddingVertical: 10,
+  borderRadius: 14,
+  minWidth: 180,
+  elevation: 12,
+  shadowColor: "#000",
+  shadowOpacity: 0.08,
+  shadowRadius: 10,
+  zIndex: 1000,
+  borderWidth: 1,
+  borderColor: colors.border,
+},
 
-    profileTooltip: {
-      position: "absolute",
-      bottom: -52,
-      left: 0,
-      backgroundColor: colors.surface,
-      paddingHorizontal: 14,
-      paddingVertical: 10,
-      borderRadius: 14,
-      minWidth: 180,
-      elevation: 12,
-      shadowColor: "#000",
-      shadowOpacity: 0.08,
-      shadowRadius: 10,
-      zIndex: 999,
-    },
+tooltipText: {
+  color: colors.text,
+  fontSize: 12,
+  fontWeight: "500",
+},
 
-    tooltipText: {
-      color: colors.text,
-      fontSize: 12,
-      fontWeight: "500",
-    },
+locationLabel: {
+  fontSize: 11,
+  color: colors.subText,
+  letterSpacing: 0.5,
+},
 
-    locationLabel: {
-      fontSize: 11,
-      color: colors.subText,
-      letterSpacing: 0.5,
-    },
+locationText: {
+  fontSize: 14,
+  fontWeight: "700",
+  color: colors.text,
+},
 
-    locationText: {
-      fontSize: 14,
-      fontWeight: "700",
-      color: colors.text,
-    },
+notificationWrapper: {
+  position: "relative",
+},
 
-    notificationWrapper: {
-      position: "relative",
-    },
+notificationDot: {
+  position: "absolute",
+  top: -2,
+  right: -2,
+  width: 8,
+  height: 8,
+  borderRadius: 4,
+  backgroundColor: colors.danger,
+},
 
-    notificationDot: {
-      position: "absolute",
-      top: -2,
-      right: -2,
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-      backgroundColor: colors.danger,
-    },
+searchBox: {
+  flexDirection: "row",
+  alignItems: "center",
+  backgroundColor: colors.surface,
+  marginHorizontal: 16,
+  marginTop: 20,
+  marginBottom: 24,
+  borderRadius: 18,
+  paddingHorizontal: 14,
+  paddingVertical: 10,
+  borderWidth: 1,
+  borderColor: colors.border,
+  zIndex: 1,
+},
 
-    searchBox: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: colors.surface,
-      marginHorizontal: 16,
-      marginTop: 20,
-      marginBottom: 24,
-      borderRadius: 18,
-      paddingHorizontal: 14,
-      paddingVertical: 10,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
+searchPlaceholder: {
+  color: "#9ca3af",
+  fontSize: 14,
+  position: "absolute",
+},
 
-    searchPlaceholder: {
-      color: "#9ca3af",
-      fontSize: 14,
-      position: "absolute",
-    },
+searchInput: {
+  color: colors.text,
+  fontSize: 14,
+  flex: 1,
+  padding: 0,
+  margin: 0,
+  height: 20,
+},
 
-    searchInput: {
-      color: colors.text,
-      fontSize: 14,
-      flex: 1,
-      padding: 0,
-      margin: 0,
-      height: 20,
-    },
+banner: {
+  width: 300,
+  height: 160,
+  borderRadius: 24,
+  marginLeft: 16,
+  overflow: "hidden",
+},
 
-    banner: {
-      width: 300,
-      height: 160,
-      borderRadius: 24,
-      marginLeft: 16,
-      overflow: "hidden",
-    },
+bannerImage: {
+  ...StyleSheet.absoluteFillObject,
+  borderRadius: 24,
+},
 
-    bannerImage: {
-      ...StyleSheet.absoluteFillObject,
-      borderRadius: 24,
-    },
+bannerOverlay: {
+  flex: 1,
+  justifyContent: "flex-end",
+  padding: 16,
+  backgroundColor: "rgba(0,0,0,0.35)",
+  borderRadius: 24,
+},
 
-    bannerOverlay: {
-      flex: 1,
-      justifyContent: "flex-end",
-      padding: 16,
-      backgroundColor: "rgba(0,0,0,0.35)",
-      borderRadius: 24,
-    },
+badge: {
+  backgroundColor: "#ffffff",
+  color: colors.primary,
+  fontSize: 10,
+  fontWeight: "700",
+  paddingHorizontal: 8,
+  paddingVertical: 3,
+  borderRadius: 6,
+  alignSelf: "flex-start",
+},
 
-    badge: {
-      backgroundColor: "#ffffff",
-      color: colors.primary,
-      fontSize: 10,
-      fontWeight: "700",
-      paddingHorizontal: 8,
-      paddingVertical: 3,
-      borderRadius: 6,
-      alignSelf: "flex-start",
-    },
+bannerTitle: {
+  color: "#fff",
+  fontSize: 18,
+  fontWeight: "800",
+  marginVertical: 6,
+},
 
-    bannerTitle: {
-      color: "#fff",
-      fontSize: 18,
-      fontWeight: "800",
-      marginVertical: 6,
-    },
+bannerBtn: {
+  backgroundColor: colors.primary,
+  paddingVertical: 8,
+  paddingHorizontal: 18,
+  borderRadius: 14,
+  alignSelf: "flex-start",
+},
 
-    bannerBtn: {
-      backgroundColor: colors.primary,
-      paddingVertical: 8,
-      paddingHorizontal: 18,
-      borderRadius: 14,
-      alignSelf: "flex-start",
-    },
+bannerBtnText: {
+  color: "#fff",
+  fontSize: 12,
+  fontWeight: "700",
+},
 
-    bannerBtnText: {
-      color: "#fff",
-      fontSize: 12,
-      fontWeight: "700",
-    },
+sectionTitle: {
+  color: colors.text,
+  fontSize: 18,
+  fontWeight: "800",
+  marginHorizontal: 16,
+  marginVertical: 12,
+},
 
-    sectionTitle: {
-      color: colors.text,
-      fontSize: 18,
-      fontWeight: "800",
-      marginHorizontal: 16,
-      marginVertical: 12,
-    },
+sectionHeader: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  marginBottom: 8,
+},
 
-    sectionHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: 8,
-    },
+viewAllText: {
+  color: colors.primary,
+  fontSize: 14,
+  fontWeight: "700",
+  marginRight: 16,
+},
 
-    viewAllText: {
-      color: colors.primary,
-      fontSize: 14,
-      fontWeight: "700",
-      marginRight: 16,
-    },
+grid: {
+  flexDirection: "row",
+  flexWrap: "wrap",
+  justifyContent: "space-around",
+  marginTop: 8,
+},
 
-    grid: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      justifyContent: "space-around",
-      marginTop: 8,
-    },
+gridItem: {
+  alignItems: "center",
+  marginBottom: 22,
+  width: "25%",
+},
 
-    gridItem: {
-      alignItems: "center",
-      marginBottom: 22,
-      width: "25%",
-    },
+gridIcon: {
+  width: 56,
+  height: 56,
+  backgroundColor: colors.card,
+  borderRadius: 18,
+  alignItems: "center",
+  justifyContent: "center",
+  borderWidth: 1,
+  borderColor: colors.border,
+},
 
-    gridIcon: {
-      width: 56,
-      height: 56,
-      backgroundColor: colors.card,
-      borderRadius: 18,
-      alignItems: "center",
-      justifyContent: "center",
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
+gridText: {
+  color: colors.subText,
+  fontSize: 12,
+  fontWeight: "600",
+  marginTop: 8,
+  textAlign: "center",
+  lineHeight: 14,
+  height: 28,
+},
 
-    gridText: {
-      color: colors.subText,
-      fontSize: 12,
-      fontWeight: "600",
-      marginTop: 8,
-      textAlign: "center",
-      lineHeight: 14,
-      height: 28,
-    },
+trendingContainer: {
+  height: 360,
+  overflow: "hidden",
+  marginBottom: 16,
+},
 
-    // NEW STYLE FOR TRENDING CONTAINER
-    trendingContainer: {
-      height: 360,
-      overflow: "hidden",
-      marginBottom: 16,
-    },
+card: {
+  flexDirection: "row",
+  backgroundColor: colors.surface,
+  marginHorizontal: 16,
+  marginBottom: 14,
+  borderRadius: 18,
+  padding: 12,
+  gap: 12,
+  borderWidth: 1,
+  borderColor: colors.border,
+},
 
-    card: {
-      flexDirection: "row",
-      backgroundColor: colors.surface,
-      marginHorizontal: 16,
-      marginBottom: 14,
-      borderRadius: 18,
-      padding: 12,
-      gap: 12,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
+cardImage: {
+  width: 80,
+  height: 80,
+  borderRadius: 14,
+},
 
-    cardImage: {
-      width: 80,
-      height: 80,
-      borderRadius: 14,
-    },
+cardTitle: {
+  color: colors.text,
+  fontWeight: "700",
+  fontSize: 14,
+},
 
-    cardTitle: {
-      color: colors.text,
-      fontWeight: "700",
-      fontSize: 14,
-    },
+cardSub: {
+  color: colors.subText,
+  fontSize: 12,
+  marginVertical: 4,
+},
 
-    cardSub: {
-      color: colors.subText,
-      fontSize: 12,
-      marginVertical: 4,
-    },
+cardFooter: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+},
 
-    cardFooter: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-    },
+price: {
+  color: colors.primary,
+  fontWeight: "800",
+  fontSize: 15,
+},
 
-    price: {
-      color: colors.primary,
-      fontWeight: "800",
-      fontSize: 15,
-    },
+cardBtn: {
+  backgroundColor: colors.primary + "15",
+  paddingHorizontal: 14,
+  paddingVertical: 8,
+  borderRadius: 12,
+},
 
-    cardBtn: {
-      backgroundColor: colors.primary + "15",
-      paddingHorizontal: 14,
-      paddingVertical: 8,
-      borderRadius: 12,
-    },
+cardBtnText: {
+  color: colors.primary,
+  fontSize: 12,
+  fontWeight: "700",
+},
 
-    cardBtnText: {
-      color: colors.primary,
-      fontSize: 12,
-      fontWeight: "700",
-    },
+employeeCardHeader: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "flex-start",
+  marginBottom: 4,
+},
 
-    referBox: {
-      margin: 16,
-      padding: 18,
-      borderRadius: 22,
-      backgroundColor: colors.primary,
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-    },
+statusBadgeMini: {
+  flexDirection: "row",
+  alignItems: "center",
+  paddingHorizontal: 6,
+  paddingVertical: 2,
+  borderRadius: 4,
+  gap: 3,
+},
 
-    referTitle: {
-      color: "#fff",
-      fontWeight: "800",
-      fontSize: 16,
-    },
+statusDot: {
+  width: 4,
+  height: 4,
+  borderRadius: 2,
+},
 
-    referSub: {
-      color: "#e0e7ff",
-      fontSize: 12,
-      marginTop: 2,
-    },
+statusLabel: {
+  fontSize: 8,
+  fontWeight: "700",
+  textTransform: "uppercase",
+},
 
-    inviteBtn: {
-      backgroundColor: "#ffffff33",
-      paddingHorizontal: 18,
-      paddingVertical: 10,
-      borderRadius: 14,
-    },
+ratingContainer: {
+  flexDirection: "row",
+  alignItems: "center",
+  gap: 3,
+},
 
-    inviteText: {
-      color: "#fff",
-      fontWeight: "700",
-    },
+ratingText: {
+  fontSize: 12,
+  fontWeight: "700",
+  color: colors.text,
+},
 
-    bottomTab: {
-      position: "absolute",
-      bottom: 0,
-      left: 0,
-      right: 0,
-      backgroundColor: colors.surface,
-      flexDirection: "row",
-      justifyContent: "space-around",
-      paddingTop: 12,
-      paddingBottom: 24,
-      borderTopWidth: 1,
-      borderTopColor: colors.border,
-    },
+reviewCount: {
+  fontSize: 10,
+  color: colors.subText,
+},
 
-    roleMenu: {
-      position: "absolute",
-      top: 70,
-      right: 16,
-      backgroundColor: colors.surface,
-      borderRadius: 16,
-      paddingVertical: 8,
-      width: 150,
-      borderWidth: 1,
-      borderColor: colors.border,
-      elevation: 12,
-      zIndex: 999,
-    },
+referBox: {
+  margin: 16,
+  padding: 18,
+  borderRadius: 22,
+  backgroundColor: colors.primary,
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+},
 
-    roleItem: {
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-    },
+referTitle: {
+  color: "#fff",
+  fontWeight: "800",
+  fontSize: 16,
+},
 
-    roleText: {
-      color: colors.text,
-      fontSize: 14,
-      fontWeight: "600",
-    },
-  });  
+referSub: {
+  color: "#e0e7ff",
+  fontSize: 12,
+  marginTop: 2,
+},
+
+inviteBtn: {
+  backgroundColor: "#ffffff33",
+  paddingHorizontal: 18,
+  paddingVertical: 10,
+  borderRadius: 14,
+},
+
+inviteText: {
+  color: "#fff",
+  fontWeight: "700",
+},
+
+bottomTab: {
+  position: "absolute",
+  bottom: 0,
+  left: 0,
+  right: 0,
+  backgroundColor: colors.surface,
+  flexDirection: "row",
+  justifyContent: "space-around",
+  paddingTop: 12,
+  paddingBottom: 24,
+  borderTopWidth: 1,
+  borderTopColor: colors.border,
+},
+
+roleMenu: {
+  position: "absolute",
+  top: 70,
+  right: 16,
+  backgroundColor: colors.surface,
+  borderRadius: 16,
+  paddingVertical: 8,
+  width: 150,
+  borderWidth: 1,
+  borderColor: colors.border,
+  elevation: 12,
+  zIndex: 999,
+},
+
+roleItem: {
+  paddingVertical: 12,
+  paddingHorizontal: 16,
+},
+
+roleText: {
+  color: colors.text,
+  fontSize: 14,
+  fontWeight: "600",
+},
+
+// Modal styles
+modalOverlay: {
+  flex: 1,
+  backgroundColor: "rgba(0, 0, 0, 0.5)",
+  justifyContent: "center",
+  alignItems: "center",
+},
+
+modalContent: {
+  backgroundColor: colors.surface,
+  borderRadius: 20,
+  padding: 32,
+  alignItems: "center",
+  minWidth: 280,
+  elevation: 20,
+  shadowColor: "#000",
+  shadowOpacity: 0.25,
+  shadowRadius: 15,
+},
+
+modalText: {
+  color: colors.text,
+  fontSize: 16,
+  fontWeight: "600",
+  marginTop: 20,
+  textAlign: "center",
+},
+});
