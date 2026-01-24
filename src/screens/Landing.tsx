@@ -80,17 +80,17 @@ const Landing = () => {
   const [navigationTarget, setNavigationTarget] = useState<'customer' | 'employee'>('customer');
 
   // Placeholder texts array
-  const placeholders = [
-    "Find Housing/Cleaning services...",
-    "Find Jobs...",
-    "Find Swachify Products...",
-    "Find Education & Courses...",
-    "Find Freelance services...",
-    "Find Buy/Sell items...",
-    "Find Health Care services...",
-    "Find Raw Materials...",
-    "Find Just Ride services...",
-  ];
+const placeholders = [
+  "Housing/Cleaning services...",
+  "Jobs...",
+  "Swachify Products...",
+  "Education & Courses...",
+  "Freelance services...",
+  "Buy/Sell items...",
+  "Health Care services...",
+  "Raw Materials...",
+  "Just Ride services...",
+];
 
   /* ================= FREELANCERS DATA ================= */
   const serviceProviders: ServiceProvider[] = [
@@ -654,46 +654,52 @@ const Landing = () => {
       </View>
 
       {/* ================= SEARCH WITH ANIMATED PLACEHOLDER ================= */}
-      <View style={styles.searchBox}>
-        <MaterialIcons name="search" size={20} color="#3b82f6" />
-        <View style={{ flex: 1, overflow: "hidden", height: 20, justifyContent: "center" }}>
-          {/* Show animated placeholder only when input is empty and not focused */}
-          {!searchQuery && !isSearchFocused && (
-            <Animated.Text
-              style={[
-                styles.searchPlaceholder,
-                {
-                  opacity: fadeAnim,
-                  transform: [{ translateY: translateYAnim }],
-                },
-              ]}
-              pointerEvents="none"
-            >
-              {placeholders[placeholderIndex]}
-            </Animated.Text>
-          )}
-          {/* TextInput for actual search functionality */}
-          <TextInput
-            style={styles.searchInput}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            onFocus={() => {
-              if (!isLoggedIn) {
-                navigation.navigate("AuthScreen");
-              } else {
-                setIsSearchFocused(true);
-              }
-            }}
-            onBlur={() => setIsSearchFocused(false)}
-            onSubmitEditing={handleSearch}
-            returnKeyType="search"
-            placeholderTextColor="#9ca3af"
-          />
+<View style={styles.searchBox}>
+  <MaterialIcons name="search" size={20} color="#3b82f6" />
+  <View style={{ flex: 1, height: 20, justifyContent: 'center' }}>
+    {/* Show "Find" text and animated placeholder only when input is empty and not focused */}
+    {!searchQuery && !isSearchFocused && (
+      <View style={{ flexDirection: 'row', alignItems: 'center', height: 20 }}>
+        <Text style={styles.searchPlaceholder}>Find </Text>
+        <View style={{ flex: 1, overflow: 'hidden', height: 20, justifyContent: 'center' }}>
+          <Animated.Text
+            style={[
+              styles.searchPlaceholder,
+              {
+                opacity: fadeAnim,
+                transform: [{ translateY: translateYAnim }],
+              },
+            ]}
+            pointerEvents="none"
+            numberOfLines={1}
+          >
+            {placeholders[placeholderIndex]}
+          </Animated.Text>
         </View>
-        <TouchableOpacity onPress={handleSearch}>
-          <MaterialIcons name="mic" size={20} color="#3b82f6" />
-        </TouchableOpacity>
       </View>
+    )}
+    {/* TextInput for actual search functionality */}
+    <TextInput
+      style={[styles.searchInput, { position: 'absolute', width: '100%', left: 0 }]}
+      value={searchQuery}
+      onChangeText={setSearchQuery}
+      onFocus={() => {
+        if (!isLoggedIn) {
+          navigation.navigate("AuthScreen");
+        } else {
+          setIsSearchFocused(true);
+        }
+      }}
+      onBlur={() => setIsSearchFocused(false)}
+      onSubmitEditing={handleSearch}
+      returnKeyType="search"
+      placeholderTextColor="#9ca3af"
+    />
+  </View>
+  <TouchableOpacity onPress={handleSearch}>
+    <MaterialIcons name="mic" size={20} color="#3b82f6" />
+  </TouchableOpacity>
+</View>
 
       <Animated.ScrollView
         showsVerticalScrollIndicator={false}
@@ -1092,35 +1098,33 @@ notificationDot: {
   backgroundColor: colors.danger,
 },
 
-searchBox: {
-  flexDirection: "row",
-  alignItems: "center",
-  backgroundColor: colors.surface,
-  marginHorizontal: 16,
-  marginTop: 20,
-  marginBottom: 24,
-  borderRadius: 18,
-  paddingHorizontal: 14,
-  paddingVertical: 10,
-  borderWidth: 1,
-  borderColor: colors.border,
-  zIndex: 1,
-},
+ searchBox: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.surface,
+      marginHorizontal: 16,
+      marginTop: 20,
+      marginBottom: 24,
+      borderRadius: 18,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
 
-searchPlaceholder: {
+ searchPlaceholder: {
   color: "#9ca3af",
   fontSize: 14,
-  position: "absolute",
 },
 
 searchInput: {
-  color: colors.text,
-  fontSize: 14,
-  flex: 1,
-  padding: 0,
-  margin: 0,
-  height: 20,
-},
+      color: colors.text,
+      fontSize: 14,
+      flex: 1,
+      padding: 0,
+      margin: 0,
+      height: 20,
+    },
 
 banner: {
   width: 300,
