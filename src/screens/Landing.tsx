@@ -24,6 +24,33 @@ interface UserProfile {
   location?: string;
 }
 
+type WorkStatus = 'inactive' | 'waiting' | 'assigned';
+
+interface OrganisationDetails {
+  orgName: string;
+  gstin: string;
+  group: Number;
+}
+
+interface ServiceProvider {
+  id: string;
+  name: string;
+  service: string;
+  role: string;
+  tasksCompleted: number;
+  certifications: string[];
+  workStatus: WorkStatus;
+  rating: number;
+  reviews: number;
+  skills: string[];
+  hourlyRate: number;
+  image: string;
+  isActive: boolean;
+  isEnrolled: boolean;
+  organisation?: OrganisationDetails;
+  cuisineStyle?: 'North' | 'South';
+}
+
 const Landing = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const { colors } = useTheme();
@@ -46,18 +73,167 @@ const Landing = () => {
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
+  const [userRole, setUserRole] = useState<'customer' | 'employee'>('customer');
 
   // Placeholder texts array
-  const placeholders = [
-    "Find Housing/Cleaning services...",
-    "Find Jobs...",
-    "Find Swachify Products...",
-    "Find Education & Courses...",
-    "Find Freelance services...",
-    "Find Buy/Sell items...",
-    "Find Health Care services...",
-    "Find Raw Materials...",
-    "Find Just Ride services...",
+  
+ const placeholders = [
+  "Housing/Cleaning services...",
+  "Jobs...",
+  "Swachify Products...",
+  "Education & Courses...",
+  "Freelance services...",
+  "Buy/Sell items...",
+  "Health Care services...",
+  "Raw Materials...",
+  "Just Ride services...",
+];
+
+  /* ================= FREELANCERS DATA ================= */
+  const serviceProviders: ServiceProvider[] = [
+    {
+      id: '1',
+      name: 'Ramesh Kumar',
+      service: 'Plumber',
+      role: 'Senior Plumber',
+      tasksCompleted: 156,
+      certifications: ['Licensed Plumber', 'Safety Certified'],
+      workStatus: 'assigned',
+      rating: 4.8,
+      reviews: 156,
+      skills: ['Pipe Fitting', 'Drainage'],
+      hourlyRate: 350,
+      image: 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=400&h=400&fit=crop',
+      isActive: true,
+      isEnrolled: true,
+    },
+    {
+      id: '2',
+      name: 'Lakshmi Devi',
+      service: 'Cleaner',
+      role: 'Professional Cleaner',
+      tasksCompleted: 203,
+      certifications: ['Hygiene Certified', 'Deep Cleaning Expert'],
+      workStatus: 'inactive',
+      rating: 5.0,
+      reviews: 203,
+      skills: ['Deep Cleaning', 'Sanitization'],
+      hourlyRate: 250,
+      image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
+      isActive: false,
+      isEnrolled: true,
+    },
+    {
+      id: '3',
+      name: 'Suresh Reddy',
+      service: 'Electrician',
+      role: 'Certified Electrician',
+      tasksCompleted: 98,
+      certifications: ['Electrical License', 'Industrial Wiring'],
+      workStatus: 'waiting',
+      rating: 4.7,
+      reviews: 98,
+      skills: ['Wiring', 'Repair'],
+      hourlyRate: 400,
+      image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop',
+      isActive: true,
+      isEnrolled: true,
+      organisation: {
+        orgName: "Sparkle Cleaning Pvt Ltd",
+        gstin: "29ABCDE1234F1Z5",
+        group: 10
+      }
+    },
+    {
+      id: '4',
+      name: 'Priya Sharma',
+      service: 'Washer',
+      role: 'Laundry Specialist',
+      tasksCompleted: 142,
+      certifications: ['Dry Cleaning Certified'],
+      workStatus: 'inactive',
+      rating: 4.9,
+      reviews: 142,
+      skills: ['Machine Wash', 'Dry Cleaning'],
+      hourlyRate: 200,
+      image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop',
+      isActive: false,
+      isEnrolled: true,
+    },
+    {
+      id: '5',
+      name: 'Vijay Rao',
+      service: 'Plumber',
+      role: 'Plumbing Technician',
+      tasksCompleted: 87,
+      certifications: ['Plumbing License'],
+      workStatus: 'waiting',
+      rating: 4.6,
+      reviews: 87,
+      skills: ['Installation', 'Maintenance'],
+      hourlyRate: 320,
+      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+      isActive: true,
+      isEnrolled: false,
+    },
+    {
+      id: '6',
+      name: 'Anita Patel',
+      service: 'Cleaner',
+      role: 'Home Cleaning Expert',
+      tasksCompleted: 175,
+      certifications: ['Kitchen Hygiene Certified'],
+      workStatus: 'assigned',
+      rating: 4.8,
+      reviews: 175,
+      skills: ['Home Cleaning', 'Kitchen'],
+      hourlyRate: 280,
+      image: 'https://images.unsplash.com/photo-1531123897727-8f129e16fd3c?w=400&h=400&fit=crop',
+      isActive: true,
+      isEnrolled: false,
+    },
+    {
+      id: '7',
+      name: 'Karthik Menon',
+      service: 'Electrician',
+      role: 'Smart Home Specialist',
+      tasksCompleted: 134,
+      certifications: ['Smart Home Certified', 'IoT Installation'],
+      workStatus: 'inactive',
+      rating: 4.9,
+      reviews: 134,
+      skills: ['Smart Home', 'Installation'],
+      hourlyRate: 450,
+      image: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=400&h=400&fit=crop',
+      isActive: false,
+      isEnrolled: true,
+      organisation: {
+        orgName: "Sparkle Cleaning Pvt Ltd",
+        gstin: "29ABCDE1234F1Z5",
+        group: 11,
+      }
+    },
+    {
+      id: '8',
+      name: 'Deepa Singh',
+      service: 'Washer',
+      role: 'Laundry Professional',
+      tasksCompleted: 98,
+      certifications: ['Fabric Care Expert'],
+      workStatus: 'assigned',
+      rating: 4.7,
+      reviews: 98,
+      skills: ['Laundry', 'Ironing'],
+      hourlyRate: 220,
+      image: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=400&h=400&fit=crop',
+      isActive: true,
+      isEnrolled: true,
+      organisation: {
+        orgName: "Sparkle Cleaning Pvt Ltd",
+        gstin: "29ABCDE1234F1Z5",
+        group: 12
+      }
+    },
   ];
 
   /* ================= LOAD USER DATA ================= */
@@ -297,24 +473,57 @@ const Landing = () => {
   ];
 
   /* ================= AUTO-SCROLL FOR TRENDING ITEMS - FIXED ================= */
-  useEffect(() => {
-    if (!trendingServices.length) return;
+  /* ================= AUTO-SCROLL FOR TRENDING ITEMS - CONTINUOUS LOOP ================= */
+useEffect(() => {
+  const itemsToScroll = userRole === 'customer' 
+    ? serviceProviders.filter(p => p.isEnrolled) 
+    : trendingServices;
+  
+  if (!itemsToScroll.length) return;
 
-    const interval = setInterval(() => {
-      trendingCurrentIndex.current = (trendingCurrentIndex.current + 1) % trendingServices.length;
+  const CARD_HEIGHT = 118; // Card height + margin
+  let scrollPosition = 0;
+  const totalHeight = itemsToScroll.length * CARD_HEIGHT;
 
-      // Calculate the exact scroll position
-      // Each card height: 80 (image) + 24 (padding) + 14 (margin) = 118px
-      const CARD_HEIGHT = 118;
-      
+  const interval = setInterval(() => {
+    scrollPosition += CARD_HEIGHT;
+
+    // When we reach the end, reset to start seamlessly
+    if (scrollPosition >= totalHeight) {
+      // Jump to start instantly (no animation)
       trendingScrollRef.current?.scrollTo({
-        y: trendingCurrentIndex.current * CARD_HEIGHT,
+        y: 0,
+        animated: false,
+      });
+      scrollPosition = CARD_HEIGHT; // Set to first item position
+      
+      // Then animate to first item after a tiny delay
+      setTimeout(() => {
+        trendingScrollRef.current?.scrollTo({
+          y: scrollPosition,
+          animated: true,
+        });
+      }, 50);
+    } else {
+      // Normal scroll
+      trendingScrollRef.current?.scrollTo({
+        y: scrollPosition,
         animated: true,
       });
-    }, 1200);
+    }
+  }, 1200);
 
-    return () => clearInterval(interval);
-  }, [trendingServices.length]);
+  return () => clearInterval(interval);
+}, [userRole, trendingServices.length, serviceProviders.length]);
+
+  const getStatusUI = (status: WorkStatus) => {
+    switch (status) {
+      case 'inactive': return { label: 'Inactive', color: '#64748b', bg: '#f1f5f9' };
+      case 'waiting': return { label: 'Available', color: '#22c55e', bg: '#f0fdf4' };
+      case 'assigned': return { label: 'Busy', color: '#f59e0b', bg: '#fffbeb' };
+      default: return { label: 'Unknown', color: '#000', bg: '#fff' };
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -375,7 +584,7 @@ const Landing = () => {
                 fontWeight: "500",
               }}
             >
-              Select Type
+              {userRole === 'customer' ? 'Customer' : 'Employee'}
             </Text>
             <MaterialIcons name="expand-more" size={26} color={colors.text} />
           </TouchableOpacity>
@@ -399,6 +608,7 @@ const Landing = () => {
             <TouchableOpacity
               style={styles.roleItem}
               onPress={() => {
+                setUserRole('customer');
                 setShowRoleMenu(false);
               }}
             >
@@ -408,8 +618,8 @@ const Landing = () => {
             <TouchableOpacity
               style={styles.roleItem}
               onPress={() => {
+                setUserRole('employee');
                 setShowRoleMenu(false);
-                navigation.navigate("EmployeeHomeScreen");
               }}
             >
               <Text style={styles.roleText}>Employee</Text>
@@ -418,48 +628,54 @@ const Landing = () => {
         )}
       </View>
 
-      {/* ================= SEARCH WITH ANIMATED PLACEHOLDER ================= */}
-      <View style={styles.searchBox}>
-        <MaterialIcons name="search" size={20} color="#3b82f6" />
-        <View style={{ flex: 1, overflow: "hidden", height: 20, justifyContent: "center" }}>
-          {/* Show animated placeholder only when input is empty and not focused */}
-          {!searchQuery && !isSearchFocused && (
-            <Animated.Text
-              style={[
-                styles.searchPlaceholder,
-                {
-                  opacity: fadeAnim,
-                  transform: [{ translateY: translateYAnim }],
-                },
-              ]}
-              pointerEvents="none"
-            >
-              {placeholders[placeholderIndex]}
-            </Animated.Text>
-          )}
-          {/* TextInput for actual search functionality */}
-          <TextInput
-            style={styles.searchInput}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            onFocus={() => {
-              if (!isLoggedIn) {
-                navigation.navigate("AuthScreen");
-              } else {
-                setIsSearchFocused(true);
-              }
-            }}
-            onBlur={() => setIsSearchFocused(false)}
-            onSubmitEditing={handleSearch}
-            returnKeyType="search"
-            placeholderTextColor="#9ca3af"
-          />
+<View style={styles.searchBox}>
+  <MaterialIcons name="search" size={20} color="#3b82f6" />
+  <View style={{ flex: 1, justifyContent: "center" }}>
+    {/* Static "Find" + Animated placeholder */}
+    {!searchQuery && !isSearchFocused && (
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <Text style={[styles.searchPlaceholder, { position: 'relative' }]}>
+          Find{" "}
+        </Text>
+        <View style={{ flex: 1, height: 20, overflow: 'hidden' }}>
+          <Animated.Text
+            style={[
+              styles.searchPlaceholder,
+              {
+                opacity: fadeAnim,
+                transform: [{ translateY: translateYAnim }],
+              },
+            ]}
+            pointerEvents="none"
+            numberOfLines={1}
+          >
+            {placeholders[placeholderIndex]}
+          </Animated.Text>
         </View>
-        <TouchableOpacity onPress={handleSearch}>
-          <MaterialIcons name="mic" size={20} color="#3b82f6" />
-        </TouchableOpacity>
       </View>
-
+    )}
+    {/* TextInput for actual search functionality */}
+    <TextInput
+      style={[styles.searchInput, { position: 'absolute', width: '100%' }]}
+      value={searchQuery}
+      onChangeText={setSearchQuery}
+      onFocus={() => {
+        if (!isLoggedIn) {
+          navigation.navigate("AuthScreen");
+        } else {
+          setIsSearchFocused(true);
+        }
+      }}
+      onBlur={() => setIsSearchFocused(false)}
+      onSubmitEditing={handleSearch}
+      returnKeyType="search"
+      placeholderTextColor="#9ca3af"
+    />
+  </View>
+  <TouchableOpacity onPress={handleSearch}>
+    <MaterialIcons name="mic" size={20} color="#3b82f6" />
+  </TouchableOpacity>
+</View>
       <Animated.ScrollView
         showsVerticalScrollIndicator={false}
         onScroll={Animated.event(
@@ -585,7 +801,7 @@ const Landing = () => {
           })}
         </View>
 
-         {/* ================= TRENDING - WITH FIXED AUTOSCROLL ================= */}
+        {/* ================= TRENDING - WITH FIXED AUTOSCROLL ================= */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Trending Near You</Text>
           <TouchableOpacity onPress={() => navigation.navigate("Marketplace")}>
@@ -593,49 +809,129 @@ const Landing = () => {
           </TouchableOpacity>
         </View>
 
-        {/* FIXED CONTAINER WITH HEIGHT */}
-        <View style={styles.trendingContainer}>
-          <ScrollView
-            ref={trendingScrollRef}
-            showsVerticalScrollIndicator={false}
-            scrollEnabled={false}
-            nestedScrollEnabled={true}
-          >
-            {trendingServices.map((item) => {
-              return (
-                <View
-                  key={item.id}
-                  style={styles.card}
-                >
-                  <Image
-                    source={{ uri: item.image }}
-                    style={styles.cardImage}
-                  />
-
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.cardTitle}>{item.title}</Text>
-                    <Text style={styles.cardSub}>
-                      {item.category} • {item.distance}
+{/* FIXED CONTAINER WITH HEIGHT */}
+<View style={styles.trendingContainer}>
+  <ScrollView
+    ref={trendingScrollRef}
+    showsVerticalScrollIndicator={false}
+    scrollEnabled={false}
+    nestedScrollEnabled={true}
+  >
+    {userRole === 'customer' ? (
+      // CUSTOMER MODE - Show Freelancers (duplicated for continuous scroll)
+      <>
+        {serviceProviders.filter(p => p.isEnrolled).map((provider) => {
+          const statusUI = getStatusUI(provider.workStatus);
+          
+          return (
+            <View key={provider.id} style={styles.card}>
+              <Image source={{ uri: provider.image }} style={styles.cardImage} />
+              <View style={{ flex: 1 }}>
+                <View style={styles.employeeCardHeader}>
+                  <Text style={styles.cardTitle}>{provider.name}</Text>
+                  <View style={[styles.statusBadgeMini, { backgroundColor: statusUI.bg }]}>
+                    <View style={[styles.statusDot, { backgroundColor: statusUI.color }]} />
+                    <Text style={[styles.statusLabel, { color: statusUI.color }]}>
+                      {statusUI.label}
                     </Text>
-
-                    <View style={styles.cardFooter}>
-                      <Text style={styles.price}>{item.price}</Text>
-                      <TouchableOpacity style={styles.cardBtn}>
-                        <Text style={styles.cardBtnText}>{item.action}</Text>
-                      </TouchableOpacity>
-                    </View>
                   </View>
                 </View>
-              );
-            })}
-          </ScrollView>
-        </View>
+                <Text style={styles.cardSub}>
+                  {provider.service} • {provider.tasksCompleted} tasks
+                </Text>
+                <View style={styles.cardFooter}>
+                  <View style={styles.ratingContainer}>
+                    <MaterialIcons name="star" size={14} color="#facc15" />
+                    <Text style={styles.ratingText}>{provider.rating}</Text>
+                    <Text style={styles.reviewCount}>({provider.reviews})</Text>
+                  </View>
+                  <Text style={styles.price}>₹{provider.hourlyRate}/hr</Text>
+                </View>
+              </View>
+            </View>
+          );
+        })}
+        {/* Duplicate items for seamless loop */}
+        {serviceProviders.filter(p => p.isEnrolled).map((provider) => {
+          const statusUI = getStatusUI(provider.workStatus);
+          
+          return (
+            <View key={`${provider.id}-duplicate`} style={styles.card}>
+              <Image source={{ uri: provider.image }} style={styles.cardImage} />
+              <View style={{ flex: 1 }}>
+                <View style={styles.employeeCardHeader}>
+                  <Text style={styles.cardTitle}>{provider.name}</Text>
+                  <View style={[styles.statusBadgeMini, { backgroundColor: statusUI.bg }]}>
+                    <View style={[styles.statusDot, { backgroundColor: statusUI.color }]} />
+                    <Text style={[styles.statusLabel, { color: statusUI.color }]}>
+                      {statusUI.label}
+                    </Text>
+                  </View>
+                </View>
+                <Text style={styles.cardSub}>
+                  {provider.service} • {provider.tasksCompleted} tasks
+                </Text>
+                <View style={styles.cardFooter}>
+                  <View style={styles.ratingContainer}>
+                    <MaterialIcons name="star" size={14} color="#facc15" />
+                    <Text style={styles.ratingText}>{provider.rating}</Text>
+                    <Text style={styles.reviewCount}>({provider.reviews})</Text>
+                  </View>
+                  <Text style={styles.price}>₹{provider.hourlyRate}/hr</Text>
+                </View>
+              </View>
+            </View>
+          );
+        })}
+      </>
+    ) : (
+      // EMPLOYEE MODE - Show Services (duplicated for continuous scroll)
+      <>
+        {trendingServices.map((item) => (
+          <View key={item.id} style={styles.card}>
+            <Image source={{ uri: item.image }} style={styles.cardImage} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardTitle}>{item.title}</Text>
+              <Text style={styles.cardSub}>
+                {item.category} • {item.distance}
+              </Text>
+              <View style={styles.cardFooter}>
+                <Text style={styles.price}>{item.price}</Text>
+                <TouchableOpacity style={styles.cardBtn}>
+                  <Text style={styles.cardBtnText}>{item.action}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        ))}
+        {/* Duplicate items for seamless loop */}
+        {trendingServices.map((item) => (
+          <View key={`${item.id}-duplicate`} style={styles.card}>
+            <Image source={{ uri: item.image }} style={styles.cardImage} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardTitle}>{item.title}</Text>
+              <Text style={styles.cardSub}>
+                {item.category} • {item.distance}
+              </Text>
+              <View style={styles.cardFooter}>
+                <Text style={styles.price}>{item.price}</Text>
+                <TouchableOpacity style={styles.cardBtn}>
+                  <Text style={styles.cardBtnText}>{item.action}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        ))}
+      </>
+    )}
+  </ScrollView>
+</View>
 
         {/* ================= REFER & EARN ================= */}
         <View style={styles.referBox}>
           <View>
             <Text style={styles.referTitle}>Refer & Earn</Text>
-            <Text style={styles.referSub}>Invite friends to earn rewards</Text>
+            <Text style={styles.referSub}>Invite your friends and earn 49/-</Text>
           </View>
           <TouchableOpacity style={styles.inviteBtn}>
             <Text style={styles.inviteText}>Invite</Text>
@@ -696,6 +992,7 @@ const getStyles = (colors: any) =>
       backgroundColor: colors.surface,
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
+      zIndex: 10,
     },
 
     headerLeft: {
@@ -727,7 +1024,7 @@ const getStyles = (colors: any) =>
 
     profileTooltip: {
       position: "absolute",
-      bottom: -52,
+      top: 50,
       left: 0,
       backgroundColor: colors.surface,
       paddingHorizontal: 14,
@@ -738,7 +1035,9 @@ const getStyles = (colors: any) =>
       shadowColor: "#000",
       shadowOpacity: 0.08,
       shadowRadius: 10,
-      zIndex: 999,
+      zIndex: 1000,
+      borderWidth: 1,
+      borderColor: colors.border,
     },
 
     tooltipText: {
@@ -785,6 +1084,7 @@ const getStyles = (colors: any) =>
       paddingVertical: 10,
       borderWidth: 1,
       borderColor: colors.border,
+      zIndex: 1,
     },
 
     searchPlaceholder: {
@@ -792,15 +1092,13 @@ const getStyles = (colors: any) =>
       fontSize: 14,
       position: "absolute",
     },
-
-    searchInput: {
-      color: colors.text,
-      fontSize: 14,
-      flex: 1,
-      padding: 0,
-      margin: 0,
-      height: 20,
-    },
+searchInput: {
+  color: colors.text,
+  fontSize: 14,
+  padding: 0,
+  margin: 0,
+  height: 20,
+},
 
     banner: {
       width: 300,
@@ -971,6 +1269,52 @@ const getStyles = (colors: any) =>
       color: colors.primary,
       fontSize: 12,
       fontWeight: "700",
+    },
+
+    // Employee card specific styles
+    employeeCardHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      marginBottom: 4,
+    },
+
+    statusBadgeMini: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      borderRadius: 4,
+      gap: 3,
+    },
+
+    statusDot: {
+      width: 4,
+      height: 4,
+      borderRadius: 2,
+    },
+
+    statusLabel: {
+      fontSize: 8,
+      fontWeight: "700",
+      textTransform: "uppercase",
+    },
+
+    ratingContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 3,
+    },
+
+    ratingText: {
+      fontSize: 12,
+      fontWeight: "700",
+      color: colors.text,
+    },
+
+    reviewCount: {
+      fontSize: 10,
+      color: colors.subText,
     },
 
     referBox: {

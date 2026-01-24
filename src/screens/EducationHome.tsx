@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+
 import {
   View,
   Text,
@@ -149,6 +150,9 @@ const trendingStudents = studentsData
 const { width } = Dimensions.get("window");
 
 const EducationHome = () => {
+  const trendingScrollRef = useRef<ScrollView>(null);
+const trendingCurrentIndex = useRef(0);
+
   const { colors } = useTheme();
   const styles = getStyles(colors);
   const navigation = useNavigation<any>();
@@ -180,6 +184,24 @@ const [showAllTrending, setShowAllTrending] = useState(false); // NEW
       console.log("Failed to load user", error);
     }
   };
+  useEffect(() => {
+  if (!filteredTrendingStudents.length) return;
+
+  const CARD_HEIGHT = 96; // adjust if needed
+  const interval = setInterval(() => {
+    trendingCurrentIndex.current =
+      (trendingCurrentIndex.current + 1) %
+      filteredTrendingStudents.length;
+
+    trendingScrollRef.current?.scrollTo({
+      y: trendingCurrentIndex.current * CARD_HEIGHT,
+      animated: true,
+    });
+  }, 1500);
+
+  return () => clearInterval(interval);
+}, [filteredTrendingStudents.length]);
+
 
   const categories = [
     {
@@ -331,7 +353,13 @@ const [showAllTrending, setShowAllTrending] = useState(false); // NEW
 </View>
 
 
-<View style={{ paddingHorizontal: 16 }}>
+<View style={{ height: 380, overflow: "hidden", paddingHorizontal: 16 }}>
+  <ScrollView
+    ref={trendingScrollRef}
+    scrollEnabled={false}
+    showsVerticalScrollIndicator={false}
+  >
+
   {(showAllTrending ? filteredTrendingStudents : filteredTrendingStudents.slice(0, 4)).map((student) => (
   <TouchableOpacity
   key={student.id}
@@ -360,7 +388,9 @@ const [showAllTrending, setShowAllTrending] = useState(false); // NEW
 
 ))}
 
+  </ScrollView>
 </View>
+
 
 
 
@@ -678,6 +708,8 @@ trendingRowCard: {
   marginBottom: 12,
   borderWidth: 1,
   borderColor: colors.border,
+  // height: 96,
+
 },
 
 trendingAvatar: {
