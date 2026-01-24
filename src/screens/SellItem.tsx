@@ -43,18 +43,35 @@ const SellItem = ({ navigation }: any) => {
   const [marketValue, setMarketValue] = useState('');
   const [documentImages, setDocumentImages] = useState<string[]>([]);
 
+  // Fields for hostel
+  const [hostelType, setHostelType] = useState('Boys');
+  const [showHostelTypePicker, setShowHostelTypePicker] = useState(false);
+  const [totalRooms, setTotalRooms] = useState('');
+  const [availableRooms, setAvailableRooms] = useState('');
+  const [foodIncluded, setFoodIncluded] = useState('Yes');
+  const [showFoodPicker, setShowFoodPicker] = useState(false);
+  const [hasAC, setHasAC] = useState(false);
+  const [hasWifi, setHasWifi] = useState(false);
+  const [hasTV, setHasTV] = useState(false);
+  const [hasLaundry, setHasLaundry] = useState(false);
+  const [hasParking, setHasParking] = useState(false);
+  const [hasSecurity, setHasSecurity] = useState(false);
+
   const propertyTypes = [
     'Apartment', 'Villa', 'Independent House', 'Land', 'Bike', 'Car',
-    'Lorry', 'Auto', 'Bus', 'Office', 'Hospital', 'Commercial Space'
+    'Lorry', 'Auto', 'Bus', 'Office', 'Hospital', 'Commercial Space', 'Hostel'
   ];
   const bhkOptions = ['1 BHK', '2 BHK', '3 BHK', '4 BHK', '5 BHK'];
   const landTypeOptions = ['Agriculture', 'Commercial'];
   const conditionOptions = ['New Item', 'Old Item'];
+  const hostelTypeOptions = ['Boys', 'Girls', 'Co-living'];
+  const foodOptions = ['Yes', 'No'];
 
   const isHouse = ['Apartment', 'Villa', 'Independent House'].includes(propertyType);
   const isLand = propertyType === 'Land';
   const isVehicle = ['Bike', 'Car', 'Lorry', 'Auto', 'Bus'].includes(propertyType);
   const isCommercial = ['Office', 'Hospital', 'Commercial Space'].includes(propertyType);
+  const isHostel = propertyType === 'Hostel';
 
   const pickImage = () => {
     launchImageLibrary({ mediaType: 'photo', selectionLimit: 10 - images.length }, (response) => {
@@ -127,6 +144,10 @@ const SellItem = ({ navigation }: any) => {
       Alert.alert('Error', 'Please fill all required fields');
       return false;
     }
+    if (isHostel && (!totalRooms || !availableRooms || !location || !area)) {
+      Alert.alert('Error', 'Please fill all required fields for hostel');
+      return false;
+    }
     return true;
   };
 
@@ -150,7 +171,7 @@ const SellItem = ({ navigation }: any) => {
       images,
       description,
       price,
-      sqft,
+      sqft: (isHouse || isCommercial || isLand) ? sqft : null,
       bhk: isHouse ? bhk : null,
       location,
       area,
@@ -166,9 +187,19 @@ const SellItem = ({ navigation }: any) => {
       year: isVehicle ? year : null,
       distance: isVehicle ? distance : null,
       mobileNumber: isVehicle ? mobileNumber : null,
+      hostelType: isHostel ? hostelType : null,
+      totalRooms: isHostel ? totalRooms : null,
+      availableRooms: isHostel ? availableRooms : null,
+      foodIncluded: isHostel ? foodIncluded : null,
+      hasAC: isHostel ? hasAC : null,
+      hasWifi: isHostel ? hasWifi : null,
+      hasTV: isHostel ? hasTV : null,
+      hasLaundry: isHostel ? hasLaundry : null,
+      hasParking: isHostel ? hasParking : null,
+      hasSecurity: isHostel ? hasSecurity : null,
       itemCondition,
       createdAt: new Date().toISOString(),
-      isVerified: !isPendingVerification, // Only verified listings show on dashboard
+      isVerified: !isPendingVerification,
       isPendingVerification: isPendingVerification,
       verificationStatus: isPendingVerification ? 'pending' : 'approved',
     };
@@ -278,6 +309,37 @@ const SellItem = ({ navigation }: any) => {
     </Modal>
   );
 
+  const ServiceToggleButton = ({ 
+    icon, 
+    label, 
+    isActive, 
+    onPress 
+  }: { 
+    icon: string; 
+    label: string; 
+    isActive: boolean; 
+    onPress: () => void; 
+  }) => (
+    <TouchableOpacity 
+      style={[styles.serviceButton, isActive && styles.serviceButtonActive]} 
+      onPress={onPress}
+    >
+      <MaterialIcons 
+        name={icon} 
+        size={24} 
+        color={isActive ? '#135bec' : '#64748b'} 
+      />
+      <Text style={[styles.serviceLabel, isActive && styles.serviceLabelActive]}>
+        {label}
+      </Text>
+      {isActive && (
+        <View style={styles.serviceCheckmark}>
+          <MaterialIcons name="check-circle" size={18} color="#135bec" />
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="light-content" backgroundColor="#0a0c10" />
@@ -357,7 +419,7 @@ const SellItem = ({ navigation }: any) => {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.label}>PRICE (₹)</Text>
+          <Text style={styles.label}>{isHostel ? 'PRICE PER MONTH (₹)' : 'PRICE (₹)'}</Text>
           <TextInput
             style={styles.input}
             placeholder="Enter price"
@@ -396,198 +458,118 @@ const SellItem = ({ navigation }: any) => {
               <TextInput style={styles.input} placeholder="Downtown / Suburb" placeholderTextColor="#4b5563"
                 value={area} onChangeText={setArea} />
             </View>
-            <View style={styles.fieldContainer}>
-              <Text style={styles.label}>FURNISHING TYPE</Text>
-              <View style={styles.furnishingContainer}>
-                {['Unfurnished', 'Semi', 'Full'].map((type) => (
-                  <TouchableOpacity key={type}
-                    style={[styles.furnishingButton, furnishingType === type && styles.activeFurnishing]}
-                    onPress={() => setFurnishingType(type)}
-                  >
-                    <Text style={[styles.furnishingText, furnishingType === type && styles.activeFurnishingText]}>
-                      {type === 'Unfurnished' ? 'NO FURN.' : type === 'Semi' ? 'SEMI' : 'FULL'}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
           </View>
         )}
 
-        {isLand && (
+        {isHostel && (
           <View style={styles.section}>
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>REGISTRATION STATUS</Text>
-              <View style={styles.listingTypeContainer}>
-                <TouchableOpacity
-                  style={[styles.listingTypeButton, registrationStatus === 'registered' && styles.activeListingType]}
-                  onPress={() => setRegistrationStatus('registered')}
-                >
-                  <Text style={[styles.listingTypeText, registrationStatus === 'registered' && styles.activeListingTypeText]}>
-                    Registered Land
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.listingTypeButton, registrationStatus === 'non-registered' && styles.activeListingType]}
-                  onPress={() => setRegistrationStatus('non-registered')}
-                >
-                  <Text style={[styles.listingTypeText, registrationStatus === 'non-registered' && styles.activeListingTypeText]}>
-                    Non-Registered
-                  </Text>
-                </TouchableOpacity>
-              </View>
+              <Text style={styles.label}>HOSTEL TYPE</Text>
+              <TouchableOpacity onPress={() => setShowHostelTypePicker(true)}>
+                <View style={styles.pickerContainer} pointerEvents="none">
+                  <TextInput style={styles.picker} value={hostelType} editable={false} />
+                  <MaterialIcons name="expand-more" size={24} color="#94a3b8" style={styles.pickerIcon} />
+                </View>
+              </TouchableOpacity>
             </View>
-
-            {registrationStatus === 'non-registered' && (
-              <View style={styles.warningBanner}>
-                <MaterialIcons name="info" size={20} color="#f59e0b" />
-                <Text style={styles.warningText}>
-                  Non-registered land requires verification before posting
-                </Text>
-              </View>
-            )}
 
             <View style={styles.row}>
               <View style={styles.halfField}>
-                <Text style={styles.label}>SQFT</Text>
-                <TextInput style={styles.input} placeholder="5000" placeholderTextColor="#4b5563"
-                  keyboardType="numeric" value={sqft} onChangeText={setSqft} />
+                <Text style={styles.label}>TOTAL ROOMS</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="20" 
+                  placeholderTextColor="#4b5563"
+                  keyboardType="numeric" 
+                  value={totalRooms} 
+                  onChangeText={setTotalRooms} 
+                />
               </View>
               <View style={styles.halfField}>
-                <Text style={styles.label}>LAND TYPE</Text>
-                <TouchableOpacity onPress={() => setShowLandTypePicker(true)}>
-                  <View style={styles.pickerContainer} pointerEvents="none">
-                    <TextInput style={styles.picker} value={landType} editable={false} />
-                    <MaterialIcons name="expand-more" size={24} color="#94a3b8" style={styles.pickerIcon} />
-                  </View>
-                </TouchableOpacity>
+                <Text style={styles.label}>AVAILABLE ROOMS</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="5" 
+                  placeholderTextColor="#4b5563"
+                  keyboardType="numeric" 
+                  value={availableRooms} 
+                  onChangeText={setAvailableRooms} 
+                />
               </View>
             </View>
 
-            {registrationStatus === 'registered' && (
-              <View style={styles.fieldContainer}>
-                <Text style={styles.label}>REGISTRATION VALUE (₹)</Text>
-                <TextInput 
-                  style={styles.input} 
-                  placeholder="Enter registration value" 
-                  placeholderTextColor="#4b5563"
-                  keyboardType="numeric" 
-                  value={registrationValue} 
-                  onChangeText={setRegistrationValue} 
-                />
-              </View>
-            )}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>FOOD INCLUDED</Text>
+              <TouchableOpacity onPress={() => setShowFoodPicker(true)}>
+                <View style={styles.pickerContainer} pointerEvents="none">
+                  <TextInput style={styles.picker} value={foodIncluded} editable={false} />
+                  <MaterialIcons name="expand-more" size={24} color="#94a3b8" style={styles.pickerIcon} />
+                </View>
+              </TouchableOpacity>
+            </View>
 
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>MARKET VALUE (₹)</Text>
+              <Text style={styles.label}>LOCATION</Text>
               <TextInput 
                 style={styles.input} 
-                placeholder="Enter market value" 
+                placeholder="Full Address" 
                 placeholderTextColor="#4b5563"
-                keyboardType="numeric" 
-                value={marketValue} 
-                onChangeText={setMarketValue} 
+                value={location} 
+                onChangeText={setLocation} 
               />
             </View>
 
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>LOCATION</Text>
-              <TextInput style={styles.input} placeholder="City or Village" placeholderTextColor="#4b5563"
-                value={location} onChangeText={setLocation} />
-            </View>
-            <View style={styles.fieldContainer}>
               <Text style={styles.label}>AREA</Text>
-              <TextInput style={styles.input} placeholder="Industrial Hub" placeholderTextColor="#4b5563"
-                value={area} onChangeText={setArea} />
-            </View>
-            <View style={styles.fieldContainer}>
-              <Text style={styles.label}>REGISTERED OWNER NAME</Text>
-              <TextInput style={styles.input} placeholder="John Doe" placeholderTextColor="#4b5563"
-                value={ownerName} onChangeText={setOwnerName} />
+              <TextInput 
+                style={styles.input} 
+                placeholder="Downtown / Suburb" 
+                placeholderTextColor="#4b5563"
+                value={area} 
+                onChangeText={setArea} 
+              />
             </View>
 
             <View style={styles.fieldContainer}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>
-                  {registrationStatus === 'registered' 
-                    ? 'Upload Registration Documents' 
-                    : 'Upload Attested Copy Documents'}
-                </Text>
-                <Text style={styles.photoLimit}>UP TO 10 IMAGES</Text>
+              <Text style={styles.label}>SERVICES & AMENITIES</Text>
+              <View style={styles.servicesGrid}>
+                <ServiceToggleButton
+                  icon="ac-unit"
+                  label="AC"
+                  isActive={hasAC}
+                  onPress={() => setHasAC(!hasAC)}
+                />
+                <ServiceToggleButton
+                  icon="wifi"
+                  label="WiFi"
+                  isActive={hasWifi}
+                  onPress={() => setHasWifi(!hasWifi)}
+                />
+                <ServiceToggleButton
+                  icon="tv"
+                  label="TV"
+                  isActive={hasTV}
+                  onPress={() => setHasTV(!hasTV)}
+                />
+                <ServiceToggleButton
+                  icon="local-laundry-service"
+                  label="Laundry"
+                  isActive={hasLaundry}
+                  onPress={() => setHasLaundry(!hasLaundry)}
+                />
+                <ServiceToggleButton
+                  icon="local-parking"
+                  label="Parking"
+                  isActive={hasParking}
+                  onPress={() => setHasParking(!hasParking)}
+                />
+                <ServiceToggleButton
+                  icon="security"
+                  label="Security"
+                  isActive={hasSecurity}
+                  onPress={() => setHasSecurity(!hasSecurity)}
+                />
               </View>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photoScroll}>
-                <TouchableOpacity style={styles.uploadBox} onPress={pickDocumentImage}>
-                  <MaterialIcons name="upload-file" size={32} color="#135bec" />
-                  <Text style={styles.uploadText}>UPLOAD</Text>
-                </TouchableOpacity>
-                {documentImages.map((image, index) => (
-                  <View key={index} style={styles.imageContainer}>
-                    <Image source={{ uri: image }} style={styles.uploadedImage} />
-                    <TouchableOpacity style={styles.removeButton} onPress={() => removeDocumentImage(index)}>
-                      <MaterialIcons name="close" size={14} color="#fff" />
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </ScrollView>
-            </View>
-          </View>
-        )}
-
-        {isVehicle && (
-          <View style={styles.section}>
-            <View style={styles.row}>
-              <View style={styles.halfField}>
-                <Text style={styles.label}>BRAND</Text>
-                <TextInput style={styles.input} placeholder="Brand Name" placeholderTextColor="#4b5563"
-                  value={brand} onChangeText={setBrand} />
-              </View>
-              <View style={styles.halfField}>
-                <Text style={styles.label}>MODEL</Text>
-                <TextInput style={styles.input} placeholder="Model Name" placeholderTextColor="#4b5563"
-                  value={model} onChangeText={setModel} />
-              </View>
-            </View>
-            <View style={styles.row}>
-              <View style={styles.halfField}>
-                <Text style={styles.label}>YEAR</Text>
-                <TextInput style={styles.input} placeholder="2024" placeholderTextColor="#4b5563"
-                  keyboardType="numeric" value={year} onChangeText={setYear} />
-              </View>
-              <View style={styles.halfField}>
-                <Text style={styles.label}>DISTANCE (KM)</Text>
-                <TextInput style={styles.input} placeholder="10000" placeholderTextColor="#4b5563"
-                  keyboardType="numeric" value={distance} onChangeText={setDistance} />
-              </View>
-            </View>
-            <View style={styles.fieldContainer}>
-              <Text style={styles.label}>VEHICLE OWNER NAME</Text>
-              <TextInput style={styles.input} placeholder="Owner Name" placeholderTextColor="#4b5563"
-                value={ownerName} onChangeText={setOwnerName} />
-            </View>
-            <View style={styles.fieldContainer}>
-              <Text style={styles.label}>MOBILE NUMBER</Text>
-              <TextInput style={styles.input} placeholder="+91 98765 43210" placeholderTextColor="#4b5563"
-                keyboardType="phone-pad" value={mobileNumber} onChangeText={setMobileNumber} />
-            </View>
-          </View>
-        )}
-
-        {isCommercial && (
-          <View style={styles.section}>
-            <View style={styles.fieldContainer}>
-              <Text style={styles.label}>SQFT</Text>
-              <TextInput style={styles.input} placeholder="2000" placeholderTextColor="#4b5563"
-                keyboardType="numeric" value={sqft} onChangeText={setSqft} />
-            </View>
-            <View style={styles.fieldContainer}>
-              <Text style={styles.label}>LOCATION</Text>
-              <TextInput style={styles.input} placeholder="Full Address" placeholderTextColor="#4b5563"
-                value={location} onChangeText={setLocation} />
-            </View>
-            <View style={styles.fieldContainer}>
-              <Text style={styles.label}>AREA</Text>
-              <TextInput style={styles.input} placeholder="Business District" placeholderTextColor="#4b5563"
-                value={area} onChangeText={setArea} />
             </View>
           </View>
         )}
@@ -645,6 +627,10 @@ const SellItem = ({ navigation }: any) => {
         options={landTypeOptions} selectedValue={landType} onSelect={setLandType} title="Select Land Type" />
       <PickerModal visible={showConditionPicker} onClose={() => setShowConditionPicker(false)}
         options={conditionOptions} selectedValue={itemCondition} onSelect={setItemCondition} title="Select Item Condition" />
+      <PickerModal visible={showHostelTypePicker} onClose={() => setShowHostelTypePicker(false)}
+        options={hostelTypeOptions} selectedValue={hostelType} onSelect={setHostelType} title="Select Hostel Type" />
+      <PickerModal visible={showFoodPicker} onClose={() => setShowFoodPicker(false)}
+        options={foodOptions} selectedValue={foodIncluded} onSelect={setFoodIncluded} title="Food Included?" />
       
       <VerificationModal />
     </SafeAreaView>
@@ -900,6 +886,49 @@ const getStyles = (colors: any) =>
       letterSpacing: 1,
     },
 
+    servicesGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 12,
+      marginTop: 8,
+    },
+
+    serviceButton: {
+      width: '31%',
+      aspectRatio: 1,
+      backgroundColor: colors.card,
+      borderWidth: 2,
+      borderColor: colors.border,
+      borderRadius: 16,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 12,
+      position: 'relative',
+    },
+
+    serviceButtonActive: {
+      backgroundColor: colors.primary + '15',
+      borderColor: '#135bec',
+    },
+
+    serviceLabel: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: colors.subText,
+      marginTop: 8,
+      textAlign: 'center',
+    },
+
+    serviceLabelActive: {
+      color: '#135bec',
+    },
+
+    serviceCheckmark: {
+      position: 'absolute',
+      top: 8,
+      right: 8,
+    },
+
     bottomSection: {
       backgroundColor: colors.background + "FA",
       borderTopWidth: 1,
@@ -1001,22 +1030,109 @@ const getStyles = (colors: any) =>
       fontWeight: "600",
     },
 
-    warningBanner: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#2d1f0a', borderWidth: 1, borderColor: '#f59e0b', borderRadius: 12, padding: 12, marginBottom: 16 },
-  warningText: { flex: 1, fontSize: 13, fontWeight: '600', color: '#fbbf24', lineHeight: 18 },
+    warningBanner: { 
+      flexDirection: 'row', 
+      alignItems: 'center', 
+      gap: 10, 
+      backgroundColor: '#2d1f0a', 
+      borderWidth: 1, 
+      borderColor: '#f59e0b', 
+      borderRadius: 12, 
+      padding: 12, 
+      marginBottom: 16 
+    },
+    warningText: { 
+      flex: 1, 
+      fontSize: 13, 
+      fontWeight: '600', 
+      color: '#fbbf24', 
+      lineHeight: 18 
+    },
 
-    verificationOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.85)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24 },
-  verificationModal: { backgroundColor: '#161b26', borderRadius: 24, padding: 24, width: '100%', maxWidth: 400 },
-  verificationIconContainer: { alignItems: 'center', marginBottom: 20 },
-  verificationTitle: { fontSize: 22, fontWeight: '700', color: '#fff', textAlign: 'center', marginBottom: 12 },
-  verificationMessage: { fontSize: 15, fontWeight: '500', color: '#94a3b8', textAlign: 'center', lineHeight: 22, marginBottom: 24 },
-  verificationInfoBox: { backgroundColor: '#0f1419', borderRadius: 16, padding: 16, marginBottom: 24 },
-  verificationInfoRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 },
-  verificationInfoText: { flex: 1, fontSize: 14, fontWeight: '500', color: '#cbd5e1', lineHeight: 20 },
-  verificationActions: { flexDirection: 'row', gap: 12 },
-  verificationCancelButton: { flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: '#232936', borderWidth: 1, borderColor: '#2d3748', alignItems: 'center' },
-  verificationCancelText: { fontSize: 15, fontWeight: '700', color: '#cbd5e1', letterSpacing: 0.3 },
-  verificationConfirmButton: { flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: '#f59e0b', alignItems: 'center' },
-  verificationConfirmText: { fontSize: 15, fontWeight: '700', color: '#fff', letterSpacing: 0.3 },
-});
+    verificationOverlay: { 
+      flex: 1, 
+      backgroundColor: 'rgba(0, 0, 0, 0.85)', 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      paddingHorizontal: 24 
+    },
+    verificationModal: { 
+      backgroundColor: '#161b26', 
+      borderRadius: 24, 
+      padding: 24, 
+      width: '100%', 
+      maxWidth: 400 
+    },
+    verificationIconContainer: { 
+      alignItems: 'center', 
+      marginBottom: 20 
+    },
+    verificationTitle: { 
+      fontSize: 22, 
+      fontWeight: '700', 
+      color: '#fff', 
+      textAlign: 'center', 
+      marginBottom: 12 
+    },
+    verificationMessage: { 
+      fontSize: 15, 
+      fontWeight: '500', 
+      color: '#94a3b8', 
+      textAlign: 'center', 
+      lineHeight: 22, 
+      marginBottom: 24 
+    },
+    verificationInfoBox: { 
+      backgroundColor: '#0f1419', 
+      borderRadius: 16, 
+      padding: 16, 
+      marginBottom: 24 
+    },
+    verificationInfoRow: { 
+      flexDirection: 'row', 
+      alignItems: 'center', 
+      gap: 12, 
+      marginBottom: 12 
+    },
+    verificationInfoText: { 
+      flex: 1, 
+      fontSize: 14, 
+      fontWeight: '500', 
+      color: '#cbd5e1', 
+      lineHeight: 20 
+    },
+    verificationActions: { 
+      flexDirection: 'row', 
+      gap: 12 
+    },
+    verificationCancelButton: { 
+      flex: 1, 
+      paddingVertical: 14, 
+      borderRadius: 12, 
+      backgroundColor: '#232936', 
+      borderWidth: 1, 
+      borderColor: '#2d3748', 
+      alignItems: 'center' 
+    },
+    verificationCancelText: { 
+      fontSize: 15, 
+      fontWeight: '700', 
+      color: '#cbd5e1', 
+      letterSpacing: 0.3 
+    },
+    verificationConfirmButton: { 
+      flex: 1, 
+      paddingVertical: 14, 
+      borderRadius: 12, 
+      backgroundColor: '#f59e0b', 
+      alignItems: 'center' 
+    },
+    verificationConfirmText: { 
+      fontSize: 15, 
+      fontWeight: '700', 
+      color: '#fff', 
+      letterSpacing: 0.3 
+    },
+  });
 
 export default SellItem;
