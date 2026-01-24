@@ -707,11 +707,11 @@ const filteredProviders = serviceProviders.filter(provider => {
       {/* Header */}
       <View style={[styles.header, isDarkMode && styles.headerDark]}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <BackIcon size={24} color={isDarkMode ? colors.text : '#000'} />
+          <BackIcon size={24} color={colors.text } />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, isDarkMode && styles.textWhite]}>Freelancers</Text>
         <TouchableOpacity style={styles.menuButton}>
-          <MenuIcon size={24} color={isDarkMode ? colors.text : '#000'} />
+          <MenuIcon size={24} color={colors.text} />
         </TouchableOpacity>
       </View>
 
