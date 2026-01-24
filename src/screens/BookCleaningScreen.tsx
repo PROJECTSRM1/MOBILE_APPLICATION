@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -28,8 +28,10 @@ import { useTheme } from "../context/ThemeContext";
    ======================= */
 interface Service { 
   id: string; 
-  title: string; 
-  category: string; 
+  title?: string;
+  name?: string;
+  category: string;
+  price?: number; 
 }
 
 interface Professional { 
@@ -43,90 +45,74 @@ interface Professional {
   mobileNumber: string; 
 }
 
+// Service Bank for Add-ons based on Vehicle Selection
+const VEHICLE_SUB_SERVICES: any = {
+  car: [
+    { id: 'c1', title: 'Engine Oil Replacement', price: 1500, category: 'Vehicle' },
+    { id: 'c2', title: 'Oil Filter Change', price: 450, category: 'Vehicle' },
+    { id: 'c3', title: 'AC Filter Cleaning', price: 600, category: 'Vehicle' },
+    { id: 'c4', title: 'Brake Pad Checking', price: 800, category: 'Vehicle' },
+    { id: 'c5', title: 'Coolant Top-up', price: 300, category: 'Vehicle' },
+    { id: 'c6', title: 'Wheel Alignment', price: 1200, category: 'Vehicle' },
+    { id: 'c7', title: 'Interior Vacuuming', price: 500, category: 'Vehicle' },
+  ],
+  bike: [
+    { id: 'b1', title: 'Chain Lubrication', price: 150, category: 'Vehicle' },
+    { id: 'b2', title: 'Spark Plug Cleaning', price: 100, category: 'Vehicle' },
+    { id: 'b3', title: 'Engine Oil (Bike)', price: 450, category: 'Vehicle' },
+    { id: 'b4', title: 'Brake Shoe Adjustment', price: 200, category: 'Vehicle' },
+    { id: 'b5', title: 'Air Filter Cleaning', price: 150, category: 'Vehicle' },
+    { id: 'b6', title: 'Clutch Cable Tightening', price: 100, category: 'Vehicle' },
+  ],
+  truck: [
+    { id: 't1', title: 'Hydraulic System Check', price: 2500, category: 'Vehicle' },
+    { id: 't2', title: 'Air Brake Adjustment', price: 1200, category: 'Vehicle' },
+    { id: 't3', title: 'Grease Point Lubrication', price: 800, category: 'Vehicle' },
+    { id: 't4', title: 'Heavy Duty Oil Change', price: 4500, category: 'Vehicle' },
+    { id: 't5', title: 'Suspension Inspection', price: 1500, category: 'Vehicle' },
+    { id: 't6', title: 'Fuel Filter Replacement', price: 1800, category: 'Vehicle' },
+  ]
+};
+
 const ALL_SERVICES: Service[] = [
-  { id: "1", title: "Kitchen Cleaning", category: "Home" },
-  { id: "2", title: "Washroom Cleaning", category: "Home" },
-  { id: "3", title: "Sofa Cleaning", category: "Home" },
-  { id: "4", title: "Bedroom Cleaning", category: "Home" },
-  { id: "5", title: "Window Cleaning", category: "Home" },
-  { id: "6", title: "Full Deep Cleaning", category: "Home" },
-  { id: "7", title: "Small Office Cleaning", category: "Commercial" },
-  { id: "8", title: "Medium Office Cleaning", category: "Commercial" },
-  { id: "9", title: "Large Corporate Office Cleaning", category: "Commercial" },
-  { id: "10", title: "Retail Shop/Showroom Cleaning", category: "Commercial" },
-  { id: "11", title: "Warehouse/Clinic Cleaning", category: "Commercial" },
-  { id: "12", title: "Car", category: "Vehicle" },
-  { id: "13", title: "Motor Bike", category: "Vehicle" },
-  { id: "14", title: "Heavy", category: "Vehicle" },
-  { id: "15", title: "Electric", category: "Vehicle" },
-  { id: "16", title: "Bicycle", category: "Vehicle" },
-  { id: "17", title: "Pipe Leakage", category: "Plumbing" },
-  { id: "18", title: "Tap Fixing", category: "Plumbing" },
-  { id: "19", title: "Bathroom Fitting", category: "Plumbing" },
-  { id: "20", title: "Water Tank Cleaning", category: "Plumbing" },
-  { id: "21", title: "Interior Painting", category: "Painting" },
-  { id: "22", title: "Exterior Painting", category: "Painting" },
-  { id: "23", title: "Wall Texture", category: "Painting" },
-  { id: "24", title: "Repainting", category: "Painting" },
-  { id: "25", title: "Wiring", category: "Electrician" },
-  { id: "26", title: "Fan Repair", category: "Electrician" },
-  { id: "27", title: "Light Installation", category: "Electrician" },
-  { id: "28", title: "Power Backup Setup", category: "Electrician" },
-  { id: "29", title: "AC Installation", category: "AC Repair" },
-  { id: "30", title: "AC Gas Refill", category: "AC Repair" },
-  { id: "31", title: "AC General Service", category: "AC Repair" },
-  { id: "32", title: "AC Uninstallation", category: "AC Repair" },
-  { id: "33", title: "Home Cooking", category: "Chef" },
-  { id: "34", title: "Party Catering", category: "Chef" },
-  { id: "35", title: "Weekly Meal Plan", category: "Chef" },
-  { id: "36", title: "Festival Cooking", category: "Chef" },
+  { id: "1", title: "Kitchen Cleaning", category: "Home", price: 80 },
+  { id: "2", title: "Washroom Cleaning", category: "Home", price: 80 },
+  { id: "6", title: "Full Deep Cleaning", category: "Home", price: 150 },
+  { id: "17", title: "Pipe Leakage", category: "Plumbing", price: 50 },
+  { id: "18", title: "Tap Fixing", category: "Plumbing", price: 40 },
 ];
 
-const BASE_PRICE = 80;
-const ADDON_PRICE = 25;
-
-// FIXED: Enhanced category detection function
 const detectCategoryFromTitle = (serviceTitle: string): string | null => {
-    if (!serviceTitle || typeof serviceTitle !== 'string') {
-    console.warn('Invalid service title:', serviceTitle);
-    return null;
-  }
+  if (!serviceTitle || typeof serviceTitle !== 'string') return null;
   const cleanTitle = serviceTitle.toLowerCase().replace(/ service$/i, '').trim();
-  
-  // First, try exact match in ALL_SERVICES
-  const exactMatch = ALL_SERVICES.find(s => s.title.toLowerCase() === cleanTitle);
+  const exactMatch = ALL_SERVICES.find(s => s.title?.toLowerCase() === cleanTitle);
   if (exactMatch) return exactMatch.category;
   
-  // Enhanced keyword matching with priority order
   const categoryKeywords: { [key: string]: string[] } = {
-    'Plumbing': ['plumb', 'pipe', 'tap', 'leak', 'bathroom fitting', 'water tank', 'drain', 'faucet'],
-    'Painting': ['paint', 'interior painting', 'exterior painting', 'texture', 'repaint', 'wall paint'],
-    'Electrician': ['wiring', 'fan repair', 'light install', 'power backup', 'electrical', 'switch', 'socket'],
-    'AC Repair': ['ac ', 'air condition', 'cooling', 'gas refill', 'hvac', 'ac install'],
-    'Chef': ['cook', 'chef', 'catering', 'meal plan', 'festival cooking', 'food', 'party catering'],
-    'Commercial': ['office', 'commercial', 'corporate', 'retail', 'shop', 'showroom', 'warehouse', 'clinic'],
-    'Home': ['kitchen', 'washroom', 'sofa', 'bedroom', 'window', 'deep cleaning', 'home'],
-    'Vehicle': ['car', 'bike', 'motor', 'truck', 'heavy', 'electric', 'ev', 'bicycle', 'cycle', 'vehicle', 'auto'],
+    'Plumbing': ['plumb', 'pipe', 'tap', 'leak'],
+    'Painting': ['paint', 'texture'],
+    'Electrician': ['wiring', 'fan', 'light'],
+    'AC Repair': ['ac ', 'air condition'],
+    'Chef': ['cook', 'chef', 'food'],
+    'Commercial': ['office', 'commercial'],
+    'Home': ['cleaning', 'kitchen', 'washroom'],
+    'Vehicle': ['car', 'bike', 'motor', 'truck', 'heavy', 'auto'],
   };
   
-  // Check categories in order
   for (const [category, keywords] of Object.entries(categoryKeywords)) {
-    if (keywords.some(keyword => cleanTitle.includes(keyword))) {
-      return category;
-    }
+    if (keywords.some(keyword => cleanTitle.includes(keyword))) return category;
   }
-  
   return null;
 };
 
 const BookCleaningScreen: React.FC = () => {
   const route = useRoute<any>();
-  const consultationCharge = route.params?.consultationCharge || 0;
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
   const styles = getStyles(colors);
-
+  
   // States
+  const [jobDescription, setJobDescription] = useState("");
   const [locationType, setLocationType] = useState<"default" | "other">("default");
   const [allocationType, setAllocationType] = useState<"auto" | "manual">("auto");
   const [floorArea, setFloorArea] = useState("");
@@ -144,140 +130,42 @@ const BookCleaningScreen: React.FC = () => {
   const [selectedAddon, setSelectedAddon] = useState<string | null>(null);
   const [currentAddress, setCurrentAddress] = useState("");
   const [loadingLocation, setLoadingLocation] = useState(false);
-  const [allocatedEmployee, setAllocatedEmployee] = useState<Professional | null>(null);
-  const [showEmployeeModal, setShowEmployeeModal] = useState(false);
+  const [allocatedEmployee, setAllocatedEmployee] = useState<Professional | null>(route.params?.allocatedEmployee || null);
 
-  // FIXED: Initial Data Logic - Handle both direct service selection and allocated employee services
-// --- UPDATED INITIAL DATA LOGIC ---
-  const incomingSelectedService = route.params?.selectedService; // From Commercial/Vehicle
-  const incomingServiceArray = route.params?.selectedServices;  // From ServiceDetails (Plumbing/Painting/etc)
-  const incomingAllServices = route.params?.allServices;
-  
+  // --- REFACTORED INITIAL SERVICE LOGIC ---
+  const [selectedServices, setSelectedServices] = useState<any[]>(() => {
+    // If coming from VehicleSub, use the objects array passed
+    if (route.params?.selectedServices) {
+      return route.params.selectedServices;
+    }
+    const incomingS = route.params?.selectedService;
+    if (incomingS) {
+      const title = typeof incomingS === 'string' ? incomingS : incomingS?.title || '';
+      return [{ id: 'init-1', title: title, category: detectCategoryFromTitle(title) || 'Home', price: 80 }];
+    }
+    return [];
+  });
 
-//   const [selectedServices, setSelectedServices] = useState<Service[]>(() => {
-//   // PRIORITY 1: Check if we have allServices (from navigation back)
-//   if (incomingAllServices && incomingAllServices.length > 0) {
-//     return incomingAllServices.map((title: string) => {
-//       const match = ALL_SERVICES.find(s => s.title === title);
-//       return match || {
-//         id: 'virtual-' + Math.random(),
-//         title: title,
-//         category: detectCategoryFromTitle(title) || 'Home'
-//       };
-//     });
-//   }
+  const vType = route.params?.vehicleType || 'car';
 
-//   // PRIORITY 2: Check if we have selectedServices array from EmployeeAllocation
-//   if (route.params?.selectedServices && route.params.selectedServices.length > 0) {
-//     return route.params.selectedServices.map((title: string) => {
-//       const match = ALL_SERVICES.find(s => s.title === title);
-//       return match || {
-//         id: 'virtual-' + Math.random(),
-//         title: title,
-//         category: detectCategoryFromTitle(title) || 'Home'
-//       };
-//     });
-//   }
+  const remainingServices = useMemo(() => {
+    // Show specific vehicle add-ons or generic based on category
+    const sourceList = (route.params?.vehicleType) 
+      ? VEHICLE_SUB_SERVICES[vType] 
+      : ALL_SERVICES.filter(s => s.category === selectedServices[0]?.category);
 
-//   // PRIORITY 3: Single service from Commercial/Home/Vehicle
-//   if (incomingSelectedService) {
-//     const match = ALL_SERVICES.find(s => 
-//       s.title.toLowerCase().includes(incomingSelectedService.toLowerCase()) ||
-//       incomingSelectedService.toLowerCase().includes(s.title.toLowerCase())
-//     );
-    
-//     if (match) return [match];
-
-//     const cat = detectCategoryFromTitle(incomingSelectedService);
-//     return [{
-//       id: 'virtual-' + Date.now(),
-//       title: incomingSelectedService,
-//       category: cat || 'Home'
-//     }];
-//   }
-  
-//   return [];
-// });
-
-
-const [selectedServices, setSelectedServices] = useState<Service[]>(() => {
-  // PRIORITY 1: Check if we have allServices (from navigation back)
-  if (incomingAllServices && incomingAllServices.length > 0) {
-    return incomingAllServices.map((item: any) => {
-      // SAFETY: Ensure we have a string title
-      const title = typeof item === 'string' ? item : item?.title || '';
-      const match = ALL_SERVICES.find(s => s.title === title);
-      return match || {
-        id: 'virtual-' + Math.random(),
-        title: title,
-        category: detectCategoryFromTitle(title) || 'Home'
-      };
-    });
-  }
-
-  // PRIORITY 2: Check if we have selectedServices array from EmployeeAllocation
-  if (route.params?.selectedServices && route.params.selectedServices.length > 0) {
-    return route.params.selectedServices.map((item: any) => {
-      // SAFETY: Ensure we have a string title
-      const title = typeof item === 'string' ? item : item?.title || '';
-      const match = ALL_SERVICES.find(s => s.title === title);
-      return match || {
-        id: 'virtual-' + Math.random(),
-        title: title,
-        category: detectCategoryFromTitle(title) || 'Home'
-      };
-    });
-  }
-
-  // PRIORITY 3: Single service from Commercial/Home/Vehicle
-  if (incomingSelectedService) {
-    // SAFETY: Ensure it's a string
-    const serviceStr = typeof incomingSelectedService === 'string' 
-      ? incomingSelectedService 
-      : incomingSelectedService?.title || '';
-      
-    const match = ALL_SERVICES.find(s => 
-      s.title.toLowerCase().includes(serviceStr.toLowerCase()) ||
-      serviceStr.toLowerCase().includes(s.title.toLowerCase())
+    return sourceList.filter((service: Service) => 
+      !selectedServices.some(s => (s.title || s.name) === (service.title || service.name))
     );
-    
-    if (match) return [match];
+  }, [selectedServices, vType]);
 
-    const cat = detectCategoryFromTitle(serviceStr);
-    return [{
-      id: 'virtual-' + Date.now(),
-      title: serviceStr,
-      category: cat || 'Home'
-    }];
-  }
-  
-  return [];
-});
-  // LOGIC
-  const mainService = selectedServices[0];
-  const addonServices = selectedServices.slice(1);
-
-  // FIXED: Enhanced filter for remaining services - works for ALL categories
-  const remainingServices = mainService 
-    ? ALL_SERVICES.filter(
-        (service) => 
-          service.category === mainService.category && 
-          !selectedServices.some((s) => s.id === service.id)
-      )
-    : [];
-
-  const showFloorField = mainService?.category === "Home" || mainService?.category === "Commercial";
-// Allow showing UI if an employee is already allocated (passed from VehicleSub)
-const showAllocationUI = (mainService?.category !== "Vehicle" && !mainService?.title?.toLowerCase().includes("chef")) || !!allocatedEmployee;
-  const servicePrice = (mainService ? BASE_PRICE : 0) + addonServices.length * ADDON_PRICE;
+  // Sync Pricing
+  const servicePrice = selectedServices.reduce((sum, s) => sum + (s.price || 0), 0);
+  const consultationCharge = route.params?.consultationCharge || 0;
   const totalPrice = servicePrice + consultationCharge;
 
-  useEffect(() => {
-    if (route.params?.allocatedEmployee) {
-      setAllocatedEmployee(route.params.allocatedEmployee);
-      setShowEmployeeModal(true);
-    }
-  }, [route.params?.allocatedEmployee]);
+  const showFloorField = selectedServices[0]?.category === "Home" || selectedServices[0]?.category === "Commercial";
+  const showAllocationUI = (selectedServices[0]?.category !== "Vehicle" && !selectedServices[0]?.title?.toLowerCase().includes("chef")) || !!allocatedEmployee;
 
   useEffect(() => {
     if (locationType === "default") getCurrentLocation();
@@ -288,72 +176,40 @@ const showAllocationUI = (mainService?.category !== "Vehicle" && !mainService?.t
       if (Platform.OS === "android") {
         const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
         return granted === PermissionsAndroid.RESULTS.GRANTED;
-      } else {
-        const result = await request(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE);
-        return result === RESULTS.GRANTED;
       }
-    } catch (err) { 
-      return false; 
-    }
+      const result = await request(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE);
+      return result === RESULTS.GRANTED;
+    } catch (err) { return false; }
   };
 
-const getCurrentLocation = async () => {
+  const getCurrentLocation = async () => {
     const hasPermission = await requestLocationPermission();
     if (!hasPermission) return;
-    
     setLoadingLocation(true);
     Geolocation.getCurrentPosition(
       async (position) => {
         try {
-          // 1. Added 'format=jsonv2' for better data structure
-          // 2. Added 'accept-language=en' to ensure English results
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${position.coords.latitude}&lon=${position.coords.longitude}&accept-language=en`,
-            {
-              headers: {
-                'User-Agent': 'ServiceBookingApp/1.0', // IMPORTANT: Nominatim requires a User-Agent or it might fail
-              }
-            }
-          );
-          
+          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${position.coords.latitude}&lon=${position.coords.longitude}&accept-language=en`, { headers: { 'User-Agent': 'ServiceApp' } });
           const data = await response.json();
-          
-          // Construct a cleaner address instead of just using display_name (which is often too long)
           const addr = data.address;
-          const road = addr.road || addr.suburb || addr.neighbourhood || "";
-          const city = addr.city || addr.town || addr.village || "";
-          const state = addr.state || "";
-          const postcode = addr.postcode || "";
-
-          // Join parts, filtering out empty strings
-          const formattedAddress = [road, city, state, postcode]
-            .filter(part => part.length > 0)
-            .join(", ");
-
-          setCurrentAddress(formattedAddress || data.display_name || "Location detected");
-        } catch (e) {
-          console.error("Location Fetch Error:", e);
-          setCurrentAddress("Error fetching address details");
-        } finally {
-          setLoadingLocation(false);
-        }
+          const formatted = [addr.road || addr.suburb || "", addr.city || addr.town || "", addr.state || ""].filter(p => p.length > 0).join(", ");
+          setCurrentAddress(formatted || data.display_name || "Location detected");
+        } catch (e) { setCurrentAddress("Error fetching address"); } finally { setLoadingLocation(false); }
       },
-      (error) => {
-        console.error("GPS Error:", error);
-        setLoadingLocation(false);
-        Alert.alert("Location Error", "Please ensure GPS is enabled and try again.");
-      },
-      { 
-        enableHighAccuracy: true, 
-        timeout: 15000, 
-        maximumAge: 10000 // Cache location for 10 seconds
-      }
+      (error) => { setLoadingLocation(false); Alert.alert("Location Error", "GPS is required."); },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
     );
   };
+
   const addService = (serviceId: string) => {
-    const serviceToAdd = remainingServices.find((s) => s.id === serviceId);
-    if (serviceToAdd) {
-      setSelectedServices((prev) => [...prev, serviceToAdd]);
+    const s = remainingServices.find((item: any) => item.id === serviceId);
+    if (s) {
+      setSelectedServices((prev) => [...prev, {
+        id: s.id,
+        title: s.title || s.name,
+        category: s.category,
+        price: s.price
+      }]);
       setSelectedAddon(null);
       setShowAddonPicker(false);
     }
@@ -361,20 +217,16 @@ const getCurrentLocation = async () => {
 
   const removeService = (id: string) => setSelectedServices((prev) => prev.filter((s) => s.id !== id));
 
-  // const handleAllocationTypeChange = (value: "auto" | "manual") => {
-  //   setAllocationType(value);
-  //   navigation.navigate("EmployeeAllocation", { isAutoAllocation: value === "auto" });
-  // };
-const handleAllocationTypeChange = (value: "auto" | "manual") => {
-  setAllocationType(value);
-  navigation.navigate("EmployeeAllocation", { 
-    isAutoAllocation: value === "auto",
-    // ADD THESE LINES TO PRESERVE YOUR DATA
-    selectedServices: selectedServices.map(s => s.title), // Pass as titles
-    consultationCharge: consultationCharge,
-    mainCategory: mainService?.category,
-  });
-};
+  const handleAllocationTypeChange = (value: "auto" | "manual") => {
+    setAllocationType(value);
+    navigation.navigate("EmployeeAllocation", { 
+      isAutoAllocation: value === "auto",
+      selectedServices: selectedServices.map(s => s.title || s.name),
+      consultationCharge: consultationCharge,
+      mainCategory: selectedServices[0]?.category,
+    });
+  };
+
   const handleTakePhoto = async () => {
     const result = await launchCamera({ mediaType: "photo", quality: 0.7 });
     if (!result.didCancel && result.assets) setImages((prev) => [...prev, ...result.assets!]);
@@ -394,26 +246,30 @@ const handleAllocationTypeChange = (value: "auto" | "manual") => {
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Book Service</Text>
         </View>
-        <TouchableOpacity style={styles.iconBtn}>
-          <MaterialIcons name="more-horiz" size={24} color="#9CA3AF" />
-        </TouchableOpacity>
+        <TouchableOpacity style={styles.iconBtn}><MaterialIcons name="more-horiz" size={24} color="#9CA3AF" /></TouchableOpacity>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         <Text style={styles.sectionTitle}>Job Details</Text>
 
+        {/* --- DESCRIPTION FIELD FOR VEHICLE --- */}
+        {route.params?.vehicleType && (
+          <View style={styles.section}>
+            <Text style={styles.label}>VEHICLE PROBLEM DESCRIPTION</Text>
+            <TextInput
+              placeholder="E.g. Brake noise, oil leak noticed..."
+              placeholderTextColor="#9CA3AF"
+              multiline
+              style={[styles.input, styles.textArea]}
+              value={jobDescription}
+              onChangeText={setJobDescription}
+            />
+          </View>
+        )}
+
         <Text style={styles.label}>Location</Text>
         <View style={styles.dropdownBox}>
-          <Picker
-            selectedValue={locationType}
-            onValueChange={(value) => {
-              setLocationType(value);
-              if (value === "default") getCurrentLocation();
-              else setCurrentAddress("");
-            }}
-            dropdownIconColor="#9CA3AF"
-            style={styles.picker}
-          >
+          <Picker selectedValue={locationType} onValueChange={(v) => { setLocationType(v); if (v === "default") getCurrentLocation(); }} style={styles.picker}>
             <Picker.Item label="Default Location (Home)" value="default" />
             <Picker.Item label="Other Location" value="other" />
           </Picker>
@@ -436,16 +292,11 @@ const handleAllocationTypeChange = (value: "auto" | "manual") => {
           </View>
         )}
 
-        {showAllocationUI && !route.params?.allocatedEmployee &&  (
+        {showAllocationUI && !route.params?.allocatedEmployee && (
           <>
-            <Text style={styles.label}>Allocation Type ({allocationType === "auto" ? "Auto" : "Manual"})</Text>
+            <Text style={styles.label}>Allocation Type</Text>
             <View style={styles.dropdownBox}>
-              <Picker
-                selectedValue={allocationType}
-                onValueChange={handleAllocationTypeChange}
-                dropdownIconColor="#9CA3AF"
-                style={styles.picker}
-              >
+              <Picker selectedValue={allocationType} onValueChange={handleAllocationTypeChange} style={styles.picker}>
                 <Picker.Item label="Auto-Allocation" value="auto" />
                 <Picker.Item label="Manual Allocation" value="manual" />
               </Picker>
@@ -480,14 +331,8 @@ const handleAllocationTypeChange = (value: "auto" | "manual") => {
         )}
 
         <View style={styles.dateTimeRow}>
-          <TouchableOpacity style={[styles.dateInput, { flex: 1 }]} onPress={() => setShowDatePicker(true)}>
-            <MaterialIcons name="calendar-today" size={20} color="#9CA3AF" />
-            <Text style={styles.dateText}>{date || "Select Date"}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.timeInput, { flex: 1 }]} onPress={() => setShowTimePicker(true)}>
-            <MaterialIcons name="access-time" size={20} color="#9CA3AF" />
-            <Text style={styles.timeText}>{time || "Select Time"}</Text>
-          </TouchableOpacity>
+          <TouchableOpacity style={[styles.dateInput, { flex: 1 }]} onPress={() => setShowDatePicker(true)}><MaterialIcons name="calendar-today" size={20} color="#9CA3AF" /><Text style={styles.dateText}>{date || "Select Date"}</Text></TouchableOpacity>
+          <TouchableOpacity style={[styles.timeInput, { flex: 1 }]} onPress={() => setShowTimePicker(true)}><MaterialIcons name="access-time" size={20} color="#9CA3AF" /><Text style={styles.timeText}>{time || "Select Time"}</Text></TouchableOpacity>
         </View>
 
         {showDatePicker && <DateTimePicker value={new Date()} mode="date" minimumDate={new Date()} onChange={(e, d) => { setShowDatePicker(false); if (d) setDate(d.toLocaleDateString('en-GB')); }} />}
@@ -497,16 +342,12 @@ const handleAllocationTypeChange = (value: "auto" | "manual") => {
           <View style={styles.extraHoursHeader}>
             <Text style={styles.extraHoursTitle}>Extra Hours</Text>
             <View style={styles.counterContainer}>
-              <TouchableOpacity onPress={() => setExtraHours(Math.max(0, extraHours - 1))}>
-                <Text style={styles.counterIcon}>-</Text>
-              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setExtraHours(Math.max(0, extraHours - 1))}><Text style={styles.counterIcon}>-</Text></TouchableOpacity>
               <Text style={styles.counterText}>+{extraHours} hr</Text>
-              <TouchableOpacity onPress={() => setExtraHours(extraHours + 1)}>
-                <Text style={styles.counterIcon}>+</Text>
-              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setExtraHours(extraHours + 1)}><Text style={styles.counterIcon}>+</Text></TouchableOpacity>
             </View>
           </View>
-          {extraHours > 0 && <TextInput placeholder="Reason for extra hours..." multiline style={styles.textarea} value={reason} onChangeText={setReason} />}
+          {extraHours > 0 && <TextInput placeholder="Reason..." multiline style={styles.textarea} value={reason} onChangeText={setReason} />}
         </View>
 
         <View style={styles.section}>
@@ -515,55 +356,29 @@ const handleAllocationTypeChange = (value: "auto" | "manual") => {
             <TouchableOpacity style={styles.photoBoxDashed} onPress={handleTakePhoto}><MaterialIcons name="photo-camera" size={28} color="#135BEC" /></TouchableOpacity>
             <TouchableOpacity style={styles.photoBoxDashed} onPress={handlePickFromGallery}><MaterialIcons name="photo-library" size={28} color="#135BEC" /></TouchableOpacity>
             {images.map((img, i) => (
-              <View key={i} style={styles.photoPreview}>
-                <Image source={{ uri: img.uri }} style={styles.photoImage} />
-                <TouchableOpacity style={styles.removePhoto} onPress={() => setImages(images.filter((_, idx) => idx !== i))}>
-                  <MaterialIcons name="close" size={14} color="#fff" />
-                </TouchableOpacity>
-              </View>
+              <View key={i} style={styles.photoPreview}><Image source={{ uri: img.uri }} style={styles.photoImage} /><TouchableOpacity style={styles.removePhoto} onPress={() => setImages(images.filter((_, idx) => idx !== i))}><MaterialIcons name="close" size={14} color="#fff" /></TouchableOpacity></View>
             ))}
           </View>
         </View>
 
         <View style={styles.thinDivider} />
 
-        {/* FIXED: Add-on Services - Now enabled for ALL categories */}
         <View style={styles.addonHeader}>
-          <Text style={styles.sectionTitle}>Add-on Services</Text>
+          <Text style={styles.sectionTitle}>Services Selected</Text>
           <TouchableOpacity 
             style={[styles.addBtn, remainingServices.length === 0 && styles.addBtnDisabled]} 
             onPress={() => setShowAddonPicker(true)}
             disabled={remainingServices.length === 0}
           >
-            <MaterialIcons name="add" size={18} color="#fff" />
-            <Text style={styles.addBtnText}>Add New</Text>
+            <MaterialIcons name="add" size={18} color="#fff" /><Text style={styles.addBtnText}>Add More</Text>
           </TouchableOpacity>
         </View>
 
-        {/* DEBUG INFO - Shows category and available services */}
-        {mainService && (
-          <Text style={styles.categoryInfo}>
-            Category: {mainService.category} • {remainingServices.length} services available
-          </Text>
-        )}
-
-        {remainingServices.length === 0 && selectedServices.length > 0 && (
-          <Text style={styles.noAddonsText}>All services in this category are selected</Text>
-        )}
-
         {showAddonPicker && remainingServices.length > 0 && (
           <View style={styles.dropdownBox}>
-            <Picker
-              selectedValue={selectedAddon}
-              onValueChange={(v) => { 
-                if (v && v !== 'placeholder') { 
-                  addService(v); 
-                } 
-              }}
-              style={styles.picker}
-            >
-              <Picker.Item label="Select Add-on" value="placeholder" />
-              {remainingServices.map(s => <Picker.Item key={s.id} label={s.title} value={s.id} />)}
+            <Picker selectedValue={selectedAddon} onValueChange={(v) => { if (v && v !== 'placeholder') addService(v); }} style={styles.picker}>
+              <Picker.Item label="Select Service" value="placeholder" />
+              {remainingServices.map((s: any) => <Picker.Item key={s.id} label={`${s.title || s.name} - ₹${s.price}`} value={s.id} />)}
             </Picker>
           </View>
         )}
@@ -572,98 +387,55 @@ const handleAllocationTypeChange = (value: "auto" | "manual") => {
           <View key={s.id} style={styles.addonCard}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.addonSelectText}>
-                  {i === 0 ? "MAIN: " : "ADD-ON: "}{s.title}
-                </Text>
-                <Text style={styles.addonCategoryText}>{s.category}</Text>
+                <Text style={styles.addonSelectText}>{s.title || s.name}</Text>
+                <Text style={styles.addonCategoryText}>Cost: ₹{s.price}</Text>
               </View>
-              {i > 0 && (
-                <TouchableOpacity onPress={() => removeService(s.id)}>
-                  <MaterialIcons name="delete" size={20} color="#EF4444" />
-                </TouchableOpacity>
-              )}
+              {selectedServices.length > 1 && <TouchableOpacity onPress={() => removeService(s.id)}><MaterialIcons name="delete" size={20} color="#EF4444" /></TouchableOpacity>}
             </View>
           </View>
         ))}
 
-        {/* <View style={styles.summary}>
-          <SummaryRow label="Services" value={`$${servicePrice}`} styles={styles} />
-          {consultationCharge > 0 && <SummaryRow label="Consultation" value={`$${consultationCharge}`} styles={styles} />}
-          <View style={styles.summaryDivider} />
-          <View style={styles.summaryTotal}>
-            <Text style={styles.summaryTotalLabel}>Total</Text>
-            <Text style={styles.summaryTotalValue}>${totalPrice}</Text>
-          </View>
-        </View> */}
         <View style={styles.summary}>
-  <SummaryRow label="Services" value={`₹${servicePrice}`} styles={styles} />
-  {consultationCharge > 0 && <SummaryRow label="Consultation" value={`₹${consultationCharge}`} styles={styles} />}
-  <View style={styles.summaryDivider} />
-  <View style={styles.summaryTotal}>
-    <Text style={styles.summaryTotalLabel}>Total</Text>
-    <Text style={styles.summaryTotalValue}>₹{totalPrice}</Text>
-  </View>
-</View>
+          <SummaryRow label="Items Total" value={`₹${servicePrice}`} styles={styles} />
+          {consultationCharge > 0 && <SummaryRow label="Garage Base Fee" value={`₹${consultationCharge}`} styles={styles} />}
+          <View style={styles.summaryDivider} />
+          <View style={styles.summaryTotal}><Text style={styles.summaryTotalLabel}>Final Amount</Text><Text style={styles.summaryTotalValue}>₹{totalPrice}</Text></View>
+        </View>
 
         <View style={{ height: 100 }} />
       </ScrollView>
-{/* 
+
       <View style={styles.bottomBar}>
-        <TouchableOpacity style={styles.ctaBtn} onPress={() => navigation.navigate("PaymentScreen", { totalAmount: totalPrice })}>
-          <Text style={styles.ctaText}>Checkout</Text>
+        <TouchableOpacity 
+          style={styles.ctaBtn} 
+          onPress={() => navigation.navigate("PaymentScreen", { 
+            totalAmount: totalPrice,
+            selectedServices: selectedServices.map(s => ({ service: s.title || s.name, price: s.price })),
+            allocatedEmployee: allocatedEmployee,
+            bookingDetails: {
+              location: locationType === "default" ? currentAddress : locationDetails,
+              description: jobDescription,
+              date: date,
+              time: time,
+              employee: allocatedEmployee?.name,
+              vehicle: route.params?.vehicleInfo
+            }
+          })}
+        >
+          <Text style={styles.ctaText}>Proceed to Checkout</Text>
         </TouchableOpacity>
-      </View> */}
-      <View style={styles.bottomBar}>
-  <TouchableOpacity 
-    style={styles.ctaBtn} 
-    onPress={() => navigation.navigate("PaymentScreen", { 
-      totalAmount: totalPrice,
-      selectedServices: selectedServices.map(s => ({
-        service: s.title,
-        category: s.category,
-        duration: "2-3 hours",
-        date: date || "Not selected"
-      })),
-      floorArea: floorArea || "N/A",
-      selectedTime: time || "10:00 AM",
-      allocatedEmployee: allocatedEmployee,
-      bookingDetails: {
-        location: locationType === "default" ? currentAddress : locationDetails,
-        customerName: customerName,
-        contactNumber: contactNumber,
-        extraHours: extraHours,
-        reason: reason,
-        date: date,
-        time: time
-      }
-    })}
-  >
-    <Text style={styles.ctaText}>Checkout</Text>
-  </TouchableOpacity>
-</View>
+      </View>
     </SafeAreaView>
   );
 };
 
 const SummaryRow = ({ label, value, styles }: any) => (
-  <View style={styles.summaryRow}>
-    <Text style={styles.summaryRowText}>{label}</Text>
-    <Text style={styles.summaryRowText}>{value}</Text>
-  </View>
+  <View style={styles.summaryRow}><Text style={styles.summaryRowText}>{label}</Text><Text style={styles.summaryRowText}>{value}</Text></View>
 );
 
 const getStyles = (colors: any) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
-  header: { 
-    flexDirection: "row", 
-    justifyContent: "space-between", 
-    alignItems: "center", 
-    paddingHorizontal: 16, 
-    paddingVertical: 12, 
-    borderBottomWidth: 1, 
-    borderBottomColor: colors.border, 
-    backgroundColor: colors.surface 
-  },
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.border, backgroundColor: colors.surface },
   headerLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
   headerTitle: { color: colors.text, fontSize: 18, fontWeight: "700" },
   iconBtn: { width: 40, height: 40, justifyContent: "center", alignItems: "center" },
@@ -698,8 +470,6 @@ const getStyles = (colors: any) => StyleSheet.create({
   photoImage: { width: '100%', height: '100%' },
   removePhoto: { position: 'absolute', top: 2, right: 2, backgroundColor: 'red', borderRadius: 10 },
   thinDivider: { height: 1, backgroundColor: colors.border, marginVertical: 20 },
-  
-  // FIXED: Missing Allocated Professional Styles
   allocatedCard: { backgroundColor: colors.card, borderRadius: 12, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: colors.border },
   allocatedHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
   allocatedTitle: { fontSize: 12, fontWeight: "700", color: colors.subText, textTransform: 'uppercase' },
@@ -707,44 +477,24 @@ const getStyles = (colors: any) => StyleSheet.create({
   allocatedAvatar: { width: 50, height: 50, borderRadius: 25 },
   allocatedName: { fontSize: 16, fontWeight: "700", color: colors.text },
   allocatedRole: { fontSize: 14, color: colors.subText },
-
   addonHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
   addBtn: { backgroundColor: colors.primary, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, flexDirection: 'row', alignItems: 'center' },
   addBtnDisabled: { backgroundColor: colors.subText, opacity: 0.5 },
   addBtnText: { color: '#fff', marginLeft: 4, fontWeight: '600' },
   categoryInfo: { color: colors.primary, fontSize: 13, marginBottom: 12, fontWeight: '500' },
-  noAddonsText: { color: colors.subText, fontSize: 13, fontStyle: 'italic', marginBottom: 12 },
   addonCard: { backgroundColor: colors.card, padding: 12, borderRadius: 10, marginBottom: 8, borderWidth: 1, borderColor: colors.border },
   addonSelectText: { color: colors.text, fontWeight: '600', fontSize: 15 },
   addonCategoryText: { color: colors.subText, fontSize: 12, marginTop: 2 },
   summary: { backgroundColor: colors.card, borderRadius: 12, padding: 16, marginTop: 10 },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 },
   summaryRowText: { color: colors.subText },
-  
-  // FIXED: Summary Divider (CSS margin '10px 0' -> marginVertical: 10)
   summaryDivider: { height: 1, backgroundColor: colors.border, marginVertical: 10 },
-  
   summaryTotal: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   summaryTotalLabel: { fontSize: 18, fontWeight: "700", color: colors.text },
   summaryTotalValue: { fontSize: 22, fontWeight: "800", color: colors.primary },
   section: { marginBottom: 20 },
-
-  // FIXED: Bottom Bar (CSS borderTop and padding fixed)
-  bottomBar: { 
-    padding: 16, 
-    borderTopWidth: 1, 
-    borderTopColor: colors.border, 
-    backgroundColor: colors.surface 
-  },
-  
-  // FIXED: CTA Button (CSS padding, textAlign, cursor, border fixed)
-  ctaBtn: { 
-    backgroundColor: colors.primary, 
-    paddingVertical: 16, 
-    borderRadius: 12, 
-    alignItems: 'center',
-    width: '100%' 
-  },
+  bottomBar: { padding: 16, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.surface },
+  ctaBtn: { backgroundColor: colors.primary, paddingVertical: 16, borderRadius: 12, alignItems: 'center', width: '100%' },
   ctaText: { color: '#fff', fontSize: 18, fontWeight: "700" },
 });
 
