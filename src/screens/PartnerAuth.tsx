@@ -106,7 +106,7 @@ const PartnerAuth = () => {
       education: 'EducationPartnerDashboard',
       marketplace: 'MarketplacePartnerDashboard',
       healthcare: 'HealthcarePartnerDashboard',
-      swachify: 'SwachifyPartnerDashboard',
+      swachify: 'SwachifyPartnerScreen',
       justride: 'JustRidePartnerDashboard',
     };
 

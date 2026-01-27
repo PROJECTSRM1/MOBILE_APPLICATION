@@ -52,7 +52,7 @@ import TelemedicineConsultation from "./src/screens/TelemedicineConsultation";
 import FacilitiesScreen from "./src/screens/FacilitiesScreen";
 import Wishlist from "./src/screens/Wishlist";
 import AmbulanceBookingScreen from "./src/screens/Ambulance";
-
+import SwachifyPartnerScreen from "./src/screens/swachify_partner_screen";
 import ParcelView from "./src/screens/ParcelView";
 import MetroView from "./src/screens/MetroView";
 import ScootyView from "./src/screens/ScootyView";
@@ -95,6 +95,7 @@ export type RootStackParamList = {
   SellItem: undefined;
   ProductScreen: undefined;
   SwachifyMarketScreen: undefined;
+  swachifyPartnerScreen: undefined;
   ProductRegistration: undefined;
   InternshipList: undefined;
   RawMaterial: undefined;
@@ -187,6 +188,7 @@ function AppNavigator() {
          <Stack.Screen name="ScootyView" component={ScootyView} />
         <Stack.Screen name="enrollmentDetails" component={EnrollmentDetailsScreen} />
         <Stack.Screen name="Ambulance" component={AmbulanceBookingScreen} />
+        <Stack.Screen name="SwachifyPartnerScreen" component={SwachifyPartnerScreen} />
         <Stack.Screen name="Facility" component={FacilitiesScreen} />
         <Stack.Screen
   name="PartnerAuth"
