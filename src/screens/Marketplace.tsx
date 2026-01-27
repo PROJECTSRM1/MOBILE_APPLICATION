@@ -444,13 +444,13 @@ const Marketplace = ({ navigation }: any) => {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
           {[
             { id: 'All', icon: 'apps', label: 'All' },
+            { id: 'Hostel', icon: 'hotel', label: 'Hostel' },
+            { id: 'Hotel', icon: 'domain', label: 'Hotel' },
             { id: 'Land', icon: 'landscape', label: 'Land' },
             { id: 'Apartment', icon: 'apartment', label: 'Apartment' },
             { id: 'Vehicle', icon: 'directions-car', label: 'Vehicle' },
             { id: 'House', icon: 'home', label: 'House' },
-            { id: 'Commercial', icon: 'business', label: 'Commercial' },
-            { id: 'Hostel', icon: 'hotel', label: 'Hostel' },
-            { id: 'Hotel', icon: 'domain', label: 'Hotel' },
+            { id: 'Commercial', icon: 'business', label: 'Commercial' }
           ].map((category) => (
             <TouchableOpacity key={category.id} style={[styles.categoryButton, selectedCategory === category.id && styles.activeCategoryButton]} onPress={() => setSelectedCategory(category.id)}>
               <MaterialIcons name={category.icon} size={18} color={selectedCategory === category.id ? '#fff' : '#94a3b8'} />

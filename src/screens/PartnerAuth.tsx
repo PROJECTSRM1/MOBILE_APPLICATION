@@ -106,8 +106,8 @@ const PartnerAuth = () => {
       education: 'EducationPartnerDashboard',
       marketplace: 'buysellPartnerDashboard',
       healthcare: 'HealthcarePartnerDashboard',
-      swachify: 'SwachifyPartnerDashboard',
-      justride: 'JustRidePartnerDashboard',
+      swachify: 'SwachifyPartnerScreen',
+      justride: 'DriverDashboard',
     };
 
     navigation.replace(dashboardMap[parsed.module]);
