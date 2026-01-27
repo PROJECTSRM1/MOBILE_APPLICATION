@@ -16,9 +16,9 @@ import { useNavigation } from '@react-navigation/native';
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
 // const IMAGES: ImageSourcePropType[] = [
-//   require('../../assets/swachlogo.png'),
-//   require('../../assets/swachlogo.png'),
-//   require('../../assets/swachlogo.png'),
+//   require('../../assets/swachlogo.jpg'),
+//   require('../../assets/swachlogo.jpg'),
+//   require('../../assets/swachlogo.jpg'),
 // ];
 
 const PAGES = [

@@ -763,7 +763,7 @@ const placeholders = [
             { name: "Housing / Cleaning", icon: "home" },
             { name: "Education", icon: "school" },
             { name: "Freelance", icon: "work" },
-            { name: "Buy/Sell", icon: "shopping-bag" },
+            { name: "Buy/Sell/Rent", icon: "shopping-bag" },
             { name: "Swachify Products", icon: "shopping-bag" },
             { name: "Health Care", icon: "local-hospital" },
             { name: "Raw Materials", icon: "factory" },
@@ -793,7 +793,7 @@ const placeholders = [
                       navigation.navigate("Freelancer");
                       break;
 
-                    case "Buy/Sell":
+                    case "Buy/Sell/Rent":
                       navigation.navigate("Marketplace");
                       break;
 

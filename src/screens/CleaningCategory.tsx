@@ -34,9 +34,6 @@ const CleaningCategorySelectScreen = () => {
     >
       <View style={[styles.iconWrapper, { backgroundColor: color + "15" }]}>
         <Icon name={icon} size={42} color={color} />
-        <View style={styles.arrowIcon}>
-            <Icon name="chevron-right" size={20} color={colors.subText} />
-        </View>
       </View>
       <View style={styles.cardInfo}>
         <Text style={styles.cardTitle}>{title}</Text>

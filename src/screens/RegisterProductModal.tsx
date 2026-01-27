@@ -354,7 +354,7 @@ export default function RegisterProductModal({
                   <MaterialIcons name="add-a-photo" size={32} color="#135bec" />
                 </View>
                 <Text style={styles.uploadText}>Add Photos</Text>
-                <Text style={styles.uploadHint}>PNG, JPG up to 10MB</Text>
+                <Text style={styles.uploadHint}>jpg, JPG up to 10MB</Text>
               </TouchableOpacity>
 
               {selectedImages.length > 0 && (
