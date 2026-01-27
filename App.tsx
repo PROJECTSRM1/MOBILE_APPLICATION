@@ -57,6 +57,7 @@ import ParcelView from "./src/screens/ParcelView";
 import MetroView from "./src/screens/MetroView";
 import ScootyView from "./src/screens/ScootyView";
 import EnrollmentDetailsScreen from "./src/screens/EnrollmentDetailsScreen";
+import PartnerAuth from "./src/screens/PartnerAuth";
 
 
 export type RootStackParamList = {
@@ -120,6 +121,7 @@ export type RootStackParamList = {
   Facility:undefined;
   Wishlist: undefined;
   Ambulance:undefined;
+  PartnerAuth: undefined;
 
 };
 
@@ -179,7 +181,6 @@ function AppNavigator() {
         <Stack.Screen name="Health" component={DoctorListScreen} />
         <Stack.Screen name="Form" component={ConsultationRequestScreen} />
          <Stack.Screen name="Telecom" component={TelemedicineConsultation} />
-         
          <Stack.Screen name="Wishlist" component={Wishlist} />
          <Stack.Screen name="ParcelView" component={ParcelView} />
          <Stack.Screen name="MetroView" component={MetroView} />
@@ -187,6 +188,12 @@ function AppNavigator() {
         <Stack.Screen name="enrollmentDetails" component={EnrollmentDetailsScreen} />
         <Stack.Screen name="Ambulance" component={AmbulanceBookingScreen} />
         <Stack.Screen name="Facility" component={FacilitiesScreen} />
+        <Stack.Screen
+  name="PartnerAuth"
+  component={PartnerAuth}
+  options={{ headerShown: false }}
+/>
+
       </Stack.Navigator>
     </NavigationContainer>
      

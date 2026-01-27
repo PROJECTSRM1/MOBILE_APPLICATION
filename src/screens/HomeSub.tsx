@@ -22,12 +22,12 @@ const HomeSub: React.FC = () => {
   const [selectedTitles, setSelectedTitles] = useState<string[]>([]);
 
   const subServices = [
-    { title: 'Kitchen Cleaning', description: 'Degreasing, cabinets & appliances', image: require("../../assets/kitchen.png") },
-    { title: 'Washroom Cleaning', description: 'Sanitization & tile scrubbing', image: require("../../assets/bathroom.png") },
-    { title: 'Sofa Cleaning', description: 'Deep vacuuming & stain removal', image: require("../../assets/sofa.png") },
-    { title: 'Bedroom Cleaning', description: 'Dusting, bedding & floor care', image: require("../../assets/bedroom.png") },
-    { title: 'Window Cleaning', description: 'Interior & exterior glass shine', image: require("../../assets/window.png") },
-    { title: 'Full Deep Cleaning', description: 'Entire house detailed cleaning', image: require("../../assets/home.png") },
+    { title: 'Kitchen Cleaning', description: 'Degreasing, cabinets & appliances', image: require("../../assets/kitchen.jpg") },
+    { title: 'Washroom Cleaning', description: 'Sanitization & tile scrubbing', image: require("../../assets/bathroom.jpg") },
+    { title: 'Sofa Cleaning', description: 'Deep vacuuming & stain removal', image: require("../../assets/sofa.jpg") },
+    { title: 'Bedroom Cleaning', description: 'Dusting, bedding & floor care', image: require("../../assets/bedroom.jpg") },
+    { title: 'Window Cleaning', description: 'Interior & exterior glass shine', image: require("../../assets/window.jpg") },
+    { title: 'Full Deep Cleaning', description: 'Entire house detailed cleaning', image: require("../../assets/home.jpg") },
   ];
 
   // 2. Toggle selection logic

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,365 +6,315 @@ import {
   TouchableOpacity,
   StyleSheet,
   StatusBar,
-  TextInput,
   Image,
-  Platform,
-  PermissionsAndroid,
-  Alert,
-  ActivityIndicator,
+  Dimensions,
+  Modal,
+  TextInput,
 } from 'react-native';
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import Geolocation from "react-native-geolocation-service";
 import { useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTheme } from "../context/ThemeContext";
 
-// Types
-interface ServiceProvider {
-  id: string;
-  name: string;
-  type: 'Mechanic' | 'Service Center';
-  rating: number;
-  reviews: number;
-  distance: string;
-  isOpen: boolean;
-  specialty: string[];
-  image: string;
-  isEmergency: boolean;
-  vehicleTypes: string[];
-  mobileNumber: string;
-}
+const { width } = Dimensions.get('window');
+
+// --- Category Specific Services ---
+const SUB_SERVICES_DATA: any = {
+  car: [
+    { id: 'c1', name: 'Engine Oil Replacement', price: 1500, selected: true },
+    { id: 'c2', name: 'Oil Filter Change', price: 450, selected: true },
+    { id: 'c3', name: 'AC Filter Cleaning', price: 600, selected: false },
+    { id: 'c4', name: 'Brake Pad Checking', price: 800, selected: false },
+    { id: 'c5', name: 'Coolant Top-up', price: 300, selected: false },
+    { id: 'c6', name: 'Wheel Alignment', price: 1200, selected: false },
+    { id: 'c7', name: 'Interior Vacuuming', price: 500, selected: false },
+  ],
+  bike: [
+    { id: 'b1', name: 'Chain Lubrication', price: 150, selected: true },
+    { id: 'b2', name: 'Spark Plug Cleaning', price: 100, selected: true },
+    { id: 'b3', name: 'Engine Oil (Bike)', price: 450, selected: true },
+    { id: 'b4', name: 'Brake Shoe Adjustment', price: 200, selected: false },
+    { id: 'b5', name: 'Air Filter Cleaning', price: 150, selected: false },
+    { id: 'b6', name: 'Clutch Cable Tightening', price: 100, selected: false },
+  ],
+  truck: [
+    { id: 't1', name: 'Hydraulic System Check', price: 2500, selected: true },
+    { id: 't2', name: 'Air Brake Adjustment', price: 1200, selected: true },
+    { id: 't3', name: 'Grease Point Lubrication', price: 800, selected: true },
+    { id: 't4', name: 'Heavy Duty Oil Change', price: 4500, selected: true },
+    { id: 't5', name: 'Suspension Inspection', price: 1500, selected: false },
+    { id: 't6', name: 'Fuel Filter Replacement', price: 1800, selected: false },
+  ]
+};
+
+const VEHICLE_DATA: any = {
+  car: { brands: ['Maruti', 'Hyundai', 'Tata', 'Toyota', 'Honda'], fuel: ['Petrol', 'Diesel', 'CNG', 'EV'], icon: 'directions-car' },
+  bike: { brands: ['Hero', 'Honda', 'Bajaj', 'Royal Enfield', 'Yamaha'], fuel: ['Petrol', 'Electric'], icon: 'two-wheeler' },
+  truck: { brands: ['Tata', 'Ashok Leyland', 'Eicher', 'BharatBenz'], fuel: ['Diesel', 'CNG'], icon: 'local-shipping' }
+};
+
+// Garage Names per Category
+const GARAGE_NAMES: any = {
+  car: ['Supreme Car Care', 'Apex Auto Garage', 'Luxury Wheels Rajkot'],
+  bike: ['Rapid Bike Fix', 'QuickCycle Hub', 'Two-Wheeler Masters'],
+  truck: ['Heavy Hauler Service', 'Truck Masters GIDC', 'Commercial Fleet Care']
+};
+
+const EMPLOYEES = [
+  { id: 'e1', name: 'Rahul M.', role: 'Senior Mechanic', rating: '4.8', distance: '1.2 km', image: 'https://randomuser.me/api/portraits/men/32.jpg', mobileNumber: '9876543210' },
+  { id: 'e2', name: 'Suresh K.', role: 'Expert Technician', rating: '4.9', distance: '0.8 km', image: 'https://randomuser.me/api/portraits/men/44.jpg', mobileNumber: '9876543211' },
+  { id: 'e3', name: 'Amit P.', role: 'Maintenance Lead', rating: '4.7', distance: '2.5 km', image: 'https://randomuser.me/api/portraits/men/86.jpg', mobileNumber: '9876543212' },
+];
 
 const VehicleSub = () => {
   const navigation = useNavigation<any>();
-  const [selectedVehicle, setSelectedVehicle] = useState<string>('car');
-  const [searchQuery, setSearchQuery] = useState('');
-  
-  // Location States
-  const [currentAddress, setCurrentAddress] = useState("Detecting location...");
-  const [loadingLocation, setLoadingLocation] = useState(false);
+  const { colors, lightMode } = useTheme();
+  const styles = getStyles(colors);
 
-  const vehicleTypes = [
-    { id: 'car', name: 'Car', icon: 'directions-car' },
-    { id: 'bike', name: 'Motorbike', icon: 'two-wheeler' },
-    { id: 'truck', name: 'Heavy', icon: 'local-shipping' },
-    { id: 'ev', name: 'Electric', icon: 'ev-station' },
-    { id: 'cycle', name: 'Bicycle', icon: 'pedal-bike' },
-  ];
+  const [vehicleType, setVehicleType] = useState('car'); 
+  const [brand, setBrand] = useState(VEHICLE_DATA['car'].brands[0]);
+  const [fuel, setFuel] = useState(VEHICLE_DATA['car'].fuel[0]);
+  const [showBrandDropdown, setShowBrandDropdown] = useState(false);
+  const [showFuelDropdown, setShowFuelDropdown] = useState(false);
+const [description, setDescription] = useState('');
+  // Detail Modal States
+  const [showDetail, setShowDetail] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState<any>(null);
+  const [tempServices, setTempServices] = useState<any[]>([]);
+  const [selectedEmp, setSelectedEmp] = useState(EMPLOYEES[0]);
 
-  const providers: ServiceProvider[] = [
-    {
-      id: '1',
-      name: 'Apex Auto Garage',
-      type: 'Service Center',
-      rating: 4.8,
-      reviews: 124,
-      distance: '1.2 km',
-      isOpen: true,
-      specialty: ['Engine', 'Transmission', 'AC'],
-      image: 'https://images.unsplash.com/photo-1486006396123-c775170aa562?q=80&w=400',
-      isEmergency: true,
-      vehicleTypes: ['car', 'ev'],
-      mobileNumber: '+1 234 567 890',
-    },
-    {
-      id: '2',
-      name: 'QuickFix Moto Hub',
-      type: 'Mechanic',
-      rating: 4.5,
-      reviews: 89,
-      distance: '0.8 km',
-      isOpen: true,
-      specialty: ['Tires', 'Brakes', 'Chain'],
-      image: 'https://images.unsplash.com/photo-1558981403-c5f91cbba527?q=80&w=400',
-      isEmergency: false,
-      vehicleTypes: ['bike', 'cycle'],
-      mobileNumber: '+1 987 654 321',
-    },
-    {
-      id: '3',
-      name: 'Elite EV Care',
-      type: 'Service Center',
-      rating: 4.9,
-      reviews: 56,
-      distance: '3.5 km',
-      isOpen: false,
-      specialty: ['Battery', 'Software', 'Diagnostics'],
-      image: 'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?q=80&w=400',
-      isEmergency: false,
-      vehicleTypes: ['car', 'ev'],
-      mobileNumber: '+1 555 444 333',
-    },
-    {
-      id: '4',
-      name: 'Truck & Heavy Masters',
-      type: 'Service Center',
-      rating: 4.2,
-      reviews: 210,
-      distance: '5.2 km',
-      isOpen: true,
-      specialty: ['Hydraulics', 'Suspension'],
-      image: 'https://images.unsplash.com/photo-1519003722824-194d4455a60c?q=80&w=400',
-      isEmergency: true,
-      vehicleTypes: ['truck'],
-      mobileNumber: '+1 111 222 333',
-    },
-    {
-      id: '5',
-      name: 'Precision Cycle Lab',
-      type: 'Mechanic',
-      rating: 4.7,
-      reviews: 42,
-      distance: '2.1 km',
-      isOpen: true,
-      specialty: ['Gears', 'Frames', 'Custom'],
-      image: 'https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?q=80&w=400',
-      isEmergency: false,
-      vehicleTypes: ['cycle'],
-      mobileNumber: '+1 888 777 666',
-    },
-    {
-      id: '6',
-      name: 'Midnight Mechanics',
-      type: 'Mechanic',
-      rating: 4.4,
-      reviews: 156,
-      distance: '4.0 km',
-      isOpen: true,
-      specialty: ['Breakdown', 'Fuel', 'Jumpstart'],
-      image: 'https://images.unsplash.com/photo-1530046339160-ce3e5b0c7a2f?q=80&w=400',
-      isEmergency: true,
-      vehicleTypes: ['car', 'bike', 'truck'],
-      mobileNumber: '+1 000 999 888',
-    },
-  ];
+  // Dynamic Service Packages based on Vehicle Type
+  const packages = useMemo(() => [
+    { id: 'p1', name: 'Standard Service', garageName: GARAGE_NAMES[vehicleType][0], address: '102, Royal Plaza, Rajkot', rating: '4.8', basePrice: 1200 },
+    { id: 'p2', name: 'Comprehensive Care', garageName: GARAGE_NAMES[vehicleType][1], address: 'Plot 45, GIDC Phase 3, Rajkot', rating: '4.9', basePrice: 2500 },
+    { id: 'p3', name: 'Express Checkup', garageName: GARAGE_NAMES[vehicleType][2], address: 'University Road, Rajkot', rating: '4.6', basePrice: 800 },
+  ], [vehicleType]);
 
-  useEffect(() => {
-    getCurrentLocation();
-  }, []);
-
-  const requestLocationPermission = async () => {
-    if (Platform.OS === 'ios') return true;
-    const granted = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
-    );
-    return granted === PermissionsAndroid.RESULTS.GRANTED;
+  const handleVehicleChange = (type: string) => {
+    setVehicleType(type);
+    setBrand(VEHICLE_DATA[type].brands[0]);
+    setFuel(VEHICLE_DATA[type].fuel[0]);
+    setShowBrandDropdown(false);
+    setShowFuelDropdown(false);
   };
 
-  const getCurrentLocation = async () => {
-    const hasPermission = await requestLocationPermission();
-    if (!hasPermission) {
-      setCurrentAddress("Permission Denied");
-      return;
-    }
-
-    setLoadingLocation(true);
-    Geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
-        try {
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18`,
-            { headers: { "User-Agent": "VehicleApp/1.0" } }
-          );
-          const data = await response.json();
-          const address = data.address.road || data.address.suburb || data.display_name.split(',')[0];
-          const city = data.address.city || data.address.town || "";
-          setCurrentAddress(`${address}, ${city}`);
-        } catch (e) {
-          setCurrentAddress("Location Found (Address Error)");
-        } finally {
-          setLoadingLocation(false);
-        }
-      },
-      (error) => {
-        setLoadingLocation(false);
-        setCurrentAddress("Location Unavailable");
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
-    );
+  const handleViewDetails = (pkg: any) => {
+    setSelectedPackage(pkg);
+    setTempServices(SUB_SERVICES_DATA[vehicleType]);
+    setShowDetail(true);
   };
 
-  const filteredProviders = useMemo(() => {
-    return providers.filter(p => 
-      p.vehicleTypes.includes(selectedVehicle) && 
-      p.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [selectedVehicle, searchQuery]);
+  const currentTotal = useMemo(() => {
+    const servicesTotal = tempServices.reduce((sum, s) => s.selected ? sum + s.price : sum, 0);
+    const garageFee = selectedPackage?.basePrice || 0;
+    return servicesTotal + garageFee;
+  }, [tempServices, selectedPackage]);
 
-  const handleProviderSelect = (item: ServiceProvider) => {
+  const handleFinalBook = () => {
+    setShowDetail(false);
+    
+    // Prefixing the name with vehicle type ensures detectCategoryFromTitle works
+    // const finalServiceName = `${vehicleType.charAt(0).toUpperCase() + vehicleType.slice(1)} ${selectedPackage.name}`;
+    const selectedSubServices = tempServices.filter(s => s.selected);
     navigation.navigate("BookCleaning", {
-      selectedService: `${item.name} Service`,
-      allocatedEmployee: {
-        id: item.id,
-        name: item.name,
-        role: item.type,
-        rating: item.rating.toString(),
-        distance: item.distance,
-        image: item.image,
-        verified: true,
-        mobileNumber: item.mobileNumber,
-      },
+        selectedService: selectedPackage.name, // The package name
+      selectedServices: selectedSubServices,
+      allocatedEmployee: selectedEmp,
+      vehicleType: vehicleType, // Sending the full employee object
+      vehicleInfo: `${brand} (${fuel})`,
+      consultationCharge: selectedPackage.basePrice,
+      description: description,
+      pricing: { 
+        total: currentTotal,
+        base: currentTotal - selectedPackage.basePrice
+      }
     });
   };
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-      <StatusBar barStyle="light-content" backgroundColor="#0a1419" />
-      
-      {/* Dynamic Header */}
-      <View style={styles.header}>
-        <View style={styles.topHeader}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconBtn}>
-            <MaterialIcons name="arrow-back-ios" size={20} color="#fff" />
-          </TouchableOpacity>
-          <View style={styles.locationContainer}>
-            <Text style={styles.locationLabel}>MY CURRENT LOCATION</Text>
-            <TouchableOpacity onPress={getCurrentLocation} style={styles.locationRow}>
-              {loadingLocation ? (
-                <ActivityIndicator size="small" color="#135BEC" />
-              ) : (
-                <>
-                  <Text style={styles.locationText} numberOfLines={1}>{currentAddress}</Text>
-                  <MaterialIcons name="my-location" size={16} color="#135BEC" />
-                </>
-              )}
-            </TouchableOpacity>
-          </View>
-          <TouchableOpacity style={styles.iconBtn}>
-            <MaterialIcons name="notifications-none" size={24} color="#fff" />
-          </TouchableOpacity>
-        </View>
+      <StatusBar barStyle={!lightMode ? "light-content" : "dark-content"} backgroundColor={colors.background} />
 
-        <View style={styles.searchContainer}>
-          <MaterialIcons name="search" size={22} color="#64748b" />
-          <TextInput
-            placeholder={`Search ${selectedVehicle} experts...`}
-            placeholderTextColor="#64748b"
-            style={styles.searchInput}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-        </View>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}><MaterialIcons name="arrow-back" size={24} color={colors.text} /></TouchableOpacity>
+        <Text style={styles.headerTitle}>Vehicle Services</Text>
+        <View style={{ width: 40 }}><MaterialIcons name="notifications-none" size={24} color={colors.text} /></View>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Vehicle Selection */}
-        <View style={styles.vehicleSection}>
-          <Text style={styles.sectionTitle}>Repair Category</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.vehicleScroll}>
-            {vehicleTypes.map((v) => (
-              <TouchableOpacity
-                key={v.id}
-                style={[styles.vehicleCard, selectedVehicle === v.id && styles.vehicleCardActive]}
-                onPress={() => setSelectedVehicle(v.id)}
-              >
-                <View style={[styles.vIconBox, selectedVehicle === v.id && styles.vIconBoxActive]}>
-                  <MaterialIcons name={v.icon} size={28} color={selectedVehicle === v.id ? '#fff' : '#64748b'} />
-                </View>
-                <Text style={[styles.vText, selectedVehicle === v.id && styles.vTextActive]}>{v.name}</Text>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.detailsSection}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
+            {Object.keys(VEHICLE_DATA).map((type) => (
+              <TouchableOpacity key={type} onPress={() => handleVehicleChange(type)}
+                style={[styles.typeBtn, { backgroundColor: colors.card, borderColor: colors.border }, vehicleType === type && { backgroundColor: colors.primary, borderColor: colors.primary }]}>
+                <MaterialIcons name={VEHICLE_DATA[type].icon} size={18} color={vehicleType === type ? '#fff' : colors.subText} />
+                <Text style={{ color: vehicleType === type ? '#fff' : colors.subText, fontSize: 11, fontWeight: '700', marginLeft: 6 }}>{type.toUpperCase()}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
-        </View>
 
-        {/* Professionals List */}
-        <View style={styles.resultsSection}>
-          <Text style={styles.sectionTitle}>Experts Near You</Text>
-
-          {filteredProviders.map((item) => (
-            <TouchableOpacity key={item.id} style={styles.providerCard} activeOpacity={0.9} onPress={() => handleProviderSelect(item)}>
-              <Image source={{ uri: item.image }} style={styles.providerImage} />
-              {item.isEmergency && (
-                <View style={styles.emergencyBadge}>
-                  <MaterialIcons name="bolt" size={14} color="#fff" />
-                  <Text style={styles.emergencyText}>FAST REPAIR</Text>
-                </View>
-              )}
-              <View style={styles.cardInfo}>
-                <View style={styles.cardHeader}>
-                  <View>
-                    <Text style={styles.providerName}>{item.name}</Text>
-                    <Text style={styles.providerType}>{item.type} • {item.distance}</Text>
-                  </View>
-                  <View style={styles.ratingBox}>
-                    <MaterialIcons name="star" size={14} color="#fbbf24" />
-                    <Text style={styles.ratingText}>{item.rating}</Text>
-                  </View>
-                </View>
-                <View style={styles.specialtyContainer}>
-                  {item.specialty.map((s, idx) => (
-                    <View key={idx} style={styles.specialtyChip}><Text style={styles.specialtyChipText}>{s}</Text></View>
-                  ))}
-                </View>
-                <View style={styles.cardFooter}>
-                   <View style={styles.statusRow}>
-                      <View style={[styles.statusDot, { backgroundColor: item.isOpen ? '#22c55e' : '#ef4444' }]} />
-                      <Text style={styles.statusText}>{item.isOpen ? 'Available' : 'Closed'}</Text>
-                   </View>
-                   <TouchableOpacity style={styles.bookBtn} onPress={() => handleProviderSelect(item)}>
-                      <Text style={styles.bookBtnText}>Book Now</Text>
-                      <MaterialIcons name="chevron-right" size={18} color="#fff" />
-                   </TouchableOpacity>
-                </View>
-              </View>
+          <View style={styles.dropdownRow}>
+            <TouchableOpacity style={styles.dropdownBtn} onPress={() => { setShowBrandDropdown(!showBrandDropdown); setShowFuelDropdown(false); }}>
+              <Text style={styles.dropdownLabel}>BRAND</Text>
+              <View style={styles.dropValueRow}><Text style={styles.dropdownValue}>{brand}</Text><MaterialIcons name="expand-more" size={18} color={colors.primary} /></View>
             </TouchableOpacity>
-          ))}
-          
-          {filteredProviders.length === 0 && (
-            <View style={styles.emptyState}>
-              <MaterialIcons name="search-off" size={60} color="#1e293a" />
-              <Text style={styles.emptyText}>No {selectedVehicle} specialists match your search.</Text>
-            </View>
+            <TouchableOpacity style={styles.dropdownBtn} onPress={() => { setShowFuelDropdown(!showFuelDropdown); setShowBrandDropdown(false); }}>
+              <Text style={styles.dropdownLabel}>FUEL TYPE</Text>
+              <View style={styles.dropValueRow}><Text style={styles.dropdownValue}>{fuel}</Text><MaterialIcons name="expand-more" size={18} color={colors.primary} /></View>
+            </TouchableOpacity>
+          </View>
+
+          {showBrandDropdown && (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.listScroll}>
+              {VEHICLE_DATA[vehicleType].brands.map((b: string) => (
+                <TouchableOpacity key={b} style={styles.listChip} onPress={() => { setBrand(b); setShowBrandDropdown(false); }}>
+                  <Text style={[styles.infoText, brand === b && { color: colors.primary, fontWeight: '800' }]}>{b}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
+
+          {showFuelDropdown && (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.listScroll}>
+              {VEHICLE_DATA[vehicleType].fuel.map((f: string) => (
+                <TouchableOpacity key={f} style={styles.listChip} onPress={() => { setFuel(f); setShowFuelDropdown(false); }}>
+                  <Text style={[styles.infoText, fuel === f && { color: colors.primary, fontWeight: '800' }]}>{f}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           )}
         </View>
-        <View style={{ height: 40 }} />
+
+        <View style={{ paddingHorizontal: 16 }}>
+          <Text style={styles.sectionTitle}>Available Garages</Text>
+          {packages.map((item) => (
+            <View key={item.id} style={styles.ownerCard}>
+              <View style={{ flexDirection: 'row', marginBottom: 15 }}>
+                <Image source={{ uri: 'https://img.freepik.com/free-photo/auto-mechanic-working-garage-repair-service_1150-13725.jpg' }} style={styles.serviceImg} />
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={styles.ownerName}>{item.garageName}</Text>
+                  <Text style={styles.infoText}>📍 {item.address}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 5 }}>
+                    <MaterialIcons name="star" size={14} color="#fbbf24" />
+                    <Text style={[styles.infoText, { fontWeight: '700' }]}> {item.rating}</Text>
+                  </View>
+                </View>
+              </View>
+              <TouchableOpacity style={styles.buyButton} onPress={() => handleViewDetails(item)}>
+                <Text style={styles.buyButtonText}>VIEW DETAILS</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
       </ScrollView>
+
+      {/* --- DETAILS MODAL --- */}
+      <Modal visible={showDetail} animationType="slide">
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => setShowDetail(false)}><MaterialIcons name="close" size={24} color={colors.text} /></TouchableOpacity>
+            <Text style={styles.headerTitle}>{selectedPackage?.name}</Text>
+            <View style={{ width: 40 }} />
+          </View>
+
+          <ScrollView style={styles.content}>
+            <View style={[styles.ownerCard, { margin: 16 }]}>
+              <Text style={styles.ownerName}>{selectedPackage?.garageName}</Text>
+              <Text style={styles.infoText}>{selectedPackage?.address}</Text>
+            </View>
+
+            <View style={{ padding: 16 }}>
+              <Text style={styles.sectionTitle}>{vehicleType.toUpperCase()} SERVICES INCLUDED</Text>
+              {tempServices.map((s) => (
+                <TouchableOpacity key={s.id} style={styles.checkRow} 
+                  onPress={() => setTempServices(tempServices.map(item => item.id === s.id ? {...item, selected: !item.selected} : item))}>
+                   <MaterialIcons name={s.selected ? "check-box" : "check-box-outline-blank"} size={22} color={s.selected ? colors.primary : colors.subText} />
+                   <View style={{ flex: 1, marginLeft: 10 }}>
+                      <Text style={[styles.ownerName, { fontSize: 14 }]}>{s.name}</Text>
+                      <Text style={styles.infoText}>₹{s.price}</Text>
+                   </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+{/* Description Field */}
+<View style={{ padding: 16 }}>
+  <Text style={styles.sectionTitle}>Problem Description (Optional)</Text>
+  <TextInput
+    placeholder="e.g. Brakes are making noise, oil leak noticed, etc."
+    placeholderTextColor={colors.subText}
+    multiline
+    numberOfLines={4}
+    style={[styles.textArea, { backgroundColor: colors.card, borderColor: colors.border }]}
+    value={description}
+    onChangeText={setDescription}
+  />
+</View>
+            <View style={{ padding: 16 }}>
+              <Text style={styles.sectionTitle}>ALLOCATE PROFESSIONAL</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {EMPLOYEES.map((emp) => (
+                  <TouchableOpacity key={emp.id} onPress={() => setSelectedEmp(emp)}
+                    style={[styles.empCard, { borderColor: selectedEmp.id === emp.id ? colors.primary : colors.border }]}>
+                    <Image source={{ uri: emp.image }} style={styles.empImg} />
+                    <Text style={[styles.ownerName, { fontSize: 11, marginTop: 5, textAlign: 'center' }]}>{emp.name}</Text>
+                    <Text style={{ fontSize: 9, color: colors.subText }}>⭐ {emp.rating}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </ScrollView>
+
+          <View style={[styles.cardFooter, { padding: 20, backgroundColor: colors.card }]}>
+             <View>
+                <Text style={styles.dropdownLabel}>ESTIMATED TOTAL</Text>
+                <Text style={styles.bottomPrice}>₹ {currentTotal}</Text>
+             </View>
+             <TouchableOpacity style={styles.buyButton} onPress={handleFinalBook}>
+                <Text style={styles.buyButtonText}>BOOK NOW</Text>
+             </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0a1419' },
-  header: { paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#0a1419', borderBottomWidth: 1, borderBottomColor: '#1e293a' },
-  topHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
-  iconBtn: { width: 40, height: 40, backgroundColor: '#1a2630', borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  locationContainer: { flex: 1, alignItems: 'center', paddingHorizontal: 10 },
-  locationLabel: { fontSize: 9, color: '#64748b', fontWeight: '800', letterSpacing: 1 },
-  locationRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
-  locationText: { color: '#fff', fontSize: 13, fontWeight: '600', maxWidth: 160 },
-  searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1a2630', borderRadius: 12, paddingHorizontal: 12, height: 48 },
-  searchInput: { flex: 1, color: '#fff', fontSize: 14, marginLeft: 8 },
-  vehicleSection: { marginTop: 20 },
-  sectionTitle: { fontSize: 18, fontWeight: '800', color: '#fff', marginLeft: 16, marginBottom: 16 },
-  vehicleScroll: { paddingHorizontal: 16, gap: 16 },
-  vehicleCard: { alignItems: 'center', gap: 8, marginRight: 12 },
-  vehicleCardActive: { transform: [{ scale: 1.05 }] },
-  vIconBox: { width: 62, height: 62, borderRadius: 18, backgroundColor: '#1a2630', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#1e293a' },
-  vIconBoxActive: { backgroundColor: '#135BEC', borderColor: '#3b82f6' },
-  vText: { fontSize: 11, fontWeight: '600', color: '#64748b' },
-  vTextActive: { color: '#fff' },
-  resultsSection: { marginTop: 24, paddingHorizontal: 16 },
-  providerCard: { backgroundColor: '#1a2630', borderRadius: 16, marginBottom: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#1e293a' },
-  providerImage: { width: '100%', height: 110 },
-  emergencyBadge: { position: 'absolute', top: 10, left: 10, backgroundColor: '#ef4444', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, gap: 4 },
-  emergencyText: { color: '#fff', fontSize: 9, fontWeight: '900' },
-  cardInfo: { padding: 14 },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between' },
-  providerName: { fontSize: 17, fontWeight: '700', color: '#fff' },
-  providerType: { fontSize: 12, color: '#64748b', marginTop: 2 },
-  ratingBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#0a1419', paddingHorizontal: 6, paddingVertical: 3, borderRadius: 6, gap: 3, alignSelf: 'flex-start' },
-  ratingText: { color: '#fff', fontWeight: '700', fontSize: 12 },
-  specialtyContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10 },
-  specialtyChip: { backgroundColor: '#111b21', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 5, borderWidth: 1, borderColor: '#1e293a' },
-  specialtyChipText: { color: '#94a3b8', fontSize: 10, fontWeight: '600' },
-  cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, paddingTop: 14, borderTopWidth: 1, borderTopColor: '#1e293a' },
-  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  statusDot: { width: 7, height: 7, borderRadius: 4 },
-  statusText: { fontSize: 12, color: '#64748b' },
-  bookBtn: { backgroundColor: '#135BEC', borderRadius: 10, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 8, gap: 4 },
-  bookBtnText: { color: '#fff', fontSize: 13, fontWeight: '700' },
-  emptyState: { alignItems: 'center', paddingVertical: 60 },
-  emptyText: { color: '#64748b', marginTop: 12, textAlign: 'center', fontSize: 14 }
+const getStyles = (colors: any) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderBottomWidth: 1, borderBottomColor: colors.border },
+  headerTitle: { fontSize: 18, fontWeight: '700', color: colors.text },
+  content: { flex: 1 },
+  detailsSection: { padding: 16 },
+  sectionTitle: { fontSize: 14, fontWeight: '800', color: colors.text, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 },
+  typeBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, borderWidth: 1 },
+  dropdownRow: { flexDirection: 'row', gap: 10, marginTop: 15 },
+  dropdownBtn: { flex: 1, backgroundColor: colors.card, paddingVertical: 8, paddingHorizontal: 10, borderRadius: 10, borderWidth: 1, borderColor: colors.border },
+  dropdownLabel: { fontSize: 9, color: colors.subText, fontWeight: '800' },
+  dropValueRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 2 },
+  dropdownValue: { fontSize: 13, fontWeight: '700', color: colors.text },
+  listScroll: { marginTop: 10 },
+  listChip: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 15, backgroundColor: colors.card, marginRight: 8, borderWidth: 1, borderColor: colors.border },
+  ownerCard: { backgroundColor: colors.card, padding: 16, borderRadius: 16, marginBottom: 15, borderWidth: 1, borderColor: colors.border },
+  serviceImg: { width: 60, height: 60, borderRadius: 10 },
+  ownerName: { fontSize: 16, fontWeight: '700', color: colors.text },
+  infoText: { fontSize: 12, color: colors.subText },
+  buyButton: { backgroundColor: colors.primary, paddingVertical: 10, paddingHorizontal: 20, borderRadius: 10 },
+  buyButtonText: { color: '#fff', fontWeight: '800', fontSize: 13 },
+  checkRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, padding: 12, borderRadius: 12, marginBottom: 10, borderWidth: 1, borderColor: colors.border },
+  empCard: { width: 95, alignItems: 'center', padding: 10, backgroundColor: colors.card, borderRadius: 12, marginRight: 12, borderWidth: 2 },
+  empImg: { width: 45, height: 45, borderRadius: 25 },
+  cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderTopWidth: 1, borderTopColor: colors.border },
+  bottomPrice: { fontSize: 22, fontWeight: '800', color: colors.primary },
+  textArea: {
+  borderWidth: 1,
+  borderRadius: 12,
+  padding: 12,
+  color: colors.text,
+  fontSize: 14,
+  height: 100,
+  textAlignVertical: 'top',
+  marginTop: 5,
+},
 });
 
 export default VehicleSub;
