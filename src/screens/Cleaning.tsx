@@ -77,13 +77,14 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ title, description, image, on
       
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.headerButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#ffffff" />
+        <TouchableOpacity 
+          style={styles.headerButton}
+          onPress={() => navigation.goBack()}
+        >
+          <MaterialIcons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Select a Service</Text>
-        <TouchableOpacity style={styles.headerButton}>
-          <MaterialIcons name="notifications" size={24} color="#ffffff" />
-        </TouchableOpacity>
+        <View style={styles.headerButton} />
       </View>
 
       {/* Main Content */}
