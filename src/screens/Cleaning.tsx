@@ -29,17 +29,17 @@ const services = [
   {
     title: 'Home Cleaning',
     description: 'Deep or regular house cleaning',
-    image: require("../../assets/home.png"),
+    image: require("../../assets/home.jpg"),
   },
   {
     title: 'Commercial Cleaning',
     description: 'Office and workspace sanitation',
-    image: require("../../assets/commercial.png"),
+    image: require("../../assets/commercial.jpg"),
   },
   {
     title: 'Vehicle Cleaning',
     description: 'Interior & exterior car wash',
-    image: require("../../assets/vehicle.png"),
+    image: require("../../assets/vehicle.jpg"),
   },
 ];
 

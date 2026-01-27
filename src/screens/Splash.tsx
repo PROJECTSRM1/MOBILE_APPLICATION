@@ -14,7 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
-// const gifSource: ImageSourcePropType = require('../../assets/swachlogo.png');
+// const gifSource: ImageSourcePropType = require('../../assets/swachlogo.jpg');
 
 export default function Splash(): React.ReactElement {
   const navigation = useNavigation<any>();

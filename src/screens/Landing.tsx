@@ -793,7 +793,7 @@ const placeholders = [
                       navigation.navigate("Freelancer");
                       break;
 
-                    case "Buy/Sell":
+                    case "Buy/Sell/Rent":
                       navigation.navigate("Marketplace");
                       break;
 
