@@ -7,11 +7,8 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { launchImageLibrary } from 'react-native-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme } from '../context/ThemeContext';
 
 const SellItem = ({ navigation }: any) => {
-  const { colors } = useTheme();
-  const styles = getStyles(colors);
   const [listingType, setListingType] = useState<'sell' | 'rent'>('sell');
   const [propertyType, setPropertyType] = useState('Apartment');
   const [showPropertyPicker, setShowPropertyPicker] = useState(false);
@@ -199,7 +196,7 @@ const SellItem = ({ navigation }: any) => {
       hasSecurity: isHostel ? hasSecurity : null,
       itemCondition,
       createdAt: new Date().toISOString(),
-      isVerified: !isPendingVerification,
+      isVerified: !isPendingVerification, // Only verified listings show on dashboard
       isPendingVerification: isPendingVerification,
       verificationStatus: isPendingVerification ? 'pending' : 'approved',
     };
@@ -346,11 +343,11 @@ const SellItem = ({ navigation }: any) => {
       
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <MaterialIcons name="arrow-back-ios" size={20} color={colors.text} />
+          <MaterialIcons name="arrow-back-ios" size={20} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Sell Item Form</Text>
         <TouchableOpacity>
-          <MaterialIcons name="more-vert" size={24} color={colors.text} />
+          <MaterialIcons name="more-vert" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
 
@@ -456,6 +453,199 @@ const SellItem = ({ navigation }: any) => {
             <View style={styles.fieldContainer}>
               <Text style={styles.label}>AREA</Text>
               <TextInput style={styles.input} placeholder="Downtown / Suburb" placeholderTextColor="#4b5563"
+                value={area} onChangeText={setArea} />
+            </View>
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>FURNISHING TYPE</Text>
+              <View style={styles.furnishingContainer}>
+                {['Unfurnished', 'Semi', 'Full'].map((type) => (
+                  <TouchableOpacity key={type}
+                    style={[styles.furnishingButton, furnishingType === type && styles.activeFurnishing]}
+                    onPress={() => setFurnishingType(type)}
+                  >
+                    <Text style={[styles.furnishingText, furnishingType === type && styles.activeFurnishingText]}>
+                      {type === 'Unfurnished' ? 'NO FURN.' : type === 'Semi' ? 'SEMI' : 'FULL'}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </View>
+        )}
+
+        {isLand && (
+          <View style={styles.section}>
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>REGISTRATION STATUS</Text>
+              <View style={styles.listingTypeContainer}>
+                <TouchableOpacity
+                  style={[styles.listingTypeButton, registrationStatus === 'registered' && styles.activeListingType]}
+                  onPress={() => setRegistrationStatus('registered')}
+                >
+                  <Text style={[styles.listingTypeText, registrationStatus === 'registered' && styles.activeListingTypeText]}>
+                    Registered Land
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.listingTypeButton, registrationStatus === 'non-registered' && styles.activeListingType]}
+                  onPress={() => setRegistrationStatus('non-registered')}
+                >
+                  <Text style={[styles.listingTypeText, registrationStatus === 'non-registered' && styles.activeListingTypeText]}>
+                    Non-Registered
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {registrationStatus === 'non-registered' && (
+              <View style={styles.warningBanner}>
+                <MaterialIcons name="info" size={20} color="#f59e0b" />
+                <Text style={styles.warningText}>
+                  Non-registered land requires verification before posting
+                </Text>
+              </View>
+            )}
+
+            <View style={styles.row}>
+              <View style={styles.halfField}>
+                <Text style={styles.label}>SQFT</Text>
+                <TextInput style={styles.input} placeholder="5000" placeholderTextColor="#4b5563"
+                  keyboardType="numeric" value={sqft} onChangeText={setSqft} />
+              </View>
+              <View style={styles.halfField}>
+                <Text style={styles.label}>LAND TYPE</Text>
+                <TouchableOpacity onPress={() => setShowLandTypePicker(true)}>
+                  <View style={styles.pickerContainer} pointerEvents="none">
+                    <TextInput style={styles.picker} value={landType} editable={false} />
+                    <MaterialIcons name="expand-more" size={24} color="#94a3b8" style={styles.pickerIcon} />
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {registrationStatus === 'registered' && (
+              <View style={styles.fieldContainer}>
+                <Text style={styles.label}>REGISTRATION VALUE (₹)</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="Enter registration value" 
+                  placeholderTextColor="#4b5563"
+                  keyboardType="numeric" 
+                  value={registrationValue} 
+                  onChangeText={setRegistrationValue} 
+                />
+              </View>
+            )}
+
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>MARKET VALUE (₹)</Text>
+              <TextInput 
+                style={styles.input} 
+                placeholder="Enter market value" 
+                placeholderTextColor="#4b5563"
+                keyboardType="numeric" 
+                value={marketValue} 
+                onChangeText={setMarketValue} 
+              />
+            </View>
+
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>LOCATION</Text>
+              <TextInput style={styles.input} placeholder="City or Village" placeholderTextColor="#4b5563"
+                value={location} onChangeText={setLocation} />
+            </View>
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>AREA</Text>
+              <TextInput style={styles.input} placeholder="Industrial Hub" placeholderTextColor="#4b5563"
+                value={area} onChangeText={setArea} />
+            </View>
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>REGISTERED OWNER NAME</Text>
+              <TextInput style={styles.input} placeholder="John Doe" placeholderTextColor="#4b5563"
+                value={ownerName} onChangeText={setOwnerName} />
+            </View>
+
+            <View style={styles.fieldContainer}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>
+                  {registrationStatus === 'registered' 
+                    ? 'Upload Registration Documents' 
+                    : 'Upload Attested Copy Documents'}
+                </Text>
+                <Text style={styles.photoLimit}>UP TO 10 IMAGES</Text>
+              </View>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photoScroll}>
+                <TouchableOpacity style={styles.uploadBox} onPress={pickDocumentImage}>
+                  <MaterialIcons name="upload-file" size={32} color="#135bec" />
+                  <Text style={styles.uploadText}>UPLOAD</Text>
+                </TouchableOpacity>
+                {documentImages.map((image, index) => (
+                  <View key={index} style={styles.imageContainer}>
+                    <Image source={{ uri: image }} style={styles.uploadedImage} />
+                    <TouchableOpacity style={styles.removeButton} onPress={() => removeDocumentImage(index)}>
+                      <MaterialIcons name="close" size={14} color="#fff" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
+          </View>
+        )}
+
+        {isVehicle && (
+          <View style={styles.section}>
+            <View style={styles.row}>
+              <View style={styles.halfField}>
+                <Text style={styles.label}>BRAND</Text>
+                <TextInput style={styles.input} placeholder="Brand Name" placeholderTextColor="#4b5563"
+                  value={brand} onChangeText={setBrand} />
+              </View>
+              <View style={styles.halfField}>
+                <Text style={styles.label}>MODEL</Text>
+                <TextInput style={styles.input} placeholder="Model Name" placeholderTextColor="#4b5563"
+                  value={model} onChangeText={setModel} />
+              </View>
+            </View>
+            <View style={styles.row}>
+              <View style={styles.halfField}>
+                <Text style={styles.label}>YEAR</Text>
+                <TextInput style={styles.input} placeholder="2024" placeholderTextColor="#4b5563"
+                  keyboardType="numeric" value={year} onChangeText={setYear} />
+              </View>
+              <View style={styles.halfField}>
+                <Text style={styles.label}>DISTANCE (KM)</Text>
+                <TextInput style={styles.input} placeholder="10000" placeholderTextColor="#4b5563"
+                  keyboardType="numeric" value={distance} onChangeText={setDistance} />
+              </View>
+            </View>
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>VEHICLE OWNER NAME</Text>
+              <TextInput style={styles.input} placeholder="Owner Name" placeholderTextColor="#4b5563"
+                value={ownerName} onChangeText={setOwnerName} />
+            </View>
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>MOBILE NUMBER</Text>
+              <TextInput style={styles.input} placeholder="+91 98765 43210" placeholderTextColor="#4b5563"
+                keyboardType="phone-pad" value={mobileNumber} onChangeText={setMobileNumber} />
+            </View>
+          </View>
+        )}
+
+        {isCommercial && (
+          <View style={styles.section}>
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>SQFT</Text>
+              <TextInput style={styles.input} placeholder="2000" placeholderTextColor="#4b5563"
+                keyboardType="numeric" value={sqft} onChangeText={setSqft} />
+            </View>
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>LOCATION</Text>
+              <TextInput style={styles.input} placeholder="Full Address" placeholderTextColor="#4b5563"
+                value={location} onChangeText={setLocation} />
+            </View>
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>AREA</Text>
+              <TextInput style={styles.input} placeholder="Business District" placeholderTextColor="#4b5563"
                 value={area} onChangeText={setArea} />
             </View>
           </View>
@@ -637,502 +827,78 @@ const SellItem = ({ navigation }: any) => {
   );
 };
 
-const getStyles = (colors: any) =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-
-    header: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      paddingHorizontal: 16,
-      paddingVertical: 16,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
-    },
-
-    backButton: {
-      width: 40,
-      height: 40,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-
-    headerTitle: {
-      fontSize: 18,
-      fontWeight: "700",
-      color: colors.text,
-    },
-
-    content: {
-      flex: 1,
-    },
-
-    section: {
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-    },
-
-    sectionHeader: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      marginBottom: 12,
-    },
-
-    sectionTitle: {
-      fontSize: 16,
-      fontWeight: "700",
-      color: colors.text,
-    },
-
-    photoLimit: {
-      fontSize: 12,
-      fontWeight: "500",
-      color: colors.subText,
-      letterSpacing: 1,
-    },
-
-    photoScroll: {
-      marginTop: 12,
-    },
-
-    uploadBox: {
-      width: 110,
-      height: 110,
-      backgroundColor: colors.card,
-      borderWidth: 2,
-      borderStyle: "dashed",
-      borderColor: colors.border,
-      borderRadius: 16,
-      justifyContent: "center",
-      alignItems: "center",
-      marginRight: 12,
-    },
-
-    uploadText: {
-      fontSize: 10,
-      fontWeight: "700",
-      color: colors.subText,
-      marginTop: 4,
-      letterSpacing: 1,
-    },
-
-    imageContainer: {
-      width: 110,
-      height: 110,
-      borderRadius: 16,
-      marginRight: 12,
-      position: "relative",
-    },
-
-    uploadedImage: {
-      width: "100%",
-      height: "100%",
-      borderRadius: 16,
-    },
-
-    removeButton: {
-      position: "absolute",
-      top: 6,
-      right: 6,
-      backgroundColor: "rgba(0, 0, 0, 0.6)",
-      borderRadius: 12,
-      padding: 4,
-    },
-
-    label: {
-      fontSize: 12,
-      fontWeight: "700",
-      color: colors.subText,
-      marginBottom: 8,
-      letterSpacing: 1,
-    },
-
-    listingTypeContainer: {
-      flexDirection: "row",
-      gap: 12,
-    },
-
-    listingTypeButton: {
-      flex: 1,
-      paddingVertical: 12,
-      borderRadius: 12,
-      backgroundColor: colors.card,
-      borderWidth: 1,
-      borderColor: colors.border,
-      alignItems: "center",
-    },
-
-    activeListingType: {
-      backgroundColor: colors.primary,
-      borderColor: colors.primary,
-    },
-
-    listingTypeText: {
-      fontSize: 12,
-      fontWeight: "800",
-      color: colors.subText,
-      letterSpacing: 0.5,
-    },
-
-    activeListingTypeText: {
-      color: colors.onPrimary ?? "#ffffff",
-    },
-
-    pickerContainer: {
-      position: "relative",
-    },
-
-    picker: {
-      backgroundColor: colors.card,
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: 16,
-      paddingHorizontal: 16,
-      paddingVertical: 14,
-      fontSize: 16,
-      fontWeight: "500",
-      color: colors.text,
-    },
-
-    pickerIcon: {
-      position: "absolute",
-      right: 16,
-      top: "50%",
-      marginTop: -12,
-    },
-
-    row: {
-      flexDirection: "row",
-      gap: 16,
-      marginBottom: 16,
-    },
-
-    halfField: {
-      flex: 1,
-    },
-
-    fieldContainer: {
-      marginBottom: 16,
-    },
-
-    input: {
-      backgroundColor: colors.card,
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: 16,
-      paddingHorizontal: 16,
-      paddingVertical: 14,
-      fontSize: 16,
-      fontWeight: "500",
-      color: colors.text,
-    },
-
-    furnishingContainer: {
-      flexDirection: "row",
-      gap: 8,
-    },
-
-    furnishingButton: {
-      flex: 1,
-      paddingVertical: 12,
-      borderRadius: 12,
-      backgroundColor: colors.card,
-      borderWidth: 1,
-      borderColor: colors.border,
-      alignItems: "center",
-    },
-
-    activeFurnishing: {
-      backgroundColor: colors.primary,
-      borderColor: colors.primary,
-    },
-
-    furnishingText: {
-      fontSize: 11,
-      fontWeight: "800",
-      color: colors.subText,
-      letterSpacing: 0.5,
-    },
-
-    activeFurnishingText: {
-      color: colors.onPrimary ?? "#ffffff",
-    },
-
-    textArea: {
-      backgroundColor: colors.card,
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: 16,
-      paddingHorizontal: 16,
-      paddingVertical: 14,
-      fontSize: 16,
-      fontWeight: "500",
-      color: colors.text,
-      minHeight: 160,
-      textAlignVertical: "top",
-    },
-
-    wordCount: {
-      fontSize: 10,
-      fontWeight: "700",
-      color: colors.subText,
-      textAlign: "right",
-      marginTop: 8,
-      letterSpacing: 1,
-    },
-
-    servicesGrid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 12,
-      marginTop: 8,
-    },
-
-    serviceButton: {
-      width: '31%',
-      aspectRatio: 1,
-      backgroundColor: colors.card,
-      borderWidth: 2,
-      borderColor: colors.border,
-      borderRadius: 16,
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: 12,
-      position: 'relative',
-    },
-
-    serviceButtonActive: {
-      backgroundColor: colors.primary + '15',
-      borderColor: '#135bec',
-    },
-
-    serviceLabel: {
-      fontSize: 12,
-      fontWeight: '700',
-      color: colors.subText,
-      marginTop: 8,
-      textAlign: 'center',
-    },
-
-    serviceLabelActive: {
-      color: '#135bec',
-    },
-
-    serviceCheckmark: {
-      position: 'absolute',
-      top: 8,
-      right: 8,
-    },
-
-    bottomSection: {
-      backgroundColor: colors.background + "FA",
-      borderTopWidth: 1,
-      borderTopColor: colors.border,
-      paddingTop: 16,
-    },
-
-    postButton: {
-      backgroundColor: colors.primary,
-      marginHorizontal: 16,
-      paddingVertical: 16,
-      borderRadius: 16,
-      alignItems: "center",
-      marginBottom: 4,
-    },
-
-    postButtonText: {
-      fontSize: 16,
-      fontWeight: "800",
-      color: colors.onPrimary ?? "#ffffff",
-    },
-
-    bottomNav: {
-      flexDirection: "row",
-      justifyContent: "space-around",
-      paddingVertical: 12,
-      paddingBottom: 24,
-    },
-
-    navItem: {
-      alignItems: "center",
-      gap: 4,
-    },
-
-    navText: {
-      fontSize: 10,
-      fontWeight: "700",
-      color: colors.subText,
-      letterSpacing: 0.5,
-    },
-
-    modalOverlay: {
-      flex: 1,
-      backgroundColor: "rgba(0, 0, 0, 0.7)",
-      justifyContent: "flex-end",
-    },
-
-    modalContent: {
-      backgroundColor: colors.card,
-      borderTopLeftRadius: 24,
-      borderTopRightRadius: 24,
-      maxHeight: "70%",
-      paddingBottom: 24,
-    },
-
-    modalHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      paddingHorizontal: 20,
-      paddingVertical: 16,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
-    },
-
-    modalTitle: {
-      fontSize: 18,
-      fontWeight: "700",
-      color: colors.text,
-    },
-
-    optionsList: {
-      paddingHorizontal: 16,
-      paddingTop: 8,
-    },
-
-    optionItem: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      paddingVertical: 16,
-      paddingHorizontal: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
-    },
-
-    selectedOption: {
-      backgroundColor: colors.primary + "1A",
-    },
-
-    optionText: {
-      fontSize: 16,
-      fontWeight: "500",
-      color: colors.text,
-    },
-
-    selectedOptionText: {
-      color: colors.primary,
-      fontWeight: "600",
-    },
-
-    warningBanner: { 
-      flexDirection: 'row', 
-      alignItems: 'center', 
-      gap: 10, 
-      backgroundColor: '#2d1f0a', 
-      borderWidth: 1, 
-      borderColor: '#f59e0b', 
-      borderRadius: 12, 
-      padding: 12, 
-      marginBottom: 16 
-    },
-    warningText: { 
-      flex: 1, 
-      fontSize: 13, 
-      fontWeight: '600', 
-      color: '#fbbf24', 
-      lineHeight: 18 
-    },
-
-    verificationOverlay: { 
-      flex: 1, 
-      backgroundColor: 'rgba(0, 0, 0, 0.85)', 
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      paddingHorizontal: 24 
-    },
-    verificationModal: { 
-      backgroundColor: '#161b26', 
-      borderRadius: 24, 
-      padding: 24, 
-      width: '100%', 
-      maxWidth: 400 
-    },
-    verificationIconContainer: { 
-      alignItems: 'center', 
-      marginBottom: 20 
-    },
-    verificationTitle: { 
-      fontSize: 22, 
-      fontWeight: '700', 
-      color: '#fff', 
-      textAlign: 'center', 
-      marginBottom: 12 
-    },
-    verificationMessage: { 
-      fontSize: 15, 
-      fontWeight: '500', 
-      color: '#94a3b8', 
-      textAlign: 'center', 
-      lineHeight: 22, 
-      marginBottom: 24 
-    },
-    verificationInfoBox: { 
-      backgroundColor: '#0f1419', 
-      borderRadius: 16, 
-      padding: 16, 
-      marginBottom: 24 
-    },
-    verificationInfoRow: { 
-      flexDirection: 'row', 
-      alignItems: 'center', 
-      gap: 12, 
-      marginBottom: 12 
-    },
-    verificationInfoText: { 
-      flex: 1, 
-      fontSize: 14, 
-      fontWeight: '500', 
-      color: '#cbd5e1', 
-      lineHeight: 20 
-    },
-    verificationActions: { 
-      flexDirection: 'row', 
-      gap: 12 
-    },
-    verificationCancelButton: { 
-      flex: 1, 
-      paddingVertical: 14, 
-      borderRadius: 12, 
-      backgroundColor: '#232936', 
-      borderWidth: 1, 
-      borderColor: '#2d3748', 
-      alignItems: 'center' 
-    },
-    verificationCancelText: { 
-      fontSize: 15, 
-      fontWeight: '700', 
-      color: '#cbd5e1', 
-      letterSpacing: 0.3 
-    },
-    verificationConfirmButton: { 
-      flex: 1, 
-      paddingVertical: 14, 
-      borderRadius: 12, 
-      backgroundColor: '#f59e0b', 
-      alignItems: 'center' 
-    },
-    verificationConfirmText: { 
-      fontSize: 15, 
-      fontWeight: '700', 
-      color: '#fff', 
-      letterSpacing: 0.3 
-    },
-  });
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#0a0c10' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#232936' },
+  backButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
+  headerTitle: { fontSize: 18, fontWeight: '700', color: '#fff' },
+  content: { flex: 1 },
+  section: { paddingHorizontal: 16, paddingVertical: 12 },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
+  sectionTitle: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  photoLimit: { fontSize: 12, fontWeight: '500', color: '#94a3b8', letterSpacing: 1 },
+  photoScroll: { marginTop: 12 },
+  uploadBox: { width: 110, height: 110, backgroundColor: '#161b26', borderWidth: 2, borderStyle: 'dashed', borderColor: '#232936', borderRadius: 16, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  uploadText: { fontSize: 10, fontWeight: '700', color: '#94a3b8', marginTop: 4, letterSpacing: 1 },
+  imageContainer: { width: 110, height: 110, borderRadius: 16, marginRight: 12, position: 'relative' },
+  uploadedImage: { width: '100%', height: '100%', borderRadius: 16 },
+  removeButton: { position: 'absolute', top: 6, right: 6, backgroundColor: 'rgba(0, 0, 0, 0.6)', borderRadius: 12, padding: 4 },
+  label: { fontSize: 12, fontWeight: '700', color: '#94a3b8', marginBottom: 8, letterSpacing: 1 },
+  listingTypeContainer: { flexDirection: 'row', gap: 12 },
+  listingTypeButton: { flex: 1, paddingVertical: 12, borderRadius: 12, backgroundColor: '#161b26', borderWidth: 1, borderColor: '#232936', alignItems: 'center' },
+  activeListingType: { backgroundColor: '#135bec', borderColor: '#135bec' },
+  listingTypeText: { fontSize: 12, fontWeight: '800', color: '#94a3b8', letterSpacing: 0.5 },
+  activeListingTypeText: { color: '#fff' },
+  pickerContainer: { position: 'relative' },
+  picker: { backgroundColor: '#161b26', borderWidth: 1, borderColor: '#232936', borderRadius: 16, paddingHorizontal: 16, paddingVertical: 14, fontSize: 16, fontWeight: '500', color: '#fff' },
+  pickerIcon: { position: 'absolute', right: 16, top: 14 },
+  input: { backgroundColor: '#161b26', borderWidth: 1, borderColor: '#232936', borderRadius: 16, paddingHorizontal: 16, paddingVertical: 14, fontSize: 16, fontWeight: '500', color: '#fff' },
+  row: { flexDirection: 'row', gap: 12, marginBottom: 16 },
+  halfField: { flex: 1 },
+  fieldContainer: { marginBottom: 16 },
+  furnishingContainer: { flexDirection: 'row', gap: 8 },
+  furnishingButton: { flex: 1, paddingVertical: 12, borderRadius: 12, backgroundColor: '#161b26', borderWidth: 1, borderColor: '#232936', alignItems: 'center' },
+  activeFurnishing: { backgroundColor: '#135bec', borderColor: '#135bec' },
+  furnishingText: { fontSize: 11, fontWeight: '800', color: '#94a3b8', letterSpacing: 0.5 },
+  activeFurnishingText: { color: '#fff' },
+  textArea: { backgroundColor: '#161b26', borderWidth: 1, borderColor: '#232936', borderRadius: 16, paddingHorizontal: 16, paddingVertical: 14, fontSize: 16, fontWeight: '500', color: '#fff', minHeight: 120, textAlignVertical: 'top' },
+  wordCount: { fontSize: 12, color: '#94a3b8', textAlign: 'right', marginTop: 8 },
+  warningBanner: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#2d1f0a', borderWidth: 1, borderColor: '#f59e0b', borderRadius: 12, padding: 12, marginBottom: 16 },
+  warningText: { flex: 1, fontSize: 13, fontWeight: '600', color: '#fbbf24', lineHeight: 18 },
+  servicesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 8 },
+  serviceButton: { width: '31%', aspectRatio: 1, backgroundColor: '#161b26', borderWidth: 2, borderColor: '#232936', borderRadius: 16, justifyContent: 'center', alignItems: 'center', padding: 12, position: 'relative' },
+  serviceButtonActive: { backgroundColor: '#135bec15', borderColor: '#135bec' },
+  serviceLabel: { fontSize: 12, fontWeight: '700', color: '#94a3b8', marginTop: 8, textAlign: 'center' },
+  serviceLabelActive: { color: '#135bec' },
+  serviceCheckmark: { position: 'absolute', top: 8, right: 8 },
+  bottomSection: { backgroundColor: '#0a0c10', paddingTop: 12, borderTopWidth: 1, borderTopColor: '#232936' },
+  postButton: { backgroundColor: '#135bec', paddingVertical: 16, marginHorizontal: 16, borderRadius: 16, alignItems: 'center', marginBottom: 12 },
+  postButtonText: { fontSize: 16, fontWeight: '700', color: '#fff', letterSpacing: 0.5 },
+  bottomNav: { flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 12, backgroundColor: '#0f1419', borderTopWidth: 1, borderTopColor: '#232936' },
+  navItem: { alignItems: 'center', paddingVertical: 4 },
+  navText: { fontSize: 10, fontWeight: '600', color: '#64748b', marginTop: 4, letterSpacing: 0.5 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.7)', justifyContent: 'flex-end' },
+  modalContent: { backgroundColor: '#161b26', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '70%' },
+  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#232936' },
+  modalTitle: { fontSize: 18, fontWeight: '700', color: '#fff' },
+  optionsList: { paddingVertical: 8 },
+  optionItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#232936' },
+  selectedOption: { backgroundColor: '#1a2030' },
+  optionText: { fontSize: 16, fontWeight: '500', color: '#fff' },
+  selectedOptionText: { color: '#135bec', fontWeight: '700' },
+  verificationOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.85)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24 },
+  verificationModal: { backgroundColor: '#161b26', borderRadius: 24, padding: 24, width: '100%', maxWidth: 400 },
+  verificationIconContainer: { alignItems: 'center', marginBottom: 20 },
+  verificationTitle: { fontSize: 22, fontWeight: '700', color: '#fff', textAlign: 'center', marginBottom: 12 },
+  verificationMessage: { fontSize: 15, fontWeight: '500', color: '#94a3b8', textAlign: 'center', lineHeight: 22, marginBottom: 24 },
+  verificationInfoBox: { backgroundColor: '#0f1419', borderRadius: 16, padding: 16, marginBottom: 24 },
+  verificationInfoRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 },
+  verificationInfoText: { flex: 1, fontSize: 14, fontWeight: '500', color: '#cbd5e1', lineHeight: 20 },
+  verificationActions: { flexDirection: 'row', gap: 12 },
+  verificationCancelButton: { flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: '#232936', borderWidth: 1, borderColor: '#2d3748', alignItems: 'center' },
+  verificationCancelText: { fontSize: 15, fontWeight: '700', color: '#cbd5e1', letterSpacing: 0.3 },
+  verificationConfirmButton: { flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: '#f59e0b', alignItems: 'center' },
+  verificationConfirmText: { fontSize: 15, fontWeight: '700', color: '#fff', letterSpacing: 0.3 },
+});
 
 export default SellItem;

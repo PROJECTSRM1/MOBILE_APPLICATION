@@ -45,40 +45,47 @@ interface Property {
   documentImages?: string[];
   hostelType?: string;
   totalRooms?: string;
+  availableRooms?: string;
   foodIncluded?: string;
+  hasAC?: boolean;
+  hasWifi?: boolean;
+  hasTV?: boolean;
+  hasLaundry?: boolean;
+  hasParking?: boolean;
+  hasSecurity?: boolean;
 }
 
 const getDummyData = (): Property[] => [
   { id: 'dummy_1', title: '3 BHK Apartment in Gachibowli', price: '₹85,00,000', image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=500', images: ['https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=500'], rating: 4.8, distance: '1.2 km away', propertyType: 'Apartment', listingType: 'buy', sqft: '1450', bhk: '3 BHK', location: '123 Park Avenue, Gachibowli, Hyderabad', area: 'Gachibowli', furnishingType: 'Full', itemCondition: 'New Item', createdAt: new Date(Date.now() - 2 * 86400000).toISOString() },
-  { id: 'dummy_2', title: '2 BHK Apartment in Madhapur', price: '₹18,000/month', image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=500', images: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=500'], rating: 4.5, distance: '2.8 km away', propertyType: 'Apartment', listingType: 'rent', sqft: '1100', bhk: '2 BHK', location: '45 Green Valley, Madhapur, Hyderabad', area: 'Madhapur', furnishingType: 'Semi', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 5 * 86400000).toISOString() },
+  { id: 'dummy_2', title: '2 BHK Apartment in Madhapur', price: '₹18,000', image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=500', images: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=500'], rating: 4.5, distance: '2.8 km away', propertyType: 'Apartment', listingType: 'rent', sqft: '1100', bhk: '2 BHK', location: '45 Green Valley, Madhapur, Hyderabad', area: 'Madhapur', furnishingType: 'Semi', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 5 * 86400000).toISOString() },
   { id: 'dummy_3', title: 'Honda City 2022', price: '₹12,50,000', image: 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=500', images: ['https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=500'], rating: 4.7, distance: '3.5 km away', propertyType: 'Car', listingType: 'buy', brand: 'Honda', model: 'City', year: '2022', ownerName: 'Rajesh Kumar', mobileNumber: '+91 98765 43210', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 86400000).toISOString(), location: 'Kondapur, Hyderabad', area: 'Kondapur' },
   { id: 'dummy_4', title: 'Villa in Jubilee Hills', price: '₹1,85,00,000', image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500', images: ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500'], rating: 4.9, distance: '4.2 km away', propertyType: 'Villa', listingType: 'buy', sqft: '3200', bhk: '4 BHK', location: 'Plot 12, Road No 45, Jubilee Hills, Hyderabad', area: 'Jubilee Hills', furnishingType: 'Full', itemCondition: 'New Item', createdAt: new Date(Date.now() - 3 * 86400000).toISOString() },
   { id: 'dummy_5', title: 'Commercial Land in Patancheru', price: '₹2,50,00,000', image: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=500', images: ['https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=500'], rating: 4.6, distance: '8.1 km away', propertyType: 'Land', listingType: 'buy', sqft: '10000', landType: 'Commercial', location: 'Sector 5, IDA Patancheru, Hyderabad', area: 'Patancheru', ownerName: 'Suresh Enterprises', marketValue: '2,50,00,000', registrationStatus: 'registered', itemCondition: 'New Item', createdAt: new Date(Date.now() - 10 * 86400000).toISOString() },
   { id: 'dummy_6', title: 'Royal Enfield Classic 350', price: '₹1,45,000', image: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500', images: ['https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500'], rating: 4.4, distance: '1.9 km away', propertyType: 'Bike', listingType: 'buy', brand: 'Royal Enfield', model: 'Classic 350', year: '2021', ownerName: 'Amit Sharma', mobileNumber: '+91 98123 45678', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 7 * 86400000).toISOString(), location: 'Hitech City, Hyderabad', area: 'Hitech City' },
-  { id: 'dummy_7', title: 'Independent House in Banjara Hills', price: '₹45,000/month', image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=500', images: ['https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=500'], rating: 4.7, distance: '5.3 km away', propertyType: 'Independent House', listingType: 'rent', sqft: '2200', bhk: '3 BHK', location: '78 Road No 12, Banjara Hills, Hyderabad', area: 'Banjara Hills', furnishingType: 'Unfurnished', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 4 * 86400000).toISOString() },
-  { id: 'dummy_8', title: 'Office Space in Financial District', price: '₹75,000/month', image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=500', images: ['https://images.unsplash.com/photo-1497366216548-37526070297c?w=500'], rating: 4.8, distance: '6.7 km away', propertyType: 'Office', listingType: 'rent', sqft: '1800', location: 'Tower B, Nanakramguda, Financial District, Hyderabad', area: 'Financial District', itemCondition: 'New Item', createdAt: new Date(Date.now() - 2 * 86400000).toISOString() },
+  { id: 'dummy_7', title: 'Independent House in Banjara Hills', price: '₹45,000', image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=500', images: ['https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=500'], rating: 4.7, distance: '5.3 km away', propertyType: 'Independent House', listingType: 'rent', sqft: '2200', bhk: '3 BHK', location: '78 Road No 12, Banjara Hills, Hyderabad', area: 'Banjara Hills', furnishingType: 'Unfurnished', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 4 * 86400000).toISOString() },
+  { id: 'dummy_8', title: 'Office Space in Financial District', price: '₹75,000', image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=500', images: ['https://images.unsplash.com/photo-1497366216548-37526070297c?w=500'], rating: 4.8, distance: '6.7 km away', propertyType: 'Office', listingType: 'rent', sqft: '1800', location: 'Tower B, Nanakramguda, Financial District, Hyderabad', area: 'Financial District', itemCondition: 'New Item', createdAt: new Date(Date.now() - 2 * 86400000).toISOString() },
   { id: 'dummy_9', title: 'Maruti Suzuki Swift 2023', price: '₹7,85,000', image: 'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=500', images: ['https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=500'], rating: 4.9, distance: '2.4 km away', propertyType: 'Car', listingType: 'buy', brand: 'Maruti Suzuki', model: 'Swift', year: '2023', ownerName: 'Priya Singh', mobileNumber: '+91 99876 54321', itemCondition: 'New Item', createdAt: new Date(Date.now() - 86400000).toISOString(), location: 'Kukatpally, Hyderabad', area: 'Kukatpally' },
   { id: 'dummy_10', title: 'Agriculture Land in Shamshabad', price: '₹45,00,000', image: 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=500', images: ['https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=500'], rating: 4.3, distance: '15.2 km away', propertyType: 'Land', listingType: 'buy', sqft: '43560', landType: 'Agriculture', location: 'Survey No 234, Shamshabad, Hyderabad', area: 'Shamshabad', ownerName: 'Ramesh Patel', marketValue: '45,00,000', registrationStatus: 'registered', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 15 * 86400000).toISOString() },
-  { id: 'dummy_11', title: '1 BHK Apartment in Ameerpet', price: '₹12,000/month', image: 'https://images.unsplash.com/photo-1502672260066-6bc35f0a1f80?w=500', images: ['https://images.unsplash.com/photo-1502672260066-6bc35f0a1f80?w=500'], rating: 4.5, distance: '0.8 km away', propertyType: 'Apartment', listingType: 'rent', sqft: '650', bhk: '1 BHK', location: '12 SR Nagar Main Road, Ameerpet, Hyderabad', area: 'Ameerpet', furnishingType: 'Semi', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 6 * 86400000).toISOString() },
+  { id: 'dummy_11', title: '1 BHK Apartment in Ameerpet', price: '₹12,000', image: 'https://images.unsplash.com/photo-1502672260066-6bc35f0a1f80?w=500', images: ['https://images.unsplash.com/photo-1502672260066-6bc35f0a1f80?w=500'], rating: 4.5, distance: '0.8 km away', propertyType: 'Apartment', listingType: 'rent', sqft: '650', bhk: '1 BHK', location: '12 SR Nagar Main Road, Ameerpet, Hyderabad', area: 'Ameerpet', furnishingType: 'Semi', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 6 * 86400000).toISOString() },
   { id: 'dummy_12', title: 'Tata Ace Lorry 2020', price: '₹4,25,000', image: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=500', images: ['https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=500'], rating: 4.2, distance: '7.6 km away', propertyType: 'Lorry', listingType: 'buy', brand: 'Tata', model: 'Ace', year: '2020', ownerName: 'Vijay Transport', mobileNumber: '+91 97654 32109', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 12 * 86400000).toISOString(), location: 'LB Nagar, Hyderabad', area: 'LB Nagar' },
-  { id: 'dummy_13', title: '4 BHK Villa in Kokapet', price: '₹95,000/month', image: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=500', images: ['https://images.unsplash.com/photo-1613977257363-707ba9348227?w=500'], rating: 4.9, distance: '9.4 km away', propertyType: 'Villa', listingType: 'rent', sqft: '3800', bhk: '4 BHK', location: 'Villa 7, Aparna Zenon, Kokapet, Hyderabad', area: 'Kokapet', furnishingType: 'Full', itemCondition: 'New Item', createdAt: new Date(Date.now() - 3 * 86400000).toISOString() },
+  { id: 'dummy_13', title: '4 BHK Villa in Kokapet', price: '₹95,000', image: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=500', images: ['https://images.unsplash.com/photo-1613977257363-707ba9348227?w=500'], rating: 4.9, distance: '9.4 km away', propertyType: 'Villa', listingType: 'rent', sqft: '3800', bhk: '4 BHK', location: 'Villa 7, Aparna Zenon, Kokapet, Hyderabad', area: 'Kokapet', furnishingType: 'Full', itemCondition: 'New Item', createdAt: new Date(Date.now() - 3 * 86400000).toISOString() },
   { id: 'dummy_14', title: 'Bajaj Pulsar NS200', price: '₹95,000', image: 'https://images.unsplash.com/photo-1609630875171-b1321377ee65?w=500', images: ['https://images.unsplash.com/photo-1609630875171-b1321377ee65?w=500'], rating: 4.6, distance: '3.1 km away', propertyType: 'Bike', listingType: 'buy', brand: 'Bajaj', model: 'Pulsar NS200', year: '2022', ownerName: 'Rohan Verma', mobileNumber: '+91 98234 56789', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 8 * 86400000).toISOString(), location: 'Dilsukhnagar, Hyderabad', area: 'Dilsukhnagar' },
   { id: 'dummy_15', title: 'Commercial Space in Begumpet', price: '₹1,25,00,000', image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500', images: ['https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500'], rating: 4.7, distance: '5.9 km away', propertyType: 'Commercial Space', listingType: 'buy', sqft: '2500', location: 'Shop 23, Paradise Circle, Begumpet, Hyderabad', area: 'Begumpet', itemCondition: 'New Item', createdAt: new Date(Date.now() - 5 * 86400000).toISOString() },
   { id: 'dummy_16', title: 'Hyundai Creta 2021', price: '₹14,50,000', image: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=500', images: ['https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=500'], rating: 4.8, distance: '4.3 km away', propertyType: 'Car', listingType: 'buy', brand: 'Hyundai', model: 'Creta', year: '2021', ownerName: 'Anjali Mehta', mobileNumber: '+91 96543 21098', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 9 * 86400000).toISOString(), location: 'Miyapur, Hyderabad', area: 'Miyapur' },
   { id: 'dummy_17', title: '2 BHK Independent House in Uppal', price: '₹62,00,000', image: 'https://images.unsplash.com/photo-1592595896551-12b371d546d5?w=500', images: ['https://images.unsplash.com/photo-1592595896551-12b371d546d5?w=500'], rating: 4.4, distance: '6.8 km away', propertyType: 'Independent House', listingType: 'buy', sqft: '1600', bhk: '2 BHK', location: '34 Garden Lane, Uppal, Hyderabad', area: 'Uppal', furnishingType: 'Unfurnished', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 20 * 86400000).toISOString() },
-  { id: 'dummy_18', title: 'Hospital Building in Secunderabad', price: '₹2,50,000/month', image: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=500', images: ['https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=500'], rating: 4.6, distance: '11.2 km away', propertyType: 'Hospital', listingType: 'rent', sqft: '8500', location: 'MG Road, Secunderabad, Hyderabad', area: 'Secunderabad', itemCondition: 'New Item', createdAt: new Date(Date.now() - 4 * 86400000).toISOString() },
+  { id: 'dummy_18', title: 'Hospital Building in Secunderabad', price: '₹2,50,000', image: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=500', images: ['https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=500'], rating: 4.6, distance: '11.2 km away', propertyType: 'Hospital', listingType: 'rent', sqft: '8500', location: 'MG Road, Secunderabad, Hyderabad', area: 'Secunderabad', itemCondition: 'New Item', createdAt: new Date(Date.now() - 4 * 86400000).toISOString() },
   { id: 'dummy_19', title: 'TVS Jupiter Scooter', price: '₹52,000', image: 'https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=500', images: ['https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=500'], rating: 4.3, distance: '2.7 km away', propertyType: 'Bike', listingType: 'buy', brand: 'TVS', model: 'Jupiter', year: '2020', ownerName: 'Sneha Reddy', mobileNumber: '+91 95432 10987', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 11 * 86400000).toISOString(), location: 'Kompally, Hyderabad', area: 'Kompally' },
-  { id: 'dummy_20', title: '3 BHK Apartment in Manikonda', price: '₹35,000/month', image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=500', images: ['https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=500'], rating: 4.7, distance: '3.9 km away', propertyType: 'Apartment', listingType: 'rent', sqft: '1550', bhk: '3 BHK', location: 'Apartment 305, My Home Bhooja, Manikonda, Hyderabad', area: 'Manikonda', furnishingType: 'Full', itemCondition: 'New Item', createdAt: new Date(Date.now() - 2 * 86400000).toISOString() },
+  { id: 'dummy_20', title: '3 BHK Apartment in Manikonda', price: '₹35,000', image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=500', images: ['https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=500'], rating: 4.7, distance: '3.9 km away', propertyType: 'Apartment', listingType: 'rent', sqft: '1550', bhk: '3 BHK', location: 'Apartment 305, My Home Bhooja, Manikonda, Hyderabad', area: 'Manikonda', furnishingType: 'Full', itemCondition: 'New Item', createdAt: new Date(Date.now() - 2 * 86400000).toISOString() },
   
   // HOSTEL DUMMY DATA
-  { id: 'hostel_1', title: 'Boys Hostel in Kukatpally', price: '₹8,500/month', image: 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=500', images: ['https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=500'], rating: 4.5, distance: '1.5 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '25', hostelType: 'Boys', foodIncluded: 'Yes', location: '45 KPHB Colony, Kukatpally, Hyderabad', area: 'Kukatpally', itemCondition: 'New Item', createdAt: new Date(Date.now() - 3 * 86400000).toISOString() },
-  { id: 'hostel_2', title: 'Girls Hostel in Gachibowli', price: '₹10,000/month', image: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=500', images: ['https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=500'], rating: 4.8, distance: '0.8 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '30', hostelType: 'Girls', foodIncluded: 'Yes', location: '12 Vinayak Nagar, Gachibowli, Hyderabad', area: 'Gachibowli', itemCondition: 'New Item', createdAt: new Date(Date.now() - 1 * 86400000).toISOString() },
-  { id: 'hostel_3', title: 'Co-living Hostel in Madhapur', price: '₹9,000/month', image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=500', images: ['https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=500'], rating: 4.6, distance: '2.1 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '40', hostelType: 'Co-living', foodIncluded: 'No', location: '23 Kavuri Hills, Madhapur, Hyderabad', area: 'Madhapur', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 5 * 86400000).toISOString() },
-  { id: 'hostel_4', title: 'Boys PG in Ameerpet', price: '₹7,500/month', image: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=500', images: ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=500'], rating: 4.3, distance: '1.2 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '20', hostelType: 'Boys', foodIncluded: 'Yes', location: '56 Punjagutta Main Road, Ameerpet, Hyderabad', area: 'Ameerpet', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 7 * 86400000).toISOString() },
-  { id: 'hostel_5', title: 'Girls PG in Hitech City', price: '₹11,000/month', image: 'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=500', images: ['https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=500'], rating: 4.9, distance: '0.5 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '18', hostelType: 'Girls', foodIncluded: 'Yes', location: '78 Cyber Towers Road, Hitech City, Hyderabad', area: 'Hitech City', itemCondition: 'New Item', createdAt: new Date(Date.now() - 2 * 86400000).toISOString() },
-  { id: 'hostel_6', title: 'Student Hostel in Dilsukhnagar', price: '₹6,500/month', image: 'https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=500', images: ['https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=500'], rating: 4.2, distance: '3.5 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '35', hostelType: 'Co-living', foodIncluded: 'No', location: '90 Moosarambagh, Dilsukhnagar, Hyderabad', area: 'Dilsukhnagar', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 10 * 86400000).toISOString() },
-  { id: 'hostel_7', title: 'Premium Boys Hostel in Kondapur', price: '₹12,000/month', image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=500', images: ['https://images.unsplash.com/photo-1566073771259-6a8506099945?w=500'], rating: 4.7, distance: '2.8 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '22', hostelType: 'Boys', foodIncluded: 'Yes', location: '34 Botanical Garden Road, Kondapur, Hyderabad', area: 'Kondapur', itemCondition: 'New Item', createdAt: new Date(Date.now() - 4 * 86400000).toISOString() },
-  { id: 'hostel_8', title: 'Working Women Hostel in Banjara Hills', price: '₹13,500/month', image: 'https://images.unsplash.com/photo-1502672260066-6bc35f0a1f80?w=500', images: ['https://images.unsplash.com/photo-1502672260066-6bc35f0a1f80?w=500'], rating: 4.8, distance: '4.2 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '15', hostelType: 'Girls', foodIncluded: 'Yes', location: 'Road No 3, Banjara Hills, Hyderabad', area: 'Banjara Hills', itemCondition: 'New Item', createdAt: new Date(Date.now() - 3 * 86400000).toISOString() },
+  { id: 'hostel_1', title: 'Boys Hostel in Kukatpally', price: '₹8,500', image: 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=500', images: ['https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=500'], rating: 4.5, distance: '1.5 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '25', availableRooms: '8', hostelType: 'Boys', foodIncluded: 'Yes', hasAC: true, hasWifi: true, hasTV: false, hasLaundry: true, hasParking: true, hasSecurity: true, location: '45 KPHB Colony, Kukatpally, Hyderabad', area: 'Kukatpally', itemCondition: 'New Item', createdAt: new Date(Date.now() - 3 * 86400000).toISOString() },
+  { id: 'hostel_2', title: 'Girls Hostel in Gachibowli', price: '₹10,000', image: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=500', images: ['https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=500'], rating: 4.8, distance: '0.8 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '30', availableRooms: '12', hostelType: 'Girls', foodIncluded: 'Yes', hasAC: true, hasWifi: true, hasTV: true, hasLaundry: true, hasParking: true, hasSecurity: true, location: '12 Vinayak Nagar, Gachibowli, Hyderabad', area: 'Gachibowli', itemCondition: 'New Item', createdAt: new Date(Date.now() - 1 * 86400000).toISOString() },
+  { id: 'hostel_3', title: 'Co-living Hostel in Madhapur', price: '₹9,000', image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=500', images: ['https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=500'], rating: 4.6, distance: '2.1 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '40', availableRooms: '15', hostelType: 'Co-living', foodIncluded: 'No', hasAC: false, hasWifi: true, hasTV: false, hasLaundry: false, hasParking: true, hasSecurity: true, location: '23 Kavuri Hills, Madhapur, Hyderabad', area: 'Madhapur', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 5 * 86400000).toISOString() },
+  { id: 'hostel_4', title: 'Boys PG in Ameerpet', price: '₹7,500', image: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=500', images: ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=500'], rating: 4.3, distance: '1.2 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '20', availableRooms: '6', hostelType: 'Boys', foodIncluded: 'Yes', hasAC: false, hasWifi: true, hasTV: false, hasLaundry: true, hasParking: false, hasSecurity: true, location: '56 Punjagutta Main Road, Ameerpet, Hyderabad', area: 'Ameerpet', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 7 * 86400000).toISOString() },
+  { id: 'hostel_5', title: 'Girls PG in Hitech City', price: '₹11,000', image: 'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=500', images: ['https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=500'], rating: 4.9, distance: '0.5 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '18', availableRooms: '4', hostelType: 'Girls', foodIncluded: 'Yes', hasAC: true, hasWifi: true, hasTV: true, hasLaundry: true, hasParking: true, hasSecurity: true, location: '78 Cyber Towers Road, Hitech City, Hyderabad', area: 'Hitech City', itemCondition: 'New Item', createdAt: new Date(Date.now() - 2 * 86400000).toISOString() },
+  { id: 'hostel_6', title: 'Student Hostel in Dilsukhnagar', price: '₹6,500', image: 'https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=500', images: ['https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=500'], rating: 4.2, distance: '3.5 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '35', availableRooms: '10', hostelType: 'Co-living', foodIncluded: 'No', hasAC: false, hasWifi: true, hasTV: false, hasLaundry: false, hasParking: false, hasSecurity: true, location: '90 Moosarambagh, Dilsukhnagar, Hyderabad', area: 'Dilsukhnagar', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 10 * 86400000).toISOString() },
+  { id: 'hostel_7', title: 'Premium Boys Hostel in Kondapur', price: '₹12,000', image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=500', images: ['https://images.unsplash.com/photo-1566073771259-6a8506099945?w=500'], rating: 4.7, distance: '2.8 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '22', availableRooms: '5', hostelType: 'Boys', foodIncluded: 'Yes', hasAC: true, hasWifi: true, hasTV: true, hasLaundry: true, hasParking: true, hasSecurity: true, location: '34 Botanical Garden Road, Kondapur, Hyderabad', area: 'Kondapur', itemCondition: 'New Item', createdAt: new Date(Date.now() - 4 * 86400000).toISOString() },
+  { id: 'hostel_8', title: 'Working Women Hostel in Banjara Hills', price: '₹13,500', image: 'https://images.unsplash.com/photo-1502672260066-6bc35f0a1f80?w=500', images: ['https://images.unsplash.com/photo-1502672260066-6bc35f0a1f80?w=500'], rating: 4.8, distance: '4.2 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '15', availableRooms: '3', hostelType: 'Girls', foodIncluded: 'Yes', hasAC: true, hasWifi: true, hasTV: true, hasLaundry: true, hasParking: true, hasSecurity: true, location: 'Road No 3, Banjara Hills, Hyderabad', area: 'Banjara Hills', itemCondition: 'New Item', createdAt: new Date(Date.now() - 3 * 86400000).toISOString() },
 ];
 
 const Marketplace = ({ navigation }: any) => {
@@ -131,88 +138,84 @@ const Marketplace = ({ navigation }: any) => {
     }
   };
 
-  // Only showing the loadListings function - rest of the file remains the same
-
-const loadListings = async () => {
-  try {
-    const storedListings = await AsyncStorage.getItem('marketplace_listings');
-    let userListings: Property[] = [];
-    
-    if (storedListings) {
-      const parsedListings = JSON.parse(storedListings);
-      const verifiedListings = parsedListings.filter((listing: any) => listing.isVerified === true);
+  const loadListings = async () => {
+    try {
+      const storedListings = await AsyncStorage.getItem('marketplace_listings');
+      let userListings: Property[] = [];
       
-      userListings = verifiedListings.map((listing: any) => {
-        const isNew = listing.createdAt && 
-          (new Date().getTime() - new Date(listing.createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000;
+      if (storedListings) {
+        const parsedListings = JSON.parse(storedListings);
+        const verifiedListings = parsedListings.filter((listing: any) => listing.isVerified === true);
         
-        let title = '';
-        if (['Apartment', 'Villa', 'Independent House'].includes(listing.propertyType)) {
-          title = `${listing.bhk || ''} ${listing.propertyType} in ${listing.area || 'Unknown'}`;
-        } else if (listing.propertyType === 'Land') {
-          title = `${listing.landType || ''} Land in ${listing.area || 'Unknown'}`;
-        } else if (['Bike', 'Car', 'Lorry', 'Auto', 'Bus'].includes(listing.propertyType)) {
-          title = `${listing.brand || ''} ${listing.model || ''} ${listing.year || ''}`.trim();
-        } else if (listing.propertyType === 'Hostel') {
-          title = `${listing.hostelType || ''} Hostel in ${listing.area || 'Unknown'}`;
-        } else {
-          title = `${listing.propertyType} in ${listing.area || 'Unknown'}`;
-        }
+        userListings = verifiedListings.map((listing: any) => {
+          const isNew = listing.createdAt && 
+            (new Date().getTime() - new Date(listing.createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000;
+          
+          let title = '';
+          if (['Apartment', 'Villa', 'Independent House'].includes(listing.propertyType)) {
+            title = `${listing.bhk || ''} ${listing.propertyType} in ${listing.area || 'Unknown'}`;
+          } else if (listing.propertyType === 'Land') {
+            title = `${listing.landType || ''} Land in ${listing.area || 'Unknown'}`;
+          } else if (['Bike', 'Car', 'Lorry', 'Auto', 'Bus'].includes(listing.propertyType)) {
+            title = `${listing.brand || ''} ${listing.model || ''} ${listing.year || ''}`.trim();
+          } else if (listing.propertyType === 'Hostel') {
+            title = `${listing.hostelType || ''} Hostel in ${listing.area || 'Unknown'}`;
+          } else {
+            title = `${listing.propertyType} in ${listing.area || 'Unknown'}`;
+          }
 
-        return {
-          id: listing.id, 
-          title: title || listing.propertyType,
-          price: `₹${parseFloat(listing.price).toLocaleString('en-IN')}`,
-          image: listing.images?.[0] || 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=500',
-          images: listing.images, 
-          rating: 4.5 + Math.random() * 0.5,
-          distance: `${(Math.random() * 5).toFixed(1)} km away`,
-          type: listing.propertyType, 
-          propertyType: listing.propertyType,
-          listingType: listing.type, 
-          isNew, 
-          isFavorite: false,
-          description: listing.description, 
-          sqft: listing.sqft, 
-          bhk: listing.bhk,
-          location: listing.location, 
-          area: listing.area, 
-          furnishingType: listing.furnishingType,
-          landType: listing.landType, 
-          ownerName: listing.ownerName, 
-          brand: listing.brand,
-          model: listing.model, 
-          year: listing.year, 
-          mobileNumber: listing.mobileNumber,
-          createdAt: listing.createdAt, 
-          itemCondition: listing.itemCondition,
-          registrationStatus: listing.registrationStatus, 
-          marketValue: listing.marketValue,
-          registrationValue: listing.registrationValue,
-          documentImages: listing.documentImages,
-          // HOSTEL FIELDS - Make sure ALL are passed through
-          hostelType: listing.hostelType,
-          totalRooms: listing.totalRooms,
-          availableRooms: listing.availableRooms, // THIS WAS MISSING
-          foodIncluded: listing.foodIncluded,
-          // AMENITIES - Make sure ALL are passed through
-          hasAC: listing.hasAC,
-          hasWifi: listing.hasWifi,
-          hasTV: listing.hasTV,
-          hasLaundry: listing.hasLaundry,
-          hasParking: listing.hasParking,
-          hasSecurity: listing.hasSecurity,
-        };
-      });
+          return {
+            id: listing.id, 
+            title: title || listing.propertyType,
+            price: `₹${parseFloat(listing.price).toLocaleString('en-IN')}`,
+            image: listing.images?.[0] || 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=500',
+            images: listing.images, 
+            rating: 4.5 + Math.random() * 0.5,
+            distance: `${(Math.random() * 5).toFixed(1)} km away`,
+            type: listing.propertyType, 
+            propertyType: listing.propertyType,
+            listingType: listing.type, 
+            isNew, 
+            isFavorite: false,
+            description: listing.description, 
+            sqft: listing.sqft, 
+            bhk: listing.bhk,
+            location: listing.location, 
+            area: listing.area, 
+            furnishingType: listing.furnishingType,
+            landType: listing.landType, 
+            ownerName: listing.ownerName, 
+            brand: listing.brand,
+            model: listing.model, 
+            year: listing.year, 
+            mobileNumber: listing.mobileNumber,
+            createdAt: listing.createdAt, 
+            itemCondition: listing.itemCondition,
+            registrationStatus: listing.registrationStatus, 
+            marketValue: listing.marketValue,
+            registrationValue: listing.registrationValue,
+            documentImages: listing.documentImages,
+            hostelType: listing.hostelType,
+            totalRooms: listing.totalRooms,
+            availableRooms: listing.availableRooms,
+            foodIncluded: listing.foodIncluded,
+            hasAC: listing.hasAC,
+            hasWifi: listing.hasWifi,
+            hasTV: listing.hasTV,
+            hasLaundry: listing.hasLaundry,
+            hasParking: listing.hasParking,
+            hasSecurity: listing.hasSecurity,
+          };
+        });
+      }
+
+      const allListings = [...getDummyData(), ...userListings];
+      setProperties(allListings);
+    } catch (error) {
+      console.error('Error loading listings:', error);
+      setProperties(getDummyData());
     }
-
-    const allListings = [...getDummyData(), ...userListings];
-    setProperties(allListings);
-  } catch (error) {
-    console.error('Error loading listings:', error);
-    setProperties(getDummyData());
-  }
-};
+  };
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -245,6 +248,17 @@ const loadListings = async () => {
       (error) => setLocation('Gachibowli, Hyderabad'),
       { enableHighAccuracy: true, timeout: 20000, maximumAge: 0, forceRequestLocation: true, showLocationDialog: true }
     );
+  };
+
+  // Helper function to get category from property type
+  const getCategoryFromPropertyType = (propertyType: string): string => {
+    if (propertyType === 'Land') return 'Land';
+    if (propertyType === 'Apartment') return 'Apartment';
+    if (['Bike', 'Car', 'Lorry', 'Auto', 'Bus'].includes(propertyType)) return 'Vehicle';
+    if (['Villa', 'Independent House'].includes(propertyType)) return 'House';
+    if (['Office', 'Hospital', 'Commercial Space'].includes(propertyType)) return 'Commercial';
+    if (propertyType === 'Hostel') return 'Hostel';
+    return 'All';
   };
 
   const filteredProperties = properties.filter((property) => {
@@ -283,6 +297,15 @@ const loadListings = async () => {
     
     return matchesTab && matchesCategory && matchesPropertyType && matchesDate && matchesRating && matchesSearch;
   });
+
+  // Handler for property type selection that syncs with category
+  const handlePropertyTypeSelect = (propertyType: string) => {
+    setSelectedPropertyType(propertyType);
+    if (propertyType !== 'All') {
+      const category = getCategoryFromPropertyType(propertyType);
+      setSelectedCategory(category);
+    }
+  };
 
   const FilterModal = ({ visible, onClose, options, selectedValue, onSelect, title }: any) => (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -449,7 +472,10 @@ const loadListings = async () => {
                 </View>
                 <View style={styles.cardContent}>
                   <Text style={styles.cardTitle} numberOfLines={1}>{property.title}</Text>
-                  <Text style={styles.cardPrice}>{property.price}</Text>
+                  <Text style={styles.cardPrice}>
+                    {property.price}
+                    {property.listingType === 'rent' && <Text style={styles.perMonthText}>/month</Text>}
+                  </Text>
                   <View style={styles.locationRow}><MaterialIcons name="location-on" size={12} color="#64748b" /><Text style={styles.locationDetailText} numberOfLines={1}>{property.location}</Text></View>
                   <View style={styles.areaRow}><MaterialIcons name="place" size={12} color="#64748b" /><Text style={styles.areaDetailText} numberOfLines={1}>{property.area}</Text></View>
                   <View style={styles.cardDetails}>
@@ -472,7 +498,14 @@ const loadListings = async () => {
       </View>
 
       <FilterModal visible={showListingTypeModal} onClose={() => setShowListingTypeModal(false)} options={['Buy', 'Rent']} selectedValue={activeTab === 'buy' ? 'Buy' : 'Rent'} onSelect={(v: string) => setActiveTab(v.toLowerCase() as any)} title="Select Listing Type" />
-      <FilterModal visible={showPropertyTypeModal} onClose={() => setShowPropertyTypeModal(false)} options={['All', 'Apartment', 'Villa', 'Independent House', 'Land', 'Bike', 'Car', 'Lorry', 'Auto', 'Bus', 'Office', 'Hospital', 'Commercial Space', 'Hostel']} selectedValue={selectedPropertyType} onSelect={setSelectedPropertyType} title="Select Property Type" />
+      <FilterModal 
+        visible={showPropertyTypeModal} 
+        onClose={() => setShowPropertyTypeModal(false)} 
+        options={['All', 'Apartment', 'Villa', 'Independent House', 'Land', 'Bike', 'Car', 'Lorry', 'Auto', 'Bus', 'Office', 'Hospital', 'Commercial Space', 'Hostel']} 
+        selectedValue={selectedPropertyType} 
+        onSelect={handlePropertyTypeSelect} 
+        title="Select Property Type" 
+      />
       <FilterModal visible={showDateModal} onClose={() => setShowDateModal(false)} options={['All Time', 'Today', 'Last 7 Days', 'Last 30 Days', 'Last 3 Months']} selectedValue={selectedDateFilter} onSelect={setSelectedDateFilter} title="Filter by Date" />
       <FilterModal visible={showRatingModal} onClose={() => setShowRatingModal(false)} options={['All Ratings', '4.5+ Stars', '4.0+ Stars', '3.5+ Stars', '3.0+ Stars']} selectedValue={selectedRatingFilter} onSelect={setSelectedRatingFilter} title="Filter by Rating" />
     </SafeAreaView>
@@ -558,4 +591,5 @@ const getStyles = (colors: any) =>
     newConditionBadge: { backgroundColor: '#10b981' },
     oldConditionBadge: { backgroundColor: '#6b7280' },
     conditionBadgeText: { fontSize: 8, fontWeight: '800', color: '#fff' },
+    perMonthText: { fontSize: 12, fontWeight: '600', color: '#64748b' },
   });

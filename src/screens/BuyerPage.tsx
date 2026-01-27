@@ -189,7 +189,10 @@ const BuyerPage = ({ route, navigation }: any) => {
 
         <View style={styles.detailsSection}>
           <Text style={styles.propertyTitle}>{property.title || property.propertyType}</Text>
-          <Text style={styles.propertyPrice}>{property.price}</Text>
+          <Text style={styles.propertyPrice}>
+  {property.price}
+  {property.listingType === 'rent' && <Text style={styles.perMonthText}>/month</Text>}
+</Text>
 
           <View style={styles.infoRow}>
             <MaterialIcons name="location-on" size={16} color="#64748b" />
@@ -297,7 +300,10 @@ const BuyerPage = ({ route, navigation }: any) => {
       <View style={styles.bottomSection}>
         <View>
           <Text style={styles.bottomPriceLabel}>Price</Text>
-          <Text style={styles.bottomPrice}>{property.price}/month</Text>
+          <Text style={styles.bottomPrice}>
+  {property.price}
+  {property.listingType === 'rent' && <Text style={styles.bottomPerMonthText}>/month</Text>}
+</Text>
         </View>
         <TouchableOpacity style={styles.buyButton} onPress={handleBuyProperty}>
           <Text style={styles.buyButtonText}>Contact Seller</Text>
@@ -462,7 +468,9 @@ const getStyles = (colors: any) => StyleSheet.create({
   closeFullBtn: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
   fullScreenTitle: { color: '#fff', fontSize: 16, fontWeight: '700' },
   fullScreenImageContent: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  fullScreenImage: { width: width, height: height * 0.8 }
+  fullScreenImage: { width: width, height: height * 0.8 },
+  bottomPerMonthText: { fontSize: 12, fontWeight: '600', color: colors.subText },
+  perMonthText: { fontSize: 14, fontWeight: '600', color: colors.subText },
 });
 
 export default BuyerPage;
