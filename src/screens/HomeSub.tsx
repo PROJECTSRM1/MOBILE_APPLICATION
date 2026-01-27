@@ -40,13 +40,15 @@ const HomeSub: React.FC = () => {
   };
 
   const handleProceed = () => {
-    if (selectedTitles.length === 0) return;
+  if (selectedTitles.length === 0) return;
 
-    navigation.navigate("BookCleaning", {
-      selectedService: selectedTitles[0], // First one as Main
-      allServices: selectedTitles,        // Others as Add-ons
-    });
-  };
+  navigation.navigate("BookCleaning", {
+    mainService: selectedTitles[0],      // Kitchen Cleaning
+    addonServices: selectedTitles.slice(1), // Washroom etc
+    serviceCategory: "Home",
+  });
+};
+
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>

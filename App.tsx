@@ -57,7 +57,11 @@ import ParcelView from "./src/screens/ParcelView";
 import MetroView from "./src/screens/MetroView";
 import ScootyView from "./src/screens/ScootyView";
 import EnrollmentDetailsScreen from "./src/screens/EnrollmentDetailsScreen";
+import buysellPartnerDashboard from "./src/screens/buysellPartnerDashboard";
+import InquiryDetails from "./src/screens/InquiryDetails";
 import PartnerAuth from "./src/screens/PartnerAuth";
+import EducationPartnerDashboard from "./src/screens/EducationPartnerDashboard";
+import EducationDashboardReport from './src/screens/EducationDashboardReport';
 
 
 export type RootStackParamList = {
@@ -123,6 +127,9 @@ export type RootStackParamList = {
   Wishlist: undefined;
   Ambulance:undefined;
   PartnerAuth: undefined;
+  InquiryDetails: undefined;
+  buysellPartnerDashboard: undefined;
+  EducationPartnerDashboard: undefined;
 
 };
 
@@ -189,12 +196,20 @@ function AppNavigator() {
         <Stack.Screen name="enrollmentDetails" component={EnrollmentDetailsScreen} />
         <Stack.Screen name="Ambulance" component={AmbulanceBookingScreen} />
         <Stack.Screen name="SwachifyPartnerScreen" component={SwachifyPartnerScreen} />
+        <Stack.Screen name="InquiryDetails" component={InquiryDetails} />
+        <Stack.Screen name="buysellPartnerDashboard" component={buysellPartnerDashboard} />
         <Stack.Screen name="Facility" component={FacilitiesScreen} />
+        <Stack.Screen name="EducationPartnerDashboard" component={EducationPartnerDashboard} />
+        <Stack.Screen 
+          name="EducationDashboardReport" 
+          component={EducationDashboardReport} 
+        />
         <Stack.Screen
   name="PartnerAuth"
   component={PartnerAuth}
   options={{ headerShown: false }}
 />
+
 
       </Stack.Navigator>
     </NavigationContainer>

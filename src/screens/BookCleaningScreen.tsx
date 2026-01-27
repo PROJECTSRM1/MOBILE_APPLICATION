@@ -74,12 +74,87 @@ const VEHICLE_SUB_SERVICES: any = {
   ]
 };
 
+
 const ALL_SERVICES: Service[] = [
   { id: "1", title: "Kitchen Cleaning", category: "Home", price: 80 },
   { id: "2", title: "Washroom Cleaning", category: "Home", price: 80 },
   { id: "6", title: "Full Deep Cleaning", category: "Home", price: 150 },
   { id: "17", title: "Pipe Leakage", category: "Plumbing", price: 50 },
   { id: "18", title: "Tap Fixing", category: "Plumbing", price: 40 },
+];
+
+const HOME_CLEANING_SERVICES = [
+  { id: "1", title: "Kitchen Cleaning", category: "Home", price: 80 },
+  { id: "2", title: "Washroom Cleaning", category: "Home", price: 80 },
+  { id: "3", title: "Sofa Cleaning", category: "Home", price: 70 },
+  { id: "4", title: "Bedroom Cleaning", category: "Home", price: 75 },
+  { id: "5", title: "Window Cleaning", category: "Home", price: 60 },
+  { id: "6", title: "Full Deep Cleaning", category: "Home", price: 150 },
+];
+
+const HOME_SERVICE_OPTIONS: Record<string, { id: string; title: string }[]> = {
+  Plumbing: [
+    { id: "p1", title: "Pipe Leakage" },
+    { id: "p2", title: "Tap Fixing" },
+    { id: "p3", title: "Bathroom Fitting" },
+    { id: "p4", title: "Water Tank Cleaning" },
+  ],
+  Painting: [
+    { id: "pa1", title: "Interior Painting" },
+    { id: "pa2", title: "Exterior Painting" },
+    { id: "pa3", title: "Wall Texture" },
+    { id: "pa4", title: "Repainting" },
+  ],
+  Electrician: [
+    { id: "e1", title: "Wiring" },
+    { id: "e2", title: "Fan Repair" },
+    { id: "e3", title: "Light Installation" },
+    { id: "e4", title: "Power Backup Setup" },
+  ],
+  "AC Repair": [
+    { id: "a1", title: "AC Installation" },
+    { id: "a2", title: "AC Gas Refill" },
+    { id: "a3", title: "AC General Service" },
+    { id: "a4", title: "AC Uninstallation" },
+  ],
+  Chef: [
+    { id: "c1", title: "Home Cooking" },
+    { id: "c2", title: "Party Catering" },
+    { id: "c3", title: "Weekly Meal Plan" },
+    { id: "c4", title: "Festival Cooking" },
+  ],
+};
+
+const COMMERCIAL_CLEANING_SERVICES = [
+  { id: "c1", title: "Small Office Cleaning", category: "Commercial", price: 49 },
+  { id: "c2", title: "Medium Office Cleaning", category: "Commercial", price: 129 },
+  { id: "c3", title: "Large Corporate Office Cleaning", category: "Commercial", price: 199 },
+  { id: "c4", title: "Retail Shop Cleaning", category: "Commercial", price: 89 },
+  { id: "c5", title: "Warehouse / Clinic Cleaning", category: "Commercial", price: 199 },
+];
+
+const PLUMBING_SERVICES = [
+  { id: "p1", title: "Pipe Leakage", category: "Plumbing", price: 120 },
+  { id: "p2", title: "Tap Fixing", category: "Plumbing", price: 80 },
+  { id: "p3", title: "Drain Blockage", category: "Plumbing", price: 150 },
+  { id: "p4", title: "Shower Installation", category: "Plumbing", price: 200 },
+];
+
+const ELECTRICAL_SERVICES = [
+  { id: "e1", title: "Switch Repair", category: "Electrical", price: 70 },
+  { id: "e2", title: "Fan Installation", category: "Electrical", price: 150 },
+  { id: "e3", title: "Light Wiring", category: "Electrical", price: 120 },
+];
+
+const AC_SERVICES = [
+  { id: "a1", title: "AC Servicing", category: "AC", price: 500 },
+  { id: "a2", title: "Gas Refill", category: "AC", price: 1800 },
+  { id: "a3", title: "AC Installation", category: "AC", price: 2500 },
+];
+
+const CARPENTRY_SERVICES = [
+  { id: "c1", title: "Door Repair", category: "Carpentry", price: 300 },
+  { id: "c2", title: "Furniture Assembly", category: "Carpentry", price: 450 },
 ];
 
 const detectCategoryFromTitle = (serviceTitle: string): string | null => {
@@ -107,12 +182,17 @@ const detectCategoryFromTitle = (serviceTitle: string): string | null => {
 
 const BookCleaningScreen: React.FC = () => {
   const route = useRoute<any>();
+  const mainServiceFromHome = route.params?.mainService;
+const addonServicesFromHome: string[] = route.params?.addonServices || [];
+
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
   const styles = getStyles(colors);
   
   // States
   const [jobDescription, setJobDescription] = useState("");
+  const [serviceModalVisible, setServiceModalVisible] = useState(false);
+
   const [locationType, setLocationType] = useState<"default" | "other">("default");
   const [allocationType, setAllocationType] = useState<"auto" | "manual">("auto");
   const [floorArea, setFloorArea] = useState("");
@@ -134,30 +214,97 @@ const BookCleaningScreen: React.FC = () => {
 
   // --- REFACTORED INITIAL SERVICE LOGIC ---
   const [selectedServices, setSelectedServices] = useState<any[]>(() => {
-    // If coming from VehicleSub, use the objects array passed
-    if (route.params?.selectedServices) {
-      return route.params.selectedServices;
-    }
-    const incomingS = route.params?.selectedService;
-    if (incomingS) {
-      const title = typeof incomingS === 'string' ? incomingS : incomingS?.title || '';
-      return [{ id: 'init-1', title: title, category: detectCategoryFromTitle(title) || 'Home', price: 80 }];
-    }
-    return [];
-  });
+
+  // ✅ NEW HOME CLEANING FLOW
+  if (mainServiceFromHome) {
+    const main = {
+      id: "main-service",
+      title: mainServiceFromHome,
+      category: "Home",
+      price: 80,
+      isMain: true,
+    };
+
+    const addons = addonServicesFromHome.map((s, index) => ({
+      id: `addon-${index}`,
+      title: s,
+      category: "Home",
+      price: 80,
+      isMain: false,
+    }));
+
+    return [main, ...addons];
+  }
+
+  // ✅ OLD EXISTING FLOWS (vehicle, plumbing etc)
+  if (route.params?.selectedServices) {
+    return route.params.selectedServices;
+  }
+
+  const incomingS = route.params?.selectedService;
+  if (incomingS) {
+    const title = typeof incomingS === 'string' ? incomingS : incomingS?.title || '';
+    return [{
+      id: 'init-1',
+      title: title,
+      category: detectCategoryFromTitle(title) || route.params?.serviceCategory || 'Home',
+
+      price: 80,
+      isMain: true,
+    }];
+  }
+
+  return [];
+});
+
 
   const vType = route.params?.vehicleType || 'car';
 
-  const remainingServices = useMemo(() => {
-    // Show specific vehicle add-ons or generic based on category
-    const sourceList = (route.params?.vehicleType) 
-      ? VEHICLE_SUB_SERVICES[vType] 
-      : ALL_SERVICES.filter(s => s.category === selectedServices[0]?.category);
+const remainingServices = useMemo(() => {
 
-    return sourceList.filter((service: Service) => 
-      !selectedServices.some(s => (s.title || s.name) === (service.title || service.name))
+  // 🚗 Vehicle flow
+  if (route.params?.vehicleType) {
+    return VEHICLE_SUB_SERVICES[vType].filter((service: Service) =>
+      !selectedServices.some(s => s.title === service.title)
     );
-  }, [selectedServices, vType]);
+  }
+
+  // 🏠 Home Cleaning flow
+  if (selectedServices[0]?.category === "Home") {
+    return HOME_CLEANING_SERVICES.filter(service =>
+      !selectedServices.some(s => s.title === service.title)
+    );
+  }
+
+  // 🏢 Commercial Cleaning flow  ✅ NEW
+  if (selectedServices[0]?.category === "Commercial") {
+    return COMMERCIAL_CLEANING_SERVICES.filter(service =>
+      !selectedServices.some(s => s.title === service.title)
+    );
+  }// 🏠 Home Services (Plumbing, Painting, Electrician, AC Repair, Chef)
+if (HOME_SERVICE_OPTIONS[selectedServices[0]?.category]) {
+  return HOME_SERVICE_OPTIONS[selectedServices[0].category]
+    .filter(service =>
+      !selectedServices.some(s => s.title === service.title)
+    )
+    .map(service => ({
+      ...service,
+      category: selectedServices[0].category,
+      price: 80,
+    }));
+}
+
+
+
+  // fallback
+  return ALL_SERVICES.filter(s =>
+    s.category === selectedServices[0]?.category &&
+    !selectedServices.some(sel => sel.title === s.title)
+  );
+
+}, [selectedServices, vType]);
+
+
 
   // Sync Pricing
   const servicePrice = selectedServices.reduce((sum, s) => sum + (s.price || 0), 0);
@@ -202,14 +349,19 @@ const BookCleaningScreen: React.FC = () => {
   };
 
   const addService = (serviceId: string) => {
-    const s = remainingServices.find((item: any) => item.id === serviceId);
-    if (s) {
-      setSelectedServices((prev) => [...prev, {
-        id: s.id,
-        title: s.title || s.name,
+  const s = remainingServices.find((item: any) => item.id === serviceId);
+  if (s) {
+    setSelectedServices((prev) => [
+      ...prev,
+      {
+        id: `addon-${s.id}-${Date.now()}`,
+        title: s.title,
         category: s.category,
-        price: s.price
-      }]);
+        price: s.price,
+        isMain: false,
+      }
+    ]);
+
       setSelectedAddon(null);
       setShowAddonPicker(false);
     }
@@ -366,15 +518,17 @@ const BookCleaningScreen: React.FC = () => {
         <View style={styles.addonHeader}>
           <Text style={styles.sectionTitle}>Services Selected</Text>
           <TouchableOpacity 
-            style={[styles.addBtn, remainingServices.length === 0 && styles.addBtnDisabled]} 
-            onPress={() => setShowAddonPicker(true)}
-            disabled={remainingServices.length === 0}
-          >
+  style={[styles.addBtn, remainingServices.length === 0 && styles.addBtnDisabled]} 
+  onPress={() => setServiceModalVisible(true)}
+  disabled={remainingServices.length === 0}
+>
+
             <MaterialIcons name="add" size={18} color="#fff" /><Text style={styles.addBtnText}>Add More</Text>
           </TouchableOpacity>
         </View>
 
-        {showAddonPicker && remainingServices.length > 0 && (
+         {false && (
+
           <View style={styles.dropdownBox}>
             <Picker selectedValue={selectedAddon} onValueChange={(v) => { if (v && v !== 'placeholder') addService(v); }} style={styles.picker}>
               <Picker.Item label="Select Service" value="placeholder" />
@@ -384,16 +538,27 @@ const BookCleaningScreen: React.FC = () => {
         )}
 
         {selectedServices.map((s, i) => (
-          <View key={s.id} style={styles.addonCard}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.addonSelectText}>{s.title || s.name}</Text>
-                <Text style={styles.addonCategoryText}>Cost: ₹{s.price}</Text>
-              </View>
-              {selectedServices.length > 1 && <TouchableOpacity onPress={() => removeService(s.id)}><MaterialIcons name="delete" size={20} color="#EF4444" /></TouchableOpacity>}
-            </View>
-          </View>
-        ))}
+  <View key={s.id} style={styles.addonCard}>
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+      <View style={{ flex: 1 }}>
+        <Text style={[styles.addonSelectText, s.isMain && { color: colors.primary }]}>
+          {s.title || s.name}
+        </Text>
+        <Text style={styles.addonCategoryText}>
+          {s.isMain ? "Main Service" : "Add-on"} • ₹{s.price}
+        </Text>
+      </View>
+
+      {/* ❌ Do NOT allow delete for main service */}
+      {!s.isMain && (
+        <TouchableOpacity onPress={() => removeService(s.id)}>
+          <MaterialIcons name="delete" size={20} color="#EF4444" />
+        </TouchableOpacity>
+      )}
+    </View>
+  </View>
+))}
+
 
         <View style={styles.summary}>
           <SummaryRow label="Items Total" value={`₹${servicePrice}`} styles={styles} />
@@ -410,7 +575,12 @@ const BookCleaningScreen: React.FC = () => {
           style={styles.ctaBtn} 
           onPress={() => navigation.navigate("PaymentScreen", { 
             totalAmount: totalPrice,
-            selectedServices: selectedServices.map(s => ({ service: s.title || s.name, price: s.price })),
+           selectedServices: selectedServices.map(s => ({
+  title: s.title || s.name,
+  price: s.price,
+  category: s.category
+})),
+
             allocatedEmployee: allocatedEmployee,
             bookingDetails: {
               location: locationType === "default" ? currentAddress : locationDetails,
@@ -425,6 +595,37 @@ const BookCleaningScreen: React.FC = () => {
           <Text style={styles.ctaText}>Proceed to Checkout</Text>
         </TouchableOpacity>
       </View>
+      <Modal visible={serviceModalVisible} transparent animationType="slide">
+  <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center" }}>
+    <View style={{ backgroundColor: colors.surface, margin: 20, borderRadius: 16, padding: 20 }}>
+      <Text style={{ fontSize: 18, fontWeight: "700", color: colors.text, marginBottom: 15 }}>
+        Select Service
+      </Text>
+
+      <ScrollView>
+        {remainingServices.map((s: any) => (
+          <TouchableOpacity
+            key={s.id}
+            style={{ paddingVertical: 12 }}
+            onPress={() => {
+              addService(s.id);
+              setServiceModalVisible(false);
+            }}
+          >
+            <Text style={{ color: colors.text, fontSize: 16 }}>
+              {s.title || s.name} - ₹{s.price}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+      <TouchableOpacity onPress={() => setServiceModalVisible(false)} style={{ marginTop: 10 }}>
+        <Text style={{ color: colors.primary, textAlign: "right", fontWeight: "600" }}>Close</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
+
     </SafeAreaView>
   );
 };
