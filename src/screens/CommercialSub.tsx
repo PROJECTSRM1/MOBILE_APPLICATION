@@ -34,12 +34,13 @@ const CommercialPropertyScreen = () => {
 
 const handleContinue = () => {
   const selectedData = properties.find(p => p.id === selectedProperty);
-  
-  // Wrap 'navigation' in parentheses and add 'as any'
+
   (navigation as any).navigate("BookCleaning", { 
-    selectedService: selectedData ? `${selectedData.title} Cleaning` : "Small Office Cleaning" 
+    selectedService: selectedData ? `${selectedData.title} Cleaning` : "Small Office Cleaning",
+    serviceCategory: "Commercial",   // ✅ THIS LINE ADDED
   });
 };
+
 
   const properties: PropertyOption[] = [
     {
