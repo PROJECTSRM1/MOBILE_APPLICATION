@@ -75,9 +75,16 @@ const Landing = () => {
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
-  const [userRole, setUserRole] = useState<'customer' | 'employee'>('customer');
+  // const [userRole, setUserRole] = useState<'customer' | 'employee'>('customer');
+  type UserRole = 'customer' | 'employee' | 'partner';
+
+const [userRole, setUserRole] = useState<UserRole>('customer');
+
   const [showNavigationModal, setShowNavigationModal] = useState(false);
-  const [navigationTarget, setNavigationTarget] = useState<'customer' | 'employee'>('customer');
+  // const [navigationTarget, setNavigationTarget] = useState<'customer' | 'employee'>('customer');
+  const [navigationTarget, setNavigationTarget] =
+  useState<UserRole>('customer');
+
 
   // Placeholder texts array
 const placeholders = [
@@ -615,7 +622,13 @@ const placeholders = [
                 fontWeight: "500",
               }}
             >
-              {userRole === 'customer' ? 'Customer' : 'Employee'}
+              {/* {userRole === 'customer' ? 'Customer' : 'Employee'} */}
+              {userRole === 'partner'
+  ? 'Partner'
+  : userRole === 'customer'
+  ? 'Customer'
+  : 'Employee'}
+
             </Text>
             <MaterialIcons name="expand-more" size={26} color={colors.text} />
           </TouchableOpacity>
@@ -634,7 +647,7 @@ const placeholders = [
           </TouchableOpacity>
         </View>
 
-        {showRoleMenu && (
+        {/* {showRoleMenu && (
           <View style={styles.roleMenu}>
             <TouchableOpacity
               style={styles.roleItem}
@@ -650,7 +663,37 @@ const placeholders = [
               <Text style={styles.roleText}>Employee</Text>
             </TouchableOpacity>
           </View>
-        )}
+        )} */}
+
+        {showRoleMenu && (
+  <View style={styles.roleMenu}>
+    <TouchableOpacity
+      style={styles.roleItem}
+      onPress={() => handleRoleSwitch('customer')}
+    >
+      <Text style={styles.roleText}>Customer</Text>
+    </TouchableOpacity>
+
+    <TouchableOpacity
+      style={styles.roleItem}
+      onPress={() => handleRoleSwitch('employee')}
+    >
+      <Text style={styles.roleText}>Employee</Text>
+    </TouchableOpacity>
+
+    {/*  PARTNER OPTION */}
+    <TouchableOpacity
+      style={styles.roleItem}
+      onPress={() => {
+        setShowRoleMenu(false);
+        navigation.navigate("PartnerAuth");
+      }}
+    >
+      <Text style={styles.roleText}>Partner</Text>
+    </TouchableOpacity>
+  </View>
+)}
+
       </View>
 
       {/* ================= SEARCH WITH ANIMATED PLACEHOLDER ================= */}
@@ -753,10 +796,9 @@ const placeholders = [
           ))}
         </ScrollView>
 
-        {/* ================= CORE SERVICES ================= */}
-        <View style={styles.sectionHeader}>
+        {/* <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Core Services</Text>
-        </View>
+        </View> */}
 
         <View style={styles.grid}>
           {[
