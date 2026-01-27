@@ -832,7 +832,18 @@ const placeholders = [
           <Text style={styles.sectionTitle}>
             {userRole === 'customer' ? 'Trending Employees Near You' : 'Trending Near You'}
           </Text>
-          <TouchableOpacity onPress={() => navigation.navigate("Marketplace")}>
+          <TouchableOpacity onPress={() => {
+            if (!isLoggedIn) {
+              navigation.navigate("AuthScreen");
+              return;
+            }
+            // Navigate based on user role
+            if (userRole === 'customer') {
+              navigation.navigate("Freelancer"); // Show all employees
+            } else {
+              navigation.navigate("Marketplace"); // Show all services
+            }
+          }}>
             <Text style={[styles.viewAllText, { marginTop: 10 }]}>View All</Text>
           </TouchableOpacity>
         </View>
@@ -1217,12 +1228,12 @@ gridItem: {
 gridIcon: {
   width: 56,
   height: 56,
-  backgroundColor: colors.card,
+  backgroundColor: colors.primary + "10",
   borderRadius: 18,
   alignItems: "center",
   justifyContent: "center",
   borderWidth: 1,
-  borderColor: colors.border,
+  borderColor: colors.primary + "20",
 },
 
 gridText: {
