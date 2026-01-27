@@ -84,10 +84,10 @@ const Dashboard = () => {
           <View style={styles.metricCard}>
             <Text style={styles.metricLabel}>Today's Revenue</Text>
             <Text style={styles.metricValue}>$1,240</Text>
-            <div style={styles.trendRow}>
+            <View style={styles.trendRow}>
               <TrendingUp size={14} color="#078838" />
               <Text style={styles.trendText}>+12%</Text>
-            </div>
+            </View>
           </View>
 
           <View style={styles.metricCard}>

@@ -38,6 +38,28 @@ interface Property {
   registrationValue?: string;
   marketValue?: string;
   documentImages?: string[];
+  hostelType?: string;
+  totalRooms?: string;
+  availableRooms?: string;
+  foodIncluded?: string;
+  hasAC?: boolean;
+  hasWifi?: boolean;
+  hasTV?: boolean;
+  hasLaundry?: boolean;
+  hasParking?: boolean;
+  hasSecurity?: boolean;
+  hotelName?: string;
+  hotelStarRating?: string;
+  checkInTime?: string;
+  checkOutTime?: string;
+  roomTypes?: string[];
+  hasRestaurant?: boolean;
+  hasGym?: boolean;
+  hasPool?: boolean;
+  hasSpa?: boolean;
+  hasConferenceRoom?: boolean;
+  petFriendly?: boolean;
+  cancellationPolicy?: string;
 }
 
 const BuyerPage = ({ route, navigation }: any) => {
@@ -50,15 +72,56 @@ const BuyerPage = ({ route, navigation }: any) => {
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const [isWishlisted, setIsWishlisted] = useState(false); // Wishlist State
+  const [isWishlisted, setIsWishlisted] = useState(false);
 
-  // Document Viewer State
   const [isDocViewerVisible, setIsDocViewerVisible] = useState(false);
   const [selectedDocImage, setSelectedDocImage] = useState<string | null>(null);
 
   const images = property.images || [property.image || 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=500'];
 
-  // Check if item is already wishlisted on load
+  const isHostel = property.propertyType === 'Hostel';
+  const isLand = property.propertyType === 'Land';
+  const isHotel = property.propertyType === 'Hotel';
+
+  // Check if this is a dummy hostel or hotel (starts with 'hostel_' or 'hotel_')
+  const isDummyHostel = property.id.startsWith('hostel_');
+  const isDummyHotel = property.id.startsWith('hotel_');
+
+  // Smart hostel data handling - use actual data if available, otherwise use defaults only for dummy data
+  const hostelData = isHostel ? {
+    hostelType: property.hostelType || 'Boys',
+    totalRooms: property.totalRooms || (isDummyHostel ? '20' : 'N/A'),
+    availableRooms: property.availableRooms || (isDummyHostel ? '5' : 'N/A'),
+    foodIncluded: property.foodIncluded || (isDummyHostel ? 'Yes' : 'No'),
+    hasAC: property.hasAC !== undefined ? property.hasAC : isDummyHostel,
+    hasWifi: property.hasWifi !== undefined ? property.hasWifi : isDummyHostel,
+    hasTV: property.hasTV !== undefined ? property.hasTV : false,
+    hasLaundry: property.hasLaundry !== undefined ? property.hasLaundry : isDummyHostel,
+    hasParking: property.hasParking !== undefined ? property.hasParking : isDummyHostel,
+    hasSecurity: property.hasSecurity !== undefined ? property.hasSecurity : isDummyHostel,
+  } : null;
+
+  // Smart hotel data handling
+  const hotelData = isHotel ? {
+    hotelName: property.hotelName || 'Hotel',
+    hotelStarRating: property.hotelStarRating || '3',
+    totalRooms: property.totalRooms || (isDummyHotel ? '100' : 'N/A'),
+    availableRooms: property.availableRooms || (isDummyHotel ? '20' : 'N/A'),
+    checkInTime: property.checkInTime || '2:00 PM',
+    checkOutTime: property.checkOutTime || '12:00 PM',
+    roomTypes: property.roomTypes || [],
+    hasRestaurant: property.hasRestaurant !== undefined ? property.hasRestaurant : isDummyHotel,
+    hasGym: property.hasGym !== undefined ? property.hasGym : isDummyHotel,
+    hasPool: property.hasPool !== undefined ? property.hasPool : isDummyHotel,
+    hasSpa: property.hasSpa !== undefined ? property.hasSpa : false,
+    hasConferenceRoom: property.hasConferenceRoom !== undefined ? property.hasConferenceRoom : isDummyHotel,
+    hasAC: property.hasAC !== undefined ? property.hasAC : isDummyHotel,
+    hasWifi: property.hasWifi !== undefined ? property.hasWifi : isDummyHotel,
+    hasParking: property.hasParking !== undefined ? property.hasParking : isDummyHotel,
+    petFriendly: property.petFriendly !== undefined ? property.petFriendly : false,
+    cancellationPolicy: property.cancellationPolicy || 'Contact hotel for cancellation policy',
+  } : null;
+
   useEffect(() => {
     checkWishlistStatus();
   }, []);
@@ -82,11 +145,9 @@ const BuyerPage = ({ route, navigation }: any) => {
       let wishlist: Property[] = storedWishlist ? JSON.parse(storedWishlist) : [];
 
       if (isWishlisted) {
-        // Remove from wishlist
         wishlist = wishlist.filter(item => item.id !== property.id);
         setIsWishlisted(false);
       } else {
-        // Add to wishlist
         wishlist.push(property);
         setIsWishlisted(true);
       }
@@ -110,18 +171,45 @@ const BuyerPage = ({ route, navigation }: any) => {
     setShowSuccessModal(true);
   };
 
+  const getAvailableAmenities = () => {
+    if (isHostel && hostelData) {
+      const amenities = [];
+      if (hostelData.hasAC) amenities.push({ icon: 'ac-unit', label: 'AC' });
+      if (hostelData.hasWifi) amenities.push({ icon: 'wifi', label: 'WiFi' });
+      if (hostelData.hasTV) amenities.push({ icon: 'tv', label: 'TV' });
+      if (hostelData.hasLaundry) amenities.push({ icon: 'local-laundry-service', label: 'Laundry' });
+      if (hostelData.hasParking) amenities.push({ icon: 'local-parking', label: 'Parking' });
+      if (hostelData.hasSecurity) amenities.push({ icon: 'security', label: 'Security' });
+      return amenities;
+    }
+    
+    if (isHotel && hotelData) {
+      const amenities = [];
+      if (hotelData.hasRestaurant) amenities.push({ icon: 'restaurant', label: 'Restaurant' });
+      if (hotelData.hasGym) amenities.push({ icon: 'fitness-center', label: 'Gym' });
+      if (hotelData.hasPool) amenities.push({ icon: 'pool', label: 'Pool' });
+      if (hotelData.hasSpa) amenities.push({ icon: 'spa', label: 'Spa' });
+      if (hotelData.hasConferenceRoom) amenities.push({ icon: 'meeting-room', label: 'Conference' });
+      if (hotelData.petFriendly) amenities.push({ icon: 'pets', label: 'Pet Friendly' });
+      if (hotelData.hasAC) amenities.push({ icon: 'ac-unit', label: 'AC' });
+      if (hotelData.hasWifi) amenities.push({ icon: 'wifi', label: 'WiFi' });
+      if (hotelData.hasParking) amenities.push({ icon: 'local-parking', label: 'Parking' });
+      return amenities;
+    }
+    
+    return [];
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="light-content" backgroundColor="#0a0c10" />
       
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <MaterialIcons name="arrow-back-ios" size={20} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Details</Text>
         
-        {/* Wishlist Heart Icon */}
         <TouchableOpacity style={styles.favoriteButton} onPress={toggleWishlist}>
           <MaterialIcons 
             name={isWishlisted ? "favorite" : "favorite-border"} 
@@ -132,7 +220,6 @@ const BuyerPage = ({ route, navigation }: any) => {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Main Image Slider */}
         <View style={styles.imageSection}>
           <ScrollView
             horizontal pagingEnabled
@@ -152,15 +239,42 @@ const BuyerPage = ({ route, navigation }: any) => {
         </View>
 
         <View style={styles.detailsSection}>
-          <Text style={styles.propertyTitle}>{property.title}</Text>
-          <Text style={styles.propertyPrice}>{property.price}</Text>
+          <Text style={styles.propertyTitle}>{property.title || property.propertyType}</Text>
+          <Text style={styles.propertyPrice}>
+            {property.price}
+            {property.listingType === 'rent' && (
+              <Text style={styles.perMonthText}>{isHotel ? '/night' : '/month'}</Text>
+            )}
+          </Text>
 
           <View style={styles.infoRow}>
             <MaterialIcons name="location-on" size={16} color="#64748b" />
             <Text style={styles.infoText}>{property.location}, {property.area}</Text>
           </View>
 
-          {property.propertyType === 'Land' && (
+          {isHostel && hostelData && (
+            <View style={styles.hostelTypeBadge}>
+              <MaterialIcons name="domain" size={16} color="#fff" />
+              <Text style={styles.hostelTypeText}>{hostelData.hostelType} Hostel</Text>
+            </View>
+          )}
+
+          {isHotel && hotelData && (
+            <View style={styles.hotelHeaderContainer}>
+              <View style={styles.hotelStarBadge}>
+                <MaterialIcons name="star" size={18} color="#fbbf24" />
+                <Text style={styles.hotelStarText}>{hotelData.hotelStarRating} Star Hotel</Text>
+              </View>
+              {property.rating && (
+                <View style={styles.hotelRatingBadge}>
+                  <MaterialIcons name="star" size={14} color="#fbbf24" />
+                  <Text style={styles.hotelRatingText}>{property.rating.toFixed(1)} Rating</Text>
+                </View>
+              )}
+            </View>
+          )}
+
+          {isLand && (
             <View style={[styles.landStatusBadge, property.registrationStatus === 'registered' ? styles.regBg : styles.nonRegBg]}>
               <MaterialIcons name={property.registrationStatus === 'registered' ? "verified" : "gavel"} size={16} color="#fff" />
               <Text style={styles.landStatusText}>
@@ -169,18 +283,76 @@ const BuyerPage = ({ route, navigation }: any) => {
             </View>
           )}
 
-          <View style={styles.detailsGrid}>
-            {property.sqft && <DetailCard icon="square-foot" label="Sq. Ft." value={property.sqft} />}
-            {property.landType && <DetailCard icon="landscape" label="Land Type" value={property.landType} />}
-            
-            {property.propertyType === 'Land' && (
-              <>
-                <DetailCard icon="account-balance" label="Reg. Value" value={formatCurrency(property.registrationValue)} />
-                <DetailCard icon="trending-up" label="Market Value" value={formatCurrency(property.marketValue)} />
-              </>
-            )}
-            {property.bhk && <DetailCard icon="bed" label="BHK" value={property.bhk} />}
-          </View>
+          {isHostel && hostelData ? (
+            <View style={styles.detailsGrid}>
+              <DetailCard icon="meeting-room" label="Total Rooms" value={hostelData.totalRooms} />
+              <DetailCard icon="check-circle" label="Available" value={hostelData.availableRooms} />
+              <DetailCard icon="restaurant" label="Food" value={hostelData.foodIncluded} />
+              <DetailCard icon="new-releases" label="Condition" value={property.itemCondition || 'N/A'} />
+            </View>
+          ) : isHotel && hotelData ? (
+            <View style={styles.detailsGrid}>
+              <DetailCard icon="meeting-room" label="Total Rooms" value={hotelData.totalRooms} />
+              <DetailCard icon="check-circle" label="Available" value={hotelData.availableRooms} />
+              <DetailCard icon="access-time" label="Check-In" value={hotelData.checkInTime} />
+              <DetailCard icon="logout" label="Check-Out" value={hotelData.checkOutTime} />
+            </View>
+          ) : (
+            <View style={styles.detailsGrid}>
+              {property.sqft && <DetailCard icon="square-foot" label="Sq. Ft." value={property.sqft} />}
+              {property.landType && <DetailCard icon="landscape" label="Land Type" value={property.landType} />}
+              
+              {isLand && (
+                <>
+                  <DetailCard icon="account-balance" label="Reg. Value" value={formatCurrency(property.registrationValue)} />
+                  <DetailCard icon="trending-up" label="Market Value" value={formatCurrency(property.marketValue)} />
+                </>
+              )}
+              {property.bhk && <DetailCard icon="bed" label="BHK" value={property.bhk} />}
+            </View>
+          )}
+
+          {isHotel && hotelData && hotelData.roomTypes && hotelData.roomTypes.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Room Types Available</Text>
+              <View style={styles.roomTypesContainer}>
+                {hotelData.roomTypes.map((type, index) => (
+                  <View key={index} style={styles.roomTypeBadge}>
+                    <MaterialIcons name="hotel" size={14} color="#135bec" />
+                    <Text style={styles.roomTypeText}>{type}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {(isHostel || isHotel) && getAvailableAmenities().length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                {isHotel ? 'Facilities & Amenities' : 'Amenities & Services'}
+              </Text>
+              <View style={styles.amenitiesGrid}>
+                {getAvailableAmenities().map((amenity, index) => (
+                  <View key={index} style={styles.amenityCard}>
+                    <View style={styles.amenityIconContainer}>
+                      <MaterialIcons name={amenity.icon} size={24} color="#135bec" />
+                    </View>
+                    <Text style={styles.amenityLabel}>{amenity.label}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {isHotel && hotelData && hotelData.cancellationPolicy && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Cancellation Policy</Text>
+              <View style={styles.policyCard}>
+                <MaterialIcons name="info-outline" size={20} color="#64748b" />
+                <Text style={styles.policyText}>{hotelData.cancellationPolicy}</Text>
+              </View>
+            </View>
+          )}
 
           {property.description && (
             <View style={styles.section}>
@@ -217,27 +389,40 @@ const BuyerPage = ({ route, navigation }: any) => {
           )}
 
           <View style={styles.formSection}>
-            <Text style={styles.sectionTitle}>Inquiry Form</Text>
+            <Text style={styles.sectionTitle}>
+              {isHotel ? 'Booking Inquiry' : 'Inquiry Form'}
+            </Text>
             <CustomInput label="FULL NAME" value={fullName} onChange={setFullName} placeholder="John Doe" />
             <CustomInput label="MOBILE" value={mobileNumber} onChange={setMobileNumber} placeholder="10 Digit Number" keyboard="phone-pad" />
-            <CustomInput label="ADDRESS" value={deliveryAddress} onChange={setDeliveryAddress} placeholder="Detailed Address" multiline />
+            <CustomInput 
+              label={isHotel ? "SPECIAL REQUESTS" : "ADDRESS"} 
+              value={deliveryAddress} 
+              onChange={setDeliveryAddress} 
+              placeholder={isHotel ? "Any special requirements" : "Detailed Address"} 
+              multiline 
+            />
           </View>
         </View>
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      {/* Footer Price/Action */}
       <View style={styles.bottomSection}>
         <View>
           <Text style={styles.bottomPriceLabel}>Price</Text>
-          <Text style={styles.bottomPrice}>{property.price}</Text>
+          <Text style={styles.bottomPrice}>
+            {property.price}
+            {property.listingType === 'rent' && (
+              <Text style={styles.bottomPerMonthText}>{isHotel ? '/night' : '/month'}</Text>
+            )}
+          </Text>
         </View>
         <TouchableOpacity style={styles.buyButton} onPress={handleBuyProperty}>
-          <Text style={styles.buyButtonText}>Contact Seller</Text>
+          <Text style={styles.buyButtonText}>
+            {isHotel ? 'Book Now' : 'Contact Seller'}
+          </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Document Viewer Modal */}
       <Modal visible={isDocViewerVisible} transparent={false} animationType="fade" onRequestClose={() => setIsDocViewerVisible(false)}>
         <View style={styles.fullScreenContainer}>
           <View style={styles.fullScreenHeader}>
@@ -253,13 +438,18 @@ const BuyerPage = ({ route, navigation }: any) => {
         </View>
       </Modal>
 
-      {/* Success Modal */}
       <Modal visible={showSuccessModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.successModal}>
             <MaterialIcons name="check-circle" size={80} color="#10b981" />
-            <Text style={styles.successTitle}>Inquiry Sent!</Text>
-            <Text style={styles.successMessage}>The owner has been notified. They will contact you shortly.</Text>
+            <Text style={styles.successTitle}>
+              {isHotel ? 'Booking Request Sent!' : 'Inquiry Sent!'}
+            </Text>
+            <Text style={styles.successMessage}>
+              {isHotel 
+                ? 'Your booking request has been sent. The hotel will contact you shortly to confirm your reservation.' 
+                : 'The owner has been notified. They will contact you shortly.'}
+            </Text>
             <TouchableOpacity style={styles.successButton} onPress={() => { setShowSuccessModal(false); navigation.goBack(); }}>
               <Text style={styles.successButtonText}>Done</Text>
             </TouchableOpacity>
@@ -270,7 +460,6 @@ const BuyerPage = ({ route, navigation }: any) => {
   );
 };
 
-// Sub-components
 const DetailCard = ({ icon, label, value }: any) => {
   const { colors } = useTheme();
   return (
@@ -320,6 +509,59 @@ const getStyles = (colors: any) => StyleSheet.create({
   propertyPrice: { fontSize: 26, fontWeight: '800', color: colors.primary, marginBottom: 12 },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 16 },
   infoText: { fontSize: 14, color: colors.subText },
+  hostelTypeBadge: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: 8, 
+    padding: 12, 
+    borderRadius: 12, 
+    marginBottom: 20,
+    backgroundColor: '#1e40af',
+    alignSelf: 'flex-start'
+  },
+  hostelTypeText: { 
+    color: '#fff', 
+    fontWeight: '700', 
+    fontSize: 13 
+  },
+  hotelHeaderContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 20,
+  },
+  hotelStarBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: '#fbbf2420',
+    borderWidth: 1,
+    borderColor: '#fbbf24',
+  },
+  hotelStarText: {
+    color: '#fbbf24',
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  hotelRatingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  hotelRatingText: {
+    color: colors.text,
+    fontWeight: '600',
+    fontSize: 12,
+  },
   landStatusBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderRadius: 12, marginBottom: 20 },
   regBg: { backgroundColor: '#065f46' },
   nonRegBg: { backgroundColor: '#92400e' },
@@ -327,7 +569,75 @@ const getStyles = (colors: any) => StyleSheet.create({
   detailsGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
   section: { marginTop: 24 },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: 12 },
+  roomTypesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 8,
+  },
+  roomTypeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: colors.primary + '15',
+    borderWidth: 1,
+    borderColor: colors.primary + '40',
+  },
+  roomTypeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  policyCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    padding: 14,
+    borderRadius: 12,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  policyText: {
+    flex: 1,
+    fontSize: 13,
+    color: colors.text,
+    lineHeight: 20,
+  },
   descriptionText: { fontSize: 14, color: colors.subText, lineHeight: 22 },
+  amenitiesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginTop: 8,
+  },
+  amenityCard: {
+    width: (width - 56) / 3,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    padding: 12,
+    alignItems: 'center',
+  },
+  amenityIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.primary + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  amenityLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.text,
+    textAlign: 'center',
+  },
   docWrapper: { marginRight: 12, width: 110, height: 140, borderRadius: 12, overflow: 'hidden', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
   docThumb: { width: '100%', height: '100%' },
   docOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' },
@@ -345,7 +655,7 @@ const getStyles = (colors: any) => StyleSheet.create({
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', padding: 24 },
   successModal: { backgroundColor: colors.card, borderRadius: 24, padding: 32, alignItems: 'center' },
   successTitle: { fontSize: 22, fontWeight: '800', color: colors.text, marginTop: 16 },
-  successMessage: { fontSize: 14, color: colors.subText, textAlign: 'center', marginTop: 8, marginBottom: 24 },
+  successMessage: { fontSize: 14, color: colors.subText, textAlign: 'center', marginTop: 8, marginBottom: 24, lineHeight: 20 },
   successButton: { backgroundColor: colors.primary, width: '100%', padding: 14, borderRadius: 12, alignItems: 'center' },
   successButtonText: { color: '#fff', fontWeight: '700' },
   fullScreenContainer: { flex: 1, backgroundColor: '#000' },
@@ -353,7 +663,9 @@ const getStyles = (colors: any) => StyleSheet.create({
   closeFullBtn: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
   fullScreenTitle: { color: '#fff', fontSize: 16, fontWeight: '700' },
   fullScreenImageContent: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  fullScreenImage: { width: width, height: height * 0.8 }
+  fullScreenImage: { width: width, height: height * 0.8 },
+  bottomPerMonthText: { fontSize: 12, fontWeight: '600', color: colors.subText },
+  perMonthText: { fontSize: 14, fontWeight: '600', color: colors.subText },
 });
 
 export default BuyerPage;

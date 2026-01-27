@@ -665,12 +665,12 @@ topBar: {
   justifyContent: 'space-between',
   paddingHorizontal: 16,
   paddingVertical: 12,
-  backgroundColor: '#cfd4d8', // match StatusBar
+  backgroundColor: colors.background 
 },
 pageTitle: {
   fontSize: 18,
   fontWeight: '700',
-  color: '#050505', // white text
+  color: colors.text, // white text
   flex: 1,
   textAlign: 'center',
 },
