@@ -65,6 +65,7 @@ import DriverDashboard from "./src/screens/DriverDashboard";
 import EducationDashboardReport from './src/screens/EducationDashboardReport';
 import Dashboard from "./src/screens/HealthcarePartnerDashboard";
 import BookingsScreen from "./src/screens/HospitalBookings";
+import DoctorsListScreen from "./src/screens/DoctorsList";
 
 
 export type RootStackParamList = {
@@ -135,6 +136,7 @@ export type RootStackParamList = {
   EducationPartnerDashboard: undefined;
   HealthcarePartnerDashboard:undefined;
   bookings:undefined;
+  Doctor:undefined;
   DriverDashboard: undefined;
 
 };
@@ -209,6 +211,7 @@ function AppNavigator() {
         <Stack.Screen name="EducationPartnerDashboard" component={EducationPartnerDashboard} />
         <Stack.Screen name="bookings" component={BookingsScreen} />
         <Stack.Screen name="HealthcarePartnerDashboard" component={Dashboard} />
+         <Stack.Screen name="Doctor" component={DoctorsListScreen} />
         <Stack.Screen 
           name="EducationDashboardReport" 
           component={EducationDashboardReport} 
