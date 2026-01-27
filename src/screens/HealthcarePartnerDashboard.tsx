@@ -6,7 +6,6 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
-  SafeAreaView,
   Dimensions,
 } from 'react-native';
 import { 
@@ -15,15 +14,18 @@ import {
   TrendingUp, 
   AlertCircle, 
   PlusCircle, 
-  Stethoscope, // Swapped Truck for Stethoscope
+  Stethoscope,
   CheckCircle2, 
   Microscope, 
   Calendar,
   Home,
   Users,
-  User
+  User,
+  UserCheck,
+  UserX
 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
@@ -37,6 +39,8 @@ interface ActivityItem {
 
 const Dashboard = () => {
   const availableDoctorsCount = 12; // The number of doctors
+  const totalAdmitted = 24; // Total admitted patients
+  const totalDischarged = 18; // Total discharged patients
   const navigation = useNavigation<any>();
 
   const activities: ActivityItem[] = [
@@ -63,24 +67,28 @@ const Dashboard = () => {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         
-        {/* Profile Header */}
-        <View style={styles.profileSection}>
-          <Image 
-            source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDin4wVYbR29dW687l64WaEmDb-Vt_zE8TwgXpahnVlKAY-Y9q9qiFuY-2kBvEKMrpA3oXWSFJ5rGSP0wmkfuZGGF4GyUPIOeu6IPsU-2h6sqsaMTlDTQpXALwq0ouAys_w1iAbRRLfwS80qeLBu1DzHhYbVYcb-tbQBJzZ6lWql5dzWY8ka0ZAt44asXwUtVVs-dsCCg7KlLYd72cFt3aUj51aTnBjYlM-ZP1JcmUIiR1mAV3zh0yO9eOPaleVFhLaXitG8WgAD7TP' }} 
-            style={styles.avatar}
-          />
-          <View>
-            <Text style={styles.greeting}>Good Morning, Dr. Aris</Text>
-            <View style={styles.locationRow}>
-              <MapPin size={14} color="#4c739a" />
-              <Text style={styles.locationText}>Downtown Branch</Text>
-            </View>
-          </View>
-        </View>
+      
 
         {/* Key Metrics */}
         <Text style={styles.sectionTitle}>Key Metrics</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.metricsContainer}>
+        <View style={styles.metricCard}>
+            <Text style={styles.metricLabel}>Total Admitted</Text>
+            <Text style={styles.metricValue}>{totalAdmitted}</Text>
+            <View style={styles.trendRow}>
+              <UserCheck size={14} color="#2563eb" />
+              <Text style={[styles.trendText, { color: '#2563eb' }]}>Current</Text>
+            </View>
+          </View>
+
+          <View style={styles.metricCard}>
+            <Text style={styles.metricLabel}>Total Discharged</Text>
+            <Text style={styles.metricValue}>{totalDischarged}</Text>
+            <View style={styles.trendRow}>
+              <UserX size={14} color="#10b981" />
+              <Text style={[styles.trendText, { color: '#10b981' }]}>Today</Text>
+            </View>
+          </View>
           <View style={styles.metricCard}>
             <Text style={styles.metricLabel}>Today's Revenue</Text>
             <Text style={styles.metricValue}>$1,240</Text>
@@ -107,6 +115,8 @@ const Dashboard = () => {
               <Text style={[styles.trendText, { color: '#e73908' }]}>High Priority</Text>
             </View>
           </View>
+
+          
         </ScrollView>
 
         {/* Quick Actions */}
@@ -121,8 +131,10 @@ const Dashboard = () => {
             <Text style={styles.actionText}>Appointments</Text>
           </TouchableOpacity>
 
-          {/* UPDATED SECTION: Available Doctors */}
-          <TouchableOpacity style={styles.actionButton}>
+          {/* Available Doctors Button */}
+          <TouchableOpacity style={styles.actionButton} onPress={()=>{
+            navigation.navigate("Doctor")
+          }}>
             <View style={styles.actionIconContainer}>
               <Stethoscope size={28} color="#137fec" />
             </View>

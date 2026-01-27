@@ -6,7 +6,7 @@ import {
   TextInput,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
+  
   StatusBar,
   Dimensions,
 } from 'react-native';
@@ -25,6 +25,7 @@ import {
   BarChart2,
   Settings,
 } from 'lucide-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
