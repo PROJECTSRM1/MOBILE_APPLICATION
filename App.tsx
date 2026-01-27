@@ -63,6 +63,8 @@ import PartnerAuth from "./src/screens/PartnerAuth";
 import EducationPartnerDashboard from "./src/screens/EducationPartnerDashboard";
 import DriverDashboard from "./src/screens/DriverDashboard";
 import EducationDashboardReport from './src/screens/EducationDashboardReport';
+import Dashboard from "./src/screens/HealthcarePartnerDashboard";
+import BookingsScreen from "./src/screens/HospitalBookings";
 
 
 export type RootStackParamList = {
@@ -131,6 +133,8 @@ export type RootStackParamList = {
   InquiryDetails: undefined;
   buysellPartnerDashboard: undefined;
   EducationPartnerDashboard: undefined;
+  HealthcarePartnerDashboard:undefined;
+  bookings:undefined;
   DriverDashboard: undefined;
 
 };
@@ -203,6 +207,8 @@ function AppNavigator() {
         <Stack.Screen name="Facility" component={FacilitiesScreen} />
         <Stack.Screen name="DriverDashboard" component={DriverDashboard} />
         <Stack.Screen name="EducationPartnerDashboard" component={EducationPartnerDashboard} />
+        <Stack.Screen name="bookings" component={BookingsScreen} />
+        <Stack.Screen name="HealthcarePartnerDashboard" component={Dashboard} />
         <Stack.Screen 
           name="EducationDashboardReport" 
           component={EducationDashboardReport} 
