@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-const EducationPartnerDashboard = () => {
+const EducationPartnerDashboard = ({ navigation }: any) => {
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -106,11 +106,14 @@ const EducationPartnerDashboard = () => {
             </View>
           </View>
 
-          <TouchableOpacity style={styles.reportBtn}>
-            <MaterialIcons name="description" size={20} color="#fff" />
-            <Text style={styles.reportText}>View Detailed Report</Text>
-          </TouchableOpacity>
-        </View>
+         <TouchableOpacity 
+    style={styles.reportBtn}
+    onPress={() => navigation.navigate('EducationDashboardReport')} // Add this line
+  >
+    <MaterialIcons name="description" size={20} color="#fff" />
+    <Text style={styles.reportText}>View Detailed Report</Text>
+  </TouchableOpacity>
+</View>
 
       </ScrollView>
 
