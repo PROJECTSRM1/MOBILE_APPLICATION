@@ -18,7 +18,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 
 declare var global: any;
-const LOGO = require("../../assets/swachlogo.png"); // adjust filename/path if needed
+const LOGO = require("../../assets/swachlogo.jpg"); // adjust filename/path if needed
 
 export default function Settings(): React.ReactElement {
   const nav = useNavigation<any>();
