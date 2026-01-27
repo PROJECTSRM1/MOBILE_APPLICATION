@@ -59,7 +59,7 @@ import ScootyView from "./src/screens/ScootyView";
 import EnrollmentDetailsScreen from "./src/screens/EnrollmentDetailsScreen";
 import PartnerAuth from "./src/screens/PartnerAuth";
 import EducationPartnerDashboard from "./src/screens/EducationPartnerDashboard";
-
+import DriverDashboard from "./src/screens/DriverDashboard";
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -124,6 +124,7 @@ export type RootStackParamList = {
   Ambulance:undefined;
   PartnerAuth: undefined;
   EducationPartnerDashboard: undefined;
+  DriverDashboard: undefined;
 
 };
 
@@ -190,6 +191,7 @@ function AppNavigator() {
         <Stack.Screen name="enrollmentDetails" component={EnrollmentDetailsScreen} />
         <Stack.Screen name="Ambulance" component={AmbulanceBookingScreen} />
         <Stack.Screen name="Facility" component={FacilitiesScreen} />
+        <Stack.Screen name="DriverDashboard" component={DriverDashboard} />
         <Stack.Screen name="EducationPartnerDashboard" component={EducationPartnerDashboard} />
         <Stack.Screen
   name="PartnerAuth"
