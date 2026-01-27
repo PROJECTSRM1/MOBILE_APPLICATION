@@ -53,6 +53,19 @@ interface Property {
   hasLaundry?: boolean;
   hasParking?: boolean;
   hasSecurity?: boolean;
+  // Hotel specific fields
+  hotelName?: string;
+  hotelStarRating?: string;
+  checkInTime?: string;
+  checkOutTime?: string;
+  roomTypes?: string[];
+  hasRestaurant?: boolean;
+  hasGym?: boolean;
+  hasPool?: boolean;
+  hasSpa?: boolean;
+  hasConferenceRoom?: boolean;
+  petFriendly?: boolean;
+  cancellationPolicy?: string;
 }
 
 const getDummyData = (): Property[] => [
@@ -86,6 +99,13 @@ const getDummyData = (): Property[] => [
   { id: 'hostel_6', title: 'Student Hostel in Dilsukhnagar', price: '₹6,500', image: 'https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=500', images: ['https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=500'], rating: 4.2, distance: '3.5 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '35', availableRooms: '10', hostelType: 'Co-living', foodIncluded: 'No', hasAC: false, hasWifi: true, hasTV: false, hasLaundry: false, hasParking: false, hasSecurity: true, location: '90 Moosarambagh, Dilsukhnagar, Hyderabad', area: 'Dilsukhnagar', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 10 * 86400000).toISOString() },
   { id: 'hostel_7', title: 'Premium Boys Hostel in Kondapur', price: '₹12,000', image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=500', images: ['https://images.unsplash.com/photo-1566073771259-6a8506099945?w=500'], rating: 4.7, distance: '2.8 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '22', availableRooms: '5', hostelType: 'Boys', foodIncluded: 'Yes', hasAC: true, hasWifi: true, hasTV: true, hasLaundry: true, hasParking: true, hasSecurity: true, location: '34 Botanical Garden Road, Kondapur, Hyderabad', area: 'Kondapur', itemCondition: 'New Item', createdAt: new Date(Date.now() - 4 * 86400000).toISOString() },
   { id: 'hostel_8', title: 'Working Women Hostel in Banjara Hills', price: '₹13,500', image: 'https://images.unsplash.com/photo-1502672260066-6bc35f0a1f80?w=500', images: ['https://images.unsplash.com/photo-1502672260066-6bc35f0a1f80?w=500'], rating: 4.8, distance: '4.2 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '15', availableRooms: '3', hostelType: 'Girls', foodIncluded: 'Yes', hasAC: true, hasWifi: true, hasTV: true, hasLaundry: true, hasParking: true, hasSecurity: true, location: 'Road No 3, Banjara Hills, Hyderabad', area: 'Banjara Hills', itemCondition: 'New Item', createdAt: new Date(Date.now() - 3 * 86400000).toISOString() },
+  
+  // HOTEL DUMMY DATA
+  { id: 'hotel_1', title: 'Taj Krishna Hotel', price: '₹8,500', image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=500', images: ['https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=500'], rating: 4.9, distance: '5.2 km away', propertyType: 'Hotel', listingType: 'rent', hotelName: 'Taj Krishna', hotelStarRating: '5', totalRooms: '260', availableRooms: '45', checkInTime: '2:00 PM', checkOutTime: '12:00 PM', roomTypes: ['Deluxe', 'Premium', 'Suite'], hasRestaurant: true, hasGym: true, hasPool: true, hasSpa: true, hasConferenceRoom: true, hasWifi: true, hasParking: true, petFriendly: false, cancellationPolicy: 'Free cancellation up to 24 hours before check-in', location: 'Road No 1, Banjara Hills, Hyderabad', area: 'Banjara Hills', itemCondition: 'New Item', createdAt: new Date(Date.now() - 2 * 86400000).toISOString() },
+  { id: 'hotel_2', title: 'Novotel Hyderabad Convention Centre', price: '₹6,000', image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=500', images: ['https://images.unsplash.com/photo-1566073771259-6a8506099945?w=500'], rating: 4.7, distance: '3.8 km away', propertyType: 'Hotel', listingType: 'rent', hotelName: 'Novotel', hotelStarRating: '5', totalRooms: '287', availableRooms: '62', checkInTime: '3:00 PM', checkOutTime: '11:00 AM', roomTypes: ['Standard', 'Executive', 'Suite'], hasRestaurant: true, hasGym: true, hasPool: true, hasSpa: true, hasConferenceRoom: true, hasWifi: true, hasParking: true, petFriendly: false, cancellationPolicy: 'Free cancellation up to 48 hours before check-in', location: 'Hitech City, Hyderabad', area: 'Hitech City', itemCondition: 'New Item', createdAt: new Date(Date.now() - 1 * 86400000).toISOString() },
+  { id: 'hotel_3', title: 'Lemon Tree Hotel', price: '₹3,500', image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=500', images: ['https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=500'], rating: 4.4, distance: '2.1 km away', propertyType: 'Hotel', listingType: 'rent', hotelName: 'Lemon Tree Hotel', hotelStarRating: '4', totalRooms: '102', availableRooms: '28', checkInTime: '2:00 PM', checkOutTime: '12:00 PM', roomTypes: ['Standard', 'Superior'], hasRestaurant: true, hasGym: true, hasPool: false, hasSpa: false, hasConferenceRoom: true, hasWifi: true, hasParking: true, petFriendly: false, cancellationPolicy: 'Non-refundable', location: 'Gachibowli, Hyderabad', area: 'Gachibowli', itemCondition: 'New Item', createdAt: new Date(Date.now() - 4 * 86400000).toISOString() },
+  { id: 'hotel_4', title: 'The Park Hotel', price: '₹7,200', image: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=500', images: ['https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=500'], rating: 4.8, distance: '6.5 km away', propertyType: 'Hotel', listingType: 'rent', hotelName: 'The Park', hotelStarRating: '5', totalRooms: '132', availableRooms: '19', checkInTime: '3:00 PM', checkOutTime: '11:00 AM', roomTypes: ['Luxury', 'Premium', 'Executive'], hasRestaurant: true, hasGym: true, hasPool: true, hasSpa: true, hasConferenceRoom: true, hasWifi: true, hasParking: true, petFriendly: true, cancellationPolicy: 'Free cancellation up to 72 hours before check-in', location: 'Somajiguda, Hyderabad', area: 'Somajiguda', itemCondition: 'New Item', createdAt: new Date(Date.now() - 3 * 86400000).toISOString() },
+  { id: 'hotel_5', title: 'Radisson Blu Plaza', price: '₹5,800', image: 'https://images.unsplash.com/photo-1455587734955-081b22074882?w=500', images: ['https://images.unsplash.com/photo-1455587734955-081b22074882?w=500'], rating: 4.6, distance: '4.7 km away', propertyType: 'Hotel', listingType: 'rent', hotelName: 'Radisson Blu Plaza', hotelStarRating: '5', totalRooms: '211', availableRooms: '38', checkInTime: '2:00 PM', checkOutTime: '12:00 PM', roomTypes: ['Business', 'Premium', 'Suite'], hasRestaurant: true, hasGym: true, hasPool: true, hasSpa: true, hasConferenceRoom: true, hasWifi: true, hasParking: true, petFriendly: false, cancellationPolicy: 'Free cancellation up to 24 hours before check-in', location: 'Banjara Hills, Hyderabad', area: 'Banjara Hills', itemCondition: 'New Item', createdAt: new Date(Date.now() - 5 * 86400000).toISOString() },
 ];
 
 const Marketplace = ({ navigation }: any) => {
@@ -160,6 +180,8 @@ const Marketplace = ({ navigation }: any) => {
             title = `${listing.brand || ''} ${listing.model || ''} ${listing.year || ''}`.trim();
           } else if (listing.propertyType === 'Hostel') {
             title = `${listing.hostelType || ''} Hostel in ${listing.area || 'Unknown'}`;
+          } else if (listing.propertyType === 'Hotel') {
+            title = listing.hotelName || `Hotel in ${listing.area || 'Unknown'}`;
           } else {
             title = `${listing.propertyType} in ${listing.area || 'Unknown'}`;
           }
@@ -205,6 +227,18 @@ const Marketplace = ({ navigation }: any) => {
             hasLaundry: listing.hasLaundry,
             hasParking: listing.hasParking,
             hasSecurity: listing.hasSecurity,
+            hotelName: listing.hotelName,
+            hotelStarRating: listing.hotelStarRating,
+            checkInTime: listing.checkInTime,
+            checkOutTime: listing.checkOutTime,
+            roomTypes: listing.roomTypes,
+            hasRestaurant: listing.hasRestaurant,
+            hasGym: listing.hasGym,
+            hasPool: listing.hasPool,
+            hasSpa: listing.hasSpa,
+            hasConferenceRoom: listing.hasConferenceRoom,
+            petFriendly: listing.petFriendly,
+            cancellationPolicy: listing.cancellationPolicy,
           };
         });
       }
@@ -258,6 +292,7 @@ const Marketplace = ({ navigation }: any) => {
     if (['Villa', 'Independent House'].includes(propertyType)) return 'House';
     if (['Office', 'Hospital', 'Commercial Space'].includes(propertyType)) return 'Commercial';
     if (propertyType === 'Hostel') return 'Hostel';
+    if (propertyType === 'Hotel') return 'Hotel';
     return 'All';
   };
 
@@ -271,7 +306,8 @@ const Marketplace = ({ navigation }: any) => {
       selectedCategory === 'Vehicle' ? ['Bike', 'Car', 'Lorry', 'Auto', 'Bus'].includes(property.propertyType || '') :
       selectedCategory === 'House' ? ['Villa', 'Independent House'].includes(property.propertyType || '') :
       selectedCategory === 'Commercial' ? ['Office', 'Hospital', 'Commercial Space'].includes(property.propertyType || '') :
-      selectedCategory === 'Hostel' ? property.propertyType === 'Hostel' : true;
+      selectedCategory === 'Hostel' ? property.propertyType === 'Hostel' :
+      selectedCategory === 'Hotel' ? property.propertyType === 'Hotel' : true;
     
     const matchesPropertyType = selectedPropertyType === 'All' ? true : property.propertyType === selectedPropertyType;
     
@@ -293,7 +329,8 @@ const Marketplace = ({ navigation }: any) => {
     const matchesSearch = searchQuery === '' || 
       property.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       property.area?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      property.location?.toLowerCase().includes(searchQuery.toLowerCase());
+      property.location?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      property.hotelName?.toLowerCase().includes(searchQuery.toLowerCase());
     
     return matchesTab && matchesCategory && matchesPropertyType && matchesDate && matchesRating && matchesSearch;
   });
@@ -391,7 +428,7 @@ const Marketplace = ({ navigation }: any) => {
       >
         <View style={styles.searchContainer}>
           <MaterialIcons name="search" size={20} color="#94a3b8" style={styles.searchIcon} />
-          <TextInput style={styles.searchInput} placeholder="Search homes, cars, land, hostels..." placeholderTextColor="#4b5563" value={searchQuery} onChangeText={setSearchQuery} />
+          <TextInput style={styles.searchInput} placeholder="Search homes, cars, land, hostels, hotels..." placeholderTextColor="#4b5563" value={searchQuery} onChangeText={setSearchQuery} />
         </View>
 
         <View style={styles.locationContainer}>
@@ -413,6 +450,7 @@ const Marketplace = ({ navigation }: any) => {
             { id: 'House', icon: 'home', label: 'House' },
             { id: 'Commercial', icon: 'business', label: 'Commercial' },
             { id: 'Hostel', icon: 'hotel', label: 'Hostel' },
+            { id: 'Hotel', icon: 'domain', label: 'Hotel' },
           ].map((category) => (
             <TouchableOpacity key={category.id} style={[styles.categoryButton, selectedCategory === category.id && styles.activeCategoryButton]} onPress={() => setSelectedCategory(category.id)}>
               <MaterialIcons name={category.icon} size={18} color={selectedCategory === category.id ? '#fff' : '#94a3b8'} />
@@ -474,7 +512,7 @@ const Marketplace = ({ navigation }: any) => {
                   <Text style={styles.cardTitle} numberOfLines={1}>{property.title}</Text>
                   <Text style={styles.cardPrice}>
                     {property.price}
-                    {property.listingType === 'rent' && <Text style={styles.perMonthText}>/month</Text>}
+                    {property.listingType === 'rent' && <Text style={styles.perMonthText}>/night</Text>}
                   </Text>
                   <View style={styles.locationRow}><MaterialIcons name="location-on" size={12} color="#64748b" /><Text style={styles.locationDetailText} numberOfLines={1}>{property.location}</Text></View>
                   <View style={styles.areaRow}><MaterialIcons name="place" size={12} color="#64748b" /><Text style={styles.areaDetailText} numberOfLines={1}>{property.area}</Text></View>
@@ -482,6 +520,7 @@ const Marketplace = ({ navigation }: any) => {
                     {property.sqft && <View style={styles.detailItem}><MaterialIcons name="square-foot" size={12} color="#64748b" /><Text style={styles.detailText}>{property.sqft} sqft</Text></View>}
                     {property.bhk && <View style={styles.detailItem}><MaterialIcons name="bed" size={12} color="#64748b" /><Text style={styles.detailText}>{property.bhk}</Text></View>}
                     {property.totalRooms && <View style={styles.detailItem}><MaterialIcons name="meeting-room" size={12} color="#64748b" /><Text style={styles.detailText}>{property.totalRooms} rooms</Text></View>}
+                    {property.hotelStarRating && <View style={styles.detailItem}><MaterialIcons name="star" size={12} color="#fbbf24" /><Text style={styles.detailText}>{property.hotelStarRating} Star</Text></View>}
                   </View>
                 </View>
               </TouchableOpacity>
@@ -501,7 +540,7 @@ const Marketplace = ({ navigation }: any) => {
       <FilterModal 
         visible={showPropertyTypeModal} 
         onClose={() => setShowPropertyTypeModal(false)} 
-        options={['All', 'Apartment', 'Villa', 'Independent House', 'Land', 'Bike', 'Car', 'Lorry', 'Auto', 'Bus', 'Office', 'Hospital', 'Commercial Space', 'Hostel']} 
+        options={['All', 'Apartment', 'Villa', 'Independent House', 'Land', 'Bike', 'Car', 'Lorry', 'Auto', 'Bus', 'Office', 'Hospital', 'Commercial Space', 'Hostel', 'Hotel']} 
         selectedValue={selectedPropertyType} 
         onSelect={handlePropertyTypeSelect} 
         title="Select Property Type" 

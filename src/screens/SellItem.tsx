@@ -54,21 +54,40 @@ const SellItem = ({ navigation }: any) => {
   const [hasParking, setHasParking] = useState(false);
   const [hasSecurity, setHasSecurity] = useState(false);
 
+  // Fields for hotel
+  const [hotelName, setHotelName] = useState('');
+  const [hotelStarRating, setHotelStarRating] = useState('3');
+  const [showStarRatingPicker, setShowStarRatingPicker] = useState(false);
+  const [checkInTime, setCheckInTime] = useState('');
+  const [checkOutTime, setCheckOutTime] = useState('');
+  const [roomTypes, setRoomTypes] = useState<string[]>([]);
+  const [showRoomTypesModal, setShowRoomTypesModal] = useState(false);
+  const [hasRestaurant, setHasRestaurant] = useState(false);
+  const [hasGym, setHasGym] = useState(false);
+  const [hasPool, setHasPool] = useState(false);
+  const [hasSpa, setHasSpa] = useState(false);
+  const [hasConferenceRoom, setHasConferenceRoom] = useState(false);
+  const [petFriendly, setPetFriendly] = useState(false);
+  const [cancellationPolicy, setCancellationPolicy] = useState('');
+
   const propertyTypes = [
     'Apartment', 'Villa', 'Independent House', 'Land', 'Bike', 'Car',
-    'Lorry', 'Auto', 'Bus', 'Office', 'Hospital', 'Commercial Space', 'Hostel'
+    'Lorry', 'Auto', 'Bus', 'Office', 'Hospital', 'Commercial Space', 'Hostel', 'Hotel'
   ];
   const bhkOptions = ['1 BHK', '2 BHK', '3 BHK', '4 BHK', '5 BHK'];
   const landTypeOptions = ['Agriculture', 'Commercial'];
   const conditionOptions = ['New Item', 'Old Item'];
   const hostelTypeOptions = ['Boys', 'Girls', 'Co-living'];
   const foodOptions = ['Yes', 'No'];
+  const starRatingOptions = ['1', '2', '3', '4', '5'];
+  const roomTypeOptions = ['Standard', 'Deluxe', 'Premium', 'Suite', 'Executive', 'Luxury', 'Business'];
 
   const isHouse = ['Apartment', 'Villa', 'Independent House'].includes(propertyType);
   const isLand = propertyType === 'Land';
   const isVehicle = ['Bike', 'Car', 'Lorry', 'Auto', 'Bus'].includes(propertyType);
   const isCommercial = ['Office', 'Hospital', 'Commercial Space'].includes(propertyType);
   const isHostel = propertyType === 'Hostel';
+  const isHotel = propertyType === 'Hotel';
 
   const pickImage = () => {
     launchImageLibrary({ mediaType: 'photo', selectionLimit: 10 - images.length }, (response) => {
@@ -101,6 +120,14 @@ const SellItem = ({ navigation }: any) => {
     if (words.length <= 250) {
       setDescription(text);
       setWordCount(words.length);
+    }
+  };
+
+  const toggleRoomType = (type: string) => {
+    if (roomTypes.includes(type)) {
+      setRoomTypes(roomTypes.filter(t => t !== type));
+    } else {
+      setRoomTypes([...roomTypes, type]);
     }
   };
 
@@ -145,6 +172,20 @@ const SellItem = ({ navigation }: any) => {
       Alert.alert('Error', 'Please fill all required fields for hostel');
       return false;
     }
+    if (isHotel) {
+      if (!hotelName || !totalRooms || !availableRooms || !checkInTime || !checkOutTime || !location || !area) {
+        Alert.alert('Error', 'Please fill all required fields for hotel');
+        return false;
+      }
+      if (roomTypes.length === 0) {
+        Alert.alert('Error', 'Please select at least one room type');
+        return false;
+      }
+      if (!cancellationPolicy) {
+        Alert.alert('Error', 'Please enter cancellation policy');
+        return false;
+      }
+    }
     return true;
   };
 
@@ -185,15 +226,27 @@ const SellItem = ({ navigation }: any) => {
       distance: isVehicle ? distance : null,
       mobileNumber: isVehicle ? mobileNumber : null,
       hostelType: isHostel ? hostelType : null,
-      totalRooms: isHostel ? totalRooms : null,
-      availableRooms: isHostel ? availableRooms : null,
+      totalRooms: (isHostel || isHotel) ? totalRooms : null,
+      availableRooms: (isHostel || isHotel) ? availableRooms : null,
       foodIncluded: isHostel ? foodIncluded : null,
-      hasAC: isHostel ? hasAC : null,
-      hasWifi: isHostel ? hasWifi : null,
-      hasTV: isHostel ? hasTV : null,
-      hasLaundry: isHostel ? hasLaundry : null,
-      hasParking: isHostel ? hasParking : null,
-      hasSecurity: isHostel ? hasSecurity : null,
+      hasAC: (isHostel || isHotel) ? hasAC : null,
+      hasWifi: (isHostel || isHotel) ? hasWifi : null,
+      hasTV: (isHostel || isHotel) ? hasTV : null,
+      hasLaundry: (isHostel || isHotel) ? hasLaundry : null,
+      hasParking: (isHostel || isHotel) ? hasParking : null,
+      hasSecurity: (isHostel || isHotel) ? hasSecurity : null,
+      hotelName: isHotel ? hotelName : null,
+      hotelStarRating: isHotel ? hotelStarRating : null,
+      checkInTime: isHotel ? checkInTime : null,
+      checkOutTime: isHotel ? checkOutTime : null,
+      roomTypes: isHotel ? roomTypes : null,
+      hasRestaurant: isHotel ? hasRestaurant : null,
+      hasGym: isHotel ? hasGym : null,
+      hasPool: isHotel ? hasPool : null,
+      hasSpa: isHotel ? hasSpa : null,
+      hasConferenceRoom: isHotel ? hasConferenceRoom : null,
+      petFriendly: isHotel ? petFriendly : null,
+      cancellationPolicy: isHotel ? cancellationPolicy : null,
       itemCondition,
       createdAt: new Date().toISOString(),
       isVerified: !isPendingVerification, // Only verified listings show on dashboard
@@ -252,6 +305,41 @@ const SellItem = ({ navigation }: any) => {
               </TouchableOpacity>
             ))}
           </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+
+  const RoomTypesModal = () => (
+    <Modal visible={showRoomTypesModal} transparent={true} animationType="slide" onRequestClose={() => setShowRoomTypesModal(false)}>
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Select Room Types</Text>
+            <TouchableOpacity onPress={() => setShowRoomTypesModal(false)}>
+              <MaterialIcons name="close" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
+          <ScrollView style={styles.optionsList}>
+            {roomTypeOptions.map((option: string) => (
+              <TouchableOpacity
+                key={option}
+                style={[styles.optionItem, roomTypes.includes(option) && styles.selectedOption]}
+                onPress={() => toggleRoomType(option)}
+              >
+                <Text style={[styles.optionText, roomTypes.includes(option) && styles.selectedOptionText]}>
+                  {option}
+                </Text>
+                {roomTypes.includes(option) && <MaterialIcons name="check" size={20} color="#135bec" />}
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+          <TouchableOpacity 
+            style={styles.roomTypeDoneButton} 
+            onPress={() => setShowRoomTypesModal(false)}
+          >
+            <Text style={styles.roomTypeDoneText}>Done ({roomTypes.length} selected)</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </Modal>
@@ -416,7 +504,9 @@ const SellItem = ({ navigation }: any) => {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.label}>{isHostel ? 'PRICE PER MONTH (₹)' : 'PRICE (₹)'}</Text>
+          <Text style={styles.label}>
+            {isHostel ? 'PRICE PER MONTH (₹)' : isHotel ? 'PRICE PER NIGHT (₹)' : 'PRICE (₹)'}
+          </Text>
           <TextInput
             style={styles.input}
             placeholder="Enter price"
@@ -764,11 +854,192 @@ const SellItem = ({ navigation }: any) => {
           </View>
         )}
 
+        {isHotel && (
+          <View style={styles.section}>
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>HOTEL NAME</Text>
+              <TextInput 
+                style={styles.input} 
+                placeholder="Enter hotel name" 
+                placeholderTextColor="#4b5563"
+                value={hotelName} 
+                onChangeText={setHotelName} 
+              />
+            </View>
+
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>STAR RATING</Text>
+              <TouchableOpacity onPress={() => setShowStarRatingPicker(true)}>
+                <View style={styles.pickerContainer} pointerEvents="none">
+                  <TextInput style={styles.picker} value={`${hotelStarRating} Star`} editable={false} />
+                  <MaterialIcons name="expand-more" size={24} color="#94a3b8" style={styles.pickerIcon} />
+                </View>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.row}>
+              <View style={styles.halfField}>
+                <Text style={styles.label}>TOTAL ROOMS</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="100" 
+                  placeholderTextColor="#4b5563"
+                  keyboardType="numeric" 
+                  value={totalRooms} 
+                  onChangeText={setTotalRooms} 
+                />
+              </View>
+              <View style={styles.halfField}>
+                <Text style={styles.label}>AVAILABLE ROOMS</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="30" 
+                  placeholderTextColor="#4b5563"
+                  keyboardType="numeric" 
+                  value={availableRooms} 
+                  onChangeText={setAvailableRooms} 
+                />
+              </View>
+            </View>
+
+            <View style={styles.row}>
+              <View style={styles.halfField}>
+                <Text style={styles.label}>CHECK-IN TIME</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="2:00 PM" 
+                  placeholderTextColor="#4b5563"
+                  value={checkInTime} 
+                  onChangeText={setCheckInTime} 
+                />
+              </View>
+              <View style={styles.halfField}>
+                <Text style={styles.label}>CHECK-OUT TIME</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="12:00 PM" 
+                  placeholderTextColor="#4b5563"
+                  value={checkOutTime} 
+                  onChangeText={setCheckOutTime} 
+                />
+              </View>
+            </View>
+
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>ROOM TYPES</Text>
+              <TouchableOpacity onPress={() => setShowRoomTypesModal(true)}>
+                <View style={styles.pickerContainer} pointerEvents="none">
+                  <TextInput 
+                    style={styles.picker} 
+                    value={roomTypes.length > 0 ? roomTypes.join(', ') : 'Select room types'} 
+                    editable={false} 
+                  />
+                  <MaterialIcons name="expand-more" size={24} color="#94a3b8" style={styles.pickerIcon} />
+                </View>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>LOCATION</Text>
+              <TextInput 
+                style={styles.input} 
+                placeholder="Full Address" 
+                placeholderTextColor="#4b5563"
+                value={location} 
+                onChangeText={setLocation} 
+              />
+            </View>
+
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>AREA</Text>
+              <TextInput 
+                style={styles.input} 
+                placeholder="Downtown / Business District" 
+                placeholderTextColor="#4b5563"
+                value={area} 
+                onChangeText={setArea} 
+              />
+            </View>
+
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>FACILITIES & AMENITIES</Text>
+              <View style={styles.servicesGrid}>
+                <ServiceToggleButton
+                  icon="restaurant"
+                  label="Restaurant"
+                  isActive={hasRestaurant}
+                  onPress={() => setHasRestaurant(!hasRestaurant)}
+                />
+                <ServiceToggleButton
+                  icon="fitness-center"
+                  label="Gym"
+                  isActive={hasGym}
+                  onPress={() => setHasGym(!hasGym)}
+                />
+                <ServiceToggleButton
+                  icon="pool"
+                  label="Pool"
+                  isActive={hasPool}
+                  onPress={() => setHasPool(!hasPool)}
+                />
+                <ServiceToggleButton
+                  icon="spa"
+                  label="Spa"
+                  isActive={hasSpa}
+                  onPress={() => setHasSpa(!hasSpa)}
+                />
+                <ServiceToggleButton
+                  icon="meeting-room"
+                  label="Conference"
+                  isActive={hasConferenceRoom}
+                  onPress={() => setHasConferenceRoom(!hasConferenceRoom)}
+                />
+                <ServiceToggleButton
+                  icon="pets"
+                  label="Pet Friendly"
+                  isActive={petFriendly}
+                  onPress={() => setPetFriendly(!petFriendly)}
+                />
+                <ServiceToggleButton
+                  icon="ac-unit"
+                  label="AC"
+                  isActive={hasAC}
+                  onPress={() => setHasAC(!hasAC)}
+                />
+                <ServiceToggleButton
+                  icon="wifi"
+                  label="WiFi"
+                  isActive={hasWifi}
+                  onPress={() => setHasWifi(!hasWifi)}
+                />
+                <ServiceToggleButton
+                  icon="local-parking"
+                  label="Parking"
+                  isActive={hasParking}
+                  onPress={() => setHasParking(!hasParking)}
+                />
+              </View>
+            </View>
+
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>CANCELLATION POLICY</Text>
+              <TextInput 
+                style={styles.textArea} 
+                placeholder="E.g., Free cancellation up to 24 hours before check-in" 
+                placeholderTextColor="#4b5563"
+                multiline
+                value={cancellationPolicy} 
+                onChangeText={setCancellationPolicy} 
+              />
+            </View>
+          </View>
+        )}
+
         <View style={styles.section}>
           <Text style={styles.label}>DESCRIPTION (MAX 250 WORDS)</Text>
           <TextInput
             style={styles.textArea}
-            placeholder="Share more details about your property or vehicle..."
+            placeholder={`Share more details about your ${isHotel ? 'hotel' : isHostel ? 'hostel' : 'property'}...`}
             placeholderTextColor="#4b5563"
             multiline
             value={description}
@@ -821,7 +1092,10 @@ const SellItem = ({ navigation }: any) => {
         options={hostelTypeOptions} selectedValue={hostelType} onSelect={setHostelType} title="Select Hostel Type" />
       <PickerModal visible={showFoodPicker} onClose={() => setShowFoodPicker(false)}
         options={foodOptions} selectedValue={foodIncluded} onSelect={setFoodIncluded} title="Food Included?" />
+      <PickerModal visible={showStarRatingPicker} onClose={() => setShowStarRatingPicker(false)}
+        options={starRatingOptions} selectedValue={hotelStarRating} onSelect={setHotelStarRating} title="Select Star Rating" />
       
+      <RoomTypesModal />
       <VerificationModal />
     </SafeAreaView>
   );
@@ -886,6 +1160,8 @@ const styles = StyleSheet.create({
   selectedOption: { backgroundColor: '#1a2030' },
   optionText: { fontSize: 16, fontWeight: '500', color: '#fff' },
   selectedOptionText: { color: '#135bec', fontWeight: '700' },
+  roomTypeDoneButton: { backgroundColor: '#135bec', marginHorizontal: 20, marginVertical: 16, paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
+  roomTypeDoneText: { fontSize: 15, fontWeight: '700', color: '#fff', letterSpacing: 0.3 },
   verificationOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.85)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24 },
   verificationModal: { backgroundColor: '#161b26', borderRadius: 24, padding: 24, width: '100%', maxWidth: 400 },
   verificationIconContainer: { alignItems: 'center', marginBottom: 20 },
