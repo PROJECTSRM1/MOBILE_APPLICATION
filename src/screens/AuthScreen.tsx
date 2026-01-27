@@ -56,7 +56,7 @@ const AuthScreen = () => {
   /* ===== SERVICE OPTIONS ===== */
  const serviceOptions = [
   { label: 'Cleaning & Home Services', value: 1 },
-  { label: 'Go Ride', value: 2 },
+  { label: 'just  Ride', value: 2 },
   { label: 'Buy/Sell/Rental', value: 3 },
   { label: 'Raw Materials', value: 4 },
   { label: 'Education', value: 5 },

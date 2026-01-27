@@ -149,9 +149,11 @@ const ServiceDetailsScreen = () => {
     }));
 
     navigation.navigate("BookCleaning", {
-      selectedServices: mappedServices,
-      consultationCharge: needsConsultation ? CONSULTATION_CHARGE : 0,
-    });
+  selectedServices: mappedServices,
+  serviceCategory: service.title,   // 👈 ADD THIS LINE
+  consultationCharge: needsConsultation ? CONSULTATION_CHARGE : 0,
+});
+
   };
 
   const renderServiceCard = (item: ServiceItem) => {

@@ -104,9 +104,9 @@ const PartnerAuth = () => {
 
     const dashboardMap: any = {
       education: 'EducationPartnerDashboard',
-      marketplace: 'MarketplacePartnerDashboard',
+      marketplace: 'buysellPartnerDashboard',
       healthcare: 'HealthcarePartnerDashboard',
-      swachify: 'SwachifyPartnerDashboard',
+      swachify: 'SwachifyPartnerScreen',
       justride: 'DriverDashboard',
     };
 

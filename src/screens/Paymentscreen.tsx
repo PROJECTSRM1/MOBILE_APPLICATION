@@ -19,6 +19,43 @@ import { createOrder, verifyPayment } from "../services/paymentApi";
 /* ---------------- CONSTANTS ---------------- */
 
 const RAZORPAY_KEY = "rzp_test_RnpmMY4LPogJ7J";
+const SERVICE_IMAGES: Record<string, any> = {
+  // 🏠 Home Cleaning
+  "Kitchen Cleaning": require("../../assets/kitchen.jpg"),
+  "Washroom Cleaning": require("../../assets/bathroom.jpg"),
+  "Sofa Cleaning": require("../../assets/sofa.jpg"),
+  "Bedroom Cleaning": require("../../assets/bedroom.jpg"),
+  //"Full Deep Cleaning": require("../../assets/deep.jpg"),
+
+  // 🚰 Plumbing
+  "Pipe Leakage": require("../../assets/pl.jpg"),
+  "Tap Fixing": require("../../assets/tf.jpg"),
+  "Bathroom Fitting": require("../../assets/bf.jpg"),
+  "Water Tank Cleaning": require("../../assets/wtc.jpg"),
+
+  // 🎨 Painting
+  "Interior Painting": require("../../assets/ip.jpg"),
+  "Exterior Painting": require("../../assets/ep.jpg"),
+  "Wall Texture": require("../../assets/wt.jpg"),
+  "Repainting": require("../../assets/rp.jpg"),
+
+  // ⚡ Electrical
+  "Wiring": require("../../assets/wire.jpg"),
+  "Fan Repair": require("../../assets/fan.jpg"),
+  "Light Installation": require("../../assets/li.jpg"),
+  "Power Backup Setup": require("../../assets/pbs.jpg"),
+
+  // ❄ AC Services
+  "AC Installation": require("../../assets/ai.jpg"),
+  "AC Gas Refill": require("../../assets/agr.jpg"),
+  "AC General Service": require("../../assets/ags.jpg"),
+  "AC Uninstallation": require("../../assets/au.jpg"),
+
+  // 👨‍🍳 Chef
+  "Home Cooking": require("../../assets/hc.jpg"),
+};
+
+
 
 /* ---------------- SCREEN ---------------- */
 
@@ -29,14 +66,13 @@ const PaymentScreen = ({ navigation }: any) => {
   // ✅ useRoute MUST be inside component
   const route = useRoute<any>();
 
-  const {
-    totalAmount = 0,
-    selectedServices = [],
-    floorArea,
-    selectedTime,
-    allocatedEmployee,
-    bookingDetails,
-  } = route.params || {};
+ const {
+  totalAmount = 0,
+  selectedServices = [],
+  allocatedEmployee,
+  bookingDetails,
+} = route.params || {};
+
 
   const { colors } = useTheme();
   const styles = getStyles(colors);
@@ -114,27 +150,27 @@ const PaymentScreen = ({ navigation }: any) => {
   <View key={index} style={styles.card}>
     <View style={styles.serviceRow}>
       <View style={styles.serviceInfo}>
-        <Text style={styles.serviceName}>{service.service}</Text>
+       <Text style={styles.serviceName}>{service.title}</Text>
 
-        <View style={styles.tagRow}>
-          <View style={styles.blueTag}>
-            <Text style={styles.blueTagText}>{floorArea} sqft</Text>
-          </View>
-          <Text style={styles.subInfoText}>{service.duration}</Text>
-        </View>
+{/* TIME */}
+<View style={styles.dateRow}>
+  <MaterialIcons name="access-time" size={14} color="#94a3b8" />
+  <Text style={styles.dateText}>
+    {bookingDetails?.date} • {bookingDetails?.time}
+  </Text>
+</View>
 
-        <View style={styles.dateRow}>
-          <MaterialIcons name="calendar-today" size={14} color="#94a3b8" />
-          <Text style={styles.dateText}>
-            {service.date} • {selectedTime}
-          </Text>
-        </View>
+{/* PRICE PER SERVICE */}
+<Text style={styles.servicePrice}>₹{service.price}</Text>
+
       </View>
 
-      <Image
-        source={{ uri: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a" }}
-        style={styles.serviceImage}
-      />
+    <Image
+  source={SERVICE_IMAGES[service.title] || require("../../assets/home.jpg")}
+  style={styles.serviceImage}
+/>
+
+
     </View>
   </View>
 ))}
@@ -398,4 +434,11 @@ const getStyles = (colors: any) =>
       fontSize: 16,
       fontWeight: "800",
     },
+    servicePrice: {
+  color: colors.primary,
+  fontSize: 16,
+  fontWeight: "700",
+  marginTop: 6,
+},
+
   });
