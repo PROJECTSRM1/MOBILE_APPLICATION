@@ -43,6 +43,9 @@ const ReviewApplication = () => {
   const [email, setEmail] = useState("alex.johnson@edu-mail.com");
   const [phone, setPhone] = useState("+1 (555) 012-3456");
 const [isDeclared, setIsDeclared] = useState(false);
+const [declarationError, setDeclarationError] = useState(false);
+const [emailError, setEmailError] = useState("");
+const [phoneError, setPhoneError] = useState("");
 
   /* 🔹 Edit All handler */
   const toggleEditAll = () => {
@@ -51,6 +54,15 @@ const [isDeclared, setIsDeclared] = useState(false);
     setEducationEdit(enable);
     setContactEdit(enable);
   };
+const validateEmail = (value: string) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(value);
+};
+
+const validatePhone = (value: string) => {
+  const phoneRegex = /^[0-9]{10}$/;
+  return phoneRegex.test(value.replace(/\D/g, ""));
+};
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -142,53 +154,99 @@ const [isDeclared, setIsDeclared] = useState(false);
           colors={colors}
         >
           <EditableRow
-            icon={<Mail size={18} color={colors.primary} />}
-            label="EMAIL"
-            value={email}
-            editable={contactEdit}
-            onChange={setEmail}
-            styles={styles}
-          />
+  icon={<Mail size={18} color={colors.primary} />}
+  label="EMAIL"
+  value={email}
+  editable={contactEdit}
+  onChange={(val: string) => {
+    setEmail(val);
+    setEmailError("");
+  }}
+  styles={styles}
+/>
+{emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
 
-          <EditableRow
-            icon={<Phone size={18} color={colors.primary} />}
-            label="PHONE"
-            value={phone}
-            editable={contactEdit}
-            onChange={setPhone}
-            styles={styles}
-          />
+
+         <EditableRow
+  icon={<Phone size={18} color={colors.primary} />}
+  label="PHONE"
+  value={phone}
+  editable={contactEdit}
+  onChange={(val: string) => {
+    setPhone(val);
+    setPhoneError("");
+  }}
+  styles={styles}
+/>
+{phoneError ? <Text style={styles.errorText}>{phoneError}</Text> : null}
+
         </Section>
+<View style={styles.declarationContainer}>
+  {declarationError && (
+    <Text style={styles.errorText}>
+      Please accept the declaration before submitting.
+    </Text>
+  )}
 
         {/* DECLARATION */}
       <View style={styles.declaration}>
- <TouchableOpacity
-  style={[
-    styles.checkbox,
-    isDeclared && { backgroundColor: colors.primary },
-  ]}
-  onPress={() => setIsDeclared(!isDeclared)}
-  activeOpacity={0.8}
->
-  {isDeclared && (
-    <MaterialIcons name="check" size={16} color="#fff" />
-  )}
-</TouchableOpacity>
+    <TouchableOpacity
+      style={[
+        styles.checkbox,
+        isDeclared && { backgroundColor: colors.primary },
+      ]}
+      onPress={() => {
+        setIsDeclared(!isDeclared);
+        setDeclarationError(false);
+      }}
+      activeOpacity={0.8}
+    >
+      {isDeclared && (
+        <MaterialIcons name="check" size={16} color="#fff" />
+      )}
+    </TouchableOpacity>
 
-
-          <Text style={styles.declarationText}>
-            I hereby certify that the information provided is accurate and true
-            to the best of my knowledge.
-          </Text>
-        </View>
+    <Text style={styles.declarationText}>
+      I hereby certify that the information provided is accurate and true
+      to the best of my knowledge.
+    </Text>
+  </View>
+</View>
 
         {/* SUBMIT */}
         <TouchableOpacity
           style={styles.submitBtn}
-        onPress={() => {
-  if (!isDeclared) return;
+      onPress={() => {
+  let hasError = false;
+
+  // Email validation
+  if (!validateEmail(email)) {
+    setEmailError("Please enter a valid email address");
+    hasError = true;
+  }
+
+  // Phone validation
+  if (!validatePhone(phone)) {
+    setPhoneError("Please enter a valid 10-digit phone number");
+    hasError = true;
+  }
+
+  // Declaration validation
+  if (!isDeclared) {
+    setDeclarationError(true);
+    hasError = true;
+  }
+
+  // Stop submission if any error exists
+  if (hasError) return;
+
+  // All validations passed
   navigation.navigate("ApplicationSuccess" as never);
 }}
+
+
+ 
+
 
         >
           <Text style={styles.submitText}>Submit Application ➜</Text>
@@ -302,6 +360,12 @@ const getStyles = (colors: any) =>
       borderWidth: 1,
       borderColor: colors.border,
     },
+errorText: {
+  color: "#ff4d4f",
+  fontSize: 12,
+  marginBottom: 8,
+},
+
 
     avatar: {
       width: 60,
@@ -314,6 +378,10 @@ const getStyles = (colors: any) =>
       fontWeight: "700",
       fontSize: 16,
     },
+declarationContainer: {
+  marginHorizontal: 16,
+  marginTop: 16,
+},
 
     appId: {
       color: colors.primary,
@@ -409,27 +477,27 @@ const getStyles = (colors: any) =>
     },
 
     /* ================= DECLARATION ================= */
-    declaration: {
-      flexDirection: "row",
-      gap: 10,
-      margin: 16,
-      backgroundColor: colors.card,
-      padding: 14,
-      borderRadius: 14,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
+   declaration: {
+  flexDirection: "row",
+  gap: 10,
+  backgroundColor: colors.card,
+  padding: 14,
+  borderRadius: 14,
+  borderWidth: 1,
+  borderColor: colors.border,
+},
 
-    checkbox: {
-      width: 18,
-      height: 18,
-      borderRadius: 4,
-      borderWidth: 2,
-      borderColor: colors.primary,
-      marginTop: 4,
-      alignItems: "center",
-      justifyContent: "center",
-    },
+
+   checkbox: {
+  width: 18,
+  height: 18,
+  borderRadius: 4,
+  borderWidth: 2,
+  borderColor: colors.primary,
+  alignItems: "center",
+  justifyContent: "center",
+},
+
 
     declarationText: {
       color: colors.subText,
