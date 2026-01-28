@@ -34,13 +34,11 @@ const SellItem = ({ navigation }: any) => {
   const [showConditionPicker, setShowConditionPicker] = useState(false);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   
-  // Fields for land registration
   const [registrationStatus, setRegistrationStatus] = useState<'registered' | 'non-registered'>('registered');
   const [registrationValue, setRegistrationValue] = useState('');
   const [marketValue, setMarketValue] = useState('');
   const [documentImages, setDocumentImages] = useState<string[]>([]);
 
-  // Fields for hostel
   const [hostelType, setHostelType] = useState('Boys');
   const [showHostelTypePicker, setShowHostelTypePicker] = useState(false);
   const [totalRooms, setTotalRooms] = useState('');
@@ -54,7 +52,6 @@ const SellItem = ({ navigation }: any) => {
   const [hasParking, setHasParking] = useState(false);
   const [hasSecurity, setHasSecurity] = useState(false);
 
-  // Fields for hotel
   const [hotelName, setHotelName] = useState('');
   const [hotelStarRating, setHotelStarRating] = useState('3');
   const [showStarRatingPicker, setShowStarRatingPicker] = useState(false);
@@ -88,6 +85,90 @@ const SellItem = ({ navigation }: any) => {
   const isCommercial = ['Office', 'Hospital', 'Commercial Space'].includes(propertyType);
   const isHostel = propertyType === 'Hostel';
   const isHotel = propertyType === 'Hotel';
+
+  // Validation functions
+  const validateName = (text: string): boolean => {
+    // Only allow letters and spaces
+    const nameRegex = /^[a-zA-Z\s]*$/;
+    return nameRegex.test(text);
+  };
+
+  const validatePhoneNumber = (text: string): boolean => {
+    // Only allow numbers, +, -, and spaces
+    const phoneRegex = /^[0-9+\-\s]*$/;
+    return phoneRegex.test(text);
+  };
+
+  const validateNumericInput = (text: string): boolean => {
+    // Only allow numbers
+    const numericRegex = /^[0-9]*$/;
+    return numericRegex.test(text);
+  };
+
+  const handleOwnerNameChange = (text: string) => {
+    if (validateName(text)) {
+      setOwnerName(text);
+    }
+  };
+
+  const handleHotelNameChange = (text: string) => {
+    // Hotel names can contain letters, numbers, spaces, and some special chars
+    setHotelName(text);
+  };
+
+  const handleMobileNumberChange = (text: string) => {
+    if (validatePhoneNumber(text)) {
+      setMobileNumber(text);
+    }
+  };
+
+  const handlePriceChange = (text: string) => {
+    if (validateNumericInput(text)) {
+      setPrice(text);
+    }
+  };
+
+  const handleSqftChange = (text: string) => {
+    if (validateNumericInput(text)) {
+      setSqft(text);
+    }
+  };
+
+  const handleYearChange = (text: string) => {
+    if (validateNumericInput(text) && text.length <= 4) {
+      setYear(text);
+    }
+  };
+
+  const handleDistanceChange = (text: string) => {
+    if (validateNumericInput(text)) {
+      setDistance(text);
+    }
+  };
+
+  const handleRegistrationValueChange = (text: string) => {
+    if (validateNumericInput(text)) {
+      setRegistrationValue(text);
+    }
+  };
+
+  const handleMarketValueChange = (text: string) => {
+    if (validateNumericInput(text)) {
+      setMarketValue(text);
+    }
+  };
+
+  const handleTotalRoomsChange = (text: string) => {
+    if (validateNumericInput(text)) {
+      setTotalRooms(text);
+    }
+  };
+
+  const handleAvailableRoomsChange = (text: string) => {
+    if (validateNumericInput(text)) {
+      setAvailableRooms(text);
+    }
+  };
 
   const pickImage = () => {
     launchImageLibrary({ mediaType: 'photo', selectionLimit: 10 - images.length }, (response) => {
@@ -133,72 +214,194 @@ const SellItem = ({ navigation }: any) => {
 
   const validateForm = () => {
     if (images.length === 0) {
-      Alert.alert('Error', 'Please upload at least one photo');
+      Alert.alert('Validation Error', 'Please upload at least one photo');
       return false;
     }
-    if (!price) {
-      Alert.alert('Error', 'Please enter the price');
+    if (!price || parseFloat(price) <= 0) {
+      Alert.alert('Validation Error', 'Please enter a valid price');
       return false;
     }
-    if (isHouse && (!sqft || !location || !area)) {
-      Alert.alert('Error', 'Please fill all required fields');
-      return false;
-    }
-    if (isLand) {
-      if (!sqft || !location || !area || !ownerName || !marketValue) {
-        Alert.alert('Error', 'Please fill all required fields');
+
+    if (isHouse) {
+      if (!sqft || parseFloat(sqft) <= 0) {
+        Alert.alert('Validation Error', 'Please enter valid square footage');
         return false;
       }
-      if (registrationStatus === 'registered' && !registrationValue) {
-        Alert.alert('Error', 'Please enter registration value for registered land');
+      if (!location.trim()) {
+        Alert.alert('Validation Error', 'Please enter the location');
+        return false;
+      }
+      if (!area.trim()) {
+        Alert.alert('Validation Error', 'Please enter the area');
+        return false;
+      }
+    }
+
+    if (isLand) {
+      if (!sqft || parseFloat(sqft) <= 0) {
+        Alert.alert('Validation Error', 'Please enter valid square footage');
+        return false;
+      }
+      if (!location.trim()) {
+        Alert.alert('Validation Error', 'Please enter the location');
+        return false;
+      }
+      if (!area.trim()) {
+        Alert.alert('Validation Error', 'Please enter the area');
+        return false;
+      }
+      if (!ownerName.trim()) {
+        Alert.alert('Validation Error', 'Please enter the registered owner name (letters only)');
+        return false;
+      }
+      if (!validateName(ownerName)) {
+        Alert.alert('Validation Error', 'Owner name can only contain letters and spaces');
+        return false;
+      }
+      if (!marketValue || parseFloat(marketValue) <= 0) {
+        Alert.alert('Validation Error', 'Please enter a valid market value');
+        return false;
+      }
+      if (registrationStatus === 'registered' && (!registrationValue || parseFloat(registrationValue) <= 0)) {
+        Alert.alert('Validation Error', 'Please enter a valid registration value for registered land');
         return false;
       }
       if (documentImages.length === 0) {
-        Alert.alert('Error', registrationStatus === 'registered' 
+        Alert.alert('Validation Error', registrationStatus === 'registered' 
           ? 'Please upload registration document images'
           : 'Please upload attested copy document images');
         return false;
       }
     }
-    if (isVehicle && (!brand || !model || !year || !distance || !ownerName || !mobileNumber)) {
-      Alert.alert('Error', 'Please fill all required fields');
-      return false;
+
+    if (isVehicle) {
+      if (!brand.trim()) {
+        Alert.alert('Validation Error', 'Please enter the brand name');
+        return false;
+      }
+      if (!model.trim()) {
+        Alert.alert('Validation Error', 'Please enter the model name');
+        return false;
+      }
+      if (!year || year.length !== 4 || parseInt(year) < 1900 || parseInt(year) > new Date().getFullYear() + 1) {
+        Alert.alert('Validation Error', 'Please enter a valid year (4 digits)');
+        return false;
+      }
+      if (!distance || parseFloat(distance) < 0) {
+        Alert.alert('Validation Error', 'Please enter valid distance in kilometers');
+        return false;
+      }
+      if (!ownerName.trim()) {
+        Alert.alert('Validation Error', 'Please enter the owner name (letters only)');
+        return false;
+      }
+      if (!validateName(ownerName)) {
+        Alert.alert('Validation Error', 'Owner name can only contain letters and spaces');
+        return false;
+      }
+      if (!mobileNumber.trim() || mobileNumber.length < 10) {
+        Alert.alert('Validation Error', 'Please enter a valid mobile number (minimum 10 digits)');
+        return false;
+      }
+      if (!validatePhoneNumber(mobileNumber)) {
+        Alert.alert('Validation Error', 'Mobile number can only contain numbers, +, -, and spaces');
+        return false;
+      }
     }
-    if (isCommercial && (!sqft || !location || !area)) {
-      Alert.alert('Error', 'Please fill all required fields');
-      return false;
+
+    if (isCommercial) {
+      if (!sqft || parseFloat(sqft) <= 0) {
+        Alert.alert('Validation Error', 'Please enter valid square footage');
+        return false;
+      }
+      if (!location.trim()) {
+        Alert.alert('Validation Error', 'Please enter the location');
+        return false;
+      }
+      if (!area.trim()) {
+        Alert.alert('Validation Error', 'Please enter the area');
+        return false;
+      }
     }
-    if (isHostel && (!totalRooms || !availableRooms || !location || !area)) {
-      Alert.alert('Error', 'Please fill all required fields for hostel');
-      return false;
+
+    if (isHostel) {
+      if (!totalRooms || parseInt(totalRooms) <= 0) {
+        Alert.alert('Validation Error', 'Please enter valid total number of rooms');
+        return false;
+      }
+      if (!availableRooms || parseInt(availableRooms) < 0) {
+        Alert.alert('Validation Error', 'Please enter valid number of available rooms');
+        return false;
+      }
+      if (parseInt(availableRooms) > parseInt(totalRooms)) {
+        Alert.alert('Validation Error', 'Available rooms cannot exceed total rooms');
+        return false;
+      }
+      if (!location.trim()) {
+        Alert.alert('Validation Error', 'Please enter the location');
+        return false;
+      }
+      if (!area.trim()) {
+        Alert.alert('Validation Error', 'Please enter the area');
+        return false;
+      }
     }
+
     if (isHotel) {
-      if (!hotelName || !totalRooms || !availableRooms || !checkInTime || !checkOutTime || !location || !area) {
-        Alert.alert('Error', 'Please fill all required fields for hotel');
+      if (!hotelName.trim()) {
+        Alert.alert('Validation Error', 'Please enter the hotel name');
+        return false;
+      }
+      if (!totalRooms || parseInt(totalRooms) <= 0) {
+        Alert.alert('Validation Error', 'Please enter valid total number of rooms');
+        return false;
+      }
+      if (!availableRooms || parseInt(availableRooms) < 0) {
+        Alert.alert('Validation Error', 'Please enter valid number of available rooms');
+        return false;
+      }
+      if (parseInt(availableRooms) > parseInt(totalRooms)) {
+        Alert.alert('Validation Error', 'Available rooms cannot exceed total rooms');
+        return false;
+      }
+      if (!checkInTime.trim()) {
+        Alert.alert('Validation Error', 'Please enter check-in time');
+        return false;
+      }
+      if (!checkOutTime.trim()) {
+        Alert.alert('Validation Error', 'Please enter check-out time');
         return false;
       }
       if (roomTypes.length === 0) {
-        Alert.alert('Error', 'Please select at least one room type');
+        Alert.alert('Validation Error', 'Please select at least one room type');
         return false;
       }
-      if (!cancellationPolicy) {
-        Alert.alert('Error', 'Please enter cancellation policy');
+      if (!location.trim()) {
+        Alert.alert('Validation Error', 'Please enter the location');
+        return false;
+      }
+      if (!area.trim()) {
+        Alert.alert('Validation Error', 'Please enter the area');
+        return false;
+      }
+      if (!cancellationPolicy.trim()) {
+        Alert.alert('Validation Error', 'Please enter the cancellation policy');
         return false;
       }
     }
+
     return true;
   };
 
   const handlePost = async () => {
     if (!validateForm()) return;
 
-    // For non-registered land, show verification modal instead of posting
     if (isLand && registrationStatus === 'non-registered') {
       setShowVerificationModal(true);
       return;
     }
 
-    await saveListing(false); // false = not pending verification
+    await saveListing(false);
   };
 
   const saveListing = async (isPendingVerification: boolean) => {
@@ -249,7 +452,7 @@ const SellItem = ({ navigation }: any) => {
       cancellationPolicy: isHotel ? cancellationPolicy : null,
       itemCondition,
       createdAt: new Date().toISOString(),
-      isVerified: !isPendingVerification, // Only verified listings show on dashboard
+      isVerified: !isPendingVerification,
       isPendingVerification: isPendingVerification,
       verificationStatus: isPendingVerification ? 'pending' : 'approved',
     };
@@ -278,7 +481,7 @@ const SellItem = ({ navigation }: any) => {
   };
 
   const handleVerificationConfirm = async () => {
-    await saveListing(true); // true = pending verification
+    await saveListing(true);
   };
 
   const PickerModal = ({ visible, onClose, options, selectedValue, onSelect, title }: any) => (
@@ -509,11 +712,11 @@ const SellItem = ({ navigation }: any) => {
           </Text>
           <TextInput
             style={styles.input}
-            placeholder="Enter price"
+            placeholder="Enter price (numbers only)"
             placeholderTextColor="#4b5563"
             keyboardType="numeric"
             value={price}
-            onChangeText={setPrice}
+            onChangeText={handlePriceChange}
           />
         </View>
 
@@ -521,12 +724,18 @@ const SellItem = ({ navigation }: any) => {
           <View style={styles.section}>
             <View style={styles.row}>
               <View style={styles.halfField}>
-                <Text style={styles.label}>SQFT</Text>
-                <TextInput style={styles.input} placeholder="1200" placeholderTextColor="#4b5563"
-                  keyboardType="numeric" value={sqft} onChangeText={setSqft} />
+                <Text style={styles.label}>SQFT *</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="1200" 
+                  placeholderTextColor="#4b5563"
+                  keyboardType="numeric" 
+                  value={sqft} 
+                  onChangeText={handleSqftChange} 
+                />
               </View>
               <View style={styles.halfField}>
-                <Text style={styles.label}>BHK</Text>
+                <Text style={styles.label}>BHK *</Text>
                 <TouchableOpacity onPress={() => setShowBhkPicker(true)}>
                   <View style={styles.pickerContainer} pointerEvents="none">
                     <TextInput style={styles.picker} value={bhk} editable={false} />
@@ -536,14 +745,24 @@ const SellItem = ({ navigation }: any) => {
               </View>
             </View>
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>LOCATION</Text>
-              <TextInput style={styles.input} placeholder="Full Address" placeholderTextColor="#4b5563"
-                value={location} onChangeText={setLocation} />
+              <Text style={styles.label}>LOCATION *</Text>
+              <TextInput 
+                style={styles.input} 
+                placeholder="Full Address" 
+                placeholderTextColor="#4b5563"
+                value={location} 
+                onChangeText={setLocation} 
+              />
             </View>
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>AREA</Text>
-              <TextInput style={styles.input} placeholder="Downtown / Suburb" placeholderTextColor="#4b5563"
-                value={area} onChangeText={setArea} />
+              <Text style={styles.label}>AREA *</Text>
+              <TextInput 
+                style={styles.input} 
+                placeholder="Downtown / Suburb" 
+                placeholderTextColor="#4b5563"
+                value={area} 
+                onChangeText={setArea} 
+              />
             </View>
             <View style={styles.fieldContainer}>
               <Text style={styles.label}>FURNISHING TYPE</Text>
@@ -598,9 +817,15 @@ const SellItem = ({ navigation }: any) => {
 
             <View style={styles.row}>
               <View style={styles.halfField}>
-                <Text style={styles.label}>SQFT</Text>
-                <TextInput style={styles.input} placeholder="5000" placeholderTextColor="#4b5563"
-                  keyboardType="numeric" value={sqft} onChangeText={setSqft} />
+                <Text style={styles.label}>SQFT *</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="5000" 
+                  placeholderTextColor="#4b5563"
+                  keyboardType="numeric" 
+                  value={sqft} 
+                  onChangeText={handleSqftChange} 
+                />
               </View>
               <View style={styles.halfField}>
                 <Text style={styles.label}>LAND TYPE</Text>
@@ -615,52 +840,67 @@ const SellItem = ({ navigation }: any) => {
 
             {registrationStatus === 'registered' && (
               <View style={styles.fieldContainer}>
-                <Text style={styles.label}>REGISTRATION VALUE (₹)</Text>
+                <Text style={styles.label}>REGISTRATION VALUE (₹) *</Text>
                 <TextInput 
                   style={styles.input} 
-                  placeholder="Enter registration value" 
+                  placeholder="Enter registration value (numbers only)" 
                   placeholderTextColor="#4b5563"
                   keyboardType="numeric" 
                   value={registrationValue} 
-                  onChangeText={setRegistrationValue} 
+                  onChangeText={handleRegistrationValueChange} 
                 />
               </View>
             )}
 
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>MARKET VALUE (₹)</Text>
+              <Text style={styles.label}>MARKET VALUE (₹) *</Text>
               <TextInput 
                 style={styles.input} 
-                placeholder="Enter market value" 
+                placeholder="Enter market value (numbers only)" 
                 placeholderTextColor="#4b5563"
                 keyboardType="numeric" 
                 value={marketValue} 
-                onChangeText={setMarketValue} 
+                onChangeText={handleMarketValueChange} 
               />
             </View>
 
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>LOCATION</Text>
-              <TextInput style={styles.input} placeholder="City or Village" placeholderTextColor="#4b5563"
-                value={location} onChangeText={setLocation} />
+              <Text style={styles.label}>LOCATION *</Text>
+              <TextInput 
+                style={styles.input} 
+                placeholder="City or Village" 
+                placeholderTextColor="#4b5563"
+                value={location} 
+                onChangeText={setLocation} 
+              />
             </View>
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>AREA</Text>
-              <TextInput style={styles.input} placeholder="Industrial Hub" placeholderTextColor="#4b5563"
-                value={area} onChangeText={setArea} />
+              <Text style={styles.label}>AREA *</Text>
+              <TextInput 
+                style={styles.input} 
+                placeholder="Industrial Hub" 
+                placeholderTextColor="#4b5563"
+                value={area} 
+                onChangeText={setArea} 
+              />
             </View>
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>REGISTERED OWNER NAME</Text>
-              <TextInput style={styles.input} placeholder="John Doe" placeholderTextColor="#4b5563"
-                value={ownerName} onChangeText={setOwnerName} />
+              <Text style={styles.label}>REGISTERED OWNER NAME * (Letters only)</Text>
+              <TextInput 
+                style={styles.input} 
+                placeholder="John Doe" 
+                placeholderTextColor="#4b5563"
+                value={ownerName} 
+                onChangeText={handleOwnerNameChange} 
+              />
             </View>
 
             <View style={styles.fieldContainer}>
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>
                   {registrationStatus === 'registered' 
-                    ? 'Upload Registration Documents' 
-                    : 'Upload Attested Copy Documents'}
+                    ? 'Upload Registration Documents *' 
+                    : 'Upload Attested Copy Documents *'}
                 </Text>
                 <Text style={styles.photoLimit}>UP TO 10 IMAGES</Text>
               </View>
@@ -686,37 +926,71 @@ const SellItem = ({ navigation }: any) => {
           <View style={styles.section}>
             <View style={styles.row}>
               <View style={styles.halfField}>
-                <Text style={styles.label}>BRAND</Text>
-                <TextInput style={styles.input} placeholder="Brand Name" placeholderTextColor="#4b5563"
-                  value={brand} onChangeText={setBrand} />
+                <Text style={styles.label}>BRAND *</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="Brand Name" 
+                  placeholderTextColor="#4b5563"
+                  value={brand} 
+                  onChangeText={setBrand} 
+                />
               </View>
               <View style={styles.halfField}>
-                <Text style={styles.label}>MODEL</Text>
-                <TextInput style={styles.input} placeholder="Model Name" placeholderTextColor="#4b5563"
-                  value={model} onChangeText={setModel} />
+                <Text style={styles.label}>MODEL *</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="Model Name" 
+                  placeholderTextColor="#4b5563"
+                  value={model} 
+                  onChangeText={setModel} 
+                />
               </View>
             </View>
             <View style={styles.row}>
               <View style={styles.halfField}>
-                <Text style={styles.label}>YEAR</Text>
-                <TextInput style={styles.input} placeholder="2024" placeholderTextColor="#4b5563"
-                  keyboardType="numeric" value={year} onChangeText={setYear} />
+                <Text style={styles.label}>YEAR * (4 digits)</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="2024" 
+                  placeholderTextColor="#4b5563"
+                  keyboardType="numeric" 
+                  maxLength={4}
+                  value={year} 
+                  onChangeText={handleYearChange} 
+                />
               </View>
               <View style={styles.halfField}>
-                <Text style={styles.label}>DISTANCE (KM)</Text>
-                <TextInput style={styles.input} placeholder="10000" placeholderTextColor="#4b5563"
-                  keyboardType="numeric" value={distance} onChangeText={setDistance} />
+                <Text style={styles.label}>DISTANCE (KM) *</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="10000" 
+                  placeholderTextColor="#4b5563"
+                  keyboardType="numeric" 
+                  value={distance} 
+                  onChangeText={handleDistanceChange} 
+                />
               </View>
             </View>
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>VEHICLE OWNER NAME</Text>
-              <TextInput style={styles.input} placeholder="Owner Name" placeholderTextColor="#4b5563"
-                value={ownerName} onChangeText={setOwnerName} />
+              <Text style={styles.label}>OWNER NAME * (Letters only)</Text>
+              <TextInput 
+                style={styles.input} 
+                placeholder="Owner Name" 
+                placeholderTextColor="#4b5563"
+                value={ownerName} 
+                onChangeText={handleOwnerNameChange} 
+              />
             </View>
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>MOBILE NUMBER</Text>
-              <TextInput style={styles.input} placeholder="+91 98765 43210" placeholderTextColor="#4b5563"
-                keyboardType="phone-pad" value={mobileNumber} onChangeText={setMobileNumber} />
+              <Text style={styles.label}>MOBILE NUMBER * (10+ digits)</Text>
+              <TextInput 
+                style={styles.input} 
+                placeholder="+91 98765 43210" 
+                placeholderTextColor="#4b5563"
+                keyboardType="phone-pad" 
+                value={mobileNumber} 
+                onChangeText={handleMobileNumberChange} 
+              />
             </View>
           </View>
         )}
@@ -724,19 +998,35 @@ const SellItem = ({ navigation }: any) => {
         {isCommercial && (
           <View style={styles.section}>
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>SQFT</Text>
-              <TextInput style={styles.input} placeholder="2000" placeholderTextColor="#4b5563"
-                keyboardType="numeric" value={sqft} onChangeText={setSqft} />
+              <Text style={styles.label}>SQFT *</Text>
+              <TextInput 
+                style={styles.input} 
+                placeholder="2000" 
+                placeholderTextColor="#4b5563"
+                keyboardType="numeric" 
+                value={sqft} 
+                onChangeText={handleSqftChange} 
+              />
             </View>
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>LOCATION</Text>
-              <TextInput style={styles.input} placeholder="Full Address" placeholderTextColor="#4b5563"
-                value={location} onChangeText={setLocation} />
+              <Text style={styles.label}>LOCATION *</Text>
+              <TextInput 
+                style={styles.input} 
+                placeholder="Full Address" 
+                placeholderTextColor="#4b5563"
+                value={location} 
+                onChangeText={setLocation} 
+              />
             </View>
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>AREA</Text>
-              <TextInput style={styles.input} placeholder="Business District" placeholderTextColor="#4b5563"
-                value={area} onChangeText={setArea} />
+              <Text style={styles.label}>AREA *</Text>
+              <TextInput 
+                style={styles.input} 
+                placeholder="Business District" 
+                placeholderTextColor="#4b5563"
+                value={area} 
+                onChangeText={setArea} 
+              />
             </View>
           </View>
         )}
@@ -755,25 +1045,25 @@ const SellItem = ({ navigation }: any) => {
 
             <View style={styles.row}>
               <View style={styles.halfField}>
-                <Text style={styles.label}>TOTAL ROOMS</Text>
+                <Text style={styles.label}>TOTAL ROOMS *</Text>
                 <TextInput 
                   style={styles.input} 
                   placeholder="20" 
                   placeholderTextColor="#4b5563"
                   keyboardType="numeric" 
                   value={totalRooms} 
-                  onChangeText={setTotalRooms} 
+                  onChangeText={handleTotalRoomsChange} 
                 />
               </View>
               <View style={styles.halfField}>
-                <Text style={styles.label}>AVAILABLE ROOMS</Text>
+                <Text style={styles.label}>AVAILABLE ROOMS *</Text>
                 <TextInput 
                   style={styles.input} 
                   placeholder="5" 
                   placeholderTextColor="#4b5563"
                   keyboardType="numeric" 
                   value={availableRooms} 
-                  onChangeText={setAvailableRooms} 
+                  onChangeText={handleAvailableRoomsChange} 
                 />
               </View>
             </View>
@@ -789,7 +1079,7 @@ const SellItem = ({ navigation }: any) => {
             </View>
 
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>LOCATION</Text>
+              <Text style={styles.label}>LOCATION *</Text>
               <TextInput 
                 style={styles.input} 
                 placeholder="Full Address" 
@@ -800,7 +1090,7 @@ const SellItem = ({ navigation }: any) => {
             </View>
 
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>AREA</Text>
+              <Text style={styles.label}>AREA *</Text>
               <TextInput 
                 style={styles.input} 
                 placeholder="Downtown / Suburb" 
@@ -857,13 +1147,13 @@ const SellItem = ({ navigation }: any) => {
         {isHotel && (
           <View style={styles.section}>
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>HOTEL NAME</Text>
+              <Text style={styles.label}>HOTEL NAME *</Text>
               <TextInput 
                 style={styles.input} 
                 placeholder="Enter hotel name" 
                 placeholderTextColor="#4b5563"
                 value={hotelName} 
-                onChangeText={setHotelName} 
+                onChangeText={handleHotelNameChange} 
               />
             </View>
 
@@ -879,32 +1169,32 @@ const SellItem = ({ navigation }: any) => {
 
             <View style={styles.row}>
               <View style={styles.halfField}>
-                <Text style={styles.label}>TOTAL ROOMS</Text>
+                <Text style={styles.label}>TOTAL ROOMS *</Text>
                 <TextInput 
                   style={styles.input} 
                   placeholder="100" 
                   placeholderTextColor="#4b5563"
                   keyboardType="numeric" 
                   value={totalRooms} 
-                  onChangeText={setTotalRooms} 
+                  onChangeText={handleTotalRoomsChange} 
                 />
               </View>
               <View style={styles.halfField}>
-                <Text style={styles.label}>AVAILABLE ROOMS</Text>
+                <Text style={styles.label}>AVAILABLE ROOMS *</Text>
                 <TextInput 
                   style={styles.input} 
                   placeholder="30" 
                   placeholderTextColor="#4b5563"
                   keyboardType="numeric" 
                   value={availableRooms} 
-                  onChangeText={setAvailableRooms} 
+                  onChangeText={handleAvailableRoomsChange} 
                 />
               </View>
             </View>
 
             <View style={styles.row}>
               <View style={styles.halfField}>
-                <Text style={styles.label}>CHECK-IN TIME</Text>
+                <Text style={styles.label}>CHECK-IN TIME *</Text>
                 <TextInput 
                   style={styles.input} 
                   placeholder="2:00 PM" 
@@ -914,7 +1204,7 @@ const SellItem = ({ navigation }: any) => {
                 />
               </View>
               <View style={styles.halfField}>
-                <Text style={styles.label}>CHECK-OUT TIME</Text>
+                <Text style={styles.label}>CHECK-OUT TIME *</Text>
                 <TextInput 
                   style={styles.input} 
                   placeholder="12:00 PM" 
@@ -926,7 +1216,7 @@ const SellItem = ({ navigation }: any) => {
             </View>
 
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>ROOM TYPES</Text>
+              <Text style={styles.label}>ROOM TYPES * (Select at least one)</Text>
               <TouchableOpacity onPress={() => setShowRoomTypesModal(true)}>
                 <View style={styles.pickerContainer} pointerEvents="none">
                   <TextInput 
@@ -940,7 +1230,7 @@ const SellItem = ({ navigation }: any) => {
             </View>
 
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>LOCATION</Text>
+              <Text style={styles.label}>LOCATION *</Text>
               <TextInput 
                 style={styles.input} 
                 placeholder="Full Address" 
@@ -951,7 +1241,7 @@ const SellItem = ({ navigation }: any) => {
             </View>
 
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>AREA</Text>
+              <Text style={styles.label}>AREA *</Text>
               <TextInput 
                 style={styles.input} 
                 placeholder="Downtown / Business District" 
@@ -1022,7 +1312,7 @@ const SellItem = ({ navigation }: any) => {
             </View>
 
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>CANCELLATION POLICY</Text>
+              <Text style={styles.label}>CANCELLATION POLICY *</Text>
               <TextInput 
                 style={styles.textArea} 
                 placeholder="E.g., Free cancellation up to 24 hours before check-in" 
