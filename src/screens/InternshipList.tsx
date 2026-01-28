@@ -308,9 +308,9 @@ const [showFilterModal, setShowFilterModal] = useState(false);
                 onPress={() => setActiveFilter(index)}
               >
                 <Text style={styles.chipText}>{filter}</Text>
-                {index > 0 && index < 4 && (
+               {/* {filter === 'Design' && (
                   <Icon name="keyboard-arrow-down" size={18} color="#9da6b9" />
-                )}
+                )} */}
               </TouchableOpacity>
             ))}
           </ScrollView>
