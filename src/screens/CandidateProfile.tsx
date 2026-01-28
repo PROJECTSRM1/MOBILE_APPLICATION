@@ -7,6 +7,7 @@ import {
   Image,
   ScrollView,
   TextInput,
+  Alert
 } from "react-native";
 import {
   ChevronLeft,
@@ -75,6 +76,9 @@ const CandidateProfile = () => {
 
   /* ===== VERIFICATION ===== */
   const [isVerified, setIsVerified] = useState(false);
+/* ===== VALIDATORS ===== */
+const validateAadhaar = (text: string) => /^\d{12}$/.test(text.replace(/\D/g, ""));
+const validatePAN = (text: string) => /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(text.toUpperCase());
 
   /* ===== IMAGE PICKER ===== */
   const pickDocuments = () => {
@@ -114,13 +118,27 @@ const CandidateProfile = () => {
   }, []);
 
   /* ===== SAVE PROFILE HANDLER ===== */
-  const handleSaveProfile = () => {
-    setEditMode(false);
-    const updatedStudent: Student = { ...student, name };
-    if (onSave) {
-      onSave(updatedStudent); // send updated student back to listing
-    }
-  };
+const handleSaveProfile = () => {
+  // Validate Aadhaar and PAN before saving
+  const isAadhaarValid = validateAadhaar(aadhar);
+  const isPANValid = validatePAN(pan);
+
+  if (!isAadhaarValid || !isPANValid) {
+     Alert.alert(
+      `Please enter valid details:\n${
+        !isAadhaarValid ? "- Aadhaar should be 12 digits\n" : ""
+      }${!isPANValid ? "- PAN should be 10 characters (AAAAA1234A)" : ""}`
+    );
+    return; // Stop saving
+  }
+
+  // Proceed to save if valid
+  setEditMode(false);
+  const updatedStudent: Student = { ...student, name };
+  if (onSave) {
+    onSave(updatedStudent); // send updated student back to listing
+  }
+};
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -165,8 +183,8 @@ const CandidateProfile = () => {
 
         {/* PERSONAL IDENTITY */}
         <Section title="Personal Identity">
-          <EditableRow label="Aadhaar Card" value={aadhar} setValue={setAadhar} editMode={editMode} />
-          <EditableRow label="PAN Card" value={pan} setValue={setPan} editMode={editMode} />
+          <EditableRow label="Aadhaar Card" value={aadhar} setValue={setAadhar} editMode={editMode} validator={validateAadhaar} />
+          <EditableRow label="PAN Card" value={pan} setValue={setPan} editMode={editMode} validator={validatePAN} />
 
           <View style={styles.nocCard}>
             <View>
@@ -251,18 +269,40 @@ const Section = ({ title, children }: any) => {
   );
 };
 
-const EditableRow = ({ label, value, setValue, editMode }: any) => {
+const EditableRow = ({ label, value, setValue, editMode, validator }: any) => {
   const { colors } = useTheme();
   const styles = getStyles(colors);
+  const [error, setError] = useState("");
+
+  const handleChange = (text: string) => {
+    setValue(text);
+    if (validator) {
+      const isValid = validator(text);
+      setError(isValid ? "" : `Invalid ${label}`);
+    }
+  };
+
   return (
     <View style={styles.identityCard}>
       <View style={{ flex: 1 }}>
         <Text style={styles.cardTitle}>{label}</Text>
-        {editMode ? <TextInput value={value} onChangeText={setValue} style={styles.editInput} /> : <Text style={styles.cardSub}>{value}</Text>}
+        {editMode ? (
+          <>
+            <TextInput
+              value={value}
+              onChangeText={handleChange}
+              style={[styles.editInput, error && { borderColor: "red" }]}
+            />
+            {error ? <Text style={{ color: "red", marginTop: 4, fontSize: 12 }}>{error}</Text> : null}
+          </>
+        ) : (
+          <Text style={styles.cardSub}>{value}</Text>
+        )}
       </View>
     </View>
   );
 };
+
 
 const EducationCard = ({ degree, institute, score, setScore, year, editMode }: any) => {
   const { colors } = useTheme();
@@ -293,8 +333,25 @@ const FamilyEditable = ({ label, name, setName, phone, setPhone, editMode }: any
       <Text style={styles.familyLabel}>{label}</Text>
       {editMode ? (
         <>
-          <TextInput value={name} onChangeText={setName} style={styles.editInput} />
-          <TextInput value={phone} onChangeText={setPhone} style={styles.editInput} />
+         <TextInput
+  value={name}
+  onChangeText={(text) => {
+    const cleaned = text.replace(/[^a-zA-Z\s]/g, "");
+    setName(cleaned);
+  }}
+  style={styles.editInput}
+/>
+
+         <TextInput
+  value={phone}
+  onChangeText={(text) => {
+    const cleaned = text.replace(/[^0-9]/g, "");
+    setPhone(cleaned);
+  }}
+  keyboardType="numeric"
+  style={styles.editInput}
+/>
+
         </>
       ) : (
         <>

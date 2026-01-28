@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Image,
-  Dimensions, StatusBar, Platform, RefreshControl, Modal,
+  Dimensions, StatusBar, Platform, RefreshControl, Modal, Alert,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Geolocation from 'react-native-geolocation-service';
@@ -53,7 +53,6 @@ interface Property {
   hasLaundry?: boolean;
   hasParking?: boolean;
   hasSecurity?: boolean;
-  // Hotel specific fields
   hotelName?: string;
   hotelStarRating?: string;
   checkInTime?: string;
@@ -66,6 +65,7 @@ interface Property {
   hasConferenceRoom?: boolean;
   petFriendly?: boolean;
   cancellationPolicy?: string;
+  isUserListing?: boolean;
 }
 
 const getDummyData = (): Property[] => [
@@ -121,10 +121,10 @@ const Marketplace = ({ navigation }: any) => {
   const [selectedPropertyType, setSelectedPropertyType] = useState('All');
   const [selectedDateFilter, setSelectedDateFilter] = useState('All Time');
   const [selectedRatingFilter, setSelectedRatingFilter] = useState('All Ratings');
-  
-  // Wishlist Logic States
   const [isWishlistActive, setIsWishlistActive] = useState(false);
   const [wishlistIds, setWishlistIds] = useState<string[]>([]);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [propertyToDelete, setPropertyToDelete] = useState<Property | null>(null);
 
   const { colors } = useTheme();
   const styles = getStyles(colors) as any;
@@ -186,12 +186,17 @@ const Marketplace = ({ navigation }: any) => {
             title = `${listing.propertyType} in ${listing.area || 'Unknown'}`;
           }
 
+          // Ensure images array exists and has at least one image
+          const imagesArray = listing.images && Array.isArray(listing.images) && listing.images.length > 0 
+            ? listing.images 
+            : ['https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=500'];
+          
           return {
             id: listing.id, 
             title: title || listing.propertyType,
             price: `₹${parseFloat(listing.price).toLocaleString('en-IN')}`,
-            image: listing.images?.[0] || 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=500',
-            images: listing.images, 
+            image: imagesArray[0], // Always use first image from array
+            images: imagesArray, 
             rating: 4.5 + Math.random() * 0.5,
             distance: `${(Math.random() * 5).toFixed(1)} km away`,
             type: listing.propertyType, 
@@ -239,6 +244,7 @@ const Marketplace = ({ navigation }: any) => {
             hasConferenceRoom: listing.hasConferenceRoom,
             petFriendly: listing.petFriendly,
             cancellationPolicy: listing.cancellationPolicy,
+            isUserListing: true,
           };
         });
       }
@@ -248,6 +254,27 @@ const Marketplace = ({ navigation }: any) => {
     } catch (error) {
       console.error('Error loading listings:', error);
       setProperties(getDummyData());
+    }
+  };
+
+  const handleDeleteListing = async () => {
+    if (!propertyToDelete) return;
+
+    try {
+      const storedListings = await AsyncStorage.getItem('marketplace_listings');
+      if (storedListings) {
+        const listings = JSON.parse(storedListings);
+        const updatedListings = listings.filter((listing: any) => listing.id !== propertyToDelete.id);
+        await AsyncStorage.setItem('marketplace_listings', JSON.stringify(updatedListings));
+        
+        setShowDeleteModal(false);
+        setPropertyToDelete(null);
+        await loadListings();
+        
+        Alert.alert('Success', 'Listing deleted successfully');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to delete listing');
     }
   };
 
@@ -284,7 +311,6 @@ const Marketplace = ({ navigation }: any) => {
     );
   };
 
-  // Helper function to get category from property type
   const getCategoryFromPropertyType = (propertyType: string): string => {
     if (propertyType === 'Land') return 'Land';
     if (propertyType === 'Apartment') return 'Apartment';
@@ -335,7 +361,6 @@ const Marketplace = ({ navigation }: any) => {
     return matchesTab && matchesCategory && matchesPropertyType && matchesDate && matchesRating && matchesSearch;
   });
 
-  // Handler for property type selection that syncs with category
   const handlePropertyTypeSelect = (propertyType: string) => {
     setSelectedPropertyType(propertyType);
     if (propertyType !== 'All') {
@@ -365,6 +390,53 @@ const Marketplace = ({ navigation }: any) => {
           </ScrollView>
         </View>
       </TouchableOpacity>
+    </Modal>
+  );
+
+  const DeleteConfirmationModal = () => (
+    <Modal visible={showDeleteModal} transparent animationType="fade" onRequestClose={() => setShowDeleteModal(false)}>
+      <View style={styles.deleteOverlay}>
+        <View style={styles.deleteModal}>
+          <View style={styles.deleteIconContainer}>
+            <MaterialIcons name="delete-forever" size={64} color="#ef4444" />
+          </View>
+          
+          <Text style={styles.deleteTitle}>Delete Listing?</Text>
+          
+          <Text style={styles.deleteMessage}>
+            Are you sure you want to delete this listing? This action cannot be undone.
+          </Text>
+          
+          {propertyToDelete && (
+            <View style={styles.deletePropertyInfo}>
+              <Image source={{ uri: propertyToDelete.image }} style={styles.deletePropertyImage} />
+              <View style={styles.deletePropertyDetails}>
+                <Text style={styles.deletePropertyTitle} numberOfLines={1}>{propertyToDelete.title}</Text>
+                <Text style={styles.deletePropertyPrice}>{propertyToDelete.price}</Text>
+              </View>
+            </View>
+          )}
+
+          <View style={styles.deleteActions}>
+            <TouchableOpacity 
+              style={styles.deleteCancelButton}
+              onPress={() => {
+                setShowDeleteModal(false);
+                setPropertyToDelete(null);
+              }}
+            >
+              <Text style={styles.deleteCancelText}>Cancel</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.deleteConfirmButton}
+              onPress={handleDeleteListing}
+            >
+              <Text style={styles.deleteConfirmText}>Delete</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
     </Modal>
   );
 
@@ -488,6 +560,18 @@ const Marketplace = ({ navigation }: any) => {
                       color={wishlistIds.includes(property.id) ? "#ef4444" : "#fff"} 
                     />
                   </View>
+                  {property.isUserListing && (
+                    <TouchableOpacity 
+                      style={styles.deleteButton}
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        setPropertyToDelete(property);
+                        setShowDeleteModal(true);
+                      }}
+                    >
+                      <MaterialIcons name="delete" size={16} color="#fff" />
+                    </TouchableOpacity>
+                  )}
                   <View style={styles.topBadgesContainer}>
                     {property.listingType === 'buy' ? (
                       <View style={styles.saleBadge}><Text style={styles.saleBadgeText}>FOR SALE</Text></View>
@@ -496,7 +580,15 @@ const Marketplace = ({ navigation }: any) => {
                         <Text style={styles.rentBadgeText}>FOR RENT</Text>
                       </View>
                     )}
-                    {property.itemCondition && (
+                    {property.images && property.images.length > 1 && (
+                      <View style={styles.imageCountBadge}>
+                        <MaterialIcons name="photo-library" size={12} color="#fff" />
+                        <Text style={styles.imageCountText}>{property.images.length}</Text>
+                      </View>
+                    )}
+                  </View>
+                  {property.itemCondition && (
+                    <View style={styles.conditionBadgeContainer}>
                       <View style={[styles.conditionBadge,
                         property.itemCondition === 'New Item' ? styles.newConditionBadge : styles.oldConditionBadge
                       ]}>
@@ -504,8 +596,8 @@ const Marketplace = ({ navigation }: any) => {
                           {property.itemCondition === 'New Item' ? 'NEW' : 'USED'}
                         </Text>
                       </View>
-                    )}
-                  </View>
+                    </View>
+                  )}
                   <View style={styles.ratingBadge}><MaterialIcons name="star" size={12} color="#fbbf24" /><Text style={styles.ratingText}>{property.rating?.toFixed(1)}</Text></View>
                 </View>
                 <View style={styles.cardContent}>
@@ -547,6 +639,7 @@ const Marketplace = ({ navigation }: any) => {
       />
       <FilterModal visible={showDateModal} onClose={() => setShowDateModal(false)} options={['All Time', 'Today', 'Last 7 Days', 'Last 30 Days', 'Last 3 Months']} selectedValue={selectedDateFilter} onSelect={setSelectedDateFilter} title="Filter by Date" />
       <FilterModal visible={showRatingModal} onClose={() => setShowRatingModal(false)} options={['All Ratings', '4.5+ Stars', '4.0+ Stars', '3.5+ Stars', '3.0+ Stars']} selectedValue={selectedRatingFilter} onSelect={setSelectedRatingFilter} title="Filter by Rating" />
+      <DeleteConfirmationModal />
     </SafeAreaView>
   );
 };
@@ -609,8 +702,11 @@ const getStyles = (colors: any) =>
     cardImage: { width: '100%', aspectRatio: 4 / 5, borderRadius: 16, overflow: 'hidden', position: 'relative', marginBottom: 8 },
     image: { width: '100%', height: '100%' },
     favoriteButton: { position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(0, 0, 0, 0.4)', padding: 6, borderRadius: 20 },
+    deleteButton: { position: 'absolute', bottom: 8, right: 8, backgroundColor: 'rgba(239, 68, 68, 0.95)', padding: 6, borderRadius: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 5 },
     ratingBadge: { position: 'absolute', bottom: 8, left: 8, backgroundColor: 'rgba(0, 0, 0, 0.4)', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, gap: 4 },
     ratingText: { fontSize: 10, fontWeight: '700', color: '#fff' },
+    imageCountBadge: { backgroundColor: 'rgba(0, 0, 0, 0.7)', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, gap: 4 },
+    imageCountText: { fontSize: 10, fontWeight: '700', color: '#fff' },
     cardContent: { paddingHorizontal: 4 },
     cardTitle: { fontSize: 14, fontWeight: '700', color: '#fff', marginBottom: 4 },
     cardPrice: { fontSize: 16, fontWeight: '800', color: '#135bec', marginBottom: 4 },
@@ -622,6 +718,7 @@ const getStyles = (colors: any) =>
     areaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 6 },
     areaDetailText: { fontSize: 10, fontWeight: '500', color: '#64748b', flex: 1 },
     topBadgesContainer: { position: 'absolute', top: 8, left: 8, flexDirection: 'row', gap: 6 },
+    conditionBadgeContainer: { position: 'absolute', top: 42, left: 8 },
     saleBadge: { backgroundColor: '#135bec', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
     saleBadgeText: { fontSize: 9, fontWeight: '800', color: '#fff' },
     rentBadge: { backgroundColor: '#f59e0b', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
@@ -631,4 +728,19 @@ const getStyles = (colors: any) =>
     oldConditionBadge: { backgroundColor: '#6b7280' },
     conditionBadgeText: { fontSize: 8, fontWeight: '800', color: '#fff' },
     perMonthText: { fontSize: 12, fontWeight: '600', color: '#64748b' },
+    deleteOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.85)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24 },
+    deleteModal: { backgroundColor: '#161b26', borderRadius: 24, padding: 24, width: '100%', maxWidth: 400 },
+    deleteIconContainer: { alignItems: 'center', marginBottom: 20 },
+    deleteTitle: { fontSize: 22, fontWeight: '700', color: '#fff', textAlign: 'center', marginBottom: 12 },
+    deleteMessage: { fontSize: 15, fontWeight: '500', color: '#94a3b8', textAlign: 'center', lineHeight: 22, marginBottom: 24 },
+    deletePropertyInfo: { flexDirection: 'row', backgroundColor: '#0f1419', borderRadius: 12, padding: 12, marginBottom: 24, gap: 12 },
+    deletePropertyImage: { width: 80, height: 80, borderRadius: 8 },
+    deletePropertyDetails: { flex: 1, justifyContent: 'center' },
+    deletePropertyTitle: { fontSize: 14, fontWeight: '700', color: '#fff', marginBottom: 4 },
+    deletePropertyPrice: { fontSize: 16, fontWeight: '800', color: '#135bec' },
+    deleteActions: { flexDirection: 'row', gap: 12 },
+    deleteCancelButton: { flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: '#232936', borderWidth: 1, borderColor: '#2d3748', alignItems: 'center' },
+    deleteCancelText: { fontSize: 15, fontWeight: '700', color: '#cbd5e1', letterSpacing: 0.3 },
+    deleteConfirmButton: { flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: '#ef4444', alignItems: 'center' },
+    deleteConfirmText: { fontSize: 15, fontWeight: '700', color: '#fff', letterSpacing: 0.3 },
   });
