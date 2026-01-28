@@ -29,9 +29,21 @@ const DoctorListScreen = () => {
   const [showTypeModal, setShowTypeModal] = useState(false);
   const [showOfflineForm, setShowOfflineForm] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [showDoctorBookedModal, setShowDoctorBookedModal] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState<any>(null);
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  
+  // Filter States
+  const [filterPriceRange, setFilterPriceRange] = useState<string | null>(null);
+  const [filterRating, setFilterRating] = useState<number | null>(null);
+  const [filterAvailability, setFilterAvailability] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<string>('none');
 
   // Form States
   const [appointmentTime, setAppointmentTime] = useState('');
+  const [appointmentDate, setAppointmentDate] = useState('');
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [wantsAmbulance, setWantsAmbulance] = useState<string | null>(null);
   const [pickupTime, setPickupTime] = useState('');
   const [showAddonButton, setShowAddonButton] = useState(false);
@@ -41,6 +53,7 @@ const DoctorListScreen = () => {
 
   // Time Picker States
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedTime, setSelectedTime] = useState(new Date());
   const [showPickupTimePicker, setShowPickupTimePicker] = useState(false);
   const [selectedPickupTime, setSelectedPickupTime] = useState(new Date());
@@ -51,62 +64,58 @@ const DoctorListScreen = () => {
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const slideAnim = useRef(new Animated.Value(0)).current;
 
-useEffect(() => {
-  if (!isSearchFocused && searchQuery === '') {
-    // Reset animation values when starting
-    fadeAnim.setValue(1);
-    slideAnim.setValue(0);
-    
-    const interval = setInterval(() => {
-      Animated.sequence([
-        Animated.parallel([
-          Animated.timing(fadeAnim, {
-            toValue: 0,
-            duration: 300,
-            useNativeDriver: true,
-          }),
-          Animated.timing(slideAnim, {
-            toValue: -20,
-            duration: 300,
-            useNativeDriver: true,
-          }),
-        ]),
-      ]).start(() => {
-        // Change the placeholder index when text is completely faded out
-        setCurrentPlaceholderIndex((prev) => (prev + 1) % animatedPlaceholders.length);
-        
-        // Reset slide position and fade back in
-        slideAnim.setValue(20);
-        Animated.parallel([
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 300,
-            useNativeDriver: true,
-          }),
-          Animated.timing(slideAnim, {
-            toValue: 0,
-            duration: 300,
-            useNativeDriver: true,
-          }),
-        ]).start();
-      });
-    }, 2000);
+  useEffect(() => {
+    if (!isSearchFocused && searchQuery === '') {
+      fadeAnim.setValue(1);
+      slideAnim.setValue(0);
+      
+      const interval = setInterval(() => {
+        Animated.sequence([
+          Animated.parallel([
+            Animated.timing(fadeAnim, {
+              toValue: 0,
+              duration: 300,
+              useNativeDriver: true,
+            }),
+            Animated.timing(slideAnim, {
+              toValue: -20,
+              duration: 300,
+              useNativeDriver: true,
+            }),
+          ]),
+        ]).start(() => {
+          setCurrentPlaceholderIndex((prev) => (prev + 1) % animatedPlaceholders.length);
+          
+          slideAnim.setValue(20);
+          Animated.parallel([
+            Animated.timing(fadeAnim, {
+              toValue: 1,
+              duration: 300,
+              useNativeDriver: true,
+            }),
+            Animated.timing(slideAnim, {
+              toValue: 0,
+              duration: 300,
+              useNativeDriver: true,
+            }),
+          ]).start();
+        });
+      }, 2000);
 
-    return () => clearInterval(interval);
-  } else {
-    // Reset animation values when search is focused
-    fadeAnim.setValue(1);
-    slideAnim.setValue(0);
-  }
-// eslint-disable-next-line react-hooks/exhaustive-deps
-}, [isSearchFocused, searchQuery]);
+      return () => clearInterval(interval);
+    } else {
+      fadeAnim.setValue(1);
+      slideAnim.setValue(0);
+    }
+  }, [isSearchFocused, searchQuery, fadeAnim, slideAnim]);
 
   const categories = [
-    { id: 1, name: 'Heart', icon: 'favorite', color: '#2d7576', bgColor: '#e8f4f4' },
-    { id: 2, name: 'Skin', icon: 'healing', color: '#ea580c', bgColor: '#ffedd5' },
-    { id: 3, name: 'Mental', icon: 'psychology', color: '#2563eb', bgColor: '#dbeafe' },
-    { id: 4, name: 'Eyes', icon: 'visibility', color: '#9333ea', bgColor: '#f3e8ff' },
-    { id: 5, name: 'Diet', icon: 'restaurant', color: '#16a34a', bgColor: '#dcfce7' },
+    { id: 0, name: 'All', icon: 'grid-view', color: '#6366f1', bgColor: '#eef2ff', specialty: null },
+    { id: 1, name: 'Heart', icon: 'favorite', color: '#2d7576', bgColor: '#e8f4f4', specialty: 'Cardiologist' },
+    { id: 2, name: 'Skin', icon: 'healing', color: '#ea580c', bgColor: '#ffedd5', specialty: 'Dermatologist' },
+    { id: 3, name: 'Mental', icon: 'psychology', color: '#2563eb', bgColor: '#dbeafe', specialty: 'Psychiatrist' },
+    { id: 4, name: 'Eyes', icon: 'visibility', color: '#9333ea', bgColor: '#f3e8ff', specialty: 'Ophthalmologist' },
+    { id: 5, name: 'Diet', icon: 'restaurant', color: '#16a34a', bgColor: '#dcfce7', specialty: 'Nutritionist' },
   ];
 
   const doctors = [
@@ -120,37 +129,124 @@ useEffect(() => {
       image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDefhoSvqKkMBWYVqZmO31qWWnyETobXPIsvpgbpzACIuHiMFEibbVFxBem0oGX3QoB0fhv_F1vxstFtpZ9MZtJrSR0w6C0hWrFdCCM4W9SvwqLpolKvEc-_XcCTQTkxb3ssl0Y2_54wJJhFeAav5jIY1u67UzbCzmwt9ZDmKzDS1B1a0oNg8Bk0UYaIHl3t-4pmKj1J0rBtiCQ166vq6P6-J-EY8t-SLAd_04RsNPEY5nG6FNOxfdVdqN-6THzt-DkVYTRVoyf43-p',
     },
     {
-        id: 2,
-        name: 'Dr. Marcus Chen',
-        specialty: 'Dermatologist',
-        rating: 4.8,
-        nextAvailable: '4:30 PM',
-        price: 95,
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDZxglrHKMq2uMTcYd1cm6mtfzxS1mY1mpgodoSsZvgEo3YKjv3ywe7slrcDWxhv_7JZYJujIKEXQ9Wk0k3C0kTB-7uKOxGgxJO32Vtygny2g4Mq-OHjSYSclsDnK7DQae1TVtgVgG50NmWJnHhsJC35bRYTkdmjUlo3TqLSJ_YA8tcuZJykmHycmTwRlimQA1t2X778p2trNfkwF66UJkETjd4JWPTCnP9d3PK7LiZ-ZTg6ImvDnQS4p_lhGV49CcvLmQo9GrIDHT8',
+      id: 2,
+      name: 'Dr. Marcus Chen',
+      specialty: 'Dermatologist',
+      rating: 4.8,
+      nextAvailable: '4:30 PM',
+      price: 95,
+      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDZxglrHKMq2uMTcYd1cm6mtfzxS1mY1mpgodoSsZvgEo3YKjv3ywe7slrcDWxhv_7JZYJujIKEXQ9Wk0k3C0kTB-7uKOxGgxJO32Vtygny2g4Mq-OHjSYSclsDnK7DQae1TVtgVgG50NmWJnHhsJC35bRYTkdmjUlo3TqLSJ_YA8tcuZJykmHycmTwRlimQA1t2X778p2trNfkwF66UJkETjd4JWPTCnP9d3PK7LiZ-ZTg6ImvDnQS4p_lhGV49CcvLmQo9GrIDHT8',
     },
     {
-        id: 3,
-        name: 'Dr. Elena Rodriguez',
-        specialty: 'General Practitioner',
-        rating: 5.0,
-        nextAvailable: 'Available Now',
-        price: 110,
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD07PPrdJIIL_BVVG0Ju36so7KdlOsmi-K67ouC847RMwRD1yYS-tHGoR3TP7kMVZ7ceepz5vEbGi9hQgCAzaTc8iShTgdIxbChTvIfnUFqQiXjtHLncBOfPynmXFABLYshcwfgQDUiQUNTpW-eQ6shkBwwhzL_hSoTNpMcRdsQLwKOH8lwqvRRq19WrdfiiyFt3Xl451O1geQIf_VrJc3ZRvbcxDmYaVwpVdFj609MY_zUYwjMqB-93ZfuJ7zBGw8XOYoO3r3c1yPa',
+      id: 3,
+      name: 'Dr. Elena Rodriguez',
+      specialty: 'General Practitioner',
+      rating: 5.0,
+      nextAvailable: 'Available Now',
+      price: 110,
+      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD07PPrdJIIL_BVVG0Ju36so7KdlOsmi-K67ouC847RMwRD1yYS-tHGoR3TP7kMVZ7ceepz5vEbGi9hQgCAzaTc8iShTgdIxbChTvIfnUFqQiXjtHLncBOfPynmXFABLYshcwfgQDUiQUNTpW-eQ6shkBwwhzL_hSoTNpMcRdsQLwKOH8lwqvRRq19WrdfiiyFt3Xl451O1geQIf_VrJc3ZRvbcxDmYaVwpVdFj609MY_zUYwjMqB-93ZfuJ7zBGw8XOYoO3r3c1yPa',
+    },
+    {
+      id: 4,
+      name: 'Dr. James Wilson',
+      specialty: 'Psychiatrist',
+      rating: 4.7,
+      nextAvailable: '3:00 PM',
+      price: 130,
+      image: 'https://i.pravatar.cc/150?img=12',
+    },
+    {
+      id: 5,
+      name: 'Dr. Emily Thompson',
+      specialty: 'Ophthalmologist',
+      rating: 4.9,
+      nextAvailable: '1:30 PM',
+      price: 105,
+      image: 'https://i.pravatar.cc/150?img=47',
+    },
+    {
+      id: 6,
+      name: 'Dr. Michael Brown',
+      specialty: 'Nutritionist',
+      rating: 4.6,
+      nextAvailable: '5:00 PM',
+      price: 85,
+      image: 'https://i.pravatar.cc/150?img=13',
     },
   ];
 
   const searchSuggestions = ['fever', 'cough', 'cold', 'vomiting', 'sinus'];
 
-const handleDropdownSelect = (item: string) => {
-  setSearchQuery(item);
-  setShowDropdown(false);
-  setIsSearchFocused(false);
+  // Filter doctors based on selected category and filters
+  let filteredDoctors = selectedCategory 
+    ? doctors.filter(doctor => doctor.specialty === selectedCategory)
+    : doctors;
 
-  setTimeout(() => {
-    setShowTypeModal(true);
-  }, 200);
-};
+  // Apply price filter
+  if (filterPriceRange) {
+    if (filterPriceRange === 'low') {
+      filteredDoctors = filteredDoctors.filter(doc => doc.price < 100);
+    } else if (filterPriceRange === 'medium') {
+      filteredDoctors = filteredDoctors.filter(doc => doc.price >= 100 && doc.price < 120);
+    } else if (filterPriceRange === 'high') {
+      filteredDoctors = filteredDoctors.filter(doc => doc.price >= 120);
+    }
+  }
 
+  // Apply rating filter
+  if (filterRating) {
+    filteredDoctors = filteredDoctors.filter(doc => doc.rating >= filterRating);
+  }
+
+  // Apply availability filter
+  if (filterAvailability === 'now') {
+    filteredDoctors = filteredDoctors.filter(doc => doc.nextAvailable === 'Available Now');
+  }
+
+  // Apply sorting
+  if (sortBy === 'price-low') {
+    filteredDoctors = [...filteredDoctors].sort((a, b) => a.price - b.price);
+  } else if (sortBy === 'price-high') {
+    filteredDoctors = [...filteredDoctors].sort((a, b) => b.price - a.price);
+  } else if (sortBy === 'rating') {
+    filteredDoctors = [...filteredDoctors].sort((a, b) => b.rating - a.rating);
+  }
+
+  const handleCategoryPress = (specialty: string | null) => {
+    if (specialty === null) {
+      setSelectedCategory(null);
+    } else {
+      setSelectedCategory(specialty);
+    }
+  };
+
+  const handleDoctorBookNow = (doctor: any) => {
+    setSelectedDoctor(doctor);
+    setShowDoctorBookedModal(true);
+  };
+
+  const clearAllFilters = () => {
+    setFilterPriceRange(null);
+    setFilterRating(null);
+    setFilterAvailability(null);
+    setSortBy('none');
+  };
+
+  const applyFilters = () => {
+    setShowFilterModal(false);
+  };
+
+  const hasActiveFilters = filterPriceRange || filterRating || filterAvailability || sortBy !== 'none';
+
+  const handleDropdownSelect = (item: string) => {
+    setSearchQuery(item);
+    setShowDropdown(false);
+    setIsSearchFocused(false);
+
+    setTimeout(() => {
+      setShowTypeModal(true);
+    }, 200);
+  };
 
   const closeForm = () => {
     setShowOfflineForm(false);
@@ -158,9 +254,11 @@ const handleDropdownSelect = (item: string) => {
     setShowAssetsField(false);
     setWantsAssets(null);
     setSelectedAssistant(null);
+    setAppointmentTime('');
+    setAppointmentDate('');
+    setPickupTime('');
   };
 
-  // Helper function to format time
   const formatTime = (date: Date) => {
     const hours = date.getHours();
     const minutes = date.getMinutes();
@@ -170,64 +268,119 @@ const handleDropdownSelect = (item: string) => {
     return `${formattedHours}:${formattedMinutes} ${ampm}`;
   };
 
-  // Handler for appointment time change
-  const onTimeChange = (event: any, selectedDate?: Date) => {
-    setShowTimePicker(false);
-    if (selectedDate) {
-      setSelectedTime(selectedDate);
-      setAppointmentTime(formatTime(selectedDate));
+  const formatDate = (date: Date) => {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    const dayName = days[date.getDay()];
+    const day = date.getDate();
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+    
+    return `${dayName}, ${day} ${month} ${year}`;
+  };
+
+  const isToday = (date: Date) => {
+    const today = new Date();
+    return date.getDate() === today.getDate() &&
+           date.getMonth() === today.getMonth() &&
+           date.getFullYear() === today.getFullYear();
+  };
+
+  const getMinimumTime = () => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + 30);
+    return now;
+  };
+
+  const onDateChange = (event: any, selectedDateValue?: Date) => {
+    setShowDatePicker(false);
+    if (selectedDateValue) {
+      setSelectedDate(selectedDateValue);
+      setAppointmentDate(formatDate(selectedDateValue));
+      setAppointmentTime('');
       
-      // Automatically set pickup time to 1 hour before
-      const pickupDate = new Date(selectedDate);
+      if (isToday(selectedDateValue)) {
+        const minTime = getMinimumTime();
+        setSelectedTime(minTime);
+      } else {
+        const futureTime = new Date(selectedDateValue);
+        futureTime.setHours(9, 0, 0, 0);
+        setSelectedTime(futureTime);
+      }
+    }
+  };
+
+  const onTimeChange = (event: any, selectedTimeValue?: Date) => {
+    setShowTimePicker(false);
+    if (selectedTimeValue) {
+      if (isToday(selectedDate)) {
+        const now = new Date();
+        if (selectedTimeValue <= now) {
+          Alert.alert('Invalid Time', 'Please select a future time for today\'s appointment.');
+          return;
+        }
+      }
+      
+      setSelectedTime(selectedTimeValue);
+      setAppointmentTime(formatTime(selectedTimeValue));
+      
+      const pickupDate = new Date(selectedTimeValue);
       pickupDate.setHours(pickupDate.getHours() - 1);
       setSelectedPickupTime(pickupDate);
       setPickupTime(formatTime(pickupDate));
     }
   };
 
-  // Handler for pickup time change
-  const onPickupTimeChange = (event: any, selectedDate?: Date) => {
+  const onPickupTimeChange = (event: any, selectedTimeValue?: Date) => {
     setShowPickupTimePicker(false);
-    if (selectedDate) {
-      setSelectedPickupTime(selectedDate);
-      setPickupTime(formatTime(selectedDate));
+    if (selectedTimeValue) {
+      if (selectedTimeValue >= selectedTime) {
+        Alert.alert('Invalid Time', 'Pickup time must be before appointment time.');
+        return;
+      }
+      
+      setSelectedPickupTime(selectedTimeValue);
+      setPickupTime(formatTime(selectedTimeValue));
     }
   };
+
   const handleFinalBooking = () => {
-  // Required checks
-  if (!appointmentTime) {
-    return Alert.alert("Missing", "Please select appointment time");
-  }
+    if (!appointmentDate) {
+      return Alert.alert("Missing", "Please select appointment date");
+    }
 
-  if (!wantsAmbulance) {
-    return Alert.alert("Missing", "Please select ambulance option");
-  }
+    if (!appointmentTime) {
+      return Alert.alert("Missing", "Please select appointment time");
+    }
 
-  if (wantsAmbulance === "yes" && !pickupTime) {
-    return Alert.alert("Missing", "Please select pickup time");
-  }
+    if (!wantsAmbulance) {
+      return Alert.alert("Missing", "Please select ambulance option");
+    }
 
-  if (!showAssetsField) {
-    return Alert.alert("Missing", "Please complete addon selection");
-  }
+    if (wantsAmbulance === "yes" && !pickupTime) {
+      return Alert.alert("Missing", "Please select pickup time");
+    }
 
-  if (wantsAssets === "yes" && !selectedAssistant) {
-    return Alert.alert("Missing", "Please select an assistant");
-  }
+    if (!showAssetsField) {
+      return Alert.alert("Missing", "Please complete addon selection");
+    }
 
-  // ✅ If everything is valid → success alert
-  Alert.alert(
-    "Booking Confirmed ✅",
-    "Your appointment has been booked successfully.",
-    [{ text: "OK", onPress: closeForm }]
-  );
-};
+    if (wantsAssets === "yes" && !selectedAssistant) {
+      return Alert.alert("Missing", "Please select an assistant");
+    }
+
+    Alert.alert(
+      "Booking Confirmed ✅",
+      `Your appointment has been booked for ${appointmentDate} at ${appointmentTime}.`,
+      [{ text: "OK", onPress: closeForm }]
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fafaf9" />
       
-      {/* Header Updated with Ambulance Button */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton}>
           <Icon name="arrow-back-ios" size={20} color="#2d7576" />
@@ -243,7 +396,6 @@ const handleDropdownSelect = (item: string) => {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-        {/* Primary Action Card */}
         <View style={styles.cardContainer}>
           <TouchableOpacity style={styles.primaryCard}>
             <View style={styles.cardContent}>
@@ -251,12 +403,10 @@ const handleDropdownSelect = (item: string) => {
               <Text style={styles.cardSubtitle}>
                 Describe your symptoms for a quick recommendation.
               </Text>
-             <TouchableOpacity 
+              <TouchableOpacity 
                 style={styles.cardButton} 
-                onPress={() => {
-                    navigation.navigate("Form");
-                }}
-                >
+                onPress={() => navigation.navigate("Form")}
+              >
                 <Text style={styles.cardButtonText}>Submit your Health Condition</Text>
               </TouchableOpacity>
             </View>
@@ -266,43 +416,49 @@ const handleDropdownSelect = (item: string) => {
           </TouchableOpacity>
         </View>
 
-        {/* Search Bar with Animated Placeholder and Dropdown functionality */}
         <View style={styles.searchContainer}>
           <View style={styles.searchBar}>
             <Icon name="search" size={20} color="#9ca3af" style={styles.searchIcon} />
-<View style={styles.searchInputContainer}>
-  {searchQuery === '' && !isSearchFocused && (
-    <View style={styles.placeholderContainer}>
-      <Text style={styles.searchPrefix}>Search </Text>
-      <Animated.Text
-        style={[
-          styles.animatedPlaceholder,
-          {
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-          },
-        ]}
-      >
-        {animatedPlaceholders[currentPlaceholderIndex]}
-      </Animated.Text>
-    </View>
-  )}
-  <TextInput
-  style={styles.searchInput}
-  value={searchQuery}
-  onChangeText={(text) => {
-    setSearchQuery(text);
-    setShowDropdown(true);
-  }}
-  onFocus={() => {
-    setShowDropdown(true);
-  }}
-  onBlur={() => {
-    setTimeout(() => setShowDropdown(false), 150);
-  }}
-/>
+            <View style={styles.searchInputContainer}>
+              {searchQuery === '' && !isSearchFocused && (
+                <View style={styles.placeholderContainer}>
+                  <Text style={styles.searchPrefix}>Search </Text>
+                  <Animated.Text
+                    style={[
+                      styles.animatedPlaceholder,
+                      {
+                        opacity: fadeAnim,
+                        transform: [{ translateY: slideAnim }],
+                      },
+                    ]}
+                  >
+                    {animatedPlaceholders[currentPlaceholderIndex]}
+                  </Animated.Text>
+                </View>
+              )}
+              <TextInput
+                style={styles.searchInput}
+                value={searchQuery}
+                onChangeText={(text) => {
+                  setSearchQuery(text);
+                  setShowDropdown(true);
+                }}
+                onFocus={() => {
+                  setShowDropdown(true);
+                  setIsSearchFocused(true);
+                }}
+                onBlur={() => {
+                  setTimeout(() => setShowDropdown(false), 150);
+                  setIsSearchFocused(false);
+                }}
+              />
             </View>
-            <Icon name="tune" size={20} color="#2d7576" style={styles.filterIcon} />
+            <TouchableOpacity onPress={() => setShowFilterModal(true)}>
+              <View style={styles.filterIconContainer}>
+                <Icon name="tune" size={20} color="#2d7576" style={styles.filterIcon} />
+                {hasActiveFilters && <View style={styles.filterBadge} />}
+              </View>
+            </TouchableOpacity>
           </View>
           
           {showDropdown && (
@@ -310,76 +466,135 @@ const handleDropdownSelect = (item: string) => {
               {searchSuggestions
                 .filter(s => searchQuery === '' || s.includes(searchQuery.toLowerCase()))
                 .map((item) => (
-                <TouchableOpacity 
-                  key={item} 
-                  style={styles.dropdownItem}
-                  onPress={() => handleDropdownSelect(item)}
-                >
-                  <Icon name="search" size={16} color="#9ca3af" style={{ marginRight: 12 }} />
-                  <Text style={styles.dropdownText}>{item}</Text>
-                </TouchableOpacity>
-              ))}
+                  <TouchableOpacity 
+                    key={item} 
+                    style={styles.dropdownItem}
+                    onPress={() => handleDropdownSelect(item)}
+                  >
+                    <Icon name="search" size={16} color="#9ca3af" style={{ marginRight: 12 }} />
+                    <Text style={styles.dropdownText}>{item}</Text>
+                  </TouchableOpacity>
+                ))}
             </View>
           )}
         </View>
 
-        {/* Categories */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.categoriesContainer}
           contentContainerStyle={styles.categoriesContent}
         >
-          {categories.map((category) => (
-            <TouchableOpacity key={category.id} style={styles.categoryItem}>
-              <View style={[styles.categoryIcon, { backgroundColor: category.bgColor }]}>
-                <Icon name={category.icon} size={28} color={category.color} />
-              </View>
-              <Text style={styles.categoryText}>{category.name}</Text>
-            </TouchableOpacity>
-          ))}
+          {categories.map((category) => {
+            const isActive = category.specialty === null 
+              ? selectedCategory === null 
+              : selectedCategory === category.specialty;
+            
+            return (
+              <TouchableOpacity 
+                key={category.id} 
+                style={styles.categoryItem}
+                onPress={() => handleCategoryPress(category.specialty)}
+              >
+                <View style={[
+                  styles.categoryIcon, 
+                  { backgroundColor: category.bgColor },
+                  isActive && styles.categoryIconActive
+                ]}>
+                  <Icon name={category.icon} size={28} color={category.color} />
+                </View>
+                <Text style={[
+                  styles.categoryText,
+                  isActive && styles.categoryTextActive
+                ]}>
+                  {category.name}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
 
-        {/* Section Header */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Available Doctors</Text>
-          <TouchableOpacity>
-            <Text style={styles.seeAllText}>See all</Text>
-          </TouchableOpacity>
+          <Text style={styles.sectionTitle}>
+            {selectedCategory ? `${selectedCategory}s` : 'Available Doctors'}
+          </Text>
         </View>
 
-        {/* Doctor Cards */}
         <View style={styles.doctorsList}>
-          {doctors.map((doctor) => (
-            <TouchableOpacity key={doctor.id} style={styles.doctorCard}>
-              <Image source={{ uri: doctor.image }} style={styles.doctorImage} />
-              <View style={styles.doctorInfo}>
-                <View style={styles.doctorHeader}>
-                  <Text style={styles.doctorName}>{doctor.name}</Text>
-                  <View style={styles.ratingContainer}>
-                    <Icon name="star" size={14} color="#eab308" />
-                    <Text style={styles.ratingText}>{doctor.rating}</Text>
+          {filteredDoctors.length > 0 ? (
+            filteredDoctors.map((doctor) => (
+              <TouchableOpacity key={doctor.id} style={styles.doctorCard}>
+                <Image source={{ uri: doctor.image }} style={styles.doctorImage} />
+                <View style={styles.doctorInfo}>
+                  <View style={styles.doctorHeader}>
+                    <Text style={styles.doctorName}>{doctor.name}</Text>
+                    <View style={styles.ratingContainer}>
+                      <Icon name="star" size={14} color="#eab308" />
+                      <Text style={styles.ratingText}>{doctor.rating}</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.specialtyText}>{doctor.specialty.toUpperCase()}</Text>
+                  <Text style={styles.availabilityText}>Next available: {doctor.nextAvailable}</Text>
+                  <View style={styles.doctorFooter}>
+                    <Text style={styles.priceText}>${doctor.price}/hr</Text>
+                    <TouchableOpacity 
+                      style={styles.bookButton}
+                      onPress={() => handleDoctorBookNow(doctor)}
+                    >
+                      <Text style={styles.bookButtonText}>Book Now</Text>
+                    </TouchableOpacity>
                   </View>
                 </View>
-                <Text style={styles.specialtyText}>{doctor.specialty.toUpperCase()}</Text>
-                <Text style={styles.availabilityText}>Next available: {doctor.nextAvailable}</Text>
-                <View style={styles.doctorFooter}>
-                  <Text style={styles.priceText}>${doctor.price}/hr</Text>
-                  <TouchableOpacity style={styles.bookButton} >
-                    <Text style={styles.bookButtonText}>Book Now</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
+              </TouchableOpacity>
+            ))
+          ) : (
+            <View style={styles.emptyState}>
+              <Icon name="search-off" size={48} color="#9ca3af" />
+              <Text style={styles.emptyStateText}>No doctors found in this specialty</Text>
+            </View>
+          )}
         </View>
 
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      {/* --- MODALS FOR NEW FUNCTIONALITY --- */}
+      <Modal visible={showDoctorBookedModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.popupCard}>
+            <View style={styles.successIconContainer}>
+              <Icon name="check-circle" size={64} color="#16a34a" />
+            </View>
+            <Text style={styles.popupTitle}>Booking Confirmed!</Text>
+            <Text style={styles.popupSub}>
+              Your appointment with {selectedDoctor?.name} has been successfully booked.
+            </Text>
+            <View style={styles.bookingDetailsContainer}>
+              <View style={styles.bookingDetailRow}>
+                <Icon name="event" size={18} color="#2d7576" />
+                <Text style={styles.bookingDetailText}>
+                  {selectedDoctor?.nextAvailable}
+                </Text>
+              </View>
+              <View style={styles.bookingDetailRow}>
+                <Icon name="attach-money" size={18} color="#2d7576" />
+                <Text style={styles.bookingDetailText}>
+                  ${selectedDoctor?.price}/hr
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity 
+              style={styles.confirmOkButton}
+              onPress={() => {
+                setShowDoctorBookedModal(false);
+                setSelectedDoctor(null);
+              }}
+            >
+              <Text style={styles.confirmOkButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
-      {/* 1. Selection Modal: Online or Offline */}
       <Modal visible={showTypeModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.popupCard}>
@@ -394,9 +609,7 @@ const handleDropdownSelect = (item: string) => {
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.popupBtn, {backgroundColor: '#2563eb'}]}
-                onPress={() => {
-                    navigation.navigate("Form");
-                }}
+                onPress={() => navigation.navigate("Form")}
               >
                 <Text style={styles.popupBtnText}>Online</Text>
               </TouchableOpacity>
@@ -408,21 +621,51 @@ const handleDropdownSelect = (item: string) => {
         </View>
       </Modal>
 
-      {/* 2. Offline Booking Form Modal */}
       <Modal visible={showOfflineForm} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.formCard}>
             <ScrollView showsVerticalScrollIndicator={false}>
               <Text style={styles.formHeader}>Booking Details</Text>
               
+              <Text style={styles.inputLabel}>Select Appointment Date</Text>
+              <TouchableOpacity 
+                style={styles.formInput}
+                onPress={() => setShowDatePicker(true)}
+              >
+                <View style={styles.dateTimeDisplay}>
+                  <Icon name="event" size={20} color="#2d7576" style={{marginRight: 8}} />
+                  <Text style={appointmentDate ? styles.timeText : styles.timePlaceholder}>
+                    {appointmentDate || 'Select date'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              {showDatePicker && (
+                <DateTimePicker
+                  value={selectedDate}
+                  mode="date"
+                  display="default"
+                  minimumDate={new Date()}
+                  onChange={onDateChange}
+                />
+              )}
+
               <Text style={styles.inputLabel}>Select Appointment Time</Text>
               <TouchableOpacity 
                 style={styles.formInput}
-                onPress={() => setShowTimePicker(true)}
+                onPress={() => {
+                  if (!appointmentDate) {
+                    Alert.alert('Select Date First', 'Please select an appointment date before choosing time.');
+                    return;
+                  }
+                  setShowTimePicker(true);
+                }}
               >
-                <Text style={appointmentTime ? styles.timeText : styles.timePlaceholder}>
-                  {appointmentTime || 'e.g. 10:00 AM'}
-                </Text>
+                <View style={styles.dateTimeDisplay}>
+                  <Icon name="access-time" size={20} color="#2d7576" style={{marginRight: 8}} />
+                  <Text style={appointmentTime ? styles.timeText : styles.timePlaceholder}>
+                    {appointmentTime || 'Select time'}
+                  </Text>
+                </View>
               </TouchableOpacity>
               {showTimePicker && (
                 <DateTimePicker
@@ -430,6 +673,7 @@ const handleDropdownSelect = (item: string) => {
                   mode="time"
                   is24Hour={false}
                   display="default"
+                  minimumDate={isToday(selectedDate) ? getMinimumTime() : undefined}
                   onChange={onTimeChange}
                 />
               )}
@@ -455,11 +699,20 @@ const handleDropdownSelect = (item: string) => {
                   <Text style={styles.inputLabel}>Select Pickup Time</Text>
                   <TouchableOpacity 
                     style={styles.formInput}
-                    onPress={() => setShowPickupTimePicker(true)}
+                    onPress={() => {
+                      if (!appointmentTime) {
+                        Alert.alert('Select Appointment Time First', 'Please select appointment time before choosing pickup time.');
+                        return;
+                      }
+                      setShowPickupTimePicker(true);
+                    }}
                   >
-                    <Text style={pickupTime ? styles.timeText : styles.timePlaceholder}>
-                      {pickupTime || 'e.g. 09:30 AM'}
-                    </Text>
+                    <View style={styles.dateTimeDisplay}>
+                      <Icon name="local-taxi" size={20} color="#2d7576" style={{marginRight: 8}} />
+                      <Text style={pickupTime ? styles.timeText : styles.timePlaceholder}>
+                        {pickupTime || 'Select pickup time'}
+                      </Text>
+                    </View>
                   </TouchableOpacity>
                   {showPickupTimePicker && (
                     <DateTimePicker
@@ -472,8 +725,8 @@ const handleDropdownSelect = (item: string) => {
                   )}
                   {showAddonButton && (
                     <TouchableOpacity 
-                        style={styles.addonBtn} 
-                        onPress={() => setShowAssetsField(true)}
+                      style={styles.addonBtn} 
+                      onPress={() => setShowAssetsField(true)}
                     >
                       <Text style={styles.addonBtnText}>Addon Services</Text>
                     </TouchableOpacity>
@@ -500,49 +753,48 @@ const handleDropdownSelect = (item: string) => {
                   </View>
 
                   {wantsAssets === 'yes' && (
-  <View style={styles.assetsList}>
-    <Text style={[styles.inputLabel, {marginTop: 5}]}>Select an Assistant</Text>
-    {[1, 2, 3].map((item) => {
-      const isSelected = selectedAssistant === item;
-      return (
-        <TouchableOpacity 
-          key={item} 
-          style={[
-            styles.assetItem, 
-            isSelected && styles.assetItemActive
-          ]}
-          onPress={() => setSelectedAssistant(item)}
-        >
-          <Image 
-            source={{uri: `https://i.pravatar.cc/100?u=${item + 10}`}} 
-            style={styles.assetImg} 
-          />
-          <View style={{flex: 1, marginLeft: 12}}>
-            <Text style={[styles.assetName, isSelected && {color: '#2d7576'}]}>
-              Asset Assistant {item === 1 ? 'A' : item === 2 ? 'B' : 'C'}
-            </Text>
-            <View style={styles.ratingContainer}>
-              <Icon name="star" size={12} color="#eab308" />
-              <Text style={styles.ratingText}>4.{8 + item} • Professional</Text>
-            </View>
-          </View>
-          
-          {/* Radio Button / Checkmark UI */}
-          <View style={[styles.radioButton, isSelected && styles.radioButtonActive]}>
-            {isSelected && <View style={styles.radioInner} />}
-          </View>
-        </TouchableOpacity>
-      );
-    })}
-  </View>
-)}
+                    <View style={styles.assetsList}>
+                      <Text style={[styles.inputLabel, {marginTop: 5}]}>Select an Assistant</Text>
+                      {[1, 2, 3].map((item) => {
+                        const isSelected = selectedAssistant === item;
+                        return (
+                          <TouchableOpacity 
+                            key={item} 
+                            style={[
+                              styles.assetItem, 
+                              isSelected && styles.assetItemActive
+                            ]}
+                            onPress={() => setSelectedAssistant(item)}
+                          >
+                            <Image 
+                              source={{uri: `https://i.pravatar.cc/100?u=${item + 10}`}} 
+                              style={styles.assetImg} 
+                            />
+                            <View style={{flex: 1, marginLeft: 12}}>
+                              <Text style={[styles.assetName, isSelected && {color: '#2d7576'}]}>
+                                Asset Assistant {item === 1 ? 'A' : item === 2 ? 'B' : 'C'}
+                              </Text>
+                              <View style={styles.ratingContainer}>
+                                <Icon name="star" size={12} color="#eab308" />
+                                <Text style={styles.ratingText}>4.{8 + item} • Professional</Text>
+                              </View>
+                            </View>
+                            
+                            <View style={[styles.radioButton, isSelected && styles.radioButtonActive]}>
+                              {isSelected && <View style={styles.radioInner} />}
+                            </View>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  )}
                 </View>
               )}
 
-             <TouchableOpacity
-                  style={styles.finalBookBtn}
+              <TouchableOpacity
+                style={styles.finalBookBtn}
                 onPress={handleFinalBooking}
-                >
+              >
                 <Text style={styles.finalBookText}>Book Now</Text>
               </TouchableOpacity>
               
@@ -554,7 +806,129 @@ const handleDropdownSelect = (item: string) => {
         </View>
       </Modal>
 
-      {/* Bottom Navigation */}
+      {/* Filter Modal */}
+      <Modal visible={showFilterModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.filterCard}>
+            <View style={styles.filterHeader}>
+              <Text style={styles.filterTitle}>Filters & Sort</Text>
+              <TouchableOpacity onPress={clearAllFilters}>
+                <Text style={styles.clearAllText}>Clear All</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {/* Price Range Filter */}
+              <View style={styles.filterSection}>
+                <Text style={styles.filterSectionTitle}>Price Range</Text>
+                <View style={styles.filterOptionsGrid}>
+                  <TouchableOpacity 
+                    style={[styles.filterChip, filterPriceRange === 'low' && styles.filterChipActive]}
+                    onPress={() => setFilterPriceRange(filterPriceRange === 'low' ? null : 'low')}
+                  >
+                    <Text style={[styles.filterChipText, filterPriceRange === 'low' && styles.filterChipTextActive]}>
+                      Under $100
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.filterChip, filterPriceRange === 'medium' && styles.filterChipActive]}
+                    onPress={() => setFilterPriceRange(filterPriceRange === 'medium' ? null : 'medium')}
+                  >
+                    <Text style={[styles.filterChipText, filterPriceRange === 'medium' && styles.filterChipTextActive]}>
+                      $100 - $120
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.filterChip, filterPriceRange === 'high' && styles.filterChipActive]}
+                    onPress={() => setFilterPriceRange(filterPriceRange === 'high' ? null : 'high')}
+                  >
+                    <Text style={[styles.filterChipText, filterPriceRange === 'high' && styles.filterChipTextActive]}>
+                      $120+
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+
+              {/* Availability Filter */}
+              <View style={styles.filterSection}>
+                <Text style={styles.filterSectionTitle}>Availability</Text>
+                <View style={styles.filterOptionsGrid}>
+                  <TouchableOpacity 
+                    style={[styles.filterChip, filterAvailability === 'now' && styles.filterChipActive]}
+                    onPress={() => setFilterAvailability(filterAvailability === 'now' ? null : 'now')}
+                  >
+                    <Icon name="access-time" size={14} color={filterAvailability === 'now' ? '#fff' : '#2d7576'} />
+                    <Text style={[styles.filterChipText, filterAvailability === 'now' && styles.filterChipTextActive]}>
+                      Available Now
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* Sort By */}
+              <View style={styles.filterSection}>
+                <Text style={styles.filterSectionTitle}>Sort By</Text>
+                <View style={styles.filterOptionsColumn}>
+                  <TouchableOpacity 
+                    style={[styles.sortOption, sortBy === 'price-low' && styles.sortOptionActive]}
+                    onPress={() => setSortBy('price-low')}
+                  >
+                    <Icon name="arrow-upward" size={16} color={sortBy === 'price-low' ? '#2d7576' : '#9ca3af'} />
+                    <Text style={[styles.sortOptionText, sortBy === 'price-low' && styles.sortOptionTextActive]}>
+                      Price: Low to High
+                    </Text>
+                    {sortBy === 'price-low' && (
+                      <Icon name="check-circle" size={20} color="#2d7576" />
+                    )}
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.sortOption, sortBy === 'price-high' && styles.sortOptionActive]}
+                    onPress={() => setSortBy('price-high')}
+                  >
+                    <Icon name="arrow-downward" size={16} color={sortBy === 'price-high' ? '#2d7576' : '#9ca3af'} />
+                    <Text style={[styles.sortOptionText, sortBy === 'price-high' && styles.sortOptionTextActive]}>
+                      Price: High to Low
+                    </Text>
+                    {sortBy === 'price-high' && (
+                      <Icon name="check-circle" size={20} color="#2d7576" />
+                    )}
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.sortOption, sortBy === 'rating' && styles.sortOptionActive]}
+                    onPress={() => setSortBy('rating')}
+                  >
+                    <Icon name="star" size={16} color={sortBy === 'rating' ? '#2d7576' : '#9ca3af'} />
+                    <Text style={[styles.sortOptionText, sortBy === 'rating' && styles.sortOptionTextActive]}>
+                      Highest Rated
+                    </Text>
+                    {sortBy === 'rating' && (
+                      <Icon name="check-circle" size={20} color="#2d7576" />
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </ScrollView>
+
+            {/* Filter Actions */}
+            <View style={styles.filterActions}>
+              <TouchableOpacity 
+                style={styles.filterCancelBtn}
+                onPress={() => setShowFilterModal(false)}
+              >
+                <Text style={styles.filterCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.filterApplyBtn}
+                onPress={applyFilters}
+              >
+                <Text style={styles.filterApplyText}>Apply Filters</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <View style={styles.bottomNav}>
         <TouchableOpacity style={styles.navItemActive}>
           <Icon name="home" size={24} color="#2d7576" />
@@ -684,7 +1058,7 @@ const styles = StyleSheet.create({
   searchIcon: {
     paddingLeft: 16,
   },
-searchInputContainer: {
+  searchInputContainer: {
     flex: 1,
     paddingHorizontal: 12,
     position: 'relative',
@@ -718,6 +1092,147 @@ searchInputContainer: {
   },
   filterIcon: {
     paddingRight: 12,
+  },
+  filterIconContainer: {
+    position: 'relative',
+    paddingRight: 12,
+  },
+  filterBadge: {
+    position: 'absolute',
+    top: -2,
+    right: 8,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#ef4444',
+  },
+  filterCard: {
+    width: width * 0.95,
+    maxHeight: '85%',
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 20,
+    marginTop: 'auto',
+    marginBottom: 0,
+  },
+  filterHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  filterTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#2d7576',
+  },
+  clearAllText: {
+    fontSize: 14,
+    color: '#ef4444',
+    fontWeight: '600',
+  },
+  filterSection: {
+    marginBottom: 25,
+  },
+  filterSectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#374151',
+    marginBottom: 12,
+  },
+  filterOptionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  filterOptionsColumn: {
+    gap: 10,
+  },
+  filterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: '#e5e7eb',
+    backgroundColor: '#ffffff',
+    gap: 6,
+  },
+  filterChipActive: {
+    backgroundColor: '#2d7576',
+    borderColor: '#2d7576',
+  },
+  filterChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  filterChipTextActive: {
+    color: '#ffffff',
+  },
+  sortOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    borderRadius: 10,
+    backgroundColor: '#f9fafb',
+    gap: 12,
+  },
+  sortOptionActive: {
+    backgroundColor: '#e8f4f4',
+    borderWidth: 1.5,
+    borderColor: '#2d7576',
+  },
+  sortOptionText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+  sortOptionTextActive: {
+    color: '#2d7576',
+    fontWeight: '700',
+  },
+  filterActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 20,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+  },
+  filterCancelBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6',
+  },
+  filterCancelText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#6b7280',
+  },
+  filterApplyBtn: {
+    flex: 2,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    backgroundColor: '#2d7576',
+    shadowColor: '#2d7576',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  filterApplyText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#ffffff',
   },
   dropdownContainer: {
     backgroundColor: '#ffffff',
@@ -766,10 +1281,18 @@ searchInputContainer: {
     justifyContent: 'center',
     marginBottom: 8,
   },
+  categoryIconActive: {
+    borderWidth: 2,
+    borderColor: '#2d7576',
+  },
   categoryText: {
     fontSize: 12,
     fontWeight: '600',
     color: '#52525b',
+  },
+  categoryTextActive: {
+    color: '#2d7576',
+    fontWeight: '700',
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -782,11 +1305,6 @@ searchInputContainer: {
     fontSize: 18,
     fontWeight: '700',
     color: '#131616',
-  },
-  seeAllText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#2d7576',
   },
   doctorsList: {
     paddingHorizontal: 16,
@@ -871,6 +1389,16 @@ searchInputContainer: {
     fontSize: 12,
     fontWeight: '700',
   },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 48,
+  },
+  emptyStateText: {
+    fontSize: 14,
+    color: '#9ca3af',
+    marginTop: 12,
+  },
   bottomNav: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -915,6 +1443,27 @@ searchInputContainer: {
     borderRadius: 16,
     padding: 24,
     alignItems: 'center',
+  },
+  successIconContainer: {
+    marginBottom: 16,
+  },
+  bookingDetailsContainer: {
+    width: '100%',
+    backgroundColor: '#f9fafb',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 16,
+    gap: 12,
+  },
+  bookingDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  bookingDetailText: {
+    fontSize: 14,
+    color: '#374151',
+    fontWeight: '600',
   },
   popupTitle: {
     fontSize: 18,
@@ -966,6 +1515,10 @@ searchInputContainer: {
     borderRadius: 8,
     padding: 10,
     color: '#000',
+  },
+  dateTimeDisplay: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   choiceRow: {
     flexDirection: 'row',
@@ -1071,5 +1624,26 @@ searchInputContainer: {
     color: '#9ca3af',
     paddingVertical: 2,
   },
+  confirmOkButton: {
+    backgroundColor: '#2d7576',
+    paddingVertical: 14,
+    paddingHorizontal: 40,
+    borderRadius: 12,
+    marginTop: 20,
+    width: '100%',
+    alignItems: 'center',
+    shadowColor: '#2d7576',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  confirmOkButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
 });
-export default DoctorListScreen;
+
+export default DoctorListScreen;  
