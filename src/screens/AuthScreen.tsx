@@ -14,6 +14,16 @@ import { Picker } from '@react-native-picker/picker';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// ===== VALIDATION HELPERS =====
+const validateEmail = (email: string) => {
+  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return regex.test(email);
+};
+
+const onlyLetters = (text: string) => text.replace(/[^a-zA-Z\s]/g, '');
+const onlyNumbers = (text: string) => text.replace(/[^0-9]/g, '');
+
+
 /* ================= SCREEN ================= */
 
 const AuthScreen = () => {
@@ -74,10 +84,18 @@ const AuthScreen = () => {
   /* ================= REGISTER ================= */
 
   const handleRegister = async () => {
-    if (!email || !password || !confirmPassword) {
-      Alert.alert('Error', 'All required fields must be filled');
-      return;
-    }
+   // Check all required fields
+if (!firstName || !lastName || !mobile || !aadhaar || !location || !email || !password || !confirmPassword) {
+  Alert.alert('Error', 'All required fields must be filled');
+  return;
+}
+
+// Validate email format
+if (!validateEmail(email.trim())) {
+  Alert.alert('Error', 'Please enter a valid email address');
+  return;
+}
+
 
     if (password !== confirmPassword) {
       Alert.alert('Error', 'Passwords do not match');
@@ -175,7 +193,9 @@ const AuthScreen = () => {
         return;
       }
 
-      if (email !== storedEmail || password !== storedPassword) {
+      if (email.trim().toLowerCase() !== storedEmail?.trim().toLowerCase() || password !== storedPassword) {
+
+
         Alert.alert('Invalid Credentials', 'Email or password is incorrect.');
         return;
       }
@@ -279,9 +299,15 @@ const AuthScreen = () => {
                 <Text style={styles.dropdownArrow}>▼</Text>
               </TouchableOpacity>
 
-              <Input label="First Name" value={firstName} onChange={setFirstName} />
-              <Input label="Last Name" value={lastName} onChange={setLastName} />
-              <Input label="Mobile Number" value={mobile} onChange={setMobile} />
+               <Input label="First Name" value={firstName} onChange={(t: string) => setFirstName(onlyLetters(t))} />
+               <Input label="Last Name" value={lastName} onChange={(t: string) => setLastName(onlyLetters(t))} />
+
+              <Input
+         label="Mobile Number"
+        value={mobile}
+       onChange={(t: string) => setMobile(onlyNumbers(t).slice(0, 10))}
+      />
+
               <Input label="Email ID" value={email} onChange={setEmail} />
               <Input label="Password" value={password} onChange={setPassword} secure />
               <Input
@@ -290,8 +316,27 @@ const AuthScreen = () => {
                 onChange={setConfirmPassword}
                 secure
               />
-              <Input label="Aadhaar Number" value={aadhaar} onChange={setAadhaar} />
-              <Input label="Location" value={location} onChange={setLocation} />
+               <Input
+  label="Aadhaar Number"
+  value={aadhaar}
+  onChange={(t: string) => setAadhaar(onlyNumbers(t).slice(0, 12))}
+/>
+
+               <Text style={styles.label}>Select Location *</Text>
+<View style={styles.dropdownWrapper}>
+  <Picker
+    selectedValue={location}
+    onValueChange={setLocation}
+    style={styles.picker}
+    dropdownIconColor="#ffffff"
+  >
+    <Picker.Item label="Select location" value="" />
+    <Picker.Item label="Hyderabad" value="hyderabad" />
+    <Picker.Item label="Bangalore" value="bangalore" />
+    <Picker.Item label="Chennai" value="chennai" />
+  </Picker>
+</View>
+
 
             {hasHealthService && (
   <>
