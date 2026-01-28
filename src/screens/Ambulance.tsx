@@ -310,7 +310,12 @@ const AmbulanceBookingScreen = () => {
                 placeholder="Enter patient's full name"
                 placeholderTextColor="#9ca3af"
                 value={patientName}
-                onChangeText={setPatientName}
+                onChangeText={(text) => {
+  // allow only letters and spaces
+  const filteredText = text.replace(/[^a-zA-Z\s]/g, '');
+  setPatientName(filteredText);
+}}
+
               />
 
               <Text style={[styles.inputLabel, { marginTop: 16 }]}>Aadhar Number *</Text>
