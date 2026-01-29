@@ -33,7 +33,7 @@ interface Student {
   program: string;
   avatar: string;
   academicScore: number;
-    rating: number;
+  rating: number;
   status: "active" | "completed";
   shift: string;
   skills: string[];
@@ -151,29 +151,29 @@ const { width } = Dimensions.get("window");
 
 const EducationHome = () => {
   const trendingScrollRef = useRef<ScrollView>(null);
-const trendingCurrentIndex = useRef(0);
+  const trendingCurrentIndex = useRef(0);
 
   const { colors } = useTheme();
   const styles = getStyles(colors);
   const navigation = useNavigation<any>();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [searchText, setSearchText] = useState("");
-const filteredTrendingStudents = trendingStudents.filter(
-  (student) =>
-    student.name.toLowerCase().includes(searchText.toLowerCase()) ||
-    student.program.toLowerCase().includes(searchText.toLowerCase()) ||
-    student.skills.some((skill) =>
-      skill.toLowerCase().includes(searchText.toLowerCase())
-    )
-);
+  const filteredTrendingStudents = trendingStudents.filter(
+    (student) =>
+      student.name.toLowerCase().includes(searchText.toLowerCase()) ||
+      student.program.toLowerCase().includes(searchText.toLowerCase()) ||
+      student.skills.some((skill) =>
+        skill.toLowerCase().includes(searchText.toLowerCase())
+      )
+  );
 
-const [showAllTrending, setShowAllTrending] = useState(false); // NEW
+  const [showAllTrending, setShowAllTrending] = useState(false); // NEW
 
   /* ===== LOAD USER FROM STORAGE ===== */
   useEffect(() => {
     loadUser();
   }, []);
-  
+
   const loadUser = async () => {
     try {
       const storedUser = await AsyncStorage.getItem("userProfile");
@@ -185,22 +185,22 @@ const [showAllTrending, setShowAllTrending] = useState(false); // NEW
     }
   };
   useEffect(() => {
-  if (!filteredTrendingStudents.length) return;
+    if (!filteredTrendingStudents.length) return;
 
-  const CARD_HEIGHT = 96; // adjust if needed
-  const interval = setInterval(() => {
-    trendingCurrentIndex.current =
-      (trendingCurrentIndex.current + 1) %
-      filteredTrendingStudents.length;
+    const CARD_HEIGHT = 96; // adjust if needed
+    const interval = setInterval(() => {
+      trendingCurrentIndex.current =
+        (trendingCurrentIndex.current + 1) %
+        filteredTrendingStudents.length;
 
-    trendingScrollRef.current?.scrollTo({
-      y: trendingCurrentIndex.current * CARD_HEIGHT,
-      animated: true,
-    });
-  }, 1500);
+      trendingScrollRef.current?.scrollTo({
+        y: trendingCurrentIndex.current * CARD_HEIGHT,
+        animated: true,
+      });
+    }, 1500);
 
-  return () => clearInterval(interval);
-}, [filteredTrendingStudents.length]);
+    return () => clearInterval(interval);
+  }, [filteredTrendingStudents.length]);
 
 
   const categories = [
@@ -228,19 +228,25 @@ const [showAllTrending, setShowAllTrending] = useState(false); // NEW
       color: "#10b981",
       screen: "Training",
     },
+    {
+      icon: "account-balance",
+      title: "Institution",
+      color: "#ec4899",
+      screen: "InstitutionRegistrationStep1",
+    },
   ];
 
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="light-content" />
 
-<LinearGradient
-  colors={[
-    colors.gradientStart ?? colors.background,
-    colors.gradientEnd ?? colors.surface,
-  ]}
-  style={styles.container}
->
+      <LinearGradient
+        colors={[
+          colors.gradientStart ?? colors.background,
+          colors.gradientEnd ?? colors.surface,
+        ]}
+        style={styles.container}
+      >
         {/* HEADER */}
         <SafeAreaView edges={["top"]} style={styles.headerSafe}></SafeAreaView>
         <View style={styles.header}>
@@ -256,12 +262,12 @@ const [showAllTrending, setShowAllTrending] = useState(false); // NEW
               </Text>
             </View>
           </View>
-     <TouchableOpacity
-  style={styles.bell}
-  onPress={() => navigation.navigate("Notifications")}
->
-  <Icon name="notifications-none" size={28} color={colors.text} />
-  {/* <View style={styles.dot} /> */}
+          <TouchableOpacity
+            style={styles.bell}
+            onPress={() => navigation.navigate("Notifications")}
+          >
+            <Icon name="notifications-none" size={28} color={colors.text} />
+            {/* <View style={styles.dot} /> */}
           </TouchableOpacity>
         </View>
 
@@ -272,8 +278,8 @@ const [showAllTrending, setShowAllTrending] = useState(false); // NEW
             placeholder="Search for colleges, jobs..."
             placeholderTextColor="#9da6b9"
             style={styles.searchInput}
-             value={searchText}                    // ✅ ADD
-  onChangeText={setSearchText}  
+            value={searchText}
+            onChangeText={setSearchText}
           />
           <Icon name="mic" size={20} color="#1a5cff" />
         </View>
@@ -310,8 +316,8 @@ const [showAllTrending, setShowAllTrending] = useState(false); // NEW
           {/* CATEGORIES - UPDATED ICON GRID LAYOUT */}
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: colors.primary }]}>
-  Explore Categories
-</Text>
+              Explore Categories
+            </Text>
 
             {/* <Text style={styles.viewAll}>View All</Text> */}
           </View>
@@ -336,60 +342,62 @@ const [showAllTrending, setShowAllTrending] = useState(false); // NEW
                 >
                   <Icon name={item.icon} size={24} color="#fff" />
                 </View>
-                <Text style={styles.categoryIconTitle}>{item.title}</Text>
+                <Text style={styles.categoryIconTitle}>
+                  {item.title}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
 
-          
+
           {/* TRENDING */}
-<View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginHorizontal: 16 }}>
-  <Text style={styles.trendingTitle}>Trending Now</Text>
-  <TouchableOpacity onPress={() => setShowAllTrending(!showAllTrending)}>
-    <Text style={{ color: colors.primary, fontSize: 14 }}>
-      {showAllTrending ? "Show Less" : "View All"}
-    </Text>
-  </TouchableOpacity>
-</View>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginHorizontal: 16 }}>
+            <Text style={styles.trendingTitle}>Trending Now</Text>
+            <TouchableOpacity onPress={() => setShowAllTrending(!showAllTrending)}>
+              <Text style={{ color: colors.primary, fontSize: 14 }}>
+                {showAllTrending ? "Show Less" : "View All"}
+              </Text>
+            </TouchableOpacity>
+          </View>
 
 
-<View style={{ height: 380, overflow: "hidden", paddingHorizontal: 16 }}>
-  <ScrollView
-    ref={trendingScrollRef}
-    scrollEnabled={false}
-    showsVerticalScrollIndicator={false}
-  >
+          <View style={{ height: 380, overflow: "hidden", paddingHorizontal: 16 }}>
+            <ScrollView
+              ref={trendingScrollRef}
+              scrollEnabled={false}
+              showsVerticalScrollIndicator={false}
+            >
 
-  {(showAllTrending ? filteredTrendingStudents : filteredTrendingStudents.slice(0, 4)).map((student) => (
-  <TouchableOpacity
-  key={student.id}
-  style={styles.trendingRowCard}
-  activeOpacity={0.8}
-  onPress={() =>
-    navigation.navigate("CandidateProfile", {
-      student: student,
-    })
-  }
->
-    <Image source={{ uri: student.avatar }} style={styles.trendingAvatar} />
-    <View style={styles.trendingInfo}>
-      <Text style={styles.trendingName}>{student.name}</Text>
-      <Text style={styles.trendingSub}>{student.program}</Text>
-      <Text style={styles.trendingScore}>{student.academicScore}% Academic Score</Text>
-      <View style={styles.trendingFooter}>
-        <Text style={styles.rating}>⭐ {student.rating}</Text>
-        <Text style={[styles.status, student.status === "active" ? styles.active : styles.completed]}>
-          {student.status.toUpperCase()}
-        </Text>
-      </View>
-      <Text style={styles.shift}>{student.shift}</Text>
-    </View>
- </TouchableOpacity>
+              {(showAllTrending ? filteredTrendingStudents : filteredTrendingStudents.slice(0, 4)).map((student) => (
+                <TouchableOpacity
+                  key={student.id}
+                  style={styles.trendingRowCard}
+                  activeOpacity={0.8}
+                  onPress={() =>
+                    navigation.navigate("CandidateProfile", {
+                      student: student,
+                    })
+                  }
+                >
+                  <Image source={{ uri: student.avatar }} style={styles.trendingAvatar} />
+                  <View style={styles.trendingInfo}>
+                    <Text style={styles.trendingName}>{student.name}</Text>
+                    <Text style={styles.trendingSub}>{student.program}</Text>
+                    <Text style={styles.trendingScore}>{student.academicScore}% Academic Score</Text>
+                    <View style={styles.trendingFooter}>
+                      <Text style={styles.rating}>⭐ {student.rating}</Text>
+                      <Text style={[styles.status, student.status === "active" ? styles.active : styles.completed]}>
+                        {student.status.toUpperCase()}
+                      </Text>
+                    </View>
+                    <Text style={styles.shift}>{student.shift}</Text>
+                  </View>
+                </TouchableOpacity>
 
-))}
+              ))}
 
-  </ScrollView>
-</View>
+            </ScrollView>
+          </View>
 
 
 
@@ -588,12 +596,13 @@ const getStyles = (colors: any) =>
       flexWrap: "wrap",
       marginHorizontal: 16,
       marginBottom: 8,
-      gap: 20,
+      justifyContent: "space-between",
     },
 
     categoryIconCard: {
       alignItems: "center",
-      width: (width - 32 - 60) / 4,
+      width: (width - 32) / 5 - 4,
+      marginBottom: 16,
     },
 
     categoryIconCircle: {
@@ -608,9 +617,10 @@ const getStyles = (colors: any) =>
 
     categoryIconTitle: {
       color: colors.text,
-      fontSize: 12,
+      fontSize: 11,
       fontWeight: "500",
       textAlign: "center",
+      lineHeight: 14,
     },
 
     /* ================= TRENDING ================= */
@@ -699,72 +709,72 @@ const getStyles = (colors: any) =>
     },
     /* ================= TRENDING ROW CARD ================= */
 
-trendingRowCard: {
-  flexDirection: "row",
-  alignItems: "center",
-  backgroundColor: colors.card,
-  borderRadius: 12,
-  padding: 12,
-  marginBottom: 12,
-  borderWidth: 1,
-  borderColor: colors.border,
-  // height: 96,
+    trendingRowCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: 12,
+      marginBottom: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      // height: 96,
 
-},
+    },
 
-trendingAvatar: {
-  width: 60,
-  height: 60,
-  borderRadius: 30,
-  marginRight: 12,
-},
+    trendingAvatar: {
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      marginRight: 12,
+    },
 
-trendingInfo: {
-  flex: 1,
-},
+    trendingInfo: {
+      flex: 1,
+    },
 
-trendingScore: {
-  color: colors.subText,
-  fontSize: 12,
-  marginTop: 2,
-},
+    trendingScore: {
+      color: colors.subText,
+      fontSize: 12,
+      marginTop: 2,
+    },
 
-trendingFooter: {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  marginTop: 4,
-},
+    trendingFooter: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginTop: 4,
+    },
 
-rating: {
-  color: colors.warning ?? "#facc15",
-  fontSize: 12,
-  fontWeight: "600",
-},
+    rating: {
+      color: colors.warning ?? "#facc15",
+      fontSize: 12,
+      fontWeight: "600",
+    },
 
-status: {
-  fontSize: 12,
-  fontWeight: "700",
-  paddingHorizontal: 8,
-  paddingVertical: 2,
-  borderRadius: 12,
-  textAlign: "center",
-},
+    status: {
+      fontSize: 12,
+      fontWeight: "700",
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 12,
+      textAlign: "center",
+    },
 
-active: {
-  backgroundColor: (colors.success ?? "#22c55e") + "30",
-  color: colors.success ?? "#22c55e",
-},
+    active: {
+      backgroundColor: (colors.success ?? "#22c55e") + "30",
+      color: colors.success ?? "#22c55e",
+    },
 
-completed: {
-  backgroundColor: colors.subText + "30",
-  color: colors.subText,
-},
+    completed: {
+      backgroundColor: colors.subText + "30",
+      color: colors.subText,
+    },
 
-shift: {
-  color: colors.subText,
-  fontSize: 11,
-  marginTop: 2,
-},
+    shift: {
+      color: colors.subText,
+      fontSize: 11,
+      marginTop: 2,
+    },
 
 
 

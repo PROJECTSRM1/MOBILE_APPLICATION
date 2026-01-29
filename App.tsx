@@ -66,6 +66,8 @@ import EducationDashboardReport from './src/screens/EducationDashboardReport';
 import Dashboard from "./src/screens/HealthcarePartnerDashboard";
 import BookingsScreen from "./src/screens/HospitalBookings";
 import DoctorsListScreen from "./src/screens/DoctorsList";
+import InstitutionRegistrationStep1 from "./src/screens/InstitutionRegistrationStep1";
+import InstitutionRegistrationStep2 from "./src/screens/InstitutionRegistrationStep2";
 
 
 export type RootStackParamList = {
@@ -138,6 +140,8 @@ export type RootStackParamList = {
   bookings:undefined;
   Doctor:undefined;
   DriverDashboard: undefined;
+  InstitutionRegistrationStep1: undefined;
+  InstitutionRegistrationStep2: undefined;
 
 };
 
@@ -216,11 +220,14 @@ function AppNavigator() {
           name="EducationDashboardReport" 
           component={EducationDashboardReport} 
         />
+
         <Stack.Screen
   name="PartnerAuth"
   component={PartnerAuth}
   options={{ headerShown: false }}
 />
+        <Stack.Screen name="InstitutionRegistrationStep1" component={InstitutionRegistrationStep1} />
+        <Stack.Screen name="InstitutionRegistrationStep2" component={InstitutionRegistrationStep2} />
 
 
       </Stack.Navigator>
