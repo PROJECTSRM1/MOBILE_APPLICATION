@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo ,useEffect} from "react";
 import {
   View,
   Text,
@@ -36,104 +36,104 @@ interface Company {
   active?: string;
   icon: string;
   iconBg: string;
+  // description: string;
 }
 
-const ALL_COMPANIES: Company[] = [
-  {
-    id: 1,
-    name: "TechFlow Systems",
-    industry: "Software Engineering",
-    description:
-      "Leading the way in AI and machine learning solutions for enterprise clients worldwide. Join ou...",
-    location: "San Francisco, CA",
-    size: "500+",
-    isRemote: false,
-    badge: "4 Internships",
-    badgeColor: "#135bec",
-    active: "Active 2h ago",
-    icon: "code",
-    iconBg: "#3b82f6",
-  },
-  {
-    id: 2,
-    name: "EduGrow",
-    industry: "EdTech",
-    description:
-      "Helping students learn faster through personalized curriculum and AI-driven tutoring assistants.",
-    location: "Austin, TX",
-    size: "50-200",
-    isRemote: false,
-    badge: "1 Job Opening",
-    badgeColor: "#22c55e",
-    active: "Active 1d ago",
-    icon: "school",
-    iconBg: "#f97316",
-  },
-  {
-    id: 3,
-    name: "Apex Banking",
-    industry: "Finance & Banking",
-    description:
-      "Global financial solutions for the modern era. We build secure infrastructure for the next generatio...",
-    location: "London, UK",
-    size: "1000+",
-    isRemote: false,
-    badge: "Hiring Frozen",
-    badgeColor: "#6b7280",
-    icon: "account-balance",
-    iconBg: "#334155",
-  },
-  {
-    id: 4,
-    name: "EcoDynamics",
-    industry: "Green Energy",
-    description:
-      "Developing sustainable energy grids powered by next-gen solar technology. Fully remote team...",
-    location: "Remote",
-    size: "50-200",
-    isRemote: true,
-    badge: "2 Senior Roles",
-    badgeColor: "#16a34a",
-    active: "Active 4h ago",
-    icon: "eco",
-    iconBg: "#22c55e",
-  },
-  {
-    id: 5,
-    name: "CloudNine Solutions",
-    industry: "Software Engineering",
-    description:
-      "Building next-generation cloud infrastructure and DevOps tools for modern enterprises...",
-    location: "Seattle, WA",
-    size: "200-500",
-    isRemote: true,
-    badge: "3 Internships",
-    badgeColor: "#135bec",
-    active: "Active 5h ago",
-    icon: "cloud",
-    iconBg: "#0ea5e9",
-  },
-  {
-    id: 6,
-    name: "HealthTech Innovations",
-    industry: "Healthcare",
-    description:
-      "Revolutionizing patient care with AI-powered diagnostic tools and telemedicine platforms...",
-    location: "Boston, MA",
-    size: "100-200",
-    isRemote: false,
-    badge: "5 Job Openings",
-    badgeColor: "#22c55e",
-    active: "Active 3h ago",
-    icon: "local-hospital",
-    iconBg: "#ef4444",
-  },
-];
+// const ALL_COMPANIES: Company[] = [
+//   {
+//     id: 1,
+//     name: "TechFlow Systems",
+//     industry: "Software Engineering",
+//     description:
+//       "Leading the way in AI and machine learning solutions for enterprise clients worldwide. Join ou...",
+//     location: "San Francisco, CA",
+//     size: "500+",
+//     isRemote: false,
+//     badge: "4 Internships",
+//     badgeColor: "#135bec",
+//     active: "Active 2h ago",
+//     icon: "code",
+//     iconBg: "#3b82f6",
+//   },
+//   {
+//     id: 2,
+//     name: "EduGrow",
+//     industry: "EdTech",
+//     description:
+//       "Helping students learn faster through personalized curriculum and AI-driven tutoring assistants.",
+//     location: "Austin, TX",
+//     size: "50-200",
+//     isRemote: false,
+//     badge: "1 Job Opening",
+//     badgeColor: "#22c55e",
+//     active: "Active 1d ago",
+//     icon: "school",
+//     iconBg: "#f97316",
+//   },
+//   {
+//     id: 3,
+//     name: "Apex Banking",
+//     industry: "Finance & Banking",
+//     description:
+//       "Global financial solutions for the modern era. We build secure infrastructure for the next generatio...",
+//     location: "London, UK",
+//     size: "1000+",
+//     isRemote: false,
+//     badge: "Hiring Frozen",
+//     badgeColor: "#6b7280",
+//     icon: "account-balance",
+//     iconBg: "#334155",
+//   },
+//   {
+//     id: 4,
+//     name: "EcoDynamics",
+//     industry: "Green Energy",
+//     description:
+//       "Developing sustainable energy grids powered by next-gen solar technology. Fully remote team...",
+//     location: "Remote",
+//     size: "50-200",
+//     isRemote: true,
+//     badge: "2 Senior Roles",
+//     badgeColor: "#16a34a",
+//     active: "Active 4h ago",
+//     icon: "eco",
+//     iconBg: "#22c55e",
+//   },
+//   {
+//     id: 5,
+//     name: "CloudNine Solutions",
+//     industry: "Software Engineering",
+//     description:
+//       "Building next-generation cloud infrastructure and DevOps tools for modern enterprises...",
+//     location: "Seattle, WA",
+//     size: "200-500",
+//     isRemote: true,
+//     badge: "3 Internships",
+//     badgeColor: "#135bec",
+//     active: "Active 5h ago",
+//     icon: "cloud",
+//     iconBg: "#0ea5e9",
+//   },
+//   {
+//     id: 6,
+//     name: "HealthTech Innovations",
+//     industry: "Healthcare",
+//     description:
+//       "Revolutionizing patient care with AI-powered diagnostic tools and telemedicine platforms...",
+//     location: "Boston, MA",
+//     size: "100-200",
+//     isRemote: false,
+//     badge: "5 Job Openings",
+//     badgeColor: "#22c55e",
+//     active: "Active 3h ago",
+//     icon: "local-hospital",
+//     iconBg: "#ef4444",
+//   },
+// ];
 
-const INDUSTRIES = ['All', 'Software Engineering', 'EdTech', 'Finance & Banking', 'Green Energy', 'Healthcare'];
-const LOCATIONS = ['All', 'Remote', 'San Francisco, CA', 'Austin, TX', 'London, UK', 'Seattle, WA', 'Boston, MA'];
+// const INDUSTRIES = ['All', 'Software Engineering', 'EdTech', 'Finance & Banking', 'Green Energy', 'Healthcare'];
+// const LOCATIONS = ['All', 'Remote', 'San Francisco, CA', 'Austin, TX', 'London, UK', 'Seattle, WA', 'Boston, MA'];
 const SIZES = ['All', '50-200', '200-500', '500+', '1000+'];
-
 type CompaniesNavProp = NativeStackNavigationProp<
   RootStackParamList,
   "Companies"
@@ -151,6 +151,66 @@ const CompaniesScreen = () => {
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<number>>(new Set());
   const [showBookmarks, setShowBookmarks] = useState<boolean>(false);
   const [sortBy, setSortBy] = useState<'name' | 'location' | 'size' | null>(null);
+const [companies, setCompanies] = useState<Company[]>([]);
+const [loading, setLoading] = useState<boolean>(false);
+const [error, setError] = useState<string | null>(null);
+const [industries, setIndustries] = useState<string[]>(['All']);
+const [locations, setLocations] = useState<string[]>(['All']);
+
+
+useEffect(() => {
+  fetchCompanies();
+}, []);
+
+const fetchCompanies = async () => {
+  try {
+    setLoading(true);
+    const response = await fetch(
+      "https://swachify-india-be-1-mcrb.onrender.com/api/companies"
+    );
+
+    const data = await response.json();
+
+const uniqueIndustries = Array.from(
+  new Set(data.map((item: any) => item.industry_name))
+) as string[];
+
+const uniqueLocations = Array.from(
+  new Set(data.map((item: any) => item.location))
+) as string[];
+
+setIndustries(['All', ...uniqueIndustries]);
+setLocations(['All', 'Remote', ...uniqueLocations]);
+
+    const mappedCompanies: Company[] = data.map((item: any) => ({
+      id: item.company_id,
+      name: item.company_name,
+      industry: item.industry_name,
+      location: item.location,
+      size: item.company_size,
+      isRemote: item.location.toLowerCase().includes("remote"),
+      description: `Currently ${item.hiring_status.toLowerCase()} with ${item.internships_count} internships`,
+      badge:
+        item.internships_count > 0
+          ? `${item.internships_count} Internships`
+          : item.jobs_count > 0
+          ? `${item.jobs_count} Job Openings`
+          : "Hiring Frozen",
+      badgeColor:
+        item.hiring_status === "Active" ? "#22c55e" : "#6b7280",
+      active: `Last active ${new Date(item.last_active_time).toLocaleDateString()}`,
+      icon: "business",
+      iconBg: "#135bec",
+    }));
+
+    setCompanies(mappedCompanies);
+  } catch (err) {
+    setError("Failed to load companies");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // Dropdown states
   const [showIndustryDropdown, setShowIndustryDropdown] = useState<boolean>(false);
@@ -175,7 +235,7 @@ const CompaniesScreen = () => {
 
   // Filter companies based on filters and search query
   const filteredCompanies = useMemo(() => {
-    let result = ALL_COMPANIES;
+    let result = companies;
 
     // Show only bookmarked companies if in bookmark view
     if (showBookmarks) {
@@ -385,6 +445,17 @@ const CompanyCard = ({
                 )}
               </TouchableOpacity>
             ))}
+            {loading && (
+  <Text style={{ textAlign: "center", color: colors.subText }}>
+    Loading companies...
+  </Text>
+)}
+
+{error && (
+  <Text style={{ textAlign: "center", color: "red" }}>
+    {error}
+  </Text>
+)}
           </ScrollView>
         </View>
       </TouchableOpacity>
@@ -485,7 +556,7 @@ const CompanyCard = ({
         <DropdownModal
           visible={showIndustryDropdown}
           onClose={() => setShowIndustryDropdown(false)}
-          options={INDUSTRIES}
+          options={industries}
           selected={selectedIndustry}
           onSelect={setSelectedIndustry}
           title="Select Industry"
@@ -494,7 +565,7 @@ const CompanyCard = ({
         <DropdownModal
           visible={showLocationDropdown}
           onClose={() => setShowLocationDropdown(false)}
-          options={LOCATIONS}
+          options={locations}
           selected={selectedLocation}
           onSelect={setSelectedLocation}
           title="Select Location"
