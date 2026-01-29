@@ -73,7 +73,8 @@ const CandidateProfile = () => {
   const [fatherPhone, setFatherPhone] = useState("+91 98765 43210");
   const [motherName, setMotherName] = useState("Sunita Sharma");
   const [motherPhone, setMotherPhone] = useState("+91 98765 01234");
-
+const [profileLoading, setProfileLoading] = useState(true);
+const [profileData, setProfileData] = useState<any>(null);
   /* ===== VERIFICATION ===== */
   const [isVerified, setIsVerified] = useState(false);
 /* ===== VALIDATORS ===== */
@@ -106,16 +107,65 @@ const validatePAN = (text: string) => /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(text.toU
     }
   };
 
-  useEffect(() => {
-    const loadStatus = async () => {
-      const stored = await AsyncStorage.getItem("userProfile");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        setIsVerified(!!parsed?.isVerified);
+  const fetchFullProfile = async () => {
+  try {
+    setProfileLoading(true);
+
+    const response = await fetch(
+      `https://swachify-india-be-1-mcrb.onrender.com/api/education/students/${student.id}/full-profile`
+    );
+
+    const data = await response.json();
+
+    if (!data?.profile) {
+      throw new Error("Invalid profile response");
+    }
+
+    setProfileData(data);
+
+    // 🔹 BASIC PROFILE
+    setName(`${data.profile.first_name} ${data.profile.last_name}`);
+    setCandidateId(data.profile.user_id.toString());
+
+    // 🔹 IDENTITY
+    const aadhaarObj = data.profile.government_id?.find(
+      (g: any) => g.id_type === "Aadhaar"
+    );
+    if (aadhaarObj) setAadhar(aadhaarObj.id_number);
+
+    // 🔹 PHONE
+    if (data.profile.mobile_number) {
+      setFatherPhone(data.profile.mobile_number);
+    }
+
+    // 🔹 EDUCATION (example: first two entries)
+    if (data.education?.length) {
+      setBscScore(data.education[0]?.percentage ?? "");
+      if (data.education[1]) {
+        setMcaScore(data.education[1]?.percentage ?? "");
       }
-    };
-    loadStatus();
-  }, []);
+    }
+  } catch (err) {
+    console.error("Profile fetch error:", err);
+  } finally {
+    setProfileLoading(false);
+  }
+};
+
+  // useEffect(() => {
+  //   const loadStatus = async () => {
+  //     const stored = await AsyncStorage.getItem("userProfile");
+  //     if (stored) {
+  //       const parsed = JSON.parse(stored);
+  //       setIsVerified(!!parsed?.isVerified);
+  //     }
+  //   };
+  //   loadStatus();
+  // }, []);
+
+  useEffect(() => {
+  fetchFullProfile();
+}, []);
 
   /* ===== SAVE PROFILE HANDLER ===== */
 const handleSaveProfile = () => {
@@ -140,6 +190,16 @@ const handleSaveProfile = () => {
   }
 };
 
+
+if (profileLoading) {
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <Text style={{ color: colors.text, textAlign: "center", marginTop: 40 }}>
+        Loading profile...
+      </Text>
+    </SafeAreaView>
+  );
+}
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -240,8 +300,18 @@ const handleSaveProfile = () => {
         )}
 
         {/* EDUCATION */}
-        <EducationCard degree="Master of Computer Applications" institute="IIT Delhi" score={mcaScore} setScore={setMcaScore} year="2023" editMode={editMode} />
-        <EducationCard degree="Bachelor of Science (IT)" institute="Delhi University" score={bscScore} setScore={setBscScore} year="2021" editMode={editMode} />
+        {/* <EducationCard degree="Master of Computer Applications" institute="IIT Delhi" score={mcaScore} setScore={setMcaScore} year="2023" editMode={editMode} />
+        <EducationCard degree="Bachelor of Science (IT)" institute="Delhi University" score={bscScore} setScore={setBscScore} year="2021" editMode={editMode} /> */}
+{profileData?.education?.map((edu: any, index: number) => (
+  <EducationCard
+    key={index}
+    degree={edu.degree}
+    institute={edu.institute}
+    score={edu.percentage}
+    year={edu.created_date?.slice(0, 4)}
+    editMode={editMode}
+  />
+))}
 
         {/* FAMILY */}
         <Section title="Family Details">
