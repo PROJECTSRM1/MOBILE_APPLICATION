@@ -940,29 +940,39 @@ const getStyles = (colors: any) =>
       marginTop: 2,
     },
 
-    /* ================= TOAST ================= */
-    toastWrapper: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-    },
+   /* ================= TOAST ================= */
+toastWrapper: {
+  position: "absolute",
+  top: 60,               // distance from top
+  left: 0,
+  right: 0,
+  alignItems: "center",
+  zIndex: 999,
+  paddingHorizontal: 16,
+},
 
-    toast: {
-      flexDirection: "row",
-      gap: 8,
-      backgroundColor: colors.card,
-      paddingHorizontal: 16,
-      paddingVertical: 10,
-      borderRadius: 14,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
+toast: {
+  flexDirection: "row",
+  gap: 8,
+  backgroundColor: colors.card,
+  paddingHorizontal: 16,
+  paddingVertical: 10,
+  borderRadius: 14,
+  borderWidth: 1,
+  borderColor: colors.border,
+  elevation: 6,          // Android shadow
+  shadowColor: "#000",   // iOS shadow
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.25,
+  shadowRadius: 6,
+},
 
-    toastText: {
-      color: colors.text,
-      fontSize: 13,
-      fontWeight: "600",
-    },
+toastText: {
+  color: colors.text,
+  fontSize: 13,
+  fontWeight: "600",
+},
+
 
     /* ================= MODAL ================= */
     modalOverlay: {
