@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import { useTheme } from "../context/ThemeContext";
 
 type Branch = {
   id: string;
@@ -47,6 +48,8 @@ const branches: Branch[] = [
 ];
 
 const BranchDirectoryScreen = () => {
+    const { colors } = useTheme();
+    const styles = getStyles(colors);
   const totalStudents = branches.reduce(
     (sum, branch) => sum + branch.students,
     0
@@ -154,146 +157,202 @@ const BranchDirectoryScreen = () => {
 export default BranchDirectoryScreen;
 
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F6F8FB" },
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.surface,
+    },
 
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: 16,
-  },
-  headerTitle: { fontSize: 22, fontWeight: "700" },
-  headerIcons: { flexDirection: "row", gap: 16 },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      padding: 16,
+    },
+    headerTitle: {
+      fontSize: 22,
+      fontWeight: "700",
+      color: colors.text,
+    },
+    headerIcons: {
+      flexDirection: "row",
+      gap: 16,
+    },
 
-  statsContainer: { flexDirection: "row", paddingHorizontal: 16 },
-  statCard: {
-    flex: 1,
-    backgroundColor: "#FFF",
-    padding: 16,
-    borderRadius: 16,
-    marginRight: 12,
-  },
-  cardHeader: {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-},
+    statsContainer: {
+      flexDirection: "row",
+      paddingHorizontal: 16,
+    },
+    statCard: {
+      flex: 1,
+      backgroundColor: colors.card,
+      padding: 16,
+      borderRadius: 16,
+      marginRight: 12,
+    },
 
-  statIconBlue: {
-    backgroundColor: "#E8F0FE",
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  statIconOrange: {
-    backgroundColor: "#FFF7ED",
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  statLabel: { fontSize: 12, color: "#64748B" },
-  statValue: { fontSize: 22, fontWeight: "700" },
+    cardHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
 
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: 16,
-  },
-  sectionTitle: { fontSize: 18, fontWeight: "700" },
-  updatedText: { fontSize: 12, color: "#1A73E8" },
+    statIconBlue: {
+      backgroundColor: colors.surfaceAlt,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: 8,
+    },
+    statIconOrange: {
+      backgroundColor: colors.surfaceAlt,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: 8,
+    },
 
-  card: {
-    backgroundColor: "#FFF",
-    marginHorizontal: 16,
-    marginBottom: 12,
-    padding: 16,
-    borderRadius: 16,
-  },
+    statLabel: {
+      fontSize: 12,
+      color: colors.subText,
+    },
+    statValue: {
+      fontSize: 22,
+      fontWeight: "700",
+      color: colors.text,
+    },
 
-  branchLeft: { flexDirection: "row", gap: 12 },
-  branchIcon: {
-    backgroundColor: "#EEF2FF",
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  branchName: { fontSize: 16, fontWeight: "700" },
-  branchLocation: { fontSize: 13, color: "#64748B" },
+    sectionHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      padding: 16,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: colors.text,
+    },
+    updatedText: {
+      fontSize: 12,
+      color: colors.primary,
+    },
 
-  statusBadge: {
-    backgroundColor: "#DCFCE7",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-  },
-  statusText: { color: "#15803D", fontSize: 12 },
+    card: {
+      backgroundColor: colors.card,
+      marginHorizontal: 16,
+      marginBottom: 12,
+      padding: 16,
+      borderRadius: 16,
+    },
 
-  studentsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 12,
-  },
-  avatar: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "#CBD5E1",
-    marginRight: -6,
-  },
-  avatarCount: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "#DBEAFE",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 8,
-  },
-  avatarText: { fontSize: 10, color: "#1A73E8" },
-  studentCount: { marginLeft: 8, fontWeight: "600" },
+    branchLeft: {
+      flexDirection: "row",
+      gap: 12,
+    },
+    branchIcon: {
+      backgroundColor: colors.surfaceAlt,
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    branchName: {
+      fontSize: 16,
+      fontWeight: "700",
+      color: colors.text,
+    },
+    branchLocation: {
+      fontSize: 13,
+      color: colors.subText,
+    },
 
-  viewButton: {
-    backgroundColor: "#1A73E8",
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  viewButtonText: { color: "#FFF", fontWeight: "600" },
+    statusBadge: {
+      backgroundColor: colors.success + "20", // soft success background
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 20,
+    },
+    statusText: {
+      color: colors.success,
+      fontSize: 12,
+    },
 
-  requestButton: {
-    position: "absolute",
-    bottom: 80,
-    left: 16,
-    right: 16,
-    borderWidth: 2,
-    borderStyle: "dashed",
-    borderColor: "#1A73E8",
-    borderRadius: 14,
-    padding: 14,
-    alignItems: "center",
-    gap: 6,
-  },
-  requestText: { color: "#1A73E8", fontWeight: "600" },
+    studentsRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginVertical: 12,
+    },
+    avatar: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: colors.border,
+      marginRight: -6,
+    },
+    avatarCount: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: colors.primary + "20",
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 8,
+    },
+    avatarText: {
+      fontSize: 10,
+      color: colors.primary,
+    },
+    studentCount: {
+      marginLeft: 8,
+      fontWeight: "600",
+      color: colors.text,
+    },
 
-  bottomTabs: {
-    position: "absolute",
-    bottom: 0,
-    height: 64,
-    left: 0,
-    right: 0,
-    backgroundColor: "#FFF",
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    borderTopWidth: 1,
-    borderColor: "#E5E7EB",
-  },
-});
+    viewButton: {
+      backgroundColor: colors.primary,
+      paddingVertical: 14,
+      borderRadius: 12,
+      alignItems: "center",
+    },
+    viewButtonText: {
+      color: colors.background,
+      fontWeight: "600",
+    },
+
+    requestButton: {
+      position: "absolute",
+      bottom: 80,
+      left: 16,
+      right: 16,
+      borderWidth: 2,
+      borderStyle: "dashed",
+      borderColor: colors.primary,
+      borderRadius: 14,
+      padding: 14,
+      alignItems: "center",
+      gap: 6,
+    },
+    requestText: {
+      color: colors.primary,
+      fontWeight: "600",
+    },
+
+    bottomTabs: {
+      position: "absolute",
+      bottom: 0,
+      height: 64,
+      left: 0,
+      right: 0,
+      backgroundColor: colors.card,
+      flexDirection: "row",
+      justifyContent: "space-around",
+      alignItems: "center",
+      borderTopWidth: 1,
+      borderColor: colors.border,
+    },
+  });
