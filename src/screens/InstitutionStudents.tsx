@@ -220,7 +220,7 @@ const { branchName } = route.params || {};
   style={styles.studentCard}
   activeOpacity={0.7}
   onPress={() =>
-    navigation.navigate('StudentOverview', {
+    navigation.navigate('StudentOverviewScreen', {
       student: student,
     })
   }
