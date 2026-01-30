@@ -150,6 +150,18 @@ const InstitutionRegistrationStep2 = () => {
 
   const handleCompleteRegistration = () => {
     if (validateBranches()) {
+      // Save the complete registration data
+      const registrationData = {
+        ...step1Data,
+        academicYearStart: academicYearStart.toISOString(),
+        academicYearEnd: academicYearEnd.toISOString(),
+        numberOfBranches,
+        branches,
+      };
+      
+      console.log("Registration Data:", registrationData);
+      
+      // Navigate directly to PartnerPortal after successful registration
       Alert.alert(
         "Registration Complete",
         "Your institution registration has been submitted successfully!",
@@ -157,16 +169,9 @@ const InstitutionRegistrationStep2 = () => {
           {
             text: "OK",
             onPress: () => {
-              // Save the complete registration data
-              const registrationData = {
-                ...step1Data,
-                academicYearStart: academicYearStart.toISOString(),
-                academicYearEnd: academicYearEnd.toISOString(),
-                numberOfBranches,
-                branches,
-              };
-              console.log("Registration Data:", registrationData);
-              navigation.navigate("EducationHome");
+              // Navigate to Partner Portal
+              navigation.navigate("PartnerPortalStandalone");
+
             },
           },
         ]
