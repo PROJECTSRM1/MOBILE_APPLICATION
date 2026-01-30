@@ -537,4 +537,149 @@ export default InstitutionStudents;
     navLabelActive: {
       color: colors.primary,
     },
-  }); 
+  });
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <StatusBar
+        barStyle={lightMode ? 'dark-content' : 'light-content'}
+        backgroundColor={colors.card}
+      />
+
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Icon name="arrow-back-ios" size={24} color={colors.text} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Main Campus Branch</Text>
+        <TouchableOpacity style={styles.filterButton}>
+          <Icon name="tune" size={24} color={colors.text} />
+        </TouchableOpacity>
+      </View>
+
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <Icon
+          name="search"
+          size={20}
+          color={colors.subText}
+          style={styles.searchIcon}
+        />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search by name or student ID"
+          placeholderTextColor={colors.placeholder}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+      </View>
+
+      {/* Students Header */}
+      <View style={styles.studentsHeader}>
+        <Text style={styles.studentCount}>
+          STUDENTS ({filteredStudents.length})
+        </Text>
+        <TouchableOpacity onPress={handleSortToggle}>
+          <Text style={styles.sortButton}>{getSortLabel()}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Students List */}
+      <ScrollView
+        style={styles.studentsList}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.studentsListContent}
+      >
+        {displayedStudents.map((student) => (
+          <TouchableOpacity
+            key={student.id}
+            style={styles.studentCard}
+            activeOpacity={0.7}
+          >
+            {student.avatar ? (
+              <Image
+                source={{ uri: student.avatar }}
+                style={styles.studentAvatar}
+              />
+            ) : (
+              <View
+                style={[
+                  styles.studentAvatarPlaceholder,
+                  { backgroundColor: student.color },
+                ]}
+              >
+                <Text style={styles.studentInitials}>{student.initials}</Text>
+              </View>
+            )}
+
+            <View style={styles.studentInfo}>
+              <Text style={styles.studentName}>{student.name}</Text>
+              <View style={styles.studentMeta}>
+                <Text style={styles.studentId}>ID: {student.studentId}</Text>
+                <Text style={styles.studentMetaSeparator}> • </Text>
+                <Text style={styles.studentYear}>Year {student.year}</Text>
+              </View>
+            </View>
+
+            <Icon name="chevron-right" size={24} color={colors.placeholder} />
+          </TouchableOpacity>
+        ))}
+
+        {/* Load More Button */}
+        {visibleStudents < sortedStudents.length && (
+          <TouchableOpacity
+            style={styles.loadMoreButton}
+            onPress={loadMoreStudents}
+          >
+            <Icon name="refresh" size={18} color={colors.primary} />
+            <Text style={styles.loadMoreText}>Load More Students</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Empty State */}
+        {filteredStudents.length === 0 && (
+          <View style={styles.emptyState}>
+            <Icon name="school" size={64} color={colors.border} />
+            <Text style={styles.emptyStateText}>No students found</Text>
+            <Text style={styles.emptyStateSubtext}>
+              Try adjusting your search criteria
+            </Text>
+          </View>
+        )}
+      </ScrollView>
+
+      {/* Floating Add Button */}
+      <TouchableOpacity style={styles.floatingAddButton} activeOpacity={0.8}>
+        <Icon name="person-add" size={28} color="#ffffff" />
+      </TouchableOpacity>
+
+      {/* Bottom Navigation */}
+    {/*<View style={styles.bottomNav}>
+        <TouchableOpacity style={styles.navItem}>
+          <Icon name="people" size={24} color={colors.primary} />
+          <Text style={[styles.navLabel, styles.navLabelActive]}>Students</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.navItem}>
+          <Icon name="table-chart" size={24} color={colors.subText} />
+          <Text style={styles.navLabel}>Fees</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.navItem}>
+          <Icon name="description" size={24} color={colors.subText} />
+          <Text style={styles.navLabel}>Reports</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.navItem}>
+          <Icon name="settings" size={24} color={colors.subText} />
+          <Text style={styles.navLabel}>Settings</Text>
+        </TouchableOpacity>
+      </View>*/}
+    </SafeAreaView>
+  );
+};
+
+export default InstitutionStudents;
