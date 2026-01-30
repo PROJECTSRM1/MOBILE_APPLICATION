@@ -70,6 +70,9 @@ import HospitalDoctorsScreen from "./src/screens/HospitalDoctorsScreen";
 import DoctorProfile from "./src/screens/Doctorprofile";
 import InstitutionRegistrationStep1 from "./src/screens/InstitutionRegistrationStep1";
 import InstitutionRegistrationStep2 from "./src/screens/InstitutionRegistrationStep2";
+import InstitutionWelcomeScreen from "./src/screens/InstitutionWelcomeScreen";
+import InstitutionLoginPortal from "./src/screens/InstitutionLoginPortal";
+import InstitutionOTPVerification from "./src/screens/InstitutionOTPVerification";
 import PartnerPortalStandalone from "./src/screens/Partnerportalstandalone";
 import ManagementOverview from "./src/screens/ManagementOverview";
 
@@ -148,6 +151,10 @@ export type RootStackParamList = {
   DoctorProfile:undefined
   InstitutionRegistrationStep1: undefined;
   InstitutionRegistrationStep2: undefined;
+  InstitutionWelcomeScreen: undefined;
+  InstitutionLoginPortal: undefined;
+  InstitutionOTPVerification: undefined
+
   PartnerPortalStandalone: undefined;
   ManagementOverview: undefined;
 };
@@ -235,6 +242,9 @@ function AppNavigator() {
         />
         <Stack.Screen name="InstitutionRegistrationStep1" component={InstitutionRegistrationStep1} />
         <Stack.Screen name="InstitutionRegistrationStep2" component={InstitutionRegistrationStep2} />
+        <Stack.Screen name="InstitutionWelcomeScreen" component={InstitutionWelcomeScreen} />
+        <Stack.Screen name="InstitutionLoginPortal" component={InstitutionLoginPortal} />
+        <Stack.Screen name="InstitutionOTPVerification" component={InstitutionOTPVerification} />
         <Stack.Screen 
           name="PartnerPortalStandalone" 
           component={PartnerPortalStandalone}
