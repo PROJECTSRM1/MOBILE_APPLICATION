@@ -8,6 +8,7 @@ import {
   TextInput,
   StatusBar,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import LinearGradient from "react-native-linear-gradient";
@@ -15,6 +16,18 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useTheme } from "../context/ThemeContext";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const BASE_URL = "https://swachify-india-be-1-mcrb.onrender.com";
+const STORAGE_KEY = "@institution_registration_step1";
+
+// Configuration for API requests
+const API_CONFIG = {
+  BRANCH_CREATION_DELAY: 2000, // 2 seconds between branch creation requests
+  REQUEST_TIMEOUT: 30000, // 30 seconds timeout for each request
+  MAX_RETRIES: 2, // Maximum retry attempts per request
+  RETRY_DELAY: 3000, // 3 seconds delay before retry
+};
 
 interface Branch {
   id: string;
@@ -25,7 +38,7 @@ interface Branch {
 }
 
 interface RouteParams {
-  formData: any;
+  step1Data: any;
 }
 
 const InstitutionRegistrationStep2 = () => {
@@ -33,13 +46,15 @@ const InstitutionRegistrationStep2 = () => {
   const styles = getStyles(colors);
   const navigation = useNavigation<any>();
   const route = useRoute();
-  const { formData: step1Data } = (route.params as RouteParams) || {};
+  const { step1Data } = (route.params as RouteParams) || {};
 
   const [numberOfBranches, setNumberOfBranches] = useState(1);
   const [academicYearStart, setAcademicYearStart] = useState(new Date("2023-09-01"));
   const [academicYearEnd, setAcademicYearEnd] = useState(new Date("2024-06-30"));
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("");
 
   const [branches, setBranches] = useState<Branch[]>([
     {
@@ -148,37 +163,370 @@ const InstitutionRegistrationStep2 = () => {
     return isValid;
   };
 
-  const handleCompleteRegistration = () => {
-    if (validateBranches()) {
-      // Save the complete registration data
-      const registrationData = {
-        ...step1Data,
-        academicYearStart: academicYearStart.toISOString(),
-        academicYearEnd: academicYearEnd.toISOString(),
-        numberOfBranches,
-        branches,
-      };
-      
-      console.log("Registration Data:", registrationData);
-      
-      // Navigate directly to PartnerPortal after successful registration
-      Alert.alert(
-        "Registration Complete",
-        "Your institution registration has been submitted successfully!",
-        [
-          {
-            text: "OK",
-            onPress: () => {
-              // Navigate to Partner Portal
-              navigation.navigate("PartnerPortalStandalone");
+  const formatDateForAPI = (date: Date) => {
+    return date.toISOString().split("T")[0]; // Returns YYYY-MM-DD
+  };
 
-            },
-          },
-        ]
-      );
-    } else {
-      Alert.alert("Validation Error", "Please fill all required fields for each branch");
+  const clearSavedData = async () => {
+    try {
+      await AsyncStorage.removeItem(STORAGE_KEY);
+    } catch (error) {
+      console.error("Error clearing saved data:", error);
     }
+  };
+
+  /**
+   * Delay utility function with Promise
+   */
+  const delay = (ms: number): Promise<void> => {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  };
+
+  /**
+   * Fetch with timeout wrapper
+   */
+  const fetchWithTimeout = async (
+    url: string,
+    options: RequestInit,
+    timeout: number = API_CONFIG.REQUEST_TIMEOUT
+  ): Promise<Response> => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      return response;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      throw error;
+    }
+  };
+
+  /**
+   * Create a single branch with retry logic
+   */
+  const createSingleBranch = async (
+    branch: Branch,
+    institutionId: number | string,
+    branchIndex: number,
+    retryCount: number = 0
+  ): Promise<{ success: boolean; error?: string }> => {
+    const branchPayload = {
+      institution_id: Number(institutionId),
+      branch_name: branch.branchName.trim(),
+      city: branch.locationCity.trim(),
+      branch_code: branch.branchCode.trim(),
+      branch_head: branch.branchHead.trim(),
+      is_active: true,
+    };
+
+    console.log(`\n[Attempt ${retryCount + 1}] Creating Branch ${branchIndex + 1}/${branches.length}`);
+    console.log("Payload:", JSON.stringify(branchPayload, null, 2));
+
+    try {
+      const response = await fetchWithTimeout(
+        `${BASE_URL}/institution/student/branch`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(branchPayload),
+        }
+      );
+
+      const responseText = await response.text();
+      console.log(`Branch ${branchIndex + 1} Status:`, response.status);
+      console.log(`Branch ${branchIndex + 1} Response:`, responseText);
+
+      if (!response.ok) {
+        // Check if we should retry
+        if (retryCount < API_CONFIG.MAX_RETRIES && response.status >= 500) {
+          console.log(`Server error (${response.status}), retrying in ${API_CONFIG.RETRY_DELAY}ms...`);
+          await delay(API_CONFIG.RETRY_DELAY);
+          return createSingleBranch(branch, institutionId, branchIndex, retryCount + 1);
+        }
+
+        return {
+          success: false,
+          error: responseText || `Server error: ${response.status}`,
+        };
+      }
+
+      return { success: true };
+    } catch (error: any) {
+      console.error(`Branch ${branchIndex + 1} Error:`, error);
+
+      // Retry on network errors
+      if (retryCount < API_CONFIG.MAX_RETRIES && 
+          (error.name === "AbortError" || error.message.includes("Network"))) {
+        console.log(`Network error, retrying in ${API_CONFIG.RETRY_DELAY}ms...`);
+        await delay(API_CONFIG.RETRY_DELAY);
+        return createSingleBranch(branch, institutionId, branchIndex, retryCount + 1);
+      }
+
+      return {
+        success: false,
+        error: error.message || "Network error occurred",
+      };
+    }
+  };
+
+  /**
+   * Create all branches sequentially with delays
+   */
+  const createBranches = async (institutionId: number | string) => {
+    console.log("\n=== Creating Branches Sequentially with Delays ===");
+    const failedBranches: Array<{ name: string; error: string }> = [];
+    const successfulBranches: string[] = [];
+
+    for (let i = 0; i < branches.length; i++) {
+      const branch = branches[i];
+
+      // Update loading message
+      setLoadingMessage(`Creating branch ${i + 1} of ${branches.length}...`);
+
+      const result = await createSingleBranch(branch, institutionId, i);
+
+      if (result.success) {
+        successfulBranches.push(branch.branchName);
+        console.log(`✓ Branch ${i + 1} created successfully`);
+      } else {
+        failedBranches.push({
+          name: branch.branchName,
+          error: result.error || "Unknown error",
+        });
+        console.log(`✗ Branch ${i + 1} failed:`, result.error);
+      }
+
+      // Add delay between requests (except after the last one)
+      if (i < branches.length - 1) {
+        console.log(`Waiting ${API_CONFIG.BRANCH_CREATION_DELAY}ms before next branch...`);
+        setLoadingMessage(`Waiting before creating next branch...`);
+        await delay(API_CONFIG.BRANCH_CREATION_DELAY);
+      }
+    }
+
+    console.log("\n=== Branch Creation Summary ===");
+    console.log(`Successful: ${successfulBranches.length}`);
+    console.log(`Failed: ${failedBranches.length}`);
+    console.log("================================\n");
+
+    if (failedBranches.length > 0) {
+      const failedDetails = failedBranches
+        .map((b) => `• ${b.name}: ${b.error}`)
+        .join("\n");
+      return {
+        success: false,
+        message: `${failedBranches.length} of ${branches.length} branches failed to create`,
+        details: failedDetails,
+        successCount: successfulBranches.length,
+        failedCount: failedBranches.length,
+      };
+    }
+
+    return { success: true };
+  };
+
+  const registerInstitution = async () => {
+    if (!validateBranches()) {
+      Alert.alert(
+        "Validation Error",
+        "Please fill all required fields for each branch"
+      );
+      return;
+    }
+
+    setLoading(true);
+    setLoadingMessage("Registering institution...");
+
+    try {
+      // Step 1: Register Institution
+      const payload = {
+        institution_name: step1Data.institutionName,
+        institution_type_id: parseInt(step1Data.institutionType),
+        identity_type_id: parseInt(step1Data.identityType),
+        identity_number: step1Data.registrationNumber,
+        location: step1Data.physicalAddress,
+        representative_name: step1Data.contactPerson,
+        email: step1Data.emailAddress,
+        phone_number: step1Data.phoneNumber,
+        upload_id_proof: step1Data.idProof?.uri || "",
+        upload_address_proof: step1Data.addressProof?.uri || "",
+        institute_website: step1Data.website || "",
+        total_branches: branches.length,
+        academic_year_start: formatDateForAPI(academicYearStart),
+        academic_year_end: formatDateForAPI(academicYearEnd),
+        created_by: 0,
+        is_active: true,
+      };
+
+      console.log("\n=== STEP 1: Institution Registration ===");
+      console.log("URL:", `${BASE_URL}/institution/student/register`);
+      console.log("Payload:", JSON.stringify(payload, null, 2));
+      console.log("========================================\n");
+
+      const response = await fetchWithTimeout(
+        `${BASE_URL}/institution/student/register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      console.log("=== Institution API Response ===");
+      console.log("Status:", response.status);
+      console.log("Status Text:", response.statusText);
+      console.log("Content-Type:", response.headers.get("content-type"));
+
+      const responseText = await response.text();
+      console.log("Response Text:", responseText);
+      console.log("================================\n");
+
+      let responseData;
+
+      // Check if response is actually JSON
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        try {
+          responseData = JSON.parse(responseText);
+        } catch (parseError) {
+          console.error("JSON Parse Error:", parseError);
+          throw new Error("Invalid JSON response from server");
+        }
+      } else {
+        // Non-JSON response (likely plain text error)
+        console.error("Non-JSON response received:", responseText);
+
+        if (!response.ok) {
+          throw new Error(responseText || `Server error: ${response.status}`);
+        }
+
+        // If status is OK but no JSON, try to handle it
+        throw new Error(
+          "Server returned non-JSON response. Please contact support."
+        );
+      }
+
+      if (response.ok) {
+        console.log("=== Institution Registration Successful ===");
+        console.log("Response Data:", JSON.stringify(responseData, null, 2));
+        console.log("===========================================\n");
+
+        // Extract institution ID from response
+        const institutionId =
+          responseData.institution_id ||
+          responseData.id ||
+          responseData.data?.institution_id ||
+          responseData.data?.id;
+
+        if (!institutionId) {
+          console.error("No institution ID in response:", responseData);
+          throw new Error(
+            "Institution ID not found in response. Please contact support."
+          );
+        }
+
+        console.log("Institution ID:", institutionId);
+
+        // Small delay before starting branch creation
+        await delay(1000);
+
+        // Step 2: Create Branches
+        console.log("\n=== STEP 2: Creating Branches ===");
+        setLoadingMessage("Preparing to create branches...");
+        
+        const branchResult = await createBranches(institutionId);
+
+        if (!branchResult.success) {
+          Alert.alert(
+            "Partial Success",
+            `Institution registered successfully!\n\n` +
+              `✓ Institution ID: ${institutionId}\n` +
+              `✓ Successful branches: ${branchResult.successCount || 0}\n` +
+              `✗ Failed branches: ${branchResult.failedCount || 0}\n\n` +
+              `Error Details:\n${branchResult.details || branchResult.message}\n\n` +
+              `Please contact support with Institution ID: ${institutionId}`,
+            [
+              {
+                text: "Continue",
+                onPress: async () => {
+                  await clearSavedData();
+                  navigation.navigate("PartnerPortalStandalone");
+                },
+              },
+            ]
+          );
+        } else {
+          // Clear saved data after successful registration
+          await clearSavedData();
+
+          Alert.alert(
+            "Registration Complete",
+            "Your institution and all branches have been registered successfully!",
+            [
+              {
+                text: "OK",
+                onPress: () => {
+                  navigation.navigate("PartnerPortalStandalone");
+                },
+              },
+            ]
+          );
+        }
+      } else {
+        console.error("=== Institution Registration Failed ===");
+        console.error("Error Data:", responseData);
+        console.error("=======================================\n");
+
+        const errorMessage =
+          responseData.message ||
+          responseData.detail ||
+          responseData.error ||
+          "Registration failed. Please try again.";
+
+        Alert.alert("Registration Failed", errorMessage);
+      }
+    } catch (error: any) {
+      console.error("=== API Error ===");
+      console.error("Error:", error);
+      console.error("Error Message:", error.message);
+      console.error("Error Stack:", error.stack);
+      console.error("=================\n");
+
+      let errorMessage = "An unexpected error occurred. Please try again.";
+
+      if (error.name === "AbortError") {
+        errorMessage =
+          "Request timed out. Please check your internet connection and try again.";
+      } else if (
+        error.message.includes("Network request failed") ||
+        error.name === "TypeError"
+      ) {
+        errorMessage =
+          "Unable to connect to the server. Please check your internet connection and try again.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      Alert.alert("Error", errorMessage);
+    } finally {
+      setLoading(false);
+      setLoadingMessage("");
+    }
+  };
+
+  const handleCompleteRegistration = () => {
+    registerInstitution();
   };
 
   const formatDate = (date: Date) => {
@@ -186,7 +534,7 @@ const InstitutionRegistrationStep2 = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={["top"]}>
       <StatusBar barStyle="light-content" />
       <LinearGradient
         colors={[
@@ -235,7 +583,8 @@ const InstitutionRegistrationStep2 = () => {
           <View style={styles.titleSection}>
             <Text style={styles.pageTitle}>Define your branches</Text>
             <Text style={styles.pageSubtitle}>
-              Add the specific locations and administrative heads for your institution.
+              Add the specific locations and administrative heads for your
+              institution.
             </Text>
           </View>
 
@@ -250,7 +599,9 @@ const InstitutionRegistrationStep2 = () => {
                   <Icon name="storefront" size={24} color={colors.primary} />
                 </View>
                 <View>
-                  <Text style={styles.branchCountTitle}>Number of Branches</Text>
+                  <Text style={styles.branchCountTitle}>
+                    Number of Branches
+                  </Text>
                   <Text style={styles.branchCountSubtitle}>
                     Total operational sites
                   </Text>
@@ -281,8 +632,14 @@ const InstitutionRegistrationStep2 = () => {
                   style={styles.dateInput}
                   onPress={() => setShowStartPicker(true)}
                 >
-                  <Text style={styles.dateText}>{formatDate(academicYearStart)}</Text>
-                  <Icon name="calendar-today" size={20} color={colors.subText} />
+                  <Text style={styles.dateText}>
+                    {formatDate(academicYearStart)}
+                  </Text>
+                  <Icon
+                    name="calendar-today"
+                    size={20}
+                    color={colors.subText}
+                  />
                 </TouchableOpacity>
               </View>
 
@@ -292,8 +649,14 @@ const InstitutionRegistrationStep2 = () => {
                   style={styles.dateInput}
                   onPress={() => setShowEndPicker(true)}
                 >
-                  <Text style={styles.dateText}>{formatDate(academicYearEnd)}</Text>
-                  <Icon name="calendar-today" size={20} color={colors.subText} />
+                  <Text style={styles.dateText}>
+                    {formatDate(academicYearEnd)}
+                  </Text>
+                  <Icon
+                    name="calendar-today"
+                    size={20}
+                    color={colors.subText}
+                  />
                 </TouchableOpacity>
               </View>
             </View>
@@ -307,10 +670,16 @@ const InstitutionRegistrationStep2 = () => {
               <View key={branch.id} style={styles.branchCard}>
                 {/* Branch Header */}
                 <View style={styles.branchHeader}>
-                  <Text style={styles.branchHeaderTitle}>Branch {index + 1}</Text>
+                  <Text style={styles.branchHeaderTitle}>
+                    Branch {index + 1}
+                  </Text>
                   {branches.length > 1 && (
                     <TouchableOpacity onPress={() => deleteBranch(branch.id)}>
-                      <Icon name="delete" size={24} color={colors.danger || "#ef4444"} />
+                      <Icon
+                        name="delete"
+                        size={24}
+                        color={colors.danger || "#ef4444"}
+                      />
                     </TouchableOpacity>
                   )}
                 </View>
@@ -322,7 +691,8 @@ const InstitutionRegistrationStep2 = () => {
                     <TextInput
                       style={[
                         styles.branchInput,
-                        errors[branch.id]?.branchName && styles.branchInputError,
+                        errors[branch.id]?.branchName &&
+                          styles.branchInputError,
                       ]}
                       placeholder="e.g. Downtown Campus"
                       placeholderTextColor={colors.subText}
@@ -351,7 +721,8 @@ const InstitutionRegistrationStep2 = () => {
                         style={[
                           styles.branchInput,
                           styles.locationInput,
-                          errors[branch.id]?.locationCity && styles.branchInputError,
+                          errors[branch.id]?.locationCity &&
+                            styles.branchInputError,
                         ]}
                         placeholder="e.g. New York"
                         placeholderTextColor={colors.subText}
@@ -374,7 +745,8 @@ const InstitutionRegistrationStep2 = () => {
                       <TextInput
                         style={[
                           styles.branchInput,
-                          errors[branch.id]?.branchCode && styles.branchInputError,
+                          errors[branch.id]?.branchCode &&
+                            styles.branchInputError,
                         ]}
                         placeholder="NYC-01"
                         placeholderTextColor={colors.subText}
@@ -395,7 +767,8 @@ const InstitutionRegistrationStep2 = () => {
                       <TextInput
                         style={[
                           styles.branchInput,
-                          errors[branch.id]?.branchHead && styles.branchInputError,
+                          errors[branch.id]?.branchHead &&
+                            styles.branchInputError,
                         ]}
                         placeholder="Manager Name"
                         placeholderTextColor={colors.subText}
@@ -432,15 +805,31 @@ const InstitutionRegistrationStep2 = () => {
           <TouchableOpacity
             style={styles.backButton2}
             onPress={() => navigation.goBack()}
+            disabled={loading}
           >
             <Text style={styles.backButtonText}>Back</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.completeButton}
+            style={[
+              styles.completeButton,
+              loading && styles.completeButtonDisabled,
+            ]}
             onPress={handleCompleteRegistration}
             activeOpacity={0.8}
+            disabled={loading}
           >
-            <Text style={styles.completeButtonText}>Complete Registration</Text>
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator color="#ffffff" size="small" />
+                {loadingMessage ? (
+                  <Text style={styles.loadingText}>{loadingMessage}</Text>
+                ) : null}
+              </View>
+            ) : (
+              <Text style={styles.completeButtonText}>
+                Complete Registration
+              </Text>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -810,9 +1199,22 @@ const getStyles = (colors: any) =>
       shadowRadius: 8,
       elevation: 8,
     },
+    completeButtonDisabled: {
+      opacity: 0.6,
+    },
     completeButtonText: {
       fontSize: 16,
       fontWeight: "700",
+      color: "#ffffff",
+    },
+    loadingContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+    loadingText: {
+      fontSize: 14,
+      fontWeight: "600",
       color: "#ffffff",
     },
   });
