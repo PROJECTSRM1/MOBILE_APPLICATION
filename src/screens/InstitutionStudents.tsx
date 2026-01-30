@@ -505,7 +505,7 @@ const { branchName } = route.params || {};
       </TouchableOpacity>
 
       {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
+    {/*<View style={styles.bottomNav}>
         <TouchableOpacity style={styles.navItem}>
           <Icon name="people" size={24} color={colors.primary} />
           <Text style={[styles.navLabel, styles.navLabelActive]}>Students</Text>
@@ -525,7 +525,7 @@ const { branchName } = route.params || {};
           <Icon name="settings" size={24} color={colors.subText} />
           <Text style={styles.navLabel}>Settings</Text>
         </TouchableOpacity>
-      </View>
+      </View>*/}
     </SafeAreaView>
   );
 };

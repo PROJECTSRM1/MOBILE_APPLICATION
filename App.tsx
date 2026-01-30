@@ -232,9 +232,8 @@ function AppNavigator() {
         <Stack.Screen name="EducationPartnerDashboard" component={EducationPartnerDashboard} />
         <Stack.Screen name="bookings" component={BookingsScreen} />
         <Stack.Screen name="HealthcarePartnerDashboard" component={Dashboard} />
-        <Stack.Screen name="Doctor" component={DoctorsListScreen} />
-        <Stack.Screen name="EducationDashboardReport" component={EducationDashboardReport} />
-        <Stack.Screen name="PartnerAuth" component={PartnerAuth} options={{ headerShown: false }}/>
+        
+        
         <Stack.Screen name="InstitutionRegistrationStep1" component={InstitutionRegistrationStep1} />
         <Stack.Screen name="InstitutionRegistrationStep2" component={InstitutionRegistrationStep2} />
         <Stack.Screen name="StudentOverviewScreen" component={StudentOverviewScreen} />
@@ -252,8 +251,7 @@ function AppNavigator() {
         />
      
         <Stack.Screen name="institutionbranchscreen" component={InstitutionBranch} />
-        <Stack.Screen name="InstitutionRegistrationStep1" component={InstitutionRegistrationStep1} />
-        <Stack.Screen name="InstitutionRegistrationStep2" component={InstitutionRegistrationStep2} />
+     
         <Stack.Screen name="InstitutionWelcomeScreen" component={InstitutionWelcomeScreen} />
         <Stack.Screen name="InstitutionLoginPortal" component={InstitutionLoginPortal} />
         <Stack.Screen name="InstitutionOTPVerification" component={InstitutionOTPVerification} />
