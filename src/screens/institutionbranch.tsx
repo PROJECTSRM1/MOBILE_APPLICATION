@@ -92,8 +92,8 @@ const BranchDirectoryScreen = () => {
 
       {/* SECTION */}
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Institutions</Text>
-        <Text style={styles.updatedText}>Updated 2h ago</Text>
+        <Text style={styles.sectionTitle}>Branches</Text>
+        {/* <Text style={styles.updatedText}>Updated 2h ago</Text> */}
       </View>
 
       {/* LIST */}

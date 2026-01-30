@@ -232,24 +232,15 @@ function AppNavigator() {
         <Stack.Screen name="EducationPartnerDashboard" component={EducationPartnerDashboard} />
         <Stack.Screen name="bookings" component={BookingsScreen} />
         <Stack.Screen name="HealthcarePartnerDashboard" component={Dashboard} />
-        <Stack.Screen name="Doctor" component={DoctorsListScreen} />
+        {/* <Stack.Screen name="Doctor" component={DoctorsListScreen} /> */}
         <Stack.Screen name="EducationDashboardReport" component={EducationDashboardReport} />
         <Stack.Screen name="PartnerAuth" component={PartnerAuth} options={{ headerShown: false }}/>
-        <Stack.Screen name="InstitutionRegistrationStep1" component={InstitutionRegistrationStep1} />
-        <Stack.Screen name="InstitutionRegistrationStep2" component={InstitutionRegistrationStep2} />
+     
         <Stack.Screen name="StudentOverviewScreen" component={StudentOverviewScreen} />
          <Stack.Screen name="Doctor" component={DoctorsListScreen} />
          <Stack.Screen name="Offline" component={HospitalDoctorsScreen} />
          <Stack.Screen name="DoctorProfile" component={DoctorProfile} />
-        <Stack.Screen 
-          name="EducationDashboardReport" 
-          component={EducationDashboardReport} 
-        />
-        <Stack.Screen
-          name="PartnerAuth"
-          component={PartnerAuth}
-          options={{ headerShown: false }}
-        />
+       
      
         <Stack.Screen name="institutionbranchscreen" component={InstitutionBranch} />
         <Stack.Screen name="InstitutionRegistrationStep1" component={InstitutionRegistrationStep1} />
