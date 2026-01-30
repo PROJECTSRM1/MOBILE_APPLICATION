@@ -39,6 +39,7 @@
     "react-native-screens": "^4.20.0",
     "react-native-share": "^12.2.4",
     "react-native-svg": "^15.15.1",
+    "react-native-swipe-gestures": "^1.0.5",
     "react-native-vector-icons": "^10.3.0",
     "react-native-view-shot": "^4.0.3",
     "react-native-webview": "^13.16.0",
