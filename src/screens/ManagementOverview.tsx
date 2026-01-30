@@ -9,25 +9,33 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { useTheme } from "../context/ThemeContext";
+import { useNavigation } from "@react-navigation/native";
+
 
 const ManagementOverview = () => {
+  const { colors, lightMode } = useTheme();
+  const navigation = useNavigation<any>();
+  const styles = createStyles(colors);
+  
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <StatusBar 
+        barStyle={lightMode ? "dark-content" : "light-content"} 
+        backgroundColor={colors.background} 
+      />
       
       {/* Top Navigation Bar */}
       <View style={styles.topNav}>
         <View style={styles.navContent}>
-          <View style={styles.iconContainer}>
-            <MaterialIcons name="dashboard" size={24} color="#111418" />
-          </View>
+          <TouchableOpacity 
+            style={styles.iconContainer}
+            onPress={() => navigation.goBack()}
+          >
+            <MaterialIcons name="arrow-back" size={24} color={colors.text} />
+          </TouchableOpacity>
           <Text style={styles.navTitle}>Management Overview</Text>
-          <View style={styles.notificationContainer}>
-            <TouchableOpacity style={styles.notificationButton}>
-              <MaterialIcons name="notifications" size={24} color="#111418" />
-              <View style={styles.notificationDot} />
-            </TouchableOpacity>
-          </View>
+          <View style={styles.iconContainer} />
         </View>
       </View>
 
@@ -41,7 +49,7 @@ const ManagementOverview = () => {
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <Text style={styles.cardLabel}>Total Capacity</Text>
-              <MaterialIcons name="event-seat" size={20} color="#137fec" />
+              <MaterialIcons name="event-seat" size={20} color={colors.primary} />
             </View>
             <Text style={styles.cardValue}>500</Text>
             <View style={styles.progressBarContainer}>
@@ -54,7 +62,7 @@ const ManagementOverview = () => {
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <Text style={styles.cardLabel}>Approved Seats</Text>
-              <MaterialIcons name="verified" size={20} color="#10b981" />
+              <MaterialIcons name="verified" size={20} color={colors.success} />
             </View>
             <Text style={styles.cardValue}>420</Text>
             <View style={styles.newBadge}>
@@ -68,24 +76,32 @@ const ManagementOverview = () => {
         
         <View style={styles.operationsGrid}>
           {/* Bus Tracking */}
-          <View style={styles.operationCard}>
+          <TouchableOpacity
+            style={styles.operationCard}
+            onPress={() => navigation.navigate("BusTrackingScreen")}
+          >
             <View style={styles.operationHeader}>
               <View style={styles.operationIconBg}>
-                <MaterialIcons name="directions-bus" size={24} color="#137fec" />
+                <MaterialIcons
+                  name="directions-bus"
+                  size={24}
+                  color={colors.primary}
+                />
               </View>
               <View style={styles.statusDotActive} />
             </View>
+
             <View style={styles.operationContent}>
               <Text style={styles.operationTitle}>Bus Tracking</Text>
               <Text style={styles.operationSubtitle}>3 Buses Online</Text>
             </View>
-          </View>
+          </TouchableOpacity>
 
           {/* SMS Alerts */}
           <View style={styles.operationCard}>
             <View style={styles.operationHeader}>
               <View style={styles.operationIconBg}>
-                <MaterialIcons name="sms" size={24} color="#137fec" />
+                <MaterialIcons name="sms" size={24} color={colors.primary} />
               </View>
               <View style={styles.statusDot} />
             </View>
@@ -112,13 +128,20 @@ const ManagementOverview = () => {
           </View>
           
           <View style={styles.payrollButtons}>
-            <TouchableOpacity style={styles.payrollButton}>
-              <MaterialIcons name="receipt-long" size={18} color="#111418" />
+            <TouchableOpacity
+              style={styles.payrollButton}
+              onPress={() => navigation.navigate("PaySlipsScreen")}
+            >
+              <MaterialIcons name="receipt-long" size={18} color={colors.text} />
               <Text style={styles.payrollButtonText}>Payslips</Text>
             </TouchableOpacity>
+
             <View style={styles.payrollDivider} />
-            <TouchableOpacity style={styles.payrollButton}>
-              <MaterialIcons name="payments" size={18} color="#111418" />
+            <TouchableOpacity
+              style={styles.payrollButton}
+              onPress={() => navigation.navigate("SalaryOverview")}
+            >
+              <MaterialIcons name="payments" size={18} color={colors.text} />
               <Text style={styles.payrollButtonText}>Salary Overview</Text>
             </TouchableOpacity>
           </View>
@@ -157,7 +180,10 @@ const ManagementOverview = () => {
         
         <View style={styles.examAlerts}>
           {/* Mid-term Notifications */}
-          <TouchableOpacity style={styles.examAlertCard}>
+          <TouchableOpacity
+            style={styles.examAlertCard}
+            onPress={() => navigation.navigate("MidTermNotifications")}
+          >
             <View style={[styles.examIconContainer, styles.examIconOrange]}>
               <MaterialIcons name="notification-important" size={24} color="#ea580c" />
             </View>
@@ -165,11 +191,14 @@ const ManagementOverview = () => {
               <Text style={styles.examTitle}>Mid-term Notifications</Text>
               <Text style={styles.examSubtitle}>Sent to 95% of parent contacts</Text>
             </View>
-            <MaterialIcons name="chevron-right" size={24} color="#9ca3af" />
+            <MaterialIcons name="chevron-right" size={24} color={colors.subText} />
           </TouchableOpacity>
 
           {/* Final Exam Schedule */}
-          <TouchableOpacity style={styles.examAlertCard}>
+          <TouchableOpacity
+            style={styles.examAlertCard}
+            onPress={() => navigation.navigate("FinalExamSchedule")}
+          >
             <View style={[styles.examIconContainer, styles.examIconBlue]}>
               <MaterialIcons name="calendar-today" size={24} color="#2563eb" />
             </View>
@@ -177,50 +206,28 @@ const ManagementOverview = () => {
               <Text style={styles.examTitle}>Final Exam Schedule</Text>
               <Text style={styles.examSubtitle}>Draft version ready for review</Text>
             </View>
-            <MaterialIcons name="chevron-right" size={24} color="#9ca3af" />
+            <MaterialIcons name="chevron-right" size={24} color={colors.subText} />
           </TouchableOpacity>
         </View>
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
-
-      {/* Bottom Navigation Bar */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem}>
-          <MaterialIcons name="home" size={24} color="#137fec" />
-          <Text style={[styles.navItemText, styles.navItemActive]}>Home</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.navItem}>
-          <MaterialIcons name="bar-chart" size={24} color="#617589" />
-          <Text style={styles.navItemText}>Reports</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.navItem}>
-          <MaterialIcons name="group" size={24} color="#617589" />
-          <Text style={styles.navItemText}>Staff</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.navItem}>
-          <MaterialIcons name="settings" size={24} color="#617589" />
-          <Text style={styles.navItemText}>Settings</Text>
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) =>
+  StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f6f7f8',
+    backgroundColor: colors.surface,
   },
   
   // Top Navigation
   topNav: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: '#dbe0e6',
+    borderBottomColor: colors.border,
   },
   navContent: {
     flexDirection: 'row',
@@ -238,35 +245,10 @@ const styles = StyleSheet.create({
   navTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#111418',
+    color: colors.text,
     flex: 1,
     textAlign: 'center',
     letterSpacing: -0.27,
-  },
-  notificationContainer: {
-    width: 48,
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-  },
-  notificationButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#f6f7f8',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  notificationDot: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#ef4444',
-    borderWidth: 2,
-    borderColor: '#fff',
   },
   
   // Main Content
@@ -277,7 +259,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#111418',
+    color: colors.text,
     marginTop: 20,
     marginBottom: 12,
     letterSpacing: -0.33,
@@ -291,11 +273,11 @@ const styles = StyleSheet.create({
   },
   card: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#dbe0e6',
+    borderColor: colors.border,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -311,31 +293,31 @@ const styles = StyleSheet.create({
   cardLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#617589',
+    color: colors.subText,
   },
   cardValue: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#111418',
+    color: colors.text,
     letterSpacing: -0.64,
     marginBottom: 8,
   },
   progressBarContainer: {
     width: '100%',
     height: 6,
-    backgroundColor: '#e5e7eb',
+    backgroundColor: colors.border,
     borderRadius: 3,
     marginTop: 4,
     overflow: 'hidden',
   },
   progressBar: {
     height: '100%',
-    backgroundColor: '#137fec',
+    backgroundColor: colors.primary,
     borderRadius: 3,
   },
   progressText: {
     fontSize: 12,
-    color: '#617589',
+    color: colors.subText,
     marginTop: 4,
   },
   newBadge: {
@@ -349,7 +331,7 @@ const styles = StyleSheet.create({
   newBadgeText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#10b981',
+    color: colors.success,
   },
   
   // Operations
@@ -360,11 +342,11 @@ const styles = StyleSheet.create({
   },
   operationCard: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#dbe0e6',
+    borderColor: colors.border,
   },
   operationHeader: {
     flexDirection: 'row',
@@ -376,7 +358,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 8,
-    backgroundColor: 'rgba(19, 127, 236, 0.1)',
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -384,13 +366,13 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#10b981',
+    backgroundColor: colors.success,
   },
   statusDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#10b981',
+    backgroundColor: colors.success,
   },
   operationContent: {
     gap: 4,
@@ -398,19 +380,19 @@ const styles = StyleSheet.create({
   operationTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111418',
+    color: colors.text,
   },
   operationSubtitle: {
     fontSize: 14,
-    color: '#617589',
+    color: colors.subText,
   },
   
   // Payroll
   payrollCard: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.card,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#dbe0e6',
+    borderColor: colors.border,
     overflow: 'hidden',
     marginBottom: 8,
   },
@@ -420,16 +402,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#dbe0e6',
+    borderBottomColor: colors.border,
   },
   payrollTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111418',
+    color: colors.text,
   },
   payrollMonth: {
     fontSize: 14,
-    color: '#617589',
+    color: colors.subText,
     marginTop: 2,
   },
   payrollAmount: {
@@ -438,11 +420,11 @@ const styles = StyleSheet.create({
   payrollValue: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#137fec',
+    color: colors.primary,
   },
   payrollLabel: {
     fontSize: 10,
-    color: '#617589',
+    color: colors.subText,
     letterSpacing: 0.5,
     marginTop: 2,
   },
@@ -459,21 +441,21 @@ const styles = StyleSheet.create({
   },
   payrollDivider: {
     width: 1,
-    backgroundColor: '#dbe0e6',
+    backgroundColor: colors.border,
   },
   payrollButtonText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#111418',
+    color: colors.text,
   },
   
   // Maintenance
   maintenanceCard: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#dbe0e6',
+    borderColor: colors.border,
     marginBottom: 8,
   },
   maintenanceHeader: {
@@ -485,19 +467,19 @@ const styles = StyleSheet.create({
   maintenanceLabel: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#617589',
+    color: colors.subText,
     letterSpacing: 0.5,
     marginBottom: 4,
   },
   maintenanceValue: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#111418',
+    color: colors.text,
   },
   maintenanceTotal: {
     fontSize: 14,
     fontWeight: '400',
-    color: '#617589',
+    color: colors.subText,
   },
   budgetBadge: {
     backgroundColor: '#fef3c7',
@@ -513,18 +495,18 @@ const styles = StyleSheet.create({
   budgetBarContainer: {
     flexDirection: 'row',
     height: 8,
-    backgroundColor: '#f3f4f6',
+    backgroundColor: colors.surfaceAlt,
     borderRadius: 4,
     overflow: 'hidden',
     gap: 4,
   },
   budgetBarFilled: {
     flex: 4,
-    backgroundColor: '#137fec',
+    backgroundColor: colors.primary,
   },
   budgetBarPartial: {
     flex: 1,
-    backgroundColor: 'rgba(19, 127, 236, 0.4)',
+    backgroundColor: 'rgba(59, 130, 246, 0.4)',
   },
   budgetLabels: {
     flexDirection: 'row',
@@ -534,7 +516,7 @@ const styles = StyleSheet.create({
   budgetLabelText: {
     fontSize: 11,
     fontWeight: '500',
-    color: '#617589',
+    color: colors.subText,
   },
   
   // Exam Alerts
@@ -544,11 +526,11 @@ const styles = StyleSheet.create({
   examAlertCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#dbe0e6',
+    borderColor: colors.border,
     gap: 12,
   },
   examIconContainer: {
@@ -570,36 +552,12 @@ const styles = StyleSheet.create({
   examTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#111418',
+    color: colors.text,
     marginBottom: 2,
   },
   examSubtitle: {
     fontSize: 12,
-    color: '#617589',
-  },
-  
-  // Bottom Navigation
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderTopWidth: 1,
-    borderTopColor: '#dbe0e6',
-    paddingVertical: 8,
-    height: 64,
-  },
-  navItem: {
-    alignItems: 'center',
-    gap: 4,
-  },
-  navItemText: {
-    fontSize: 10,
-    fontWeight: '500',
-    color: '#617589',
-  },
-  navItemActive: {
-    color: '#137fec',
+    color: colors.subText,
   },
   
   bottomSpacer: {

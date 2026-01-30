@@ -75,6 +75,11 @@ import InstitutionLoginPortal from "./src/screens/InstitutionLoginPortal";
 import InstitutionOTPVerification from "./src/screens/InstitutionOTPVerification";
 import PartnerPortalStandalone from "./src/screens/Partnerportalstandalone";
 import ManagementOverview from "./src/screens/ManagementOverview";
+import BusTrackingScreen from "./src/screens/BusTrackingScreen";
+import PaySlipsScreen from "./src/screens/PaySlipsScreen";
+import SalaryOverview from "./src/screens/SalaryOverview";
+import MidTermNotifications from "./src/screens/MidTermNotifications";
+import FinalExamSchedule from "./src/screens/FinalExamSchedule";
 
 
 
@@ -154,9 +159,13 @@ export type RootStackParamList = {
   InstitutionWelcomeScreen: undefined;
   InstitutionLoginPortal: undefined;
   InstitutionOTPVerification: undefined
-
   PartnerPortalStandalone: undefined;
   ManagementOverview: undefined;
+  BusTrackingScreen : undefined;
+  PaySlipsScreen : undefined;
+  SalaryOverview: undefined;
+  MidTermNotifications : undefined;
+  FinalExamSchedule: undefined;
 };
 
 /* ================= NAV ================= */
@@ -245,6 +254,11 @@ function AppNavigator() {
         <Stack.Screen name="InstitutionWelcomeScreen" component={InstitutionWelcomeScreen} />
         <Stack.Screen name="InstitutionLoginPortal" component={InstitutionLoginPortal} />
         <Stack.Screen name="InstitutionOTPVerification" component={InstitutionOTPVerification} />
+        <Stack.Screen name="PaySlipsScreen" component={PaySlipsScreen} />
+        <Stack.Screen name="SalaryOverview" component={SalaryOverview} />
+        <Stack.Screen name="MidTermNotifications" component={MidTermNotifications} />
+        <Stack.Screen name="FinalExamSchedule" component={FinalExamSchedule} />
+
         <Stack.Screen 
           name="PartnerPortalStandalone" 
           component={PartnerPortalStandalone}
@@ -256,7 +270,11 @@ function AppNavigator() {
   component={ManagementOverview}
   options={{ headerShown: false }}
 />
-
+     <Stack.Screen
+  name="BusTrackingScreen"
+  component={BusTrackingScreen}
+  options={{ headerShown: false }}
+/>
       </Stack.Navigator>
     </NavigationContainer>
   );
