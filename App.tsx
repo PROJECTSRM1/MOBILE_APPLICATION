@@ -70,12 +70,23 @@ import HospitalDoctorsScreen from "./src/screens/HospitalDoctorsScreen";
 import DoctorProfile from "./src/screens/Doctorprofile";
 import InstitutionRegistrationStep1 from "./src/screens/InstitutionRegistrationStep1";
 import InstitutionRegistrationStep2 from "./src/screens/InstitutionRegistrationStep2";
+import AppointmentBookingScreen from "./src/screens/AppointmentBookingScreen";
+import HealthcarePaymentScreen from "./src/screens/HealthcarePaymentScreen";
+import Healthcarepaymentsuccess from "./src/screens/Healthcarepaymentsuccess";
+import MyBookingsScreen from "./src/screens/MyBookingsScreen";
+import VideoCallScreen from "./src/screens/VideoCallScreen";
+import TreatmentSummaryScreen from "./src/screens/Treatmentsummaryscreen";
 import StudentOverviewScreen from "./src/screens/StudentOverviewScreen";
 import InstitutionWelcomeScreen from "./src/screens/InstitutionWelcomeScreen";
 import InstitutionLoginPortal from "./src/screens/InstitutionLoginPortal";
 import InstitutionOTPVerification from "./src/screens/InstitutionOTPVerification";
 import PartnerPortalStandalone from "./src/screens/Partnerportalstandalone";
 import ManagementOverview from "./src/screens/ManagementOverview";
+import BusTrackingScreen from "./src/screens/BusTrackingScreen";
+import PaySlipsScreen from "./src/screens/PaySlipsScreen";
+import SalaryOverview from "./src/screens/SalaryOverview";
+import MidTermNotifications from "./src/screens/MidTermNotifications";
+import FinalExamSchedule from "./src/screens/FinalExamSchedule";
 import InstitutionBranch from "./src/screens/institutionbranch";
 import InstitutionStudents from "./src/screens/InstitutionStudents";
 
@@ -94,6 +105,13 @@ export type RootStackParamList = {
   Signup: undefined;
   Transport: undefined;
   CustomerDashboard: undefined;
+  HealthcarePayment: { 
+  doctor: any; 
+  date: string; 
+  time: string; 
+  amount: number; 
+  homeServiceId: string 
+};
   UserDashboard: undefined;
   Settings: undefined;
   Rentals: undefined;
@@ -105,6 +123,7 @@ export type RootStackParamList = {
   PaymentScreen: undefined;
   BookCleaning: undefined;
   EducationHome: undefined;
+  HealthcarePaymentSuccess: undefined;
   ProfileInformation: undefined;
   AuthScreen: undefined;
   Notifications: undefined;
@@ -129,7 +148,9 @@ export type RootStackParamList = {
   Training: undefined;
   TrainingDetails: undefined;
   ApplicationSuccess: undefined;
-  ReviewApplication: { internship: Internship };
+  AppointmentBooking: { doctor: any };
+  // ReviewApplication: undefined;
+   ReviewApplication: { internship: Internship };
   ProductDetail: undefined;
   BuyerPage: undefined;
   ServiceDetails: undefined;
@@ -154,12 +175,20 @@ export type RootStackParamList = {
   DoctorProfile:undefined
   InstitutionRegistrationStep1: undefined;
   InstitutionRegistrationStep2: undefined;
+  VideoCall: { doctor: any; user: any; onEndCall: () => void };
   InstitutionWelcomeScreen: undefined;
   InstitutionLoginPortal: undefined;
   InstitutionOTPVerification: undefined
-institutionbranchscreen:undefined
   PartnerPortalStandalone: undefined;
   ManagementOverview: undefined;
+  BusTrackingScreen : undefined;
+  PaySlipsScreen : undefined;
+  SalaryOverview: undefined;
+  MidTermNotifications : undefined;
+  FinalExamSchedule: undefined;
+institutionbranchscreen:undefined
+
+
   instututionstudents: undefined
 };
 
@@ -216,7 +245,15 @@ function AppNavigator() {
         <Stack.Screen name="JustRideMultiStop" component={JustrideMultiStop} />
         <Stack.Screen name="JustrideApp" component={JustrideApp} />
         <Stack.Screen name="Health" component={DoctorListScreen} />
+        <Stack.Screen name="AppointmentBooking" component={AppointmentBookingScreen} />
         <Stack.Screen name="Form" component={ConsultationRequestScreen} />
+        <Stack.Screen name="HealthcarePayment" component={HealthcarePaymentScreen} />
+        <Stack.Screen name="HealthcarePaymentSuccess" component={Healthcarepaymentsuccess} />
+         <Stack.Screen name="Telecom" component={TelemedicineConsultation} />
+         <Stack.Screen name="Wishlist" component={Wishlist} />
+         <Stack.Screen name="ParcelView" component={ParcelView} />
+         <Stack.Screen name="MetroView" component={MetroView} />
+         <Stack.Screen name="ScootyView" component={ScootyView} />
         <Stack.Screen name="Telecom" component={TelemedicineConsultation} />
         <Stack.Screen name="Wishlist" component={Wishlist} />
         <Stack.Screen name="ParcelView" component={ParcelView} />
@@ -240,11 +277,24 @@ function AppNavigator() {
          <Stack.Screen name="Offline" component={HospitalDoctorsScreen} />
          <Stack.Screen name="DoctorProfile" component={DoctorProfile} />
        <Stack.Screen name="institutionbranchscreen" component={InstitutionBranch} />
+         <Stack.Screen name="MyBookings" component={MyBookingsScreen} />
+         <Stack.Screen name="VideoCall" component={VideoCallScreen} />
+         <Stack.Screen name="TreatmentSummary" component={TreatmentSummaryScreen} />
+
+
+       
+     
+        <Stack.Screen name="institutionbranchscreen" component={InstitutionBranch} />
         <Stack.Screen name="InstitutionRegistrationStep1" component={InstitutionRegistrationStep1} />
         <Stack.Screen name="InstitutionRegistrationStep2" component={InstitutionRegistrationStep2} />
         <Stack.Screen name="InstitutionWelcomeScreen" component={InstitutionWelcomeScreen} />
         <Stack.Screen name="InstitutionLoginPortal" component={InstitutionLoginPortal} />
         <Stack.Screen name="InstitutionOTPVerification" component={InstitutionOTPVerification} />
+        <Stack.Screen name="PaySlipsScreen" component={PaySlipsScreen} />
+        <Stack.Screen name="SalaryOverview" component={SalaryOverview} />
+        <Stack.Screen name="MidTermNotifications" component={MidTermNotifications} />
+        <Stack.Screen name="FinalExamSchedule" component={FinalExamSchedule} />
+
         <Stack.Screen 
           name="PartnerPortalStandalone" 
           component={PartnerPortalStandalone}
@@ -260,7 +310,11 @@ function AppNavigator() {
   component={ManagementOverview}
   options={{ headerShown: false }}
 />
-
+     <Stack.Screen
+  name="BusTrackingScreen"
+  component={BusTrackingScreen}
+  options={{ headerShown: false }}
+/>
       </Stack.Navigator>
     </NavigationContainer>
   );

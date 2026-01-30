@@ -411,15 +411,7 @@ const DoctorListScreen = () => {
   };
 
 const handleBookNow = (item: any) => {
-  setSelectedDoctor(item);
-
-  if (item.type === 'hospital') {
-    // Offline hospital booking → open offline form
-    setShowOfflineForm(true);
-  } else {
-    // Doctors / Labs / Stores
-    setShowDoctorBookedModal(true);
-  }
+  navigation.navigate('AppointmentBooking', { doctor: item });
 };
 
 
@@ -1350,10 +1342,14 @@ Patient Assistance: ${wantsAssets === 'yes' ? `Yes (Assistant ${selectedAssistan
           <Icon name="home" size={24} color="#2d7576" />
           <Text style={styles.navTextActive}>Home</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Icon name="calendar-today" size={24} color="#9ca3af" />
-          <Text style={styles.navText}>Consults</Text>
-        </TouchableOpacity>
+     <TouchableOpacity
+  style={styles.navItem}
+  onPress={() => navigation.navigate('MyBookings')}
+>
+  <Icon name="calendar-today" size={24} color="#9ca3af" />
+  <Text style={styles.navText}>My Bookings</Text>
+</TouchableOpacity>
+
         <TouchableOpacity style={styles.navItem}>
           <Icon name="folder-open" size={24} color="#9ca3af" />
           <Text style={styles.navText}>Records</Text>
