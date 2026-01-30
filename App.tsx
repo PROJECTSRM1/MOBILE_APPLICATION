@@ -249,11 +249,6 @@ function AppNavigator() {
         <Stack.Screen name="Form" component={ConsultationRequestScreen} />
         <Stack.Screen name="HealthcarePayment" component={HealthcarePaymentScreen} />
         <Stack.Screen name="HealthcarePaymentSuccess" component={Healthcarepaymentsuccess} />
-         <Stack.Screen name="Telecom" component={TelemedicineConsultation} />
-         <Stack.Screen name="Wishlist" component={Wishlist} />
-         <Stack.Screen name="ParcelView" component={ParcelView} />
-         <Stack.Screen name="MetroView" component={MetroView} />
-         <Stack.Screen name="ScootyView" component={ScootyView} />
         <Stack.Screen name="Telecom" component={TelemedicineConsultation} />
         <Stack.Screen name="Wishlist" component={Wishlist} />
         <Stack.Screen name="ParcelView" component={ParcelView} />
@@ -279,7 +274,6 @@ function AppNavigator() {
          <Stack.Screen name="Doctor" component={DoctorsListScreen} />
          <Stack.Screen name="Offline" component={HospitalDoctorsScreen} />
          <Stack.Screen name="DoctorProfile" component={DoctorProfile} />
-       <Stack.Screen name="institutionbranchscreen" component={InstitutionBranch} />
          <Stack.Screen name="MyBookings" component={MyBookingsScreen} />
          <Stack.Screen name="VideoCall" component={VideoCallScreen} />
          <Stack.Screen name="TreatmentSummary" component={TreatmentSummaryScreen} />
