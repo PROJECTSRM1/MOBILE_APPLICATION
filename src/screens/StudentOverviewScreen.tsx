@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from "react-native";
+import { useRoute } from "@react-navigation/native";
 import { useTheme } from "../context/ThemeContext";
 
 /* ---------------- TYPES ---------------- */
@@ -93,6 +94,9 @@ const studentData: StudentData = {
 const StudentOverviewScreen: React.FC = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const route = useRoute<any>();
+const { student } = route.params;
+
 
   return (
     <ScrollView
@@ -101,11 +105,10 @@ const StudentOverviewScreen: React.FC = () => {
     >
       {/* Student Info */}
       <View style={styles.card}>
-        <Text style={styles.name}>{studentData.name}</Text>
-        <Text style={styles.subText}>Father: {studentData.fatherName}</Text>
-        <Text style={styles.subText}>
-          Academic Year: {studentData.academicYear}
-        </Text>
+        <Text style={styles.name}>{student.name}</Text>
+<Text style={styles.subText}>Student ID: {student.studentId}</Text>
+<Text style={styles.subText}>Academic Year: {student.year}</Text>
+
         <Text style={styles.subText}>{studentData.background}</Text>
       </View>
 
