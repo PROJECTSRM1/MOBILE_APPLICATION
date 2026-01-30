@@ -16,10 +16,7 @@ import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import TrainingScreen from "./TrainingScreen";
 import { useTheme } from "../context/ThemeContext";
-import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
-
 
 interface UserProfile {
   firstName: string;
@@ -78,9 +75,8 @@ const [loadingTrending, setLoadingTrending] = useState(true);
 );
 
 
-  const [showAllTrending, setShowAllTrending] = useState(false); // NEW
+  const [showAllTrending, setShowAllTrending] = useState(false);
 
-  /* ===== LOAD USER FROM STORAGE ===== */
   useEffect(() => {
   loadUser();
   fetchTrendingStudents();
@@ -132,7 +128,10 @@ const fetchTrendingStudents = async () => {
   useEffect(() => {
   if (!filteredTrendingStudents.length) return;
 
-  const CARD_HEIGHT = 96;
+    const CARD_HEIGHT = 96;
+    const interval = setInterval(() => {
+      trendingCurrentIndex.current =
+        (trendingCurrentIndex.current + 1) % filteredTrendingStudents.length;
 
   const interval = setInterval(() => {
     trendingCurrentIndex.current =
@@ -147,7 +146,6 @@ const fetchTrendingStudents = async () => {
 
   return () => clearInterval(interval);
 }, [filteredTrendingStudents.length]);
-
 
   const categories = [
     {
@@ -178,7 +176,7 @@ const fetchTrendingStudents = async () => {
       icon: "account-balance",
       title: "Institution",
       color: "#ec4899",
-      screen: "InstitutionRegistrationStep1",
+      screen: "InstitutionWelcomeScreen",
     },
   ];
 
@@ -193,7 +191,6 @@ const fetchTrendingStudents = async () => {
         ]}
         style={styles.container}
       >
-        {/* HEADER */}
         <SafeAreaView edges={["top"]} style={styles.headerSafe}></SafeAreaView>
         <View style={styles.header}>
           <View style={styles.headerLeft}>
@@ -213,11 +210,9 @@ const fetchTrendingStudents = async () => {
             onPress={() => navigation.navigate("Notifications")}
           >
             <Icon name="notifications-none" size={28} color={colors.text} />
-            {/* <View style={styles.dot} /> */}
           </TouchableOpacity>
         </View>
 
-        {/* SEARCH */}
         <View style={styles.searchBox}>
           <Icon name="search" size={20} color="#9da6b9" />
           <TextInput
@@ -234,7 +229,6 @@ const fetchTrendingStudents = async () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 180 }}
         >
-          {/* FEATURED CARD */}
           <View style={styles.featured}>
             <Image
               source={{
@@ -259,7 +253,6 @@ const fetchTrendingStudents = async () => {
             </View>
           </View>
 
-          {/* CATEGORIES - UPDATED ICON GRID LAYOUT */}
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: colors.primary }]}>
               Explore Categories
@@ -286,33 +279,45 @@ const fetchTrendingStudents = async () => {
                 >
                   <Icon name={item.icon} size={24} color="#fff" />
                 </View>
-                <Text style={styles.categoryIconTitle}>
-                  {item.title}
-                </Text>
+                <Text style={styles.categoryIconTitle}>{item.title}</Text>
               </TouchableOpacity>
             ))}
           </View>
 
-
-          {/* TRENDING */}
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginHorizontal: 16 }}>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginHorizontal: 16,
+            }}
+          >
             <Text style={styles.trendingTitle}>Trending Now</Text>
-            <TouchableOpacity onPress={() => setShowAllTrending(!showAllTrending)}>
+            <TouchableOpacity
+              onPress={() => setShowAllTrending(!showAllTrending)}
+            >
               <Text style={{ color: colors.primary, fontSize: 14 }}>
                 {showAllTrending ? "Show Less" : "View All"}
               </Text>
             </TouchableOpacity>
           </View>
 
-
-          <View style={{ height: 380, overflow: "hidden", paddingHorizontal: 16 }}>
+          <View
+            style={{
+              height: 380,
+              overflow: "hidden",
+              paddingHorizontal: 16,
+            }}
+          >
             <ScrollView
               ref={trendingScrollRef}
               scrollEnabled={false}
               showsVerticalScrollIndicator={false}
             >
-
-              {(showAllTrending ? filteredTrendingStudents : filteredTrendingStudents.slice(0, 4)).map((student) => (
+              {(showAllTrending
+                ? filteredTrendingStudents
+                : filteredTrendingStudents.slice(0, 4)
+              ).map((student) => (
                 <TouchableOpacity
                   key={student.id}
                   style={styles.trendingRowCard}
@@ -323,32 +328,37 @@ const fetchTrendingStudents = async () => {
                     })
                   }
                 >
-                  <Image source={{ uri: student.avatar }} style={styles.trendingAvatar} />
+                  <Image
+                    source={{ uri: student.avatar }}
+                    style={styles.trendingAvatar}
+                  />
                   <View style={styles.trendingInfo}>
                     <Text style={styles.trendingName}>{student.name}</Text>
                     <Text style={styles.trendingSub}>{student.program}</Text>
-                    <Text style={styles.trendingScore}>{student.academicScore}% Academic Score</Text>
+                    <Text style={styles.trendingScore}>
+                      {student.academicScore}% Academic Score
+                    </Text>
                     <View style={styles.trendingFooter}>
                       <Text style={styles.rating}>⭐ {student.rating}</Text>
-                      <Text style={[styles.status, student.status === "active" ? styles.active : styles.completed]}>
+                      <Text
+                        style={[
+                          styles.status,
+                          student.status === "active"
+                            ? styles.active
+                            : styles.completed,
+                        ]}
+                      >
                         {student.status.toUpperCase()}
                       </Text>
                     </View>
                     <Text style={styles.shift}>{student.shift}</Text>
                   </View>
                 </TouchableOpacity>
-
               ))}
-
             </ScrollView>
           </View>
-
-
-
-
         </ScrollView>
 
-        {/* BOTTOM NAV */}
         <View style={styles.bottomNav}>
           {[
             { icon: "home", label: "Home" },
@@ -363,10 +373,7 @@ const fetchTrendingStudents = async () => {
                 color={item.active ? "#1a5cff" : "#9da6b9"}
               />
               <Text
-                style={[
-                  styles.navText,
-                  item.active && { color: "#1a5cff" },
-                ]}
+                style={[styles.navText, item.active && { color: "#1a5cff" }]}
               >
                 {item.label}
               </Text>
@@ -386,14 +393,10 @@ const getStyles = (colors: any) =>
       flex: 1,
       backgroundColor: colors.background,
     },
-
     container: { flex: 1 },
-
-    /* ================= HEADER ================= */
     headerSafe: {
       backgroundColor: colors.background,
     },
-
     header: {
       flexDirection: "row",
       justifyContent: "space-between",
@@ -401,43 +404,26 @@ const getStyles = (colors: any) =>
       alignItems: "center",
       backgroundColor: colors.background,
     },
-
     headerLeft: {
       flexDirection: "row",
       alignItems: "center",
       gap: 12,
     },
-
     avatar: {
       width: 44,
       height: 44,
       borderRadius: 22,
     },
-
     welcome: {
       color: colors.subText,
       fontSize: 12,
     },
-
     username: {
       color: colors.text,
       fontSize: 18,
       fontWeight: "700",
     },
-
     bell: { position: "relative" },
-
-    dot: {
-      position: "absolute",
-      top: 2,
-      right: 2,
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-      backgroundColor: colors.danger ?? "#ef4444",
-    },
-
-    /* ================= SEARCH ================= */
     searchBox: {
       marginHorizontal: 16,
       height: 48,
@@ -450,38 +436,31 @@ const getStyles = (colors: any) =>
       borderWidth: 1,
       borderColor: colors.border,
     },
-
     searchInput: {
       flex: 1,
       color: colors.text,
       fontSize: 15,
     },
-
-    /* ================= FEATURED ================= */
     featured: {
       margin: 16,
       height: 180,
       borderRadius: 20,
       overflow: "hidden",
     },
-
     featuredImage: {
       width: "100%",
       height: "100%",
     },
-
     overlay: {
       ...StyleSheet.absoluteFillObject,
       backgroundColor: "rgba(0,0,0,0.55)",
     },
-
     featuredContent: {
       position: "absolute",
       bottom: 16,
       left: 16,
       right: 16,
     },
-
     featuredTag: {
       backgroundColor: colors.primary,
       paddingHorizontal: 8,
@@ -489,52 +468,38 @@ const getStyles = (colors: any) =>
       borderRadius: 6,
       alignSelf: "flex-start",
     },
-
     featuredTagText: {
       color: "#ffffff",
       fontSize: 11,
       fontWeight: "700",
     },
-
     featuredTitle: {
       color: "#ffffff",
       fontSize: 20,
       fontWeight: "700",
       marginTop: 8,
     },
-
     featuredSub: {
       color: "#e5e7eb",
       fontSize: 13,
       marginTop: 4,
     },
-
     featuredLink: {
       color: "#ffffff",
       fontSize: 14,
       marginTop: 8,
     },
-
-    /* ================= SECTION ================= */
     sectionHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
       marginHorizontal: 16,
       marginBottom: 16,
     },
-
     sectionTitle: {
       color: colors.text,
       fontSize: 20,
       fontWeight: "700",
     },
-
-    viewAll: {
-      color: colors.primary,
-      fontSize: 14,
-    },
-
-    /* ================= CATEGORIES ================= */
     categoriesGrid: {
       flexDirection: "row",
       flexWrap: "wrap",
@@ -542,13 +507,11 @@ const getStyles = (colors: any) =>
       marginBottom: 8,
       justifyContent: "space-between",
     },
-
     categoryIconCard: {
       alignItems: "center",
       width: (width - 32) / 5 - 4,
       marginBottom: 16,
     },
-
     categoryIconCircle: {
       width: 50,
       height: 50,
@@ -558,7 +521,6 @@ const getStyles = (colors: any) =>
       marginBottom: 8,
       backgroundColor: colors.surfaceAlt,
     },
-
     categoryIconTitle: {
       color: colors.text,
       fontSize: 11,
@@ -566,67 +528,77 @@ const getStyles = (colors: any) =>
       textAlign: "center",
       lineHeight: 14,
     },
-
-    /* ================= TRENDING ================= */
     trendingTitle: {
       color: colors.text,
       fontSize: 20,
       fontWeight: "700",
       margin: 16,
     },
-
-    trendingCard: {
-      width: "90%",
-      marginHorizontal: 16,
-      marginBottom: 16,
+    trendingRowCard: {
+      flexDirection: "row",
+      alignItems: "center",
       backgroundColor: colors.card,
-      borderRadius: 16,
-      overflow: "hidden",
+      borderRadius: 12,
+      padding: 12,
+      marginBottom: 12,
       borderWidth: 1,
       borderColor: colors.border,
     },
-
-    trendingImage: {
-      width: "100%",
-      height: 190,
-      resizeMode: "cover",
+    trendingAvatar: {
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      marginRight: 12,
     },
-
-    trendingBody: { padding: 12 },
-
+    trendingInfo: {
+      flex: 1,
+    },
     trendingName: {
       color: colors.text,
       fontSize: 16,
       fontWeight: "600",
     },
-
     trendingSub: {
       color: colors.subText,
       fontSize: 12,
       marginTop: 4,
     },
-
-    trendingRow: {
+    trendingScore: {
+      color: colors.subText,
+      fontSize: 12,
+      marginTop: 2,
+    },
+    trendingFooter: {
       flexDirection: "row",
       justifyContent: "space-between",
-      marginTop: 8,
+      marginTop: 4,
     },
-
-    trendingTag: {
-      backgroundColor: colors.success + "30",
-      color: colors.success,
+    rating: {
+      color: colors.warning ?? "#facc15",
       fontSize: 12,
-      paddingHorizontal: 8,
-      borderRadius: 6,
+      fontWeight: "600",
     },
-
-    apply: {
-      color: colors.primary,
+    status: {
       fontSize: 12,
       fontWeight: "700",
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 12,
+      textAlign: "center",
     },
-
-    /* ================= BOTTOM NAV ================= */
+    active: {
+      backgroundColor: (colors.success ?? "#22c55e") + "30",
+      color: colors.success ?? "#22c55e",
+    },
+    completed: {
+      backgroundColor: colors.subText + "30",
+      color: colors.subText,
+    },
+    shift: {
+      color: colors.subText,
+      fontSize: 11,
+      marginTop: 2,
+    },
     bottomNav: {
       position: "absolute",
       bottom: 0,
@@ -639,87 +611,14 @@ const getStyles = (colors: any) =>
       flexDirection: "row",
       paddingBottom: 12,
     },
-
     navItem: {
       flex: 1,
       alignItems: "center",
       justifyContent: "flex-end",
       gap: 4,
     },
-
     navText: {
       color: colors.subText,
       fontSize: 11,
     },
-    /* ================= TRENDING ROW CARD ================= */
-
-    trendingRowCard: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: colors.card,
-      borderRadius: 12,
-      padding: 12,
-      marginBottom: 12,
-      borderWidth: 1,
-      borderColor: colors.border,
-      // height: 96,
-
-    },
-
-    trendingAvatar: {
-      width: 60,
-      height: 60,
-      borderRadius: 30,
-      marginRight: 12,
-    },
-
-    trendingInfo: {
-      flex: 1,
-    },
-
-    trendingScore: {
-      color: colors.subText,
-      fontSize: 12,
-      marginTop: 2,
-    },
-
-    trendingFooter: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      marginTop: 4,
-    },
-
-    rating: {
-      color: colors.warning ?? "#facc15",
-      fontSize: 12,
-      fontWeight: "600",
-    },
-
-    status: {
-      fontSize: 12,
-      fontWeight: "700",
-      paddingHorizontal: 8,
-      paddingVertical: 2,
-      borderRadius: 12,
-      textAlign: "center",
-    },
-
-    active: {
-      backgroundColor: (colors.success ?? "#22c55e") + "30",
-      color: colors.success ?? "#22c55e",
-    },
-
-    completed: {
-      backgroundColor: colors.subText + "30",
-      color: colors.subText,
-    },
-
-    shift: {
-      color: colors.subText,
-      fontSize: 11,
-      marginTop: 2,
-    },
-
-
-
   });

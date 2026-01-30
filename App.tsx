@@ -66,9 +66,17 @@ import EducationDashboardReport from './src/screens/EducationDashboardReport';
 import Dashboard from "./src/screens/HealthcarePartnerDashboard";
 import BookingsScreen from "./src/screens/HospitalBookings";
 import DoctorsListScreen from "./src/screens/DoctorsList";
+import HospitalDoctorsScreen from "./src/screens/HospitalDoctorsScreen";
+import DoctorProfile from "./src/screens/Doctorprofile";
 import InstitutionRegistrationStep1 from "./src/screens/InstitutionRegistrationStep1";
 import InstitutionRegistrationStep2 from "./src/screens/InstitutionRegistrationStep2";
 import StudentOverviewScreen from "./src/screens/StudentOverviewScreen";
+import InstitutionWelcomeScreen from "./src/screens/InstitutionWelcomeScreen";
+import InstitutionLoginPortal from "./src/screens/InstitutionLoginPortal";
+import InstitutionOTPVerification from "./src/screens/InstitutionOTPVerification";
+import PartnerPortalStandalone from "./src/screens/Partnerportalstandalone";
+import ManagementOverview from "./src/screens/ManagementOverview";
+import InstitutionBranch from "./src/screens/institutionbranch";
 
 
 export type RootStackParamList = {
@@ -119,31 +127,37 @@ export type RootStackParamList = {
   Training: undefined;
   TrainingDetails: undefined;
   ApplicationSuccess: undefined;
-  // ReviewApplication: undefined;
-   ReviewApplication: { internship: Internship };
+  ReviewApplication: { internship: Internship };
   ProductDetail: undefined;
   BuyerPage: undefined;
   ServiceDetails: undefined;
   PaymentSuccessDetails: undefined;
   JustRideMultiStop: undefined;
   JustrideApp: undefined;
-  Health:undefined;
-  Form:undefined;
-  Telecom:undefined;
-  Facility:undefined;
+  Health: undefined;
+  Form: undefined;
+  Telecom: undefined;
+  Facility: undefined;
   Wishlist: undefined;
-  Ambulance:undefined;
+  Ambulance: undefined;
   PartnerAuth: undefined;
   InquiryDetails: undefined;
   buysellPartnerDashboard: undefined;
   EducationPartnerDashboard: undefined;
-  HealthcarePartnerDashboard:undefined;
-  bookings:undefined;
-  Doctor:undefined;
+  HealthcarePartnerDashboard: undefined;
+  bookings: undefined;
+  Doctor: undefined;
   DriverDashboard: undefined;
+  Offline:undefined
+  DoctorProfile:undefined
   InstitutionRegistrationStep1: undefined;
   InstitutionRegistrationStep2: undefined;
-
+  InstitutionWelcomeScreen: undefined;
+  InstitutionLoginPortal: undefined;
+  InstitutionOTPVerification: undefined
+institutionbranchscreen:undefined
+  PartnerPortalStandalone: undefined;
+  ManagementOverview: undefined;
 };
 
 /* ================= NAV ================= */
@@ -154,7 +168,6 @@ function AppNavigator() {
   const { navigationTheme } = useTheme();
 
   return (
-   
     <NavigationContainer theme={navigationTheme}>
       <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={Splash} />
@@ -201,11 +214,11 @@ function AppNavigator() {
         <Stack.Screen name="JustrideApp" component={JustrideApp} />
         <Stack.Screen name="Health" component={DoctorListScreen} />
         <Stack.Screen name="Form" component={ConsultationRequestScreen} />
-         <Stack.Screen name="Telecom" component={TelemedicineConsultation} />
-         <Stack.Screen name="Wishlist" component={Wishlist} />
-         <Stack.Screen name="ParcelView" component={ParcelView} />
-         <Stack.Screen name="MetroView" component={MetroView} />
-         <Stack.Screen name="ScootyView" component={ScootyView} />
+        <Stack.Screen name="Telecom" component={TelemedicineConsultation} />
+        <Stack.Screen name="Wishlist" component={Wishlist} />
+        <Stack.Screen name="ParcelView" component={ParcelView} />
+        <Stack.Screen name="MetroView" component={MetroView} />
+        <Stack.Screen name="ScootyView" component={ScootyView} />
         <Stack.Screen name="enrollmentDetails" component={EnrollmentDetailsScreen} />
         <Stack.Screen name="Ambulance" component={AmbulanceBookingScreen} />
         <Stack.Screen name="SwachifyPartnerScreen" component={SwachifyPartnerScreen} />
@@ -222,12 +235,38 @@ function AppNavigator() {
         <Stack.Screen name="InstitutionRegistrationStep1" component={InstitutionRegistrationStep1} />
         <Stack.Screen name="InstitutionRegistrationStep2" component={InstitutionRegistrationStep2} />
         <Stack.Screen name="StudentOverviewScreen" component={StudentOverviewScreen} />
+         <Stack.Screen name="Doctor" component={DoctorsListScreen} />
+         <Stack.Screen name="Offline" component={HospitalDoctorsScreen} />
+         <Stack.Screen name="DoctorProfile" component={DoctorProfile} />
+        <Stack.Screen 
+          name="EducationDashboardReport" 
+          component={EducationDashboardReport} 
+        />
+        <Stack.Screen
+          name="PartnerAuth"
+          component={PartnerAuth}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen name="institutionbranchscreen" component={InstitutionBranch} />
+        <Stack.Screen name="InstitutionRegistrationStep1" component={InstitutionRegistrationStep1} />
+        <Stack.Screen name="InstitutionRegistrationStep2" component={InstitutionRegistrationStep2} />
+        <Stack.Screen name="InstitutionWelcomeScreen" component={InstitutionWelcomeScreen} />
+        <Stack.Screen name="InstitutionLoginPortal" component={InstitutionLoginPortal} />
+        <Stack.Screen name="InstitutionOTPVerification" component={InstitutionOTPVerification} />
+        <Stack.Screen 
+          name="PartnerPortalStandalone" 
+          component={PartnerPortalStandalone}
+          options={{ headerShown: false }}
+        />
 
+        <Stack.Screen
+  name="ManagementOverview"
+  component={ManagementOverview}
+  options={{ headerShown: false }}
+/>
 
       </Stack.Navigator>
     </NavigationContainer>
-     
-      
   );
 }
 
