@@ -233,7 +233,7 @@ useEffect(() => {
 const fetchCompanyDetails = async () => {
   try {
     const response = await fetch(
-      "https://swachify-india-be-1-mcrb.onrender.com/api/companies"
+      "https://swachify-india-be-1-mcrb.onrender.com/api/jobs"
     );
 
     const result = await response.json();

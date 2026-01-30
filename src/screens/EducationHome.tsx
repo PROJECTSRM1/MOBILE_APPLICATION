@@ -38,118 +38,31 @@ interface Student {
   shift: string;
   skills: string[];
 }
-const studentsData: Student[] = [
-  {
-    id: 2045,
-    name: "Sarah Jenkins",
-    program: "B.Tech Computer Science",
-    rating: 4.8,
-    status: "active",
-    academicScore: 92,
-    shift: "10:00 AM - 07:00 PM",
-    skills: ["Java", "Python"],
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200",
-  },
-  {
-    id: 1988,
-    name: "Michael Chen",
-    program: "M.S. Data Science",
-    rating: 4.5,
-    status: "completed",
-    academicScore: 88,
-    shift: "10:00 AM - 07:00 PM",
-    skills: ["Python", "Angular"],
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200",
-  },
-  {
-    id: 2092,
-    name: "Emily Rodriguez",
-    program: "B.E. Information Tech",
-    rating: 4.9,
-    status: "active",
-    academicScore: 95,
-    shift: "10:00 AM - 07:00 PM",
-    skills: ["React"],
-    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200",
-  },
-  {
-    id: 2101,
-    name: "David Kim",
-    program: "B.S. Software Eng",
-    rating: 4.7,
-    status: "completed",
-    academicScore: 90,
-    shift: "10:00 AM - 07:00 PM",
-    skills: ["Java"],
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200",
-  },
+interface TrendingStudentAPI {
+  full_name: string;
+  institute: string;
+  degree: string;
+  attendance_percentage: number;
+  active: boolean;
+}
 
-  /* ======= NEW PROFILES ADDED ======= */
-
-  {
-    id: 2125,
-    name: "Ananya Rao",
-    program: "B.Tech AI & ML",
-    rating: 4.6,
-    status: "active",
-    academicScore: 91,
-    shift: "09:00 AM - 06:00 PM",
-    skills: ["Python", "React"],
-    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200",
-  },
-  {
-    id: 2131,
-    name: "Rahul Mehta",
-    program: "B.E. Computer Science",
-    rating: 4.4,
-    status: "completed",
-    academicScore: 84,
-    shift: "10:00 AM - 07:00 PM",
-    skills: ["Angular", "Java"],
-    avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200",
-  },
-  {
-    id: 2140,
-    name: "Sneha Iyer",
-    program: "B.Tech Information Technology",
-    rating: 4.9,
-    status: "active",
-    academicScore: 97,
-    shift: "09:30 AM - 06:30 PM",
-    skills: ["Java", "React"],
-    avatar: "https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=200",
-  },
-  {
-    id: 2146,
-    name: "Arjun Patel",
-    program: "B.S. Data Analytics",
-    rating: 4.3,
-    status: "completed",
-    academicScore: 78,
-    shift: "10:00 AM - 07:00 PM",
-    skills: ["Python"],
-    avatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200",
-  },
-  {
-    id: 2152,
-    name: "Neha Kapoor",
-    program: "M.Tech Software Systems",
-    rating: 4.7,
-    status: "active",
-    academicScore: 89,
-    shift: "11:00 AM - 08:00 PM",
-    skills: ["React", "Angular"],
-    avatar: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=200",
-  },
-];
-const trendingStudents = studentsData
-  .filter((student) => student.academicScore > 80)
-  .sort((a, b) => b.academicScore - a.academicScore); // sort descending
-
+interface TrendingStudentUI {
+  id: number;
+  name: string;
+  program: string;
+  academicScore: number;
+  status: "active" | "completed";
+  avatar: string;
+  rating: number;
+  shift: string;
+}
 
 const { width } = Dimensions.get("window");
 
 const EducationHome = () => {
+  const [trendingStudents, setTrendingStudents] = useState<TrendingStudentUI[]>([]);
+const [loadingTrending, setLoadingTrending] = useState(true);
+
   const trendingScrollRef = useRef<ScrollView>(null);
   const trendingCurrentIndex = useRef(0);
 
@@ -159,20 +72,20 @@ const EducationHome = () => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [searchText, setSearchText] = useState("");
   const filteredTrendingStudents = trendingStudents.filter(
-    (student) =>
-      student.name.toLowerCase().includes(searchText.toLowerCase()) ||
-      student.program.toLowerCase().includes(searchText.toLowerCase()) ||
-      student.skills.some((skill) =>
-        skill.toLowerCase().includes(searchText.toLowerCase())
-      )
-  );
+  (student) =>
+    student.name.toLowerCase().includes(searchText.toLowerCase()) ||
+    student.program.toLowerCase().includes(searchText.toLowerCase())
+);
+
 
   const [showAllTrending, setShowAllTrending] = useState(false); // NEW
 
   /* ===== LOAD USER FROM STORAGE ===== */
   useEffect(() => {
-    loadUser();
-  }, []);
+  loadUser();
+  fetchTrendingStudents();
+}, []);
+
 
   const loadUser = async () => {
     try {
@@ -184,23 +97,56 @@ const EducationHome = () => {
       console.log("Failed to load user", error);
     }
   };
+const fetchTrendingStudents = async () => {
+  try {
+    setLoadingTrending(true);
+
+    const response = await fetch(
+      "https://swachify-india-be-1-mcrb.onrender.com/internship/application/trending"
+    );
+
+    const data: TrendingStudentAPI[] = await response.json();
+
+    const mapped: TrendingStudentUI[] = data.map((item, index) => ({
+  id: index + 1,
+  name: item.full_name,
+  program: `${item.degree} • ${item.institute}`,
+  academicScore: item.attendance_percentage,
+  status: item.active ? "active" : "completed",
+  avatar: `https://i.pravatar.cc/150?img=${index + 20}`,
+
+  // Added fields
+  rating: Number((4 + Math.random()).toFixed(1)), // 4.0 – 5.0
+  shift: item.active ? "10:00 AM - 07:00 PM" : "Completed",
+}));
+
+
+    setTrendingStudents(mapped);
+  } catch (err) {
+    console.log("Trending students API error", err);
+  } finally {
+    setLoadingTrending(false);
+  }
+};
+
   useEffect(() => {
-    if (!filteredTrendingStudents.length) return;
+  if (!filteredTrendingStudents.length) return;
 
-    const CARD_HEIGHT = 96; // adjust if needed
-    const interval = setInterval(() => {
-      trendingCurrentIndex.current =
-        (trendingCurrentIndex.current + 1) %
-        filteredTrendingStudents.length;
+  const CARD_HEIGHT = 96;
 
-      trendingScrollRef.current?.scrollTo({
-        y: trendingCurrentIndex.current * CARD_HEIGHT,
-        animated: true,
-      });
-    }, 1500);
+  const interval = setInterval(() => {
+    trendingCurrentIndex.current =
+      (trendingCurrentIndex.current + 1) %
+      filteredTrendingStudents.length;
 
-    return () => clearInterval(interval);
-  }, [filteredTrendingStudents.length]);
+    trendingScrollRef.current?.scrollTo({
+      y: trendingCurrentIndex.current * CARD_HEIGHT,
+      animated: true,
+    });
+  }, 1800);
+
+  return () => clearInterval(interval);
+}, [filteredTrendingStudents.length]);
 
 
   const categories = [
@@ -318,8 +264,6 @@ const EducationHome = () => {
             <Text style={[styles.sectionTitle, { color: colors.primary }]}>
               Explore Categories
             </Text>
-
-            {/* <Text style={styles.viewAll}>View All</Text> */}
           </View>
 
           <View style={styles.categoriesGrid}>

@@ -39,100 +39,6 @@ interface Company {
   // description: string;
 }
 
-// const ALL_COMPANIES: Company[] = [
-//   {
-//     id: 1,
-//     name: "TechFlow Systems",
-//     industry: "Software Engineering",
-//     description:
-//       "Leading the way in AI and machine learning solutions for enterprise clients worldwide. Join ou...",
-//     location: "San Francisco, CA",
-//     size: "500+",
-//     isRemote: false,
-//     badge: "4 Internships",
-//     badgeColor: "#135bec",
-//     active: "Active 2h ago",
-//     icon: "code",
-//     iconBg: "#3b82f6",
-//   },
-//   {
-//     id: 2,
-//     name: "EduGrow",
-//     industry: "EdTech",
-//     description:
-//       "Helping students learn faster through personalized curriculum and AI-driven tutoring assistants.",
-//     location: "Austin, TX",
-//     size: "50-200",
-//     isRemote: false,
-//     badge: "1 Job Opening",
-//     badgeColor: "#22c55e",
-//     active: "Active 1d ago",
-//     icon: "school",
-//     iconBg: "#f97316",
-//   },
-//   {
-//     id: 3,
-//     name: "Apex Banking",
-//     industry: "Finance & Banking",
-//     description:
-//       "Global financial solutions for the modern era. We build secure infrastructure for the next generatio...",
-//     location: "London, UK",
-//     size: "1000+",
-//     isRemote: false,
-//     badge: "Hiring Frozen",
-//     badgeColor: "#6b7280",
-//     icon: "account-balance",
-//     iconBg: "#334155",
-//   },
-//   {
-//     id: 4,
-//     name: "EcoDynamics",
-//     industry: "Green Energy",
-//     description:
-//       "Developing sustainable energy grids powered by next-gen solar technology. Fully remote team...",
-//     location: "Remote",
-//     size: "50-200",
-//     isRemote: true,
-//     badge: "2 Senior Roles",
-//     badgeColor: "#16a34a",
-//     active: "Active 4h ago",
-//     icon: "eco",
-//     iconBg: "#22c55e",
-//   },
-//   {
-//     id: 5,
-//     name: "CloudNine Solutions",
-//     industry: "Software Engineering",
-//     description:
-//       "Building next-generation cloud infrastructure and DevOps tools for modern enterprises...",
-//     location: "Seattle, WA",
-//     size: "200-500",
-//     isRemote: true,
-//     badge: "3 Internships",
-//     badgeColor: "#135bec",
-//     active: "Active 5h ago",
-//     icon: "cloud",
-//     iconBg: "#0ea5e9",
-//   },
-//   {
-//     id: 6,
-//     name: "HealthTech Innovations",
-//     industry: "Healthcare",
-//     description:
-//       "Revolutionizing patient care with AI-powered diagnostic tools and telemedicine platforms...",
-//     location: "Boston, MA",
-//     size: "100-200",
-//     isRemote: false,
-//     badge: "5 Job Openings",
-//     badgeColor: "#22c55e",
-//     active: "Active 3h ago",
-//     icon: "local-hospital",
-//     iconBg: "#ef4444",
-//   },
-// ];
-
-// const INDUSTRIES = ['All', 'Software Engineering', 'EdTech', 'Finance & Banking', 'Green Energy', 'Healthcare'];
-// const LOCATIONS = ['All', 'Remote', 'San Francisco, CA', 'Austin, TX', 'London, UK', 'Seattle, WA', 'Boston, MA'];
 const SIZES = ['All', '50-200', '200-500', '500+', '1000+'];
 type CompaniesNavProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -166,7 +72,7 @@ const fetchCompanies = async () => {
   try {
     setLoading(true);
     const response = await fetch(
-      "https://swachify-india-be-1-mcrb.onrender.com/api/companies"
+      "https://swachify-india-be-1-mcrb.onrender.com/api/jobs/openings"
     );
 
     const data = await response.json();

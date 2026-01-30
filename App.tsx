@@ -68,6 +68,7 @@ import BookingsScreen from "./src/screens/HospitalBookings";
 import DoctorsListScreen from "./src/screens/DoctorsList";
 import InstitutionRegistrationStep1 from "./src/screens/InstitutionRegistrationStep1";
 import InstitutionRegistrationStep2 from "./src/screens/InstitutionRegistrationStep2";
+import StudentOverviewScreen from "./src/screens/StudentOverviewScreen";
 
 
 export type RootStackParamList = {
@@ -215,19 +216,12 @@ function AppNavigator() {
         <Stack.Screen name="EducationPartnerDashboard" component={EducationPartnerDashboard} />
         <Stack.Screen name="bookings" component={BookingsScreen} />
         <Stack.Screen name="HealthcarePartnerDashboard" component={Dashboard} />
-         <Stack.Screen name="Doctor" component={DoctorsListScreen} />
-        <Stack.Screen 
-          name="EducationDashboardReport" 
-          component={EducationDashboardReport} 
-        />
-
-        <Stack.Screen
-  name="PartnerAuth"
-  component={PartnerAuth}
-  options={{ headerShown: false }}
-/>
+        <Stack.Screen name="Doctor" component={DoctorsListScreen} />
+        <Stack.Screen name="EducationDashboardReport" component={EducationDashboardReport} />
+        <Stack.Screen name="PartnerAuth" component={PartnerAuth} options={{ headerShown: false }}/>
         <Stack.Screen name="InstitutionRegistrationStep1" component={InstitutionRegistrationStep1} />
         <Stack.Screen name="InstitutionRegistrationStep2" component={InstitutionRegistrationStep2} />
+        <Stack.Screen name="StudentOverviewScreen" component={StudentOverviewScreen} />
 
 
       </Stack.Navigator>
