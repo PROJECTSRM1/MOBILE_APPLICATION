@@ -38,94 +38,7 @@ interface Company {
 type JobDetailsRouteProp = RouteProp<RootStackParamList, 'JobDetails'>;
 type JobDetailsNavProp = NativeStackNavigationProp<RootStackParamList, 'JobDetails'>;
 
-// Job data based on company ID for unique listings
-// const getJobData = (company: Company) => {
-//   const jobDataByCompanyId: { [key: number]: {
-//     title: string;
-//     description: string;
-//     requirements: string[];
-//     salary: string;
-//   }} = {
-//     1: { // TechFlow Systems
-//       title: "Senior Full Stack Developer",
-//       description: "We are looking for an experienced Senior Full Stack Developer to join our engineering team. You will be responsible for designing and implementing scalable AI-powered solutions, working with cutting-edge technologies, and mentoring junior developers to build world-class products that serve enterprise clients globally.",
-//       requirements: [
-//         "5+ years of experience in full-stack development with React and Node.js",
-//         "Strong understanding of cloud platforms (AWS, Azure, or GCP)",
-//         "Experience with microservices architecture and containerization",
-//         "Hands-on experience with AI/ML integration and APIs"
-//       ],
-//       salary: "$140k - $180k/yr"
-//     },
-//     2: { // EduGrow
-//       title: "Product Manager - EdTech",
-//       description: "Join our team as a Product Manager to shape the future of education technology. You'll work closely with designers, engineers, and educators to create innovative learning solutions that impact millions of students worldwide through personalized curriculum and AI-driven tutoring.",
-//       requirements: [
-//         "3+ years of product management experience in tech or education sector",
-//         "Proven track record of launching successful EdTech products",
-//         "Strong analytical and user research skills with student-focused approach",
-//         "Experience working with AI-driven learning platforms"
-//       ],
-//       salary: "$110k - $140k/yr"
-//     },
-//     3: { // Apex Banking
-//       title: "Senior Financial Analyst",
-//       description: "We're seeking a skilled Senior Financial Analyst to help drive strategic decisions through data analysis and financial modeling. You'll work with executive leadership to provide insights that shape our financial strategy and business growth in the global financial services sector.",
-//       requirements: [
-//         "Bachelor's degree in Finance, Economics, or related field; MBA preferred",
-//         "5+ years of experience in financial analysis or investment banking",
-//         "Advanced proficiency in Excel, SQL, and financial modeling",
-//         "Experience with regulatory compliance and risk management"
-//       ],
-//       salary: "$150k - $190k/yr"
-//     },
-//     4: { // EcoDynamics
-//       title: "Senior Renewable Energy Engineer",
-//       description: "Be part of the renewable energy revolution! We're looking for a talented Senior Engineer to design and implement next-generation solar and wind energy solutions that will power sustainable communities around the world. Work remotely with a global team passionate about climate action.",
-//       requirements: [
-//         "Master's degree in Electrical, Mechanical, or Energy Engineering",
-//         "5+ years of experience in renewable energy systems design",
-//         "Expertise in energy storage systems and smart grid integration",
-//         "Experience with remote collaboration and distributed teams"
-//       ],
-//       salary: "$120k - $155k/yr"
-//     },
-//     5: { // CloudNine Solutions
-//       title: "DevOps Engineer - Cloud Infrastructure",
-//       description: "We're building the next generation of cloud infrastructure and DevOps tools for modern enterprises. Join our team to work on cutting-edge cloud-native technologies, automation, and infrastructure-as-code solutions that empower businesses to scale efficiently.",
-//       requirements: [
-//         "4+ years of experience in DevOps, SRE, or Cloud Engineering",
-//         "Strong expertise in Kubernetes, Docker, and container orchestration",
-//         "Proficiency in Infrastructure-as-Code tools (Terraform, CloudFormation)",
-//         "Experience with CI/CD pipelines and automation frameworks"
-//       ],
-//       salary: "$130k - $170k/yr"
-//     },
-//     6: { // HealthTech Innovations
-//       title: "Senior Product Designer - Healthcare",
-//       description: "We are looking for a creative Senior Product Designer to join our core team revolutionizing patient care. You will be responsible for defining the user experience for our AI-powered diagnostic tools and telemedicine platforms, working closely with healthcare professionals, engineers, and product management.",
-//       requirements: [
-//         "5+ years of experience in product design or UX/UI roles",
-//         "Proficiency in Figma, Adobe Suite, and prototyping tools",
-//         "Strong portfolio demonstrating healthcare or medical design solutions",
-//         "Understanding of HIPAA compliance and healthcare accessibility standards"
-//       ],
-//       salary: "$125k - $160k/yr"
-//     }
-//   };
 
-//   // Return job data for the specific company, or default if not found
-//   return jobDataByCompanyId[company.id] || {
-//     title: "Senior Professional",
-//     description: company.description,
-//     requirements: [
-//       "Relevant years of experience in the field",
-//       "Strong technical and communication skills",
-//       "Proven track record of success"
-//     ],
-//     salary: "$100k - $150k/yr"
-//   };
-// };
 
 const JobDetailsScreen = () => {
   const { colors } = useTheme();
@@ -138,94 +51,7 @@ const [loading, setLoading] = useState(true);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [expandedDescription, setExpandedDescription] = useState(false);
 const { companyId } = route.params;
-// const ALL_COMPANIES: Company[] = [
-//   {
-//     id: 1,
-//     name: "TechFlow Systems",
-//     industry: "Software Engineering",
-//     description: "Leading the way in AI and machine learning solutions for enterprise clients worldwide.",
-//     location: "San Francisco, CA",
-//     size: "500+",
-//     isRemote: false,
-//     badge: "4 Internships",
-//     badgeColor: "#135bec",
-//     active: "Active 2h ago",
-//     icon: "code",
-//     iconBg: "#3b82f6",
-//   },
-//   {
-//     id: 2,
-//     name: "EduGrow",
-//     industry: "EdTech",
-//     description: "Helping students learn faster through personalized curriculum and AI-driven tutoring assistants.",
-//     location: "Austin, TX",
-//     size: "50-200",
-//     isRemote: false,
-//     badge: "1 Job Opening",
-//     badgeColor: "#22c55e",
-//     active: "Active 1d ago",
-//     icon: "school",
-//     iconBg: "#f97316",
-//   },
-//   {
-//     id: 3,
-//     name: "Apex Banking",
-//     industry: "Finance & Banking",
-//     description: "Global financial solutions for the modern era.",
-//     location: "London, UK",
-//     size: "1000+",
-//     isRemote: false,
-//     badge: "Hiring Frozen",
-//     badgeColor: "#6b7280",
-//     icon: "account-balance",
-//     iconBg: "#334155",
-//   },
-//   {
-//     id: 4,
-//     name: "EcoDynamics",
-//     industry: "Green Energy",
-//     description: "Developing sustainable energy grids powered by next-gen solar technology.",
-//     location: "Remote",
-//     size: "50-200",
-//     isRemote: true,
-//     badge: "2 Senior Roles",
-//     badgeColor: "#16a34a",
-//     active: "Active 4h ago",
-//     icon: "eco",
-//     iconBg: "#22c55e",
-//   },
-//   {
-//     id: 5,
-//     name: "CloudNine Solutions",
-//     industry: "Software Engineering",
-//     description: "Building next-generation cloud infrastructure and DevOps tools.",
-//     location: "Seattle, WA",
-//     size: "200-500",
-//     isRemote: true,
-//     badge: "3 Internships",
-//     badgeColor: "#135bec",
-//     active: "Active 5h ago",
-//     icon: "cloud",
-//     iconBg: "#0ea5e9",
-//   },
-//   {
-//     id: 6,
-//     name: "HealthTech Innovations",
-//     industry: "Healthcare",
-//     description: "Revolutionizing patient care with AI-powered diagnostic tools.",
-//     location: "Boston, MA",
-//     size: "100-200",
-//     isRemote: false,
-//     badge: "5 Job Openings",
-//     badgeColor: "#22c55e",
-//     active: "Active 3h ago",
-//     icon: "local-hospital",
-//     iconBg: "#ef4444",
-//   },
-// ];
 
-// const company = ALL_COMPANIES.find(c => c.id === companyId)!;
-// const jobData = getJobData(company);
 useEffect(() => {
   fetchCompanyDetails();
 }, [companyId]);
@@ -287,16 +113,7 @@ const fetchCompanyDetails = async () => {
   const toggleBookmark = () => {
     setIsBookmarked(!isBookmarked);
   };
-// const jobData = {
-//   title: `${company?.industry ?? ''} Professional`,
-//   description: company?.description ?? '',
-//   requirements: [
-//     "Relevant experience in the field",
-//     "Strong problem-solving skills",
-//     "Good communication abilities"
-//   ],
-//   salary: "As per company standards",
-// };
+
 
 if (loading || !company) {
   return (
