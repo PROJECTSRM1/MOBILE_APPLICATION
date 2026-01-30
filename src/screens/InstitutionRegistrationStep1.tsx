@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,16 +8,16 @@ import {
   TextInput,
   StatusBar,
   Alert,
-  Platform,
-  PermissionsAndroid,
+  Modal,
+  FlatList,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useNavigation } from "@react-navigation/native";
 import { useTheme } from "../context/ThemeContext";
-import { launchImageLibrary, launchCamera } from "react-native-image-picker";
-import ReactNativeBlobUtil from "react-native-blob-util";
+import { launchImageLibrary } from "react-native-image-picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface FormData {
   institutionName: string;
@@ -32,6 +32,26 @@ interface FormData {
   idProof: { name: string; uri: string; type: string } | null;
   addressProof: { name: string; uri: string; type: string } | null;
 }
+
+interface DropdownOption {
+  label: string;
+  value: string;
+}
+
+const INSTITUTION_TYPES: DropdownOption[] = [
+  { label: "School (K-12)", value: "school" },
+  { label: "College", value: "college" },
+  { label: "University", value: "university" },
+  { label: "Vocational Training", value: "vocational" },
+];
+
+const IDENTITY_TYPES: DropdownOption[] = [
+  { label: "Aadhar Card", value: "aadhar" },
+  { label: "PAN Card", value: "pan" },
+  { label: "Registration Certificate", value: "registration" },
+];
+
+const STORAGE_KEY = "@institution_registration_step1";
 
 const InstitutionRegistrationStep1 = () => {
   const { colors } = useTheme();
@@ -55,6 +75,47 @@ const InstitutionRegistrationStep1 = () => {
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>(
     {}
   );
+
+  const [showInstitutionDropdown, setShowInstitutionDropdown] = useState(false);
+  const [showIdentityDropdown, setShowIdentityDropdown] = useState(false);
+
+  // Load saved data on mount
+  useEffect(() => {
+    loadSavedData();
+  }, []);
+
+  // Save data whenever formData changes
+  useEffect(() => {
+    saveData();
+  }, [formData]);
+
+  const loadSavedData = async () => {
+    try {
+      const savedData = await AsyncStorage.getItem(STORAGE_KEY);
+      if (savedData) {
+        const parsedData = JSON.parse(savedData);
+        setFormData(parsedData);
+      }
+    } catch (error) {
+      console.error("Error loading saved data:", error);
+    }
+  };
+
+  const saveData = async () => {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
+    } catch (error) {
+      console.error("Error saving data:", error);
+    }
+  };
+
+  const clearSavedData = async () => {
+    try {
+      await AsyncStorage.removeItem(STORAGE_KEY);
+    } catch (error) {
+      console.error("Error clearing saved data:", error);
+    }
+  };
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -130,93 +191,7 @@ const InstitutionRegistrationStep1 = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const requestCameraPermission = async () => {
-    if (Platform.OS === "android") {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.CAMERA,
-          {
-            title: "Camera Permission",
-            message: "App needs access to your camera to take photos",
-            buttonNeutral: "Ask Me Later",
-            buttonNegative: "Cancel",
-            buttonPositive: "OK",
-          }
-        );
-        return granted === PermissionsAndroid.RESULTS.GRANTED;
-      } catch (err) {
-        console.warn(err);
-        return false;
-      }
-    }
-    return true;
-  };
-
-  const pickDocument = async (type: "idProof" | "addressProof") => {
-    Alert.alert(
-      "Upload Document",
-      "Choose an option",
-      [
-        {
-          text: "Take Photo",
-          onPress: () => openCamera(type),
-        },
-        {
-          text: "Choose from Gallery",
-          onPress: () => openGallery(type),
-        },
-        {
-          text: "Choose PDF",
-          onPress: () => openFilePicker(type),
-        },
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-      ],
-      { cancelable: true }
-    );
-  };
-
-  const openCamera = async (type: "idProof" | "addressProof") => {
-    const hasPermission = await requestCameraPermission();
-    if (!hasPermission) {
-      Alert.alert("Permission Denied", "Camera permission is required");
-      return;
-    }
-
-    launchCamera(
-      {
-        mediaType: "photo",
-        quality: 0.8,
-        includeBase64: false,
-        saveToPhotos: false,
-      },
-      (response) => {
-        if (response.didCancel) {
-          return;
-        }
-        if (response.errorCode) {
-          Alert.alert("Error", response.errorMessage || "Failed to take photo");
-          return;
-        }
-        if (response.assets && response.assets[0]) {
-          const asset = response.assets[0];
-          setFormData((prev) => ({
-            ...prev,
-            [type]: {
-              name: asset.fileName || `${type}_${Date.now()}.jpg`,
-              uri: asset.uri || "",
-              type: asset.type || "image/jpeg",
-            },
-          }));
-          setErrors((prev) => ({ ...prev, [type]: "" }));
-        }
-      }
-    );
-  };
-
-  const openGallery = async (type: "idProof" | "addressProof") => {
+  const pickDocumentFromGallery = async (type: "idProof" | "addressProof") => {
     launchImageLibrary(
       {
         mediaType: "photo",
@@ -251,58 +226,6 @@ const InstitutionRegistrationStep1 = () => {
     );
   };
 
-  const openFilePicker = async (type: "idProof" | "addressProof") => {
-    try {
-      if (Platform.OS === "android") {
-        const res = await ReactNativeBlobUtil.fs.dirs;
-        const downloadsPath = res.DownloadDir;
-
-        ReactNativeBlobUtil.android
-          .actionViewIntent(downloadsPath, "application/pdf")
-          .then(() => {
-            Alert.alert(
-              "PDF Selection",
-              "Please select a PDF file from your file manager",
-              [
-                {
-                  text: "OK",
-                  onPress: () => {
-                    // For now, we'll simulate a PDF selection
-                    // In a production app, you would implement proper PDF picking
-                    Alert.alert(
-                      "Info",
-                      "PDF file selection requires additional configuration. Please use image upload instead.",
-                      [{ text: "OK" }]
-                    );
-                  },
-                },
-              ]
-            );
-          })
-          .catch((error) => {
-            console.log("Error:", error);
-            Alert.alert(
-              "Info",
-              "For PDF upload, please use the gallery option and select PDF from there, or use image upload.",
-              [{ text: "OK" }]
-            );
-          });
-      } else {
-        // iOS - suggest using Files app
-        Alert.alert(
-          "Info",
-          "For PDF upload, please use the gallery option or take a photo of the document.",
-          [{ text: "OK" }]
-        );
-      }
-    } catch (error) {
-      Alert.alert(
-        "Error",
-        "Failed to open file picker. Please use image upload instead."
-      );
-    }
-  };
-
   const handleContinue = () => {
     if (validateForm()) {
       navigation.navigate("InstitutionRegistrationStep2", { formData });
@@ -320,6 +243,72 @@ const InstitutionRegistrationStep1 = () => {
       setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
+
+  const selectInstitutionType = (value: string) => {
+    updateField("institutionType", value);
+    setShowInstitutionDropdown(false);
+  };
+
+  const selectIdentityType = (value: string) => {
+    updateField("identityType", value);
+    setShowIdentityDropdown(false);
+  };
+
+  const getInstitutionTypeLabel = () => {
+    const option = INSTITUTION_TYPES.find(
+      (opt) => opt.value === formData.institutionType
+    );
+    return option ? option.label : "Select Type";
+  };
+
+  const getIdentityTypeLabel = () => {
+    const option = IDENTITY_TYPES.find(
+      (opt) => opt.value === formData.identityType
+    );
+    return option ? option.label : "Select Identity Type";
+  };
+
+  const renderDropdown = (
+    visible: boolean,
+    onClose: () => void,
+    options: DropdownOption[],
+    onSelect: (value: string) => void,
+    title: string
+  ) => (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <TouchableOpacity
+        style={styles.modalOverlay}
+        activeOpacity={1}
+        onPress={onClose}
+      >
+        <View style={styles.dropdownContainer}>
+          <View style={styles.dropdownHeader}>
+            <Text style={styles.dropdownTitle}>{title}</Text>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <Icon name="close" size={24} color={colors.text} />
+            </TouchableOpacity>
+          </View>
+          <FlatList
+            data={options}
+            keyExtractor={(item) => item.value}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.dropdownItem}
+                onPress={() => onSelect(item.value)}
+              >
+                <Text style={styles.dropdownItemText}>{item.label}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      </TouchableOpacity>
+    </Modal>
+  );
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -386,52 +375,23 @@ const InstitutionRegistrationStep1 = () => {
 
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Institution Type</Text>
-                <View style={styles.pickerWrapper}>
-                  <TouchableOpacity
+                <TouchableOpacity
+                  style={[
+                    styles.dropdownButton,
+                    errors.institutionType && styles.inputError,
+                  ]}
+                  onPress={() => setShowInstitutionDropdown(true)}
+                >
+                  <Text
                     style={[
-                      styles.picker,
-                      errors.institutionType && styles.inputError,
+                      styles.dropdownButtonText,
+                      !formData.institutionType && styles.placeholderText,
                     ]}
-                    onPress={() => {
-                      Alert.alert("Select Institution Type", "", [
-                        {
-                          text: "School (K-12)",
-                          onPress: () =>
-                            updateField("institutionType", "school"),
-                        },
-                        {
-                          text: "College",
-                          onPress: () =>
-                            updateField("institutionType", "college"),
-                        },
-                        {
-                          text: "University",
-                          onPress: () =>
-                            updateField("institutionType", "university"),
-                        },
-                        {
-                          text: "Vocational Training",
-                          onPress: () =>
-                            updateField("institutionType", "vocational"),
-                        },
-                        { text: "Cancel", style: "cancel" },
-                      ]);
-                    }}
                   >
-                    <Text
-                      style={[
-                        styles.pickerText,
-                        !formData.institutionType && styles.placeholderText,
-                      ]}
-                    >
-                      {formData.institutionType
-                        ? formData.institutionType.charAt(0).toUpperCase() +
-                          formData.institutionType.slice(1)
-                        : "Select Type"}
-                    </Text>
-                    <Icon name="unfold-more" size={20} color={colors.subText} />
-                  </TouchableOpacity>
-                </View>
+                    {getInstitutionTypeLabel()}
+                  </Text>
+                  <Icon name="arrow-drop-down" size={24} color={colors.subText} />
+                </TouchableOpacity>
                 {errors.institutionType && (
                   <Text style={styles.errorText}>{errors.institutionType}</Text>
                 )}
@@ -445,48 +405,23 @@ const InstitutionRegistrationStep1 = () => {
             <View style={styles.card}>
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Identity Type</Text>
-                <View style={styles.pickerWrapper}>
-                  <TouchableOpacity
+                <TouchableOpacity
+                  style={[
+                    styles.dropdownButton,
+                    errors.identityType && styles.inputError,
+                  ]}
+                  onPress={() => setShowIdentityDropdown(true)}
+                >
+                  <Text
                     style={[
-                      styles.picker,
-                      errors.identityType && styles.inputError,
+                      styles.dropdownButtonText,
+                      !formData.identityType && styles.placeholderText,
                     ]}
-                    onPress={() => {
-                      Alert.alert("Select Identity Type", "", [
-                        {
-                          text: "Aadhar Card",
-                          onPress: () => updateField("identityType", "aadhar"),
-                        },
-                        {
-                          text: "PAN Card",
-                          onPress: () => updateField("identityType", "pan"),
-                        },
-                        {
-                          text: "Registration Certificate",
-                          onPress: () =>
-                            updateField("identityType", "registration"),
-                        },
-                        { text: "Cancel", style: "cancel" },
-                      ]);
-                    }}
                   >
-                    <Text
-                      style={[
-                        styles.pickerText,
-                        !formData.identityType && styles.placeholderText,
-                      ]}
-                    >
-                      {formData.identityType
-                        ? formData.identityType === "aadhar"
-                          ? "Aadhar Card"
-                          : formData.identityType === "pan"
-                          ? "PAN Card"
-                          : "Registration Certificate"
-                        : "Select Identity Type"}
-                    </Text>
-                    <Icon name="unfold-more" size={20} color={colors.subText} />
-                  </TouchableOpacity>
-                </View>
+                    {getIdentityTypeLabel()}
+                  </Text>
+                  <Icon name="arrow-drop-down" size={24} color={colors.subText} />
+                </TouchableOpacity>
                 {errors.identityType && (
                   <Text style={styles.errorText}>{errors.identityType}</Text>
                 )}
@@ -525,7 +460,7 @@ const InstitutionRegistrationStep1 = () => {
                     formData.idProof && styles.uploadButtonSuccess,
                     errors.idProof && styles.uploadButtonError,
                   ]}
-                  onPress={() => pickDocument("idProof")}
+                  onPress={() => pickDocumentFromGallery("idProof")}
                 >
                   <View style={styles.uploadContent}>
                     <Icon
@@ -562,7 +497,7 @@ const InstitutionRegistrationStep1 = () => {
                     formData.addressProof && styles.uploadButtonSuccess,
                     errors.addressProof && styles.uploadButtonError,
                   ]}
-                  onPress={() => pickDocument("addressProof")}
+                  onPress={() => pickDocumentFromGallery("addressProof")}
                 >
                   <View style={styles.uploadContent}>
                     <Icon
@@ -691,7 +626,7 @@ const InstitutionRegistrationStep1 = () => {
               <View style={styles.divider} />
 
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Website</Text>
+                <Text style={styles.inputLabel}>Website (Optional)</Text>
                 <TextInput
                   style={[styles.input, errors.website && styles.inputError]}
                   placeholder="https://www.institution.edu"
@@ -728,6 +663,23 @@ const InstitutionRegistrationStep1 = () => {
             <Icon name="chevron-right" size={24} color="#fff" />
           </TouchableOpacity>
         </View>
+
+        {/* DROPDOWNS */}
+        {renderDropdown(
+          showInstitutionDropdown,
+          () => setShowInstitutionDropdown(false),
+          INSTITUTION_TYPES,
+          selectInstitutionType,
+          "Select Institution Type"
+        )}
+
+        {renderDropdown(
+          showIdentityDropdown,
+          () => setShowIdentityDropdown(false),
+          IDENTITY_TYPES,
+          selectIdentityType,
+          "Select Identity Type"
+        )}
       </LinearGradient>
     </SafeAreaView>
   );
@@ -833,7 +785,8 @@ const getStyles = (colors: any) =>
     input: {
       fontSize: 16,
       color: colors.text,
-      paddingVertical: 0,
+      paddingVertical: 8,
+      paddingHorizontal: 0,
     },
     inputError: {
       borderColor: colors.danger || "#ef4444",
@@ -847,21 +800,20 @@ const getStyles = (colors: any) =>
       color: colors.text,
       minHeight: 80,
       paddingVertical: 8,
+      paddingHorizontal: 0,
     },
     divider: {
       height: 1,
       backgroundColor: colors.border,
     },
-    pickerWrapper: {
-      position: "relative",
-    },
-    picker: {
+    dropdownButton: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      paddingVertical: 4,
+      paddingVertical: 8,
+      paddingHorizontal: 0,
     },
-    pickerText: {
+    dropdownButtonText: {
       fontSize: 16,
       color: colors.text,
     },
@@ -949,5 +901,51 @@ const getStyles = (colors: any) =>
       fontSize: 16,
       fontWeight: "700",
       color: "#ffffff",
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: 20,
+    },
+    dropdownContainer: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      width: "100%",
+      maxHeight: 400,
+      overflow: "hidden",
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 8,
+    },
+    dropdownHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    dropdownTitle: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: colors.text,
+    },
+    closeButton: {
+      padding: 4,
+    },
+    dropdownItem: {
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    dropdownItemText: {
+      fontSize: 16,
+      color: colors.text,
     },
   });

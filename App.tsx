@@ -68,6 +68,9 @@ import BookingsScreen from "./src/screens/HospitalBookings";
 import DoctorsListScreen from "./src/screens/DoctorsList";
 import InstitutionRegistrationStep1 from "./src/screens/InstitutionRegistrationStep1";
 import InstitutionRegistrationStep2 from "./src/screens/InstitutionRegistrationStep2";
+import InstitutionWelcomeScreen from "./src/screens/InstitutionWelcomeScreen";
+import InstitutionLoginPortal from "./src/screens/InstitutionLoginPortal";
+import InstitutionOTPVerification from "./src/screens/InstitutionOTPVerification";
 
 
 export type RootStackParamList = {
@@ -142,6 +145,9 @@ export type RootStackParamList = {
   DriverDashboard: undefined;
   InstitutionRegistrationStep1: undefined;
   InstitutionRegistrationStep2: undefined;
+  InstitutionWelcomeScreen: undefined;
+  InstitutionLoginPortal: undefined;
+  InstitutionOTPVerification: undefined
 
 };
 
@@ -228,6 +234,9 @@ function AppNavigator() {
 />
         <Stack.Screen name="InstitutionRegistrationStep1" component={InstitutionRegistrationStep1} />
         <Stack.Screen name="InstitutionRegistrationStep2" component={InstitutionRegistrationStep2} />
+        <Stack.Screen name="InstitutionWelcomeScreen" component={InstitutionWelcomeScreen} />
+        <Stack.Screen name="InstitutionLoginPortal" component={InstitutionLoginPortal} />
+        <Stack.Screen name="InstitutionOTPVerification" component={InstitutionOTPVerification} />
 
 
       </Stack.Navigator>
