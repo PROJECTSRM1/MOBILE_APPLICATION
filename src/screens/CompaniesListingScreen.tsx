@@ -75,48 +75,83 @@ const fetchCompanies = async () => {
       "https://swachify-india-be-1-mcrb.onrender.com/api/jobs/openings"
     );
 
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
     const data = await response.json();
 
-const uniqueIndustries = Array.from(
-  new Set(data.map((item: any) => item.industry_name))
-) as string[];
+    // Industry mapping based on industry_id
+    const industryMap: { [key: number]: string } = {
+      1: "AI & Machine Learning",
+      2: "Cloud Computing",
+      6: "EdTech",
+      8: "Finance & Banking",
+      9: "Healthcare",
+      14: "Software Engineering",
+    };
 
-const uniqueLocations = Array.from(
-  new Set(data.map((item: any) => item.location))
-) as string[];
+    // Function to extract location from company address
+    const getLocationFromAddress = (address: string): string => {
+      if (!address) return 'Remote';
+      
+      const addr = address.toLowerCase();
+      
+      if (addr.includes('hyderabad')) return 'Hyderabad';
+      if (addr.includes('bangalore') || addr.includes('bengaluru')) return 'Bangalore';
+      if (addr.includes('mumbai')) return 'Mumbai';
+      if (addr.includes('chennai')) return 'Chennai';
+      if (addr.includes('pune')) return 'Pune';
+      if (addr.includes('remote')) return 'Remote';
+      
+      return address; // Return original if no match
+    };
 
-setIndustries(['All', ...uniqueIndustries]);
-setLocations(['All', 'Remote', ...uniqueLocations]);
+    // Map companies with proper industry and location
+    const mappedCompanies: Company[] = data.map((item: any, index: number) => {
+      const industry = industryMap[item.industry_id] || "Other";
+      const location = getLocationFromAddress(item.company_address || '');
+      
+      return {
+        id: item.id || index,
+        name: item.company_name || "Unknown Company",
+        industry: industry,
+        location: location,
+        size: item.company_size_id ? `${item.company_size_id * 50}-${item.company_size_id * 50 + 200}` : "Not specified",
+        isRemote: location === 'Remote',
+        description: item.role_description || item.requirements || "No description available",
+        badge: item.is_active ? "Open Position" : "Position Closed",
+        badgeColor: item.is_active ? "#22c55e" : "#6b7280",
+        active: item.created_date 
+          ? `Posted ${new Date(item.created_date).toLocaleDateString()}` 
+          : "Recently posted",
+        icon: "business",
+        iconBg: "#135bec",
+      };
+    });
 
-    const mappedCompanies: Company[] = data.map((item: any) => ({
-      id: item.company_id,
-      name: item.company_name,
-      industry: item.industry_name,
-      location: item.location,
-      size: item.company_size,
-      isRemote: item.location.toLowerCase().includes("remote"),
-      description: `Currently ${item.hiring_status.toLowerCase()} with ${item.internships_count} internships`,
-      badge:
-        item.internships_count > 0
-          ? `${item.internships_count} Internships`
-          : item.jobs_count > 0
-          ? `${item.jobs_count} Job Openings`
-          : "Hiring Frozen",
-      badgeColor:
-        item.hiring_status === "Active" ? "#22c55e" : "#6b7280",
-      active: `Last active ${new Date(item.last_active_time).toLocaleDateString()}`,
-      icon: "business",
-      iconBg: "#135bec",
-    }));
+    // Extract unique industries from the data
+    const uniqueIndustries = Array.from(
+      new Set(mappedCompanies.map(company => company.industry).filter(industry => industry !== "Other"))
+    ).sort();
 
+    // Extract unique locations from the data
+    const uniqueLocations = Array.from(
+      new Set(mappedCompanies.map(company => company.location))
+    ).filter(loc => ['Hyderabad', 'Bangalore', 'Mumbai', 'Chennai', 'Pune', 'Remote'].includes(loc))
+    .sort();
+
+    setIndustries(['All', ...uniqueIndustries]);
+    setLocations(['All', ...uniqueLocations]);
     setCompanies(mappedCompanies);
+    setError(null);
   } catch (err) {
-    setError("Failed to load companies");
+    console.error("Fetch error:", err);
+    setError("Failed to load companies. Please try again later.");
   } finally {
     setLoading(false);
   }
 };
-
 
   // Dropdown states
   const [showIndustryDropdown, setShowIndustryDropdown] = useState<boolean>(false);
