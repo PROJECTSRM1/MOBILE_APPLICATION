@@ -29,58 +29,14 @@ export interface Internship {
   category: string;
 }
 
-// const internships: Internship[] = [
-//   {
-//     id: 1,
-//     title: 'UX Design Intern',
-//     company: 'Spotify',
-//     logoColor: '#1DB954',
-//     location: 'Stockholm',
-//     duration: '6 Months',
-//     type: 'Paid',
-//     isRemote: false,
-//     description: 'Join our design team to help shape the future of audio streaming. You will work closely with researchers, product managers...',
-//     category: 'design'
-//   },
-//   {
-//     id: 2,
-//     title: 'Software Engineer Intern',
-//     company: 'Google',
-//     logoColor: '#4285F4',
-//     location: 'Remote',
-//     duration: '3 Months',
-//     type: null,
-//     isRemote: true,
-//     description: 'Work on large-scale systems and help build the future of search. We are looking for students with strong algorithmic skills...',
-//     category: 'engineering'
-//   },
-//   {
-//     id: 3,
-//     title: 'Product Design Intern',
-//     company: 'Apple',
-//     logoColor: '#000000',
-//     location: 'Cupertino',
-//     duration: 'Summer 2024',
-//     type: null,
-//     isRemote: false,
-//     description: "Define the user experience for Apple products. You'll work on everything from hardware interactions to software interfaces.",
-//     category: 'design'
-//   },
-//   {
-//     id: 4,
-//     title: 'Marketing Intern',
-//     company: 'Airbnb',
-//     logoColor: '#FF5A5F',
-//     location: 'Remote',
-//     duration: '12 Weeks',
-//     type: null,
-//     isRemote: true,
-//     description: 'Support our global marketing campaigns and help tell the story of belonging anywhere. Ideal for creative storytellers.',
-//     category: 'marketing'
-//   }
-// ];
 
-const filters = ['All', 'Design', 'Engineering', 'Marketing', 'Remote'];
+const filters = [
+  { label: "All" },
+  { label: "Design", categoryId: 2 },
+  { label: "Engineering", categoryId: 1 },
+  { label: "Marketing", categoryId: 3 },
+  { label: "Remote", categoryId: 4 },
+];
 
 const InternshipsScreen = () => {
   const {colors} = useTheme();
@@ -90,44 +46,47 @@ const InternshipsScreen = () => {
   "InternshipList"
 >;
 const [internships, setInternships] = useState<Internship[]>([]);
+const [selectedCategory, setSelectedCategory] = useState<number | undefined>(undefined);
+
 const [loading, setLoading] = useState(true);
 const navigation = useNavigation<InternshipListNavProp>();
-  const [activeFilter, setActiveFilter] = useState<number>(0);
+  // const [activeFilter, setActiveFilter] = useState<number>(0);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeTab, setActiveTab] = useState<number>(1);
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<number>>(new Set());
   const [showBookmarks, setShowBookmarks] = useState<boolean>(false);
 const [showFilterModal, setShowFilterModal] = useState(false);
-useEffect(() => {
-  fetchInternships();
-}, []);
+// useEffect(() => {
+//   fetchInternships();
+// }, []);
 
-const fetchInternships = async () => {
+const fetchInternships = async (categoryId?: number) => {
   try {
-    const response = await fetch(
-      "https://swachify-india-be-1-mcrb.onrender.com/internship/application"
-    );
+    setLoading(true);
 
-    const result = await response.json();
+    let url = "https://swachify-india-be-1-mcrb.onrender.com/internship/application";
 
-    // ✅ API returns { status, data }
-    const list = result?.data ?? [];
-
-    if (!Array.isArray(list)) {
-      throw new Error("Internships data is not an array");
+    //  Only append category_id if it exists
+    if (categoryId !== undefined) {
+      url += `?category_id=${categoryId}`;
     }
+
+    const response = await fetch(url);
+    const json = await response.json();
+
+    const list = json?.data ?? [];
 
     const mapped: Internship[] = list.map((item: any) => ({
       id: item.id,
-      title: item.requirements || "Internship Role",
+      title: item.role_description || "Internship Role",
       company: item.company_name,
       logoColor: "#135bec",
       location: item.company_address,
-      duration: "3 Months", // backend does not provide yet
+      duration: "3 Months",
       type: item.stipend_type_id ? "Paid" : null,
-      isRemote: item.location_type_id === 4, // based on your backend
+      isRemote: item.location_type_id === 4,
       description: item.requirements,
-      category: "engineering", // default (can refine later)
+      category: String(item.category_id),
     }));
 
     setInternships(mapped);
@@ -137,6 +96,12 @@ const fetchInternships = async () => {
     setLoading(false);
   }
 };
+
+useEffect(() => {
+  fetchInternships(selectedCategory);
+}, [selectedCategory]);
+
+
 
   // Toggle bookmark
   const toggleBookmark = (id: number) => {
@@ -159,16 +124,6 @@ const fetchInternships = async () => {
     if (showBookmarks) {
       result = result.filter(internship => bookmarkedIds.has(internship.id));
     } else {
-      // Apply category filter
-      if (activeFilter !== 0) {
-        const filterName = filters[activeFilter].toLowerCase();
-        result = result.filter(internship => {
-          if (filterName === 'remote') {
-            return internship.isRemote;
-          }
-          return internship.category === filterName;
-        });
-      }
 
       // Apply search filter
       if (searchQuery.trim()) {
@@ -182,7 +137,7 @@ const fetchInternships = async () => {
     }
 
     return result;
-  }, [activeFilter, searchQuery, showBookmarks, bookmarkedIds]);
+  }, [selectedCategory, searchQuery, showBookmarks, bookmarkedIds]);
 
   const InternshipCard = ({ internship }: { internship: Internship }) => {
     const isBookmarked = bookmarkedIds.has(internship.id);
@@ -258,33 +213,6 @@ const fetchInternships = async () => {
     <SafeAreaProvider>
       <SafeAreaView style={styles.container} edges={['top']}>
         <StatusBar barStyle="light-content" backgroundColor="#101622" />
-      
-        {/* Top Bar */}
-        {/* <View style={styles.topBar}>
-          <TouchableOpacity style={styles.iconButton}>
-            <Icon name="arrow-back-ios" size={20} color="#ffffff" />
-          </TouchableOpacity>
-          <Text style={styles.pageTitle}>
-            {showBookmarks ? 'Bookmarks' : 'Internships'}
-          </Text>
-          <TouchableOpacity 
-            style={styles.iconButton}
-            onPress={() => setShowBookmarks(!showBookmarks)}
-          >
-            <View>
-              <Icon 
-                name={showBookmarks ? "close" : "bookmark"} 
-                size={24} 
-                color="#ffffff" 
-              />
-              {!showBookmarks && bookmarkedIds.size > 0 && (
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{bookmarkedIds.size}</Text>
-                </View>
-              )}
-            </View>
-          </TouchableOpacity>
-        </View> */}
         {/* Top Bar */}
 <View style={styles.topBar}>
   <TouchableOpacity
@@ -340,28 +268,32 @@ const fetchInternships = async () => {
 
         {/* Filter Chips - Only show when not in bookmarks view */}
         {!showBookmarks && (
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            style={styles.chipsContainer}
-            contentContainerStyle={styles.chipsContent}
-          >
-            {filters.map((filter, index) => (
-              <TouchableOpacity
-                key={filter}
-                style={[
-                  styles.chip,
-                  activeFilter === index ? styles.chipActive : styles.chipInactive
-                ]}
-                onPress={() => setActiveFilter(index)}
-              >
-                <Text style={styles.chipText}>{filter}</Text>
-               {/* {filter === 'Design' && (
-                  <Icon name="keyboard-arrow-down" size={18} color="#9da6b9" />
-                )} */}
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+<ScrollView horizontal showsHorizontalScrollIndicator={false}
+  style={styles.chipsContainer}
+  contentContainerStyle={styles.chipsContent}
+>
+{filters.map((filter) => (
+  <TouchableOpacity
+    key={filter.label}
+    style={[
+      styles.chip,
+      selectedCategory === filter.categoryId && styles.chipActive,
+    ]}
+    onPress={() => setSelectedCategory(filter.categoryId)}
+  >
+    <Text
+      style={[
+        styles.chipText,
+        selectedCategory === filter.categoryId && { color: "#fff" },
+      ]}
+    >
+      {filter.label}
+    </Text>
+  </TouchableOpacity>
+))}
+
+</ScrollView>
+
           
         )}
 {/* Filter Modal */}
@@ -370,18 +302,18 @@ const fetchInternships = async () => {
     <View style={styles.modalContent}>
       <Text style={styles.modalTitle}>Select Filter</Text>
       
-      {filters.slice(1).map((filter, index) => (
-        <TouchableOpacity
-          key={filter}
-          style={styles.modalOption}
-          onPress={() => {
-            setActiveFilter(index + 1); // +1 because filters[0] is "All"
-            setShowFilterModal(false);
-          }}
-        >
-          <Text style={styles.modalOptionText}>{filter}</Text>
-        </TouchableOpacity>
-      ))}
+{filters.slice(1).map((filter) => (
+  <TouchableOpacity
+    key={filter.label}
+    style={styles.modalOption}
+    onPress={() => {
+      setSelectedCategory(filter.categoryId);
+      setShowFilterModal(false);
+    }}
+  >
+    <Text style={styles.modalOptionText}>{filter.label}</Text>
+  </TouchableOpacity>
+))}
 
       <TouchableOpacity
         style={styles.modalCloseButton}
