@@ -187,8 +187,8 @@ export type RootStackParamList = {
   MidTermNotifications : undefined;
   FinalExamSchedule: undefined;
 institutionbranchscreen:undefined
-  PartnerPortalStandalone: undefined;
-  ManagementOverview: undefined;
+
+
   instututionstudents: undefined
 };
 
@@ -272,11 +272,11 @@ function AppNavigator() {
         {/* <Stack.Screen name="Doctor" component={DoctorsListScreen} /> */}
         <Stack.Screen name="EducationDashboardReport" component={EducationDashboardReport} />
         <Stack.Screen name="PartnerAuth" component={PartnerAuth} options={{ headerShown: false }}/>
-     
         <Stack.Screen name="StudentOverviewScreen" component={StudentOverviewScreen} />
          <Stack.Screen name="Doctor" component={DoctorsListScreen} />
          <Stack.Screen name="Offline" component={HospitalDoctorsScreen} />
          <Stack.Screen name="DoctorProfile" component={DoctorProfile} />
+       <Stack.Screen name="institutionbranchscreen" component={InstitutionBranch} />
          <Stack.Screen name="MyBookings" component={MyBookingsScreen} />
          <Stack.Screen name="VideoCall" component={VideoCallScreen} />
          <Stack.Screen name="TreatmentSummary" component={TreatmentSummaryScreen} />
