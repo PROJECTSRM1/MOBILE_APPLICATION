@@ -86,9 +86,14 @@ const PartnerPortalStandalone = () => {
               Access course materials, grades, and all student-facing features to verify the learning experience.
             </Text>
 
-            <TouchableOpacity style={styles.primaryButton}>
-              <Text style={styles.primaryButtonText}>Enter Student View</Text>
-            </TouchableOpacity>
+         <TouchableOpacity
+  style={styles.primaryButton}
+  onPress={() => navigation.navigate("institutionbranchscreen")}
+>
+  <Text style={styles.primaryButtonText}>Enter Student View</Text>
+</TouchableOpacity>
+
+
           </View>
         </View>
 

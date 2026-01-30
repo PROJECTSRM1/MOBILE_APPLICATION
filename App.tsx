@@ -75,7 +75,7 @@ import InstitutionLoginPortal from "./src/screens/InstitutionLoginPortal";
 import InstitutionOTPVerification from "./src/screens/InstitutionOTPVerification";
 import PartnerPortalStandalone from "./src/screens/Partnerportalstandalone";
 import ManagementOverview from "./src/screens/ManagementOverview";
-
+import InstitutionBranch from "./src/screens/institutionbranch";
 
 
 export type RootStackParamList = {
@@ -154,7 +154,7 @@ export type RootStackParamList = {
   InstitutionWelcomeScreen: undefined;
   InstitutionLoginPortal: undefined;
   InstitutionOTPVerification: undefined
-
+institutionbranchscreen:undefined
   PartnerPortalStandalone: undefined;
   ManagementOverview: undefined;
 };
@@ -240,6 +240,7 @@ function AppNavigator() {
           component={PartnerAuth}
           options={{ headerShown: false }}
         />
+        <Stack.Screen name="institutionbranchscreen" component={InstitutionBranch} />
         <Stack.Screen name="InstitutionRegistrationStep1" component={InstitutionRegistrationStep1} />
         <Stack.Screen name="InstitutionRegistrationStep2" component={InstitutionRegistrationStep2} />
         <Stack.Screen name="InstitutionWelcomeScreen" component={InstitutionWelcomeScreen} />
