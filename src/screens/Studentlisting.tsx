@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -39,96 +39,96 @@ interface Student {
    DATA (12 STUDENTS)
 ======================= */
 
-const studentsData: Student[] = [
-  {
-    id: 2045,
-    name: "Sarah Jenkins",
-    program: "B.Tech Computer Science",
-    rating: 4.8,
-    status: "active",
-    attendance: 92,
-    shift: "10:00 AM - 07:00 PM",
-    skills: ["Java", "Python"],
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200",
-  },
-  {
-    id: 1988,
-    name: "Michael Chen",
-    program: "M.S. Data Science",
-    rating: 4.5,
-    status: "completed",
-    attendance: 88,
-    shift: "10:00 AM - 07:00 PM",
-    skills: ["Python", "Angular"],
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200",
-  },
-  {
-    id: 2092,
-    name: "Emily Rodriguez",
-    program: "B.E. Information Tech",
-    rating: 4.9,
-    status: "active",
-    attendance: 95,
-    shift: "10:00 AM - 07:00 PM",
-    skills: ["React"],
-    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200",
-  },
-  {
-    id: 2101,
-    name: "David Kim",
-    program: "B.S. Software Eng",
-    rating: 4.7,
-    status: "completed",
-    attendance: 90,
-    shift: "10:00 AM - 07:00 PM",
-    skills: ["Java"],
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200",
-  },
-  {
-    id: 2112,
-    name: "Ananya Rao",
-    program: "B.Tech AI & ML",
-    rating: 4.6,
-    status: "active",
-    attendance: 91,
-    shift: "09:00 AM - 06:00 PM",
-    skills: ["Python", "React"],
-    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200",
-  },
-  {
-    id: 2115,
-    name: "Rahul Mehta",
-    program: "B.E. CSE",
-    rating: 4.3,
-    status: "completed",
-    attendance: 82,
-    shift: "10:00 AM - 07:00 PM",
-    skills: ["Angular"],
-    avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200",
-  },
-  {
-    id: 2120,
-    name: "Sneha Iyer",
-    program: "B.Tech IT",
-    rating: 4.9,
-    status: "active",
-    attendance: 97,
-    shift: "09:30 AM - 06:30 PM",
-    skills: ["Java", "React"],
-    avatar: "https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=200",
-  },
-  {
-    id: 2123,
-    name: "Arjun Patel",
-    program: "B.S. Data Analytics",
-    rating: 4.4,
-    status: "completed",
-    attendance: 78,
-    shift: "10:00 AM - 07:00 PM",
-    skills: ["Python"],
-    avatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200",
-  },
-];
+// const studentsData: Student[] = [
+//   {
+//     id: 2045,
+//     name: "Sarah Jenkins",
+//     program: "B.Tech Computer Science",
+//     rating: 4.8,
+//     status: "active",
+//     attendance: 92,
+//     shift: "10:00 AM - 07:00 PM",
+//     skills: ["Java", "Python"],
+//     avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200",
+//   },
+//   {
+//     id: 1988,
+//     name: "Michael Chen",
+//     program: "M.S. Data Science",
+//     rating: 4.5,
+//     status: "completed",
+//     attendance: 88,
+//     shift: "10:00 AM - 07:00 PM",
+//     skills: ["Python", "Angular"],
+//     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200",
+//   },
+//   {
+//     id: 2092,
+//     name: "Emily Rodriguez",
+//     program: "B.E. Information Tech",
+//     rating: 4.9,
+//     status: "active",
+//     attendance: 95,
+//     shift: "10:00 AM - 07:00 PM",
+//     skills: ["React"],
+//     avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200",
+//   },
+//   {
+//     id: 2101,
+//     name: "David Kim",
+//     program: "B.S. Software Eng",
+//     rating: 4.7,
+//     status: "completed",
+//     attendance: 90,
+//     shift: "10:00 AM - 07:00 PM",
+//     skills: ["Java"],
+//     avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200",
+//   },
+//   {
+//     id: 2112,
+//     name: "Ananya Rao",
+//     program: "B.Tech AI & ML",
+//     rating: 4.6,
+//     status: "active",
+//     attendance: 91,
+//     shift: "09:00 AM - 06:00 PM",
+//     skills: ["Python", "React"],
+//     avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200",
+//   },
+//   {
+//     id: 2115,
+//     name: "Rahul Mehta",
+//     program: "B.E. CSE",
+//     rating: 4.3,
+//     status: "completed",
+//     attendance: 82,
+//     shift: "10:00 AM - 07:00 PM",
+//     skills: ["Angular"],
+//     avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200",
+//   },
+//   {
+//     id: 2120,
+//     name: "Sneha Iyer",
+//     program: "B.Tech IT",
+//     rating: 4.9,
+//     status: "active",
+//     attendance: 97,
+//     shift: "09:30 AM - 06:30 PM",
+//     skills: ["Java", "React"],
+//     avatar: "https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=200",
+//   },
+//   {
+//     id: 2123,
+//     name: "Arjun Patel",
+//     program: "B.S. Data Analytics",
+//     rating: 4.4,
+//     status: "completed",
+//     attendance: 78,
+//     shift: "10:00 AM - 07:00 PM",
+//     skills: ["Python"],
+//     avatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200",
+//   },
+// ];
 
 /* =======================
    FILTERS
@@ -210,33 +210,113 @@ const Studentlisting = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const inputRef = useRef<TextInput>(null);
+const [students, setStudents] = useState<Student[]>([]);
+const [loading, setLoading] = useState(true);
+useEffect(() => {
+  if (activeTab === "Top Performers") {
+    fetchTopPerformers();
+  } else if (activeTab === "Recent Joiners") {
+    fetchRecentJoiners();
+  } else {
+    fetchAllStudents();
+  }
+}, [activeTab]);
+const mapStudentItem = (item: any): Student => ({
+  id: item.user_id,
+  name: item.student_name,
+  program: item.education?.[0]?.degree ?? "Program not specified",
+  avatar:
+    "https://ui-avatars.com/api/?name=" +
+    encodeURIComponent(item.student_name),
+  rating: Number(item.rating ?? 0),
+  status:
+    item.internship_status === "Completed"
+      ? "completed"
+      : "active",
+  attendance: Number(item.attendance_percentage ?? 0),
+  shift: "10:00 AM - 07:00 PM",
+  skills: item.skill ? [item.skill] : [],
+});
+const fetchAllStudents = async () => {
+  setLoading(true);
+  try {
+    const response = await fetch(
+      "https://swachify-india-be-1-mcrb.onrender.com/api/education/students-list"
+    );
+    const list = await response.json();
+
+    if (!Array.isArray(list)) {
+      throw new Error("Students API did not return an array");
+    }
+
+    setStudents(list.map(mapStudentItem));
+  } catch (err) {
+    console.error("Students fetch error:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
+const fetchTopPerformers = async () => {
+  setLoading(true);
+  try {
+    const response = await fetch(
+      "https://swachify-india-be-1-mcrb.onrender.com/api/education/students/top-performers?limit=10"
+    );
+    const list = await response.json();
+
+    setStudents(
+      Array.isArray(list)
+        ? list.map(mapStudentItem)
+        : []
+    );
+  } catch (err) {
+    console.error("Top performers fetch error:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+const fetchRecentJoiners = async () => {
+  setLoading(true);
+  try {
+    const response = await fetch(
+      "https://swachify-india-be-1-mcrb.onrender.com/api/education/students/recent-joiners?limit=10"
+    );
+    const list = await response.json();
+
+    setStudents(
+      Array.isArray(list)
+        ? list.map(mapStudentItem)
+        : []
+    );
+  } catch (err) {
+    console.error("Recent joiners fetch error:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   /* =======================
      FILTER LOGIC
   ======================= */
+  
  const filteredStudents = useMemo(() => {
-  // 🔹 TOP PERFORMERS (NO FILTERS)
-  if (activeTab === "Top Performers") {
-    return studentsData.filter(
-      (s) => s.rating >= 4.7 || s.attendance >= 90
-    );
+  // 🔹 For Top Performers & Recent Joiners
+  // API already returns correct data → no extra filtering
+  if (activeTab === "Top Performers" || activeTab === "Recent Joiners") {
+    return students;
   }
 
-  // 🔹 RECENT JOINERS (NO FILTERS)
-  if (activeTab === "Recent Joiners") {
-    return [...studentsData]
-      .sort((a, b) => b.id - a.id)
-      .slice(0, 5);
-  }
+  // 🔹 ALL STUDENTS (filters apply only here)
+  return students.filter((s) => {
+    const query = searchQuery.toLowerCase().trim();
 
-  // 🔹 ALL STUDENTS (EXISTING FILTERS)
-  return studentsData.filter((s) => {
-   const query = searchQuery.toLowerCase().trim();
-
-const matchNameOrId =
-  s.name.toLowerCase().includes(query) ||
-  s.id.toString().includes(query);
-
+    const matchNameOrId =
+      s.name.toLowerCase().includes(query) ||
+      s.id.toString().includes(query);
 
     const matchCert =
       !selectedCert || s.skills.includes(selectedCert);
@@ -259,20 +339,21 @@ const matchNameOrId =
         s.status === "active");
 
     return (
-  matchNameOrId &&
-  matchCert &&
-  matchAggregate &&
-  matchInternship
-);
-
+      matchNameOrId &&
+      matchCert &&
+      matchAggregate &&
+      matchInternship
+    );
   });
 }, [
+  students,
   activeTab,
   searchQuery,
   selectedCert,
   selectedAggregate,
   selectedInternship,
 ]);
+
 
 
   /* =======================
@@ -420,7 +501,15 @@ const renderStudent = ({ item }: { item: Student }) => (
   </TouchableOpacity>
 );
 
-
+if (loading) {
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <Text style={{ color: colors.text, textAlign: "center", marginTop: 40 }}>
+        Loading students...
+      </Text>
+    </SafeAreaView>
+  );
+}
 
 
   return (

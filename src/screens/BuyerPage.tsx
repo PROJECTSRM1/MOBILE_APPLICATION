@@ -60,6 +60,7 @@ interface Property {
   hasConferenceRoom?: boolean;
   petFriendly?: boolean;
   cancellationPolicy?: string;
+  isUserListing?: boolean;
 }
 
 const BuyerPage = ({ route, navigation }: any) => {
@@ -69,6 +70,7 @@ const BuyerPage = ({ route, navigation }: any) => {
   
   const [fullName, setFullName] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
+  const [email, setEmail] = useState('');
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -77,17 +79,24 @@ const BuyerPage = ({ route, navigation }: any) => {
   const [isDocViewerVisible, setIsDocViewerVisible] = useState(false);
   const [selectedDocImage, setSelectedDocImage] = useState<string | null>(null);
 
-  const images = property.images || [property.image || 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=500'];
+  // Ensure images array is properly initialized with all available images
+  const images = React.useMemo(() => {
+    if (property.images && Array.isArray(property.images) && property.images.length > 0) {
+      return property.images;
+    } else if (property.image) {
+      return [property.image];
+    } else {
+      return ['https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=500'];
+    }
+  }, [property.images, property.image]);
 
   const isHostel = property.propertyType === 'Hostel';
   const isLand = property.propertyType === 'Land';
   const isHotel = property.propertyType === 'Hotel';
 
-  // Check if this is a dummy hostel or hotel (starts with 'hostel_' or 'hotel_')
   const isDummyHostel = property.id.startsWith('hostel_');
   const isDummyHotel = property.id.startsWith('hotel_');
 
-  // Smart hostel data handling - use actual data if available, otherwise use defaults only for dummy data
   const hostelData = isHostel ? {
     hostelType: property.hostelType || 'Boys',
     totalRooms: property.totalRooms || (isDummyHostel ? '20' : 'N/A'),
@@ -101,7 +110,6 @@ const BuyerPage = ({ route, navigation }: any) => {
     hasSecurity: property.hasSecurity !== undefined ? property.hasSecurity : isDummyHostel,
   } : null;
 
-  // Smart hotel data handling
   const hotelData = isHotel ? {
     hotelName: property.hotelName || 'Hotel',
     hotelStarRating: property.hotelStarRating || '3',
@@ -158,14 +166,66 @@ const BuyerPage = ({ route, navigation }: any) => {
     }
   };
 
+  // Validation functions
+  const validateName = (text: string): boolean => {
+    const nameRegex = /^[a-zA-Z\s]*$/;
+    return nameRegex.test(text);
+  };
+
+  const validatePhoneNumber = (text: string): boolean => {
+    const phoneRegex = /^[0-9+\-\s]*$/;
+    return phoneRegex.test(text);
+  };
+
+  const validateEmail = (text: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(text);
+  };
+
+  const handleFullNameChange = (text: string) => {
+    if (validateName(text)) {
+      setFullName(text);
+    }
+  };
+
+  const handleMobileNumberChange = (text: string) => {
+    if (validatePhoneNumber(text)) {
+      setMobileNumber(text);
+    }
+  };
+
   const formatCurrency = (val: string | undefined) => {
     if (!val) return 'N/A';
     return `₹${parseFloat(val).toLocaleString('en-IN')}`;
   };
 
   const handleBuyProperty = () => {
-    if (!fullName || !mobileNumber || !deliveryAddress) {
-      Alert.alert('Error', 'Please fill all fields');
+    if (!fullName.trim()) {
+      Alert.alert('Validation Error', 'Please enter your full name (letters only)');
+      return;
+    }
+    if (!validateName(fullName)) {
+      Alert.alert('Validation Error', 'Name can only contain letters and spaces');
+      return;
+    }
+    if (!mobileNumber.trim() || mobileNumber.replace(/[\s+\-]/g, '').length < 10) {
+      Alert.alert('Validation Error', 'Please enter a valid mobile number (minimum 10 digits)');
+      return;
+    }
+    if (!validatePhoneNumber(mobileNumber)) {
+      Alert.alert('Validation Error', 'Mobile number can only contain numbers, +, -, and spaces');
+      return;
+    }
+    if (!email.trim()) {
+      Alert.alert('Validation Error', 'Please enter your email address');
+      return;
+    }
+    if (!validateEmail(email)) {
+      Alert.alert('Validation Error', 'Please enter a valid email address');
+      return;
+    }
+    if (!deliveryAddress.trim()) {
+      Alert.alert('Validation Error', isHotel ? 'Please enter any special requests or requirements' : 'Please enter your complete address');
       return;
     }
     setShowSuccessModal(true);
@@ -231,6 +291,12 @@ const BuyerPage = ({ route, navigation }: any) => {
               <Image key={index} source={{ uri: img }} style={styles.propertyImage} />
             ))}
           </ScrollView>
+          {images.length > 1 && (
+            <View style={styles.imageCounterOverlay}>
+              <MaterialIcons name="photo-library" size={16} color="#fff" />
+              <Text style={styles.imageCounterText}>{activeImageIndex + 1} / {images.length}</Text>
+            </View>
+          )}
           <View style={styles.imageIndicatorContainer}>
             {images.map((_, index) => (
               <View key={index} style={[styles.imageIndicator, activeImageIndex === index && styles.activeImageIndicator]} />
@@ -377,28 +443,35 @@ const BuyerPage = ({ route, navigation }: any) => {
             </View>
           )}
 
-          {property.ownerName && (
-            <View style={styles.ownerCard}>
-              <View style={styles.ownerAvatar}><MaterialIcons name="person" size={30} color="#135bec" /></View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.ownerName}>{property.ownerName}</Text>
-                <Text style={styles.ownerContact}>{property.mobileNumber}</Text>
-              </View>
-              <TouchableOpacity style={styles.callButton}><MaterialIcons name="phone" size={20} color="#fff" /></TouchableOpacity>
-            </View>
-          )}
-
           <View style={styles.formSection}>
             <Text style={styles.sectionTitle}>
-              {isHotel ? 'Booking Inquiry' : 'Inquiry Form'}
+              {isHotel ? 'Booking Inquiry' : 'Contact Seller'}
             </Text>
-            <CustomInput label="FULL NAME" value={fullName} onChange={setFullName} placeholder="John Doe" />
-            <CustomInput label="MOBILE" value={mobileNumber} onChange={setMobileNumber} placeholder="10 Digit Number" keyboard="phone-pad" />
             <CustomInput 
-              label={isHotel ? "SPECIAL REQUESTS" : "ADDRESS"} 
+              label="FULL NAME (Letters only)" 
+              value={fullName} 
+              onChange={handleFullNameChange} 
+              placeholder="John Doe" 
+            />
+            <CustomInput 
+              label="MOBILE NUMBER (10+ digits)" 
+              value={mobileNumber} 
+              onChange={handleMobileNumberChange} 
+              placeholder="+91 98765 43210" 
+              keyboard="phone-pad" 
+            />
+            <CustomInput 
+              label="EMAIL ADDRESS" 
+              value={email} 
+              onChange={setEmail} 
+              placeholder="johndoe@example.com" 
+              keyboard="email-address" 
+            />
+            <CustomInput 
+              label={isHotel ? "SPECIAL REQUESTS" : "COMPLETE ADDRESS"} 
               value={deliveryAddress} 
               onChange={setDeliveryAddress} 
-              placeholder={isHotel ? "Any special requirements" : "Detailed Address"} 
+              placeholder={isHotel ? "Any special requirements" : "Enter your full address with pincode"} 
               multiline 
             />
           </View>
@@ -501,6 +574,23 @@ const getStyles = (colors: any) => StyleSheet.create({
   content: { flex: 1 },
   imageSection: { position: 'relative' },
   propertyImage: { width, height: width * 0.9, backgroundColor: colors.card },
+  imageCounterOverlay: { 
+    position: 'absolute', 
+    top: 16, 
+    right: 16, 
+    backgroundColor: 'rgba(0, 0, 0, 0.7)', 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    paddingHorizontal: 12, 
+    paddingVertical: 6, 
+    borderRadius: 20, 
+    gap: 6 
+  },
+  imageCounterText: { 
+    fontSize: 12, 
+    fontWeight: '700', 
+    color: '#fff' 
+  },
   imageIndicatorContainer: { position: 'absolute', bottom: 16, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', gap: 6 },
   imageIndicator: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.4)' },
   activeImageIndicator: { backgroundColor: '#fff', width: 18 },
@@ -641,11 +731,6 @@ const getStyles = (colors: any) => StyleSheet.create({
   docWrapper: { marginRight: 12, width: 110, height: 140, borderRadius: 12, overflow: 'hidden', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
   docThumb: { width: '100%', height: '100%' },
   docOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' },
-  ownerCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, padding: 16, borderRadius: 16, marginTop: 24, borderWidth: 1, borderColor: colors.border },
-  ownerAvatar: { width: 50, height: 50, borderRadius: 25, backgroundColor: colors.primary + '20', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
-  ownerName: { fontSize: 16, fontWeight: '700', color: colors.text },
-  ownerContact: { fontSize: 13, color: colors.subText },
-  callButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'center' },
   formSection: { marginTop: 32 },
   bottomSection: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, backgroundColor: colors.background, borderTopWidth: 1, borderTopColor: colors.border },
   bottomPriceLabel: { fontSize: 12, color: colors.subText, fontWeight: '700' },

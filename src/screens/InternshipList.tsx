@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo ,useEffect} from 'react';
 import {
   View,
   Text,
@@ -29,56 +29,56 @@ export interface Internship {
   category: string;
 }
 
-const internships: Internship[] = [
-  {
-    id: 1,
-    title: 'UX Design Intern',
-    company: 'Spotify',
-    logoColor: '#1DB954',
-    location: 'Stockholm',
-    duration: '6 Months',
-    type: 'Paid',
-    isRemote: false,
-    description: 'Join our design team to help shape the future of audio streaming. You will work closely with researchers, product managers...',
-    category: 'design'
-  },
-  {
-    id: 2,
-    title: 'Software Engineer Intern',
-    company: 'Google',
-    logoColor: '#4285F4',
-    location: 'Remote',
-    duration: '3 Months',
-    type: null,
-    isRemote: true,
-    description: 'Work on large-scale systems and help build the future of search. We are looking for students with strong algorithmic skills...',
-    category: 'engineering'
-  },
-  {
-    id: 3,
-    title: 'Product Design Intern',
-    company: 'Apple',
-    logoColor: '#000000',
-    location: 'Cupertino',
-    duration: 'Summer 2024',
-    type: null,
-    isRemote: false,
-    description: "Define the user experience for Apple products. You'll work on everything from hardware interactions to software interfaces.",
-    category: 'design'
-  },
-  {
-    id: 4,
-    title: 'Marketing Intern',
-    company: 'Airbnb',
-    logoColor: '#FF5A5F',
-    location: 'Remote',
-    duration: '12 Weeks',
-    type: null,
-    isRemote: true,
-    description: 'Support our global marketing campaigns and help tell the story of belonging anywhere. Ideal for creative storytellers.',
-    category: 'marketing'
-  }
-];
+// const internships: Internship[] = [
+//   {
+//     id: 1,
+//     title: 'UX Design Intern',
+//     company: 'Spotify',
+//     logoColor: '#1DB954',
+//     location: 'Stockholm',
+//     duration: '6 Months',
+//     type: 'Paid',
+//     isRemote: false,
+//     description: 'Join our design team to help shape the future of audio streaming. You will work closely with researchers, product managers...',
+//     category: 'design'
+//   },
+//   {
+//     id: 2,
+//     title: 'Software Engineer Intern',
+//     company: 'Google',
+//     logoColor: '#4285F4',
+//     location: 'Remote',
+//     duration: '3 Months',
+//     type: null,
+//     isRemote: true,
+//     description: 'Work on large-scale systems and help build the future of search. We are looking for students with strong algorithmic skills...',
+//     category: 'engineering'
+//   },
+//   {
+//     id: 3,
+//     title: 'Product Design Intern',
+//     company: 'Apple',
+//     logoColor: '#000000',
+//     location: 'Cupertino',
+//     duration: 'Summer 2024',
+//     type: null,
+//     isRemote: false,
+//     description: "Define the user experience for Apple products. You'll work on everything from hardware interactions to software interfaces.",
+//     category: 'design'
+//   },
+//   {
+//     id: 4,
+//     title: 'Marketing Intern',
+//     company: 'Airbnb',
+//     logoColor: '#FF5A5F',
+//     location: 'Remote',
+//     duration: '12 Weeks',
+//     type: null,
+//     isRemote: true,
+//     description: 'Support our global marketing campaigns and help tell the story of belonging anywhere. Ideal for creative storytellers.',
+//     category: 'marketing'
+//   }
+// ];
 
 const filters = ['All', 'Design', 'Engineering', 'Marketing', 'Remote'];
 
@@ -89,7 +89,8 @@ const InternshipsScreen = () => {
   RootStackParamList,
   "InternshipList"
 >;
-
+const [internships, setInternships] = useState<Internship[]>([]);
+const [loading, setLoading] = useState(true);
 const navigation = useNavigation<InternshipListNavProp>();
   const [activeFilter, setActiveFilter] = useState<number>(0);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -97,6 +98,45 @@ const navigation = useNavigation<InternshipListNavProp>();
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<number>>(new Set());
   const [showBookmarks, setShowBookmarks] = useState<boolean>(false);
 const [showFilterModal, setShowFilterModal] = useState(false);
+useEffect(() => {
+  fetchInternships();
+}, []);
+
+const fetchInternships = async () => {
+  try {
+    const response = await fetch(
+      "https://swachify-india-be-1-mcrb.onrender.com/internship/application"
+    );
+
+    const result = await response.json();
+
+    // ✅ API returns { status, data }
+    const list = result?.data ?? [];
+
+    if (!Array.isArray(list)) {
+      throw new Error("Internships data is not an array");
+    }
+
+    const mapped: Internship[] = list.map((item: any) => ({
+      id: item.id,
+      title: item.requirements || "Internship Role",
+      company: item.company_name,
+      logoColor: "#135bec",
+      location: item.company_address,
+      duration: "3 Months", // backend does not provide yet
+      type: item.stipend_type_id ? "Paid" : null,
+      isRemote: item.location_type_id === 4, // based on your backend
+      description: item.requirements,
+      category: "engineering", // default (can refine later)
+    }));
+
+    setInternships(mapped);
+  } catch (err) {
+    console.error("Internship fetch error:", err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Toggle bookmark
   const toggleBookmark = (id: number) => {
@@ -150,7 +190,15 @@ const [showFilterModal, setShowFilterModal] = useState(false);
     const handleApplyNow = () => {
       navigation.navigate('Internship', { internship });
     };
-    
+    if (loading) {
+  return (
+    <SafeAreaView style={styles.container}>
+      <Text style={{ color: colors.text, textAlign: "center", marginTop: 40 }}>
+        Loading internships...
+      </Text>
+    </SafeAreaView>
+  );
+}
     return (
       <View style={styles.card}>
         <View style={styles.cardHeader}>
@@ -308,9 +356,9 @@ const [showFilterModal, setShowFilterModal] = useState(false);
                 onPress={() => setActiveFilter(index)}
               >
                 <Text style={styles.chipText}>{filter}</Text>
-                {index > 0 && index < 4 && (
+               {/* {filter === 'Design' && (
                   <Icon name="keyboard-arrow-down" size={18} color="#9da6b9" />
-                )}
+                )} */}
               </TouchableOpacity>
             ))}
           </ScrollView>
