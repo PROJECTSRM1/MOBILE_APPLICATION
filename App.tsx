@@ -70,6 +70,9 @@ import HospitalDoctorsScreen from "./src/screens/HospitalDoctorsScreen";
 import DoctorProfile from "./src/screens/Doctorprofile";
 import InstitutionRegistrationStep1 from "./src/screens/InstitutionRegistrationStep1";
 import InstitutionRegistrationStep2 from "./src/screens/InstitutionRegistrationStep2";
+import PartnerPortalStandalone from "./src/screens/Partnerportalstandalone";
+import ManagementOverview from "./src/screens/ManagementOverview";
+
 
 
 export type RootStackParamList = {
@@ -120,33 +123,33 @@ export type RootStackParamList = {
   Training: undefined;
   TrainingDetails: undefined;
   ApplicationSuccess: undefined;
-  // ReviewApplication: undefined;
-   ReviewApplication: { internship: Internship };
+  ReviewApplication: { internship: Internship };
   ProductDetail: undefined;
   BuyerPage: undefined;
   ServiceDetails: undefined;
   PaymentSuccessDetails: undefined;
   JustRideMultiStop: undefined;
   JustrideApp: undefined;
-  Health:undefined;
-  Form:undefined;
-  Telecom:undefined;
-  Facility:undefined;
+  Health: undefined;
+  Form: undefined;
+  Telecom: undefined;
+  Facility: undefined;
   Wishlist: undefined;
-  Ambulance:undefined;
+  Ambulance: undefined;
   PartnerAuth: undefined;
   InquiryDetails: undefined;
   buysellPartnerDashboard: undefined;
   EducationPartnerDashboard: undefined;
-  HealthcarePartnerDashboard:undefined;
-  bookings:undefined;
-  Doctor:undefined;
+  HealthcarePartnerDashboard: undefined;
+  bookings: undefined;
+  Doctor: undefined;
   DriverDashboard: undefined;
   Offline:undefined
   DoctorProfile:undefined
   InstitutionRegistrationStep1: undefined;
   InstitutionRegistrationStep2: undefined;
-
+  PartnerPortalStandalone: undefined;
+  ManagementOverview: undefined;
 };
 
 /* ================= NAV ================= */
@@ -157,7 +160,6 @@ function AppNavigator() {
   const { navigationTheme } = useTheme();
 
   return (
-   
     <NavigationContainer theme={navigationTheme}>
       <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={Splash} />
@@ -204,11 +206,11 @@ function AppNavigator() {
         <Stack.Screen name="JustrideApp" component={JustrideApp} />
         <Stack.Screen name="Health" component={DoctorListScreen} />
         <Stack.Screen name="Form" component={ConsultationRequestScreen} />
-         <Stack.Screen name="Telecom" component={TelemedicineConsultation} />
-         <Stack.Screen name="Wishlist" component={Wishlist} />
-         <Stack.Screen name="ParcelView" component={ParcelView} />
-         <Stack.Screen name="MetroView" component={MetroView} />
-         <Stack.Screen name="ScootyView" component={ScootyView} />
+        <Stack.Screen name="Telecom" component={TelemedicineConsultation} />
+        <Stack.Screen name="Wishlist" component={Wishlist} />
+        <Stack.Screen name="ParcelView" component={ParcelView} />
+        <Stack.Screen name="MetroView" component={MetroView} />
+        <Stack.Screen name="ScootyView" component={ScootyView} />
         <Stack.Screen name="enrollmentDetails" component={EnrollmentDetailsScreen} />
         <Stack.Screen name="Ambulance" component={AmbulanceBookingScreen} />
         <Stack.Screen name="SwachifyPartnerScreen" component={SwachifyPartnerScreen} />
@@ -226,20 +228,27 @@ function AppNavigator() {
           name="EducationDashboardReport" 
           component={EducationDashboardReport} 
         />
-
         <Stack.Screen
-  name="PartnerAuth"
-  component={PartnerAuth}
-  options={{ headerShown: false }}
-/>
+          name="PartnerAuth"
+          component={PartnerAuth}
+          options={{ headerShown: false }}
+        />
         <Stack.Screen name="InstitutionRegistrationStep1" component={InstitutionRegistrationStep1} />
         <Stack.Screen name="InstitutionRegistrationStep2" component={InstitutionRegistrationStep2} />
+        <Stack.Screen 
+          name="PartnerPortalStandalone" 
+          component={PartnerPortalStandalone}
+          options={{ headerShown: false }}
+        />
 
+        <Stack.Screen
+  name="ManagementOverview"
+  component={ManagementOverview}
+  options={{ headerShown: false }}
+/>
 
       </Stack.Navigator>
     </NavigationContainer>
-     
-      
   );
 }
 
