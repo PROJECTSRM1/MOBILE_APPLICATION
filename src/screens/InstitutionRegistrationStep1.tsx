@@ -10,6 +10,7 @@ import {
   Alert,
   Modal,
   FlatList,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import LinearGradient from "react-native-linear-gradient";
@@ -18,6 +19,8 @@ import { useNavigation } from "@react-navigation/native";
 import { useTheme } from "../context/ThemeContext";
 import { launchImageLibrary } from "react-native-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const BASE_URL = "https://swachify-india-be-1-mcrb.onrender.com";
 
 interface FormData {
   institutionName: string;
@@ -39,16 +42,16 @@ interface DropdownOption {
 }
 
 const INSTITUTION_TYPES: DropdownOption[] = [
-  { label: "School (K-12)", value: "school" },
-  { label: "College", value: "college" },
-  { label: "University", value: "university" },
-  { label: "Vocational Training", value: "vocational" },
+  { label: "School (K-12)", value: "1" },
+  { label: "College", value: "2" },
+  { label: "University", value: "3" },
+  { label: "Vocational Training", value: "4" },
 ];
 
 const IDENTITY_TYPES: DropdownOption[] = [
-  { label: "Aadhar Card", value: "aadhar" },
-  { label: "PAN Card", value: "pan" },
-  { label: "Registration Certificate", value: "registration" },
+  { label: "Aadhar Card", value: "1" },
+  { label: "PAN Card", value: "2" },
+  { label: "Registration Certificate", value: "3" },
 ];
 
 const STORAGE_KEY = "@institution_registration_step1";
@@ -78,6 +81,7 @@ const InstitutionRegistrationStep1 = () => {
 
   const [showInstitutionDropdown, setShowInstitutionDropdown] = useState(false);
   const [showIdentityDropdown, setShowIdentityDropdown] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // Load saved data on mount
   useEffect(() => {
@@ -228,7 +232,10 @@ const InstitutionRegistrationStep1 = () => {
 
   const handleContinue = () => {
     if (validateForm()) {
-      navigation.navigate("InstitutionRegistrationStep2", { formData });
+      // Navigate to step 2 with form data
+      navigation.navigate("InstitutionRegistrationStep2", { 
+        step1Data: formData 
+      });
     } else {
       Alert.alert(
         "Validation Error",
@@ -311,7 +318,7 @@ const InstitutionRegistrationStep1 = () => {
   );
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
       <StatusBar barStyle="light-content" />
       <LinearGradient
         colors={[
@@ -658,9 +665,16 @@ const InstitutionRegistrationStep1 = () => {
             style={styles.continueButton}
             onPress={handleContinue}
             activeOpacity={0.8}
+            disabled={loading}
           >
-            <Text style={styles.continueButtonText}>Verify & Continue</Text>
-            <Icon name="chevron-right" size={24} color="#fff" />
+            {loading ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <>
+                <Text style={styles.continueButtonText}>Verify & Continue</Text>
+                <Icon name="chevron-right" size={24} color="#fff" />
+              </>
+            )}
           </TouchableOpacity>
         </View>
 
