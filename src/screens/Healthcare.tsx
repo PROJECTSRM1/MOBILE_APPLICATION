@@ -548,6 +548,7 @@ const handleBookNow = (item: any) => {
   } else {
     setShowDoctorBookedModal(true); // Standard Doctor booking
   }
+  navigation.navigate('AppointmentBooking', { doctor: item });
 };
 
 const handleLabStoreConfirm = () => {
@@ -1494,10 +1495,14 @@ Ambulance: ${wantsAmbulance === 'yes' ? `Yes (Pickup: ${pickupTime})` : 'No'}`,
           <Icon name="home" size={24} color="#2d7576" />
           <Text style={styles.navTextActive}>Home</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Icon name="calendar-today" size={24} color="#9ca3af" />
-          <Text style={styles.navText}>Consults</Text>
-        </TouchableOpacity>
+     <TouchableOpacity
+  style={styles.navItem}
+  onPress={() => navigation.navigate('MyBookings')}
+>
+  <Icon name="calendar-today" size={24} color="#9ca3af" />
+  <Text style={styles.navText}>My Bookings</Text>
+</TouchableOpacity>
+
         <TouchableOpacity style={styles.navItem}>
           <Icon name="folder-open" size={24} color="#9ca3af" />
           <Text style={styles.navText}>Records</Text>

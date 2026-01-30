@@ -45,7 +45,7 @@ type RootStackParamList = {
    MAIN SCREEN
 ========================= */
 const CandidateProfile = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation as any;
   const route = useRoute<RouteProp<RootStackParamList, "CandidateProfile">>();
   const { student, onSave } = route.params;
 
@@ -58,6 +58,9 @@ const CandidateProfile = () => {
   /* ===== PROFILE ===== */
   const [name, setName] = useState(student.name);
   const [candidateId, setCandidateId] = useState(student.id.toString());
+  const [fatherMemberId, setFatherMemberId] = useState<number | null>(null);
+const [motherMemberId, setMotherMemberId] = useState<number | null>(null);
+
 
   /* ===== IDENTITY ===== */
   const [aadhar, setAadhar] = useState("XXXX-XXXX-1234");
@@ -80,6 +83,7 @@ const [profileData, setProfileData] = useState<any>(null);
 /* ===== VALIDATORS ===== */
 const validateAadhaar = (text: string) => /^\d{12}$/.test(text.replace(/\D/g, ""));
 const validatePAN = (text: string) => /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(text.toUpperCase());
+
 
   /* ===== IMAGE PICKER ===== */
   const pickDocuments = () => {
@@ -107,6 +111,64 @@ const validatePAN = (text: string) => /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(text.toU
     }
   };
 
+const submitFullProfile = async () => {
+  try {
+    // 🔐 SAFETY CHECK
+    if (!profileData?.education || profileData.education.length === 0) {
+      Alert.alert("Error", "Education details are required");
+      return;
+    }
+
+    const payload = {
+      education: profileData.education.map((edu: any) => ({
+        degree: String(edu.degree),
+        institute: String(edu.institute),
+        percentage: String(edu.percentage),
+        passing_year: Number(edu.passing_year ?? 2023), // ✅ REQUIRED
+      })),
+
+      certificates: [],
+
+      noc: {
+        noc_number: "NOC123456",
+        police_station_name: "Local Police Station",
+        issued_date: "2024-01-01",
+      },
+    };
+
+    console.log("POST PAYLOAD →", JSON.stringify(payload, null, 2));
+
+    const response = await fetch(
+      `https://swachify-india-be-1-mcrb.onrender.com/api/education/students/${student.id}/full-profile`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const responseText = await response.text();
+
+    if (!response.ok) {
+      console.log("POST FAILED:", response.status, responseText);
+      Alert.alert(
+        "Backend Error",
+        `Status: ${response.status}\n${responseText}`
+      );
+      return;
+    }
+
+    console.log("POST SUCCESS:", responseText);
+    Alert.alert("Success", "Student profile updated successfully");
+  } catch (error) {
+    console.error("POST EXCEPTION:", error);
+    Alert.alert("Error", "Something went wrong while saving profile");
+  }
+};
+
+
   const fetchFullProfile = async () => {
   try {
     setProfileLoading(true);
@@ -115,6 +177,7 @@ const validatePAN = (text: string) => /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(text.toU
       `https://swachify-india-be-1-mcrb.onrender.com/api/education/students/${student.id}/full-profile`
     );
 
+
     const data = await response.json();
 
     if (!data?.profile) {
@@ -122,6 +185,27 @@ const validatePAN = (text: string) => /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(text.toU
     }
 
     setProfileData(data);
+
+    const father = data.family_members?.find(
+  (f: any) => f.relation_type === "Father"
+);
+const mother = data.family_members?.find(
+  (f: any) => f.relation_type === "Mother"
+);
+
+if (father) {
+  setFatherName(`${father.first_name} ${father.last_name}`);
+  setFatherPhone(father.phone_number);
+  setFatherMemberId(father.id); // 👈 ADD
+}
+
+if (mother) {
+  setMotherName(`${mother.first_name} ${mother.last_name}`);
+  setMotherPhone(mother.phone_number);
+  setMotherMemberId(mother.id); // 👈 ADD
+}
+
+
 
     // 🔹 BASIC PROFILE
     setName(`${data.profile.first_name} ${data.profile.last_name}`);
@@ -151,6 +235,49 @@ const validatePAN = (text: string) => /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(text.toU
     setProfileLoading(false);
   }
 };
+const updateFamilyMember = async (
+  memberId: number,
+  relationTypeId: number,
+  fullName: string,
+  phone: string
+) => {
+  try {
+    const [first_name, ...lastParts] = fullName.trim().split(" ");
+    const last_name = lastParts.join(" ") || "";
+
+    const payload = {
+      relation_type_id: relationTypeId,
+      first_name,
+      last_name,
+      phone_number: phone,
+    };
+
+    console.log("Updating family member:", memberId, payload);
+
+    const response = await fetch(
+      `https://swachify-india-be-1-mcrb.onrender.com/api/education/family-members/${memberId}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const text = await response.text();
+
+    if (!response.ok) {
+      console.log("Family update failed:", text);
+      Alert.alert("Error", text);
+      return;
+    }
+
+    console.log("Family update success:", text);
+  } catch (error) {
+    console.error("Family update error:", error);
+    Alert.alert("Error", "Failed to update family details");
+  }
+};
+
 
   // useEffect(() => {
   //   const loadStatus = async () => {
@@ -168,27 +295,44 @@ const validatePAN = (text: string) => /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(text.toU
 }, []);
 
   /* ===== SAVE PROFILE HANDLER ===== */
-const handleSaveProfile = () => {
-  // Validate Aadhaar and PAN before saving
+const handleSaveProfile = async () => {
   const isAadhaarValid = validateAadhaar(aadhar);
   const isPANValid = validatePAN(pan);
 
   if (!isAadhaarValid || !isPANValid) {
-     Alert.alert(
+    Alert.alert(
       `Please enter valid details:\n${
         !isAadhaarValid ? "- Aadhaar should be 12 digits\n" : ""
       }${!isPANValid ? "- PAN should be 10 characters (AAAAA1234A)" : ""}`
     );
-    return; // Stop saving
+    return;
   }
 
-  // Proceed to save if valid
-  setEditMode(false);
-  const updatedStudent: Student = { ...student, name };
-  if (onSave) {
-    onSave(updatedStudent); // send updated student back to listing
+  // 🔥 Update family members
+  if (fatherMemberId) {
+    await updateFamilyMember(
+      fatherMemberId,
+      1, // Father
+      fatherName,
+      fatherPhone
+    );
   }
+
+  if (motherMemberId) {
+    await updateFamilyMember(
+      motherMemberId,
+      2, // Mother
+      motherName,
+      motherPhone
+    );
+  }
+
+  setEditMode(false);
+  Alert.alert("Success", "Family details updated successfully");
 };
+
+
+
 
 
 if (profileLoading) {
