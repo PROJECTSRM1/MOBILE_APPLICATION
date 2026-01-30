@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
-import { useRoute } from "@react-navigation/native";
+// import { useRoute } from "@react-navigation/native";
 
 
 interface Student {
@@ -30,8 +30,8 @@ const InstitutionStudents = () => {
   const navigation = useNavigation<any>();
   const { colors, lightMode } = useTheme();
   const styles = getStyles(colors);
-  const route = useRoute<any>();
-const { branchName } = route.params || {};
+  // const route = useRoute<any>();
+// const { branchName } = route.params || {};
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'year' | 'id'>('name');
 
@@ -537,4 +537,4 @@ export default InstitutionStudents;
     navLabelActive: {
       color: colors.primary,
     },
-  });
+  }); 
