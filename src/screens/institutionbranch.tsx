@@ -10,6 +10,9 @@ import {
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { useTheme } from "../context/ThemeContext";
+import { useNavigation } from "@react-navigation/native";
+
+
 
 type Branch = {
   id: string;
@@ -50,6 +53,8 @@ const branches: Branch[] = [
 const BranchDirectoryScreen = () => {
     const { colors } = useTheme();
     const styles = getStyles(colors);
+      const navigation = useNavigation<any>(); // 👈 ADD THIS
+
   const totalStudents = branches.reduce(
     (sum, branch) => sum + branch.students,
     0
@@ -128,11 +133,20 @@ const BranchDirectoryScreen = () => {
               </Text>
             </View>
 
-            <TouchableOpacity style={styles.viewButton}>
-              <Text style={styles.viewButtonText}>
-                View Students <Ionicons name="chevron-forward" size={16} />
-              </Text>
-            </TouchableOpacity>
+           <TouchableOpacity
+  style={styles.viewButton}
+  onPress={() =>
+    navigation.navigate("InstitutionStudents", {
+      branchId: item.id,
+      branchName: item.name,
+    })
+  }
+>
+  <Text style={styles.viewButtonText}>
+    View Students <Ionicons name="chevron-forward" size={16} />
+  </Text>
+</TouchableOpacity>
+
           </View>
         )}
       />
