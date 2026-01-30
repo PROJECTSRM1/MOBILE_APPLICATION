@@ -10,6 +10,10 @@ import {
 } from 'react-native';
 import { useTheme } from "../context/ThemeContext";
 import { useNavigation } from "@react-navigation/native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+
+
 
 
 
@@ -24,8 +28,9 @@ const PartnerPortalStandalone = () => {
     
     
 
-  return (
-    <View style={styles.container}>
+ return (
+  <SafeAreaView style={styles.container}>
+
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       
       {/* Header */}
@@ -174,8 +179,9 @@ const PartnerPortalStandalone = () => {
           </View>
         </View>
       </ScrollView>
-    </View>
-  );
+    </SafeAreaView>
+);
+
 };
 
 const getStyles = (colors: any) => StyleSheet.create({
