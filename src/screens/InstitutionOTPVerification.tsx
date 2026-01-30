@@ -57,7 +57,8 @@ const InstitutionOTPVerification = () => {
       Alert.alert("Success", "OTP verified successfully!", [
         {
           text: "OK",
-          onPress: () => navigation.navigate("InstitutionPartnerPortal"),
+          onPress: () => navigation.replace("PartnerPortalStandalone"),
+
         },
       ]);
     } else {
