@@ -238,7 +238,7 @@ const fetchCompanyDetails = async () => {
 
     const result = await response.json();
 
-    // ✅ SAFELY extract array
+    //  SAFELY extract array
     const list = Array.isArray(result)
       ? result
       : result.data || result.companies || [];
