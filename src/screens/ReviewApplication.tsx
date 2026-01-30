@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -26,9 +26,26 @@ import MaterialIcons from "react-native-vector-icons/MaterialIcons";
    MAIN SCREEN
 ========================= */
 const ReviewApplication = () => {
+const genderMap: Record<string, string> = {
+  "1": "Male",
+  "2": "Female",
+  "3": "Other",
+};
+
+const reverseGenderMap: Record<string, string> = {
+  Male: "1",
+  Female: "2",
+  Other: "3",
+};
+
   const { colors } = useTheme();
   const styles = getStyles(colors);
   const navigation = useNavigation();
+  const USER_ID = 1;
+  const [fullName, setFullName] = useState("");
+const [applicationId, setApplicationId] = useState("");
+const [loading, setLoading] = useState(true);
+
 
   /* 🔹 SECTION EDIT MODES */
   const [basicEdit, setBasicEdit] = useState(false);
@@ -63,6 +80,89 @@ const validatePhone = (value: string) => {
   const phoneRegex = /^[0-9]{10}$/;
   return phoneRegex.test(value.replace(/\D/g, ""));
 };
+const updateApplication = async () => {
+  try {
+    const payload = {
+  full_name: fullName,   //  REAL NAME
+  dob,
+  gender: reverseGenderMap[gender] || gender,
+  degree,
+  institute: college,
+  percentage: "",
+  email,
+  phone,
+
+};
+
+
+    const res = await fetch(
+      `https://swachify-india-be-1-mcrb.onrender.com/internship/application/${USER_ID}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const json = await res.json();
+
+    if (!json?.status) {
+      throw new Error("Update failed");
+    }
+
+    return true;
+  } catch (err) {
+    console.error("Update application error:", err);
+    return false;
+  }
+};
+
+
+const fetchApplication = async () => {
+  try {
+    setLoading(true);
+
+    const res = await fetch(
+      `https://swachify-india-be-1-mcrb.onrender.com/internship/application/${USER_ID}`
+    );
+
+    const app = await res.json(); // 👈 DIRECT OBJECT
+
+    // ✅ Map backend → UI
+    setFullName(app.full_name || "");
+    setApplicationId(app.application_code || "");
+    setGender(genderMap[app.gender] || "");
+    setDob(app.dob || "");
+    setGender(app.gender || "");
+    setDegree(app.degree || "");
+    setCollege(app.institute || "");
+    setEmail(app.email || "");
+    setPhone(app.phone || "");
+  } catch (err) {
+    console.error("Fetch application error:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
+useEffect(() => {
+  fetchApplication();
+}, []);
+
+if (loading) {
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <Text style={{ color: colors.text, textAlign: "center", marginTop: 40 }}>
+        Loading application…
+      </Text>
+    </SafeAreaView>
+  );
+}
+
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -92,8 +192,14 @@ const validatePhone = (value: string) => {
           />
 
           <View style={{ flex: 1 }}>
-            <Text style={styles.name}>Alex Johnson</Text>
-            <Text style={styles.appId}>#INT-2024-8832</Text>
+<Text style={styles.name}>
+  {fullName || "—"}
+</Text>
+
+{applicationId ? (
+  <Text style={styles.appId}>{applicationId}</Text>
+) : null}
+
 
             <View style={styles.statusPill}>
               <Text style={styles.statusText}>Draft Status</Text>
@@ -214,41 +320,36 @@ const validatePhone = (value: string) => {
 </View>
 
         {/* SUBMIT */}
-        <TouchableOpacity
-          style={styles.submitBtn}
-      onPress={() => {
-  let hasError = false;
+<TouchableOpacity
+  style={styles.submitBtn}
+  onPress={async () => {
+    let hasError = false;
 
-  // Email validation
-  if (!validateEmail(email)) {
-    setEmailError("Please enter a valid email address");
-    hasError = true;
-  }
+    if (!validateEmail(email)) {
+      setEmailError("Please enter a valid email address");
+      hasError = true;
+    }
 
-  // Phone validation
-  if (!validatePhone(phone)) {
-    setPhoneError("Please enter a valid 10-digit phone number");
-    hasError = true;
-  }
+    if (!validatePhone(phone)) {
+      setPhoneError("Please enter a valid 10-digit phone number");
+      hasError = true;
+    }
 
-  // Declaration validation
-  if (!isDeclared) {
-    setDeclarationError(true);
-    hasError = true;
-  }
+    if (!isDeclared) {
+      setDeclarationError(true);
+      hasError = true;
+    }
 
-  // Stop submission if any error exists
-  if (hasError) return;
+    if (hasError) return;
 
-  // All validations passed
-  navigation.navigate("ApplicationSuccess" as never);
-}}
+    //  THIS WAS MISSING
+    const success = await updateApplication();
 
-
- 
-
-
-        >
+    if (success) {
+      navigation.navigate("ApplicationSuccess" as never);
+    }
+  }}
+>
           <Text style={styles.submitText}>Submit Application ➜</Text>
         </TouchableOpacity>
       </ScrollView>
