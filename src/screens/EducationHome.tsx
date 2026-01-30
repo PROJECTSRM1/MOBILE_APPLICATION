@@ -56,6 +56,242 @@ interface TrendingStudentUI {
 
 const { width } = Dimensions.get("window");
 
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    container: { flex: 1 },
+    headerSafe: {
+      backgroundColor: colors.background,
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      padding: 16,
+      alignItems: "center",
+      backgroundColor: colors.background,
+    },
+    headerLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+    avatar: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+    },
+    welcome: {
+      color: colors.subText,
+      fontSize: 12,
+    },
+    username: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: "700",
+    },
+    bell: { position: "relative" },
+    searchBox: {
+      marginHorizontal: 16,
+      height: 48,
+      backgroundColor: colors.surface,
+      borderRadius: 14,
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 12,
+      gap: 8,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    searchInput: {
+      flex: 1,
+      color: colors.text,
+      fontSize: 15,
+    },
+    featured: {
+      margin: 16,
+      height: 180,
+      borderRadius: 20,
+      overflow: "hidden",
+    },
+    featuredImage: {
+      width: "100%",
+      height: "100%",
+    },
+    overlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: "rgba(0,0,0,0.55)",
+    },
+    featuredContent: {
+      position: "absolute",
+      bottom: 16,
+      left: 16,
+      right: 16,
+    },
+    featuredTag: {
+      backgroundColor: colors.primary,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 6,
+      alignSelf: "flex-start",
+    },
+    featuredTagText: {
+      color: "#ffffff",
+      fontSize: 11,
+      fontWeight: "700",
+    },
+    featuredTitle: {
+      color: "#ffffff",
+      fontSize: 20,
+      fontWeight: "700",
+      marginTop: 8,
+    },
+    featuredSub: {
+      color: "#e5e7eb",
+      fontSize: 13,
+      marginTop: 4,
+    },
+    featuredLink: {
+      color: "#ffffff",
+      fontSize: 14,
+      marginTop: 8,
+    },
+    sectionHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginHorizontal: 16,
+      marginBottom: 16,
+    },
+    sectionTitle: {
+      color: colors.text,
+      fontSize: 20,
+      fontWeight: "700",
+    },
+    categoriesGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      marginHorizontal: 16,
+      marginBottom: 8,
+      justifyContent: "space-between",
+    },
+    categoryIconCard: {
+      alignItems: "center",
+      width: (width - 32) / 5 - 4,
+      marginBottom: 16,
+    },
+    categoryIconCircle: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: 8,
+      backgroundColor: colors.surfaceAlt,
+    },
+    categoryIconTitle: {
+      color: colors.text,
+      fontSize: 11,
+      fontWeight: "500",
+      textAlign: "center",
+      lineHeight: 14,
+    },
+    trendingTitle: {
+      color: colors.text,
+      fontSize: 20,
+      fontWeight: "700",
+      margin: 16,
+    },
+    trendingRowCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: 12,
+      marginBottom: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    trendingAvatar: {
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      marginRight: 12,
+    },
+    trendingInfo: {
+      flex: 1,
+    },
+    trendingName: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: "600",
+    },
+    trendingSub: {
+      color: colors.subText,
+      fontSize: 12,
+      marginTop: 4,
+    },
+    trendingScore: {
+      color: colors.subText,
+      fontSize: 12,
+      marginTop: 2,
+    },
+    trendingFooter: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginTop: 4,
+    },
+    rating: {
+      color: colors.warning ?? "#facc15",
+      fontSize: 12,
+      fontWeight: "600",
+    },
+    status: {
+      fontSize: 12,
+      fontWeight: "700",
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 12,
+      textAlign: "center",
+    },
+    active: {
+      backgroundColor: (colors.success ?? "#22c55e") + "30",
+      color: colors.success ?? "#22c55e",
+    },
+    completed: {
+      backgroundColor: colors.subText + "30",
+      color: colors.subText,
+    },
+    shift: {
+      color: colors.subText,
+      fontSize: 11,
+      marginTop: 2,
+    },
+    bottomNav: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: 76,
+      backgroundColor: colors.surface,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      flexDirection: "row",
+      paddingBottom: 12,
+    },
+    navItem: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "flex-end",
+      gap: 4,
+    },
+    navText: {
+      color: colors.subText,
+      fontSize: 11,
+    },
+  });
+
 const EducationHome = () => {
   const [trendingStudents, setTrendingStudents] = useState<TrendingStudentUI[]>([]);
 const [loadingTrending, setLoadingTrending] = useState(true);
@@ -125,18 +361,13 @@ const fetchTrendingStudents = async () => {
   }
 };
 
-  useEffect(() => {
+useEffect(() => {
   if (!filteredTrendingStudents.length) return;
 
-    const CARD_HEIGHT = 96;
-    const interval = setInterval(() => {
-      trendingCurrentIndex.current =
-        (trendingCurrentIndex.current + 1) % filteredTrendingStudents.length;
-
+  const CARD_HEIGHT = 96;
   const interval = setInterval(() => {
     trendingCurrentIndex.current =
-      (trendingCurrentIndex.current + 1) %
-      filteredTrendingStudents.length;
+      (trendingCurrentIndex.current + 1) % filteredTrendingStudents.length;
 
     trendingScrollRef.current?.scrollTo({
       y: trendingCurrentIndex.current * CARD_HEIGHT,
@@ -386,239 +617,3 @@ const fetchTrendingStudents = async () => {
 };
 
 export default EducationHome;
-
-const getStyles = (colors: any) =>
-  StyleSheet.create({
-    safe: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-    container: { flex: 1 },
-    headerSafe: {
-      backgroundColor: colors.background,
-    },
-    header: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      padding: 16,
-      alignItems: "center",
-      backgroundColor: colors.background,
-    },
-    headerLeft: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 12,
-    },
-    avatar: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-    },
-    welcome: {
-      color: colors.subText,
-      fontSize: 12,
-    },
-    username: {
-      color: colors.text,
-      fontSize: 18,
-      fontWeight: "700",
-    },
-    bell: { position: "relative" },
-    searchBox: {
-      marginHorizontal: 16,
-      height: 48,
-      backgroundColor: colors.surface,
-      borderRadius: 14,
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: 12,
-      gap: 8,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    searchInput: {
-      flex: 1,
-      color: colors.text,
-      fontSize: 15,
-    },
-    featured: {
-      margin: 16,
-      height: 180,
-      borderRadius: 20,
-      overflow: "hidden",
-    },
-    featuredImage: {
-      width: "100%",
-      height: "100%",
-    },
-    overlay: {
-      ...StyleSheet.absoluteFillObject,
-      backgroundColor: "rgba(0,0,0,0.55)",
-    },
-    featuredContent: {
-      position: "absolute",
-      bottom: 16,
-      left: 16,
-      right: 16,
-    },
-    featuredTag: {
-      backgroundColor: colors.primary,
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-      borderRadius: 6,
-      alignSelf: "flex-start",
-    },
-    featuredTagText: {
-      color: "#ffffff",
-      fontSize: 11,
-      fontWeight: "700",
-    },
-    featuredTitle: {
-      color: "#ffffff",
-      fontSize: 20,
-      fontWeight: "700",
-      marginTop: 8,
-    },
-    featuredSub: {
-      color: "#e5e7eb",
-      fontSize: 13,
-      marginTop: 4,
-    },
-    featuredLink: {
-      color: "#ffffff",
-      fontSize: 14,
-      marginTop: 8,
-    },
-    sectionHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      marginHorizontal: 16,
-      marginBottom: 16,
-    },
-    sectionTitle: {
-      color: colors.text,
-      fontSize: 20,
-      fontWeight: "700",
-    },
-    categoriesGrid: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      marginHorizontal: 16,
-      marginBottom: 8,
-      justifyContent: "space-between",
-    },
-    categoryIconCard: {
-      alignItems: "center",
-      width: (width - 32) / 5 - 4,
-      marginBottom: 16,
-    },
-    categoryIconCircle: {
-      width: 50,
-      height: 50,
-      borderRadius: 25,
-      alignItems: "center",
-      justifyContent: "center",
-      marginBottom: 8,
-      backgroundColor: colors.surfaceAlt,
-    },
-    categoryIconTitle: {
-      color: colors.text,
-      fontSize: 11,
-      fontWeight: "500",
-      textAlign: "center",
-      lineHeight: 14,
-    },
-    trendingTitle: {
-      color: colors.text,
-      fontSize: 20,
-      fontWeight: "700",
-      margin: 16,
-    },
-    trendingRowCard: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: colors.card,
-      borderRadius: 12,
-      padding: 12,
-      marginBottom: 12,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    trendingAvatar: {
-      width: 60,
-      height: 60,
-      borderRadius: 30,
-      marginRight: 12,
-    },
-    trendingInfo: {
-      flex: 1,
-    },
-    trendingName: {
-      color: colors.text,
-      fontSize: 16,
-      fontWeight: "600",
-    },
-    trendingSub: {
-      color: colors.subText,
-      fontSize: 12,
-      marginTop: 4,
-    },
-    trendingScore: {
-      color: colors.subText,
-      fontSize: 12,
-      marginTop: 2,
-    },
-    trendingFooter: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      marginTop: 4,
-    },
-    rating: {
-      color: colors.warning ?? "#facc15",
-      fontSize: 12,
-      fontWeight: "600",
-    },
-    status: {
-      fontSize: 12,
-      fontWeight: "700",
-      paddingHorizontal: 8,
-      paddingVertical: 2,
-      borderRadius: 12,
-      textAlign: "center",
-    },
-    active: {
-      backgroundColor: (colors.success ?? "#22c55e") + "30",
-      color: colors.success ?? "#22c55e",
-    },
-    completed: {
-      backgroundColor: colors.subText + "30",
-      color: colors.subText,
-    },
-    shift: {
-      color: colors.subText,
-      fontSize: 11,
-      marginTop: 2,
-    },
-    bottomNav: {
-      position: "absolute",
-      bottom: 0,
-      left: 0,
-      right: 0,
-      height: 76,
-      backgroundColor: colors.surface,
-      borderTopWidth: 1,
-      borderTopColor: colors.border,
-      flexDirection: "row",
-      paddingBottom: 12,
-    },
-    navItem: {
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "flex-end",
-      gap: 4,
-    },
-    navText: {
-      color: colors.subText,
-      fontSize: 11,
-    },
-  });
