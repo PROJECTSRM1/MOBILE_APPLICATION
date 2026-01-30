@@ -66,6 +66,8 @@ import EducationDashboardReport from './src/screens/EducationDashboardReport';
 import Dashboard from "./src/screens/HealthcarePartnerDashboard";
 import BookingsScreen from "./src/screens/HospitalBookings";
 import DoctorsListScreen from "./src/screens/DoctorsList";
+import HospitalDoctorsScreen from "./src/screens/HospitalDoctorsScreen";
+import DoctorProfile from "./src/screens/Doctorprofile";
 
 
 export type RootStackParamList = {
@@ -138,7 +140,8 @@ export type RootStackParamList = {
   bookings:undefined;
   Doctor:undefined;
   DriverDashboard: undefined;
-
+  Offline:undefined
+  DoctorProfile:undefined
 };
 
 /* ================= NAV ================= */
@@ -212,6 +215,8 @@ function AppNavigator() {
         <Stack.Screen name="bookings" component={BookingsScreen} />
         <Stack.Screen name="HealthcarePartnerDashboard" component={Dashboard} />
          <Stack.Screen name="Doctor" component={DoctorsListScreen} />
+         <Stack.Screen name="Offline" component={HospitalDoctorsScreen} />
+         <Stack.Screen name="DoctorProfile" component={DoctorProfile} />
         <Stack.Screen 
           name="EducationDashboardReport" 
           component={EducationDashboardReport} 
