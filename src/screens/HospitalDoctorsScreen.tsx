@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,234 +9,332 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
-  Dimensions,
+  ScrollView,
+  TextInput,
 } from 'react-native';
-// Note: Ensure you have react-native-vector-icons installed
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import { useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
-const { width } = Dimensions.get('window');
-
-const hospitalDoctors = [
-  {
-    id: 1,
-    name: 'Dr. Rahul Verma',
-    specialty: 'Cardiologist',
-    rating: 4.8,
-    image: 'https://i.pravatar.cc/150?img=12', // Replace with your local assets
-  },
-  {
-    id: 2,
-    name: 'Dr. Anjali Mehta',
-    specialty: 'Neurologist',
-    rating: 4.9,
-    image: 'https://i.pravatar.cc/150?img=26',
-  },
-  {
-    id: 3,
-    name: 'Dr. Sameer Khan',
-    specialty: 'Orthopedic',
-    rating: 4.7,
-    image: 'https://i.pravatar.cc/150?img=11',
-  },
+const CATEGORIES = [
+  { id: 'all', label: 'All', icon: 'apps' },
+  { id: 'cardiology', label: 'Cardiology', icon: 'heart-pulse' },
+  { id: 'neurology', label: 'Neurology', icon: 'brain' },
+  { id: 'pediatrics', label: 'Pediatrics', icon: 'baby-face-outline' },
 ];
 
 const HospitalDoctorsScreen = () => {
-    const navigation = useNavigation<any>();
+  const navigation = useNavigation<any>();
+  const route = useRoute<any>();
+  // Use hospital name from params or default to Apollo Medical Center for preview
+  const { hospital } = route.params || { hospital: { name: 'Apollo Medical Center' } };
+
+  const doctors = hospital?.doctors || [];
+  const [selectedCategory, setSelectedCategory] = useState('all');
+
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-      
-      {/* Header */}
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+
+      {/* Header Section */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn}>
-          <MaterialIcon name="arrow-back" size={28} color="#2d7576" />
-        </TouchableOpacity>
-        <Text style={styles.headerTopLabel}>APPOINTMENT</Text>
-        <Text style={styles.title}>City General Hospital Doctors</Text>
+        {/* Top Row: Back and Centered Title */}
+        <View style={styles.headerTop}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <MaterialIcon name="arrow-back" size={26} color="#0D9488" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Doctors</Text>
+          <View style={{ width: 26 }} /> {/* Spacer to keep title centered */}
+        </View>
+
+        {/* Hospital Name Row: Icon then Name side-by-side */}
+        <View style={styles.hospitalRow}>
+          <MaterialIcon name="business" size={22} color="#0D9488" />
+          <Text style={styles.hospitalName}>{hospital?.name}</Text>
+        </View>
       </View>
 
-      {/* List */}
+      {/* Category Section: Compact Horizontal Pills */}
+      <View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoriesContainer}
+        >
+          {CATEGORIES.map(category => {
+            const isActive = selectedCategory === category.id;
+            return (
+              <TouchableOpacity
+                key={category.id}
+                style={[
+                  styles.categoryPill,
+                  isActive && styles.categoryPillActive,
+                ]}
+                onPress={() => setSelectedCategory(category.id)}
+              >
+                <Icon
+                  name={category.icon}
+                  size={20}
+                  color={isActive ? '#FFFFFF' : '#0D9488'}
+                />
+                <Text
+                  style={[
+                    styles.categoryText,
+                    isActive && styles.categoryTextActive,
+                  ]}
+                >
+                  {category.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
+
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <MaterialIcon name="search" size={22} color="#94A3B8" />
+        <TextInput
+          placeholder="Search doctors, specialties..."
+          placeholderTextColor="#94A3B8"
+          style={styles.searchInput}
+        />
+        <TouchableOpacity style={styles.filterButton}>
+          <MaterialIcon name="tune" size={20} color="#0D9488" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Doctor List */}
       <FlatList
-        data={hospitalDoctors}
-        keyExtractor={(item) => item.id.toString()}
+        data={doctors}
+        keyExtractor={(item, index) => index.toString()}
         contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.card} onPress={()=>{
-            navigation.navigate("DoctorProfile");
-          }}> 
-            <Image source={{ uri: item.image }} style={styles.image} />
-            
-            <View style={styles.info}>
-              <Text style={styles.name}>{item.name}</Text>
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => navigation.navigate('DoctorProfile', { doctor: item })}
+          >
+            <Image source={{ uri: item.image }} style={styles.avatar} />
+
+            <View style={styles.cardInfo}>
+              <View style={styles.nameRow}>
+                <Text style={styles.name}>{item.name}</Text>
+                {item.rating >= 4.5 && (
+                  <View style={styles.topRatedBadge}>
+                    <Text style={styles.topRatedText}>Top Rated</Text>
+                  </View>
+                )}
+              </View>
+
               <Text style={styles.specialty}>{item.specialty}</Text>
-              <View style={styles.ratingRow}>
-                <MaterialIcon name="star" size={18} color="#FFD700" />
-                <Text style={styles.ratingText}>{item.rating}</Text>
+
+              <View style={styles.metaRow}>
+                <View style={styles.ratingRow}>
+                  <MaterialIcon name="star" size={16} color="#FACC15" />
+                  <Text style={styles.ratingText}>{item.rating || '4.8'}</Text>
+                </View>
+
+                <View style={styles.availableRow}>
+                  <View style={styles.availableDot} />
+                  <Text style={styles.availableText}>Available</Text>
+                </View>
               </View>
             </View>
 
-            <MaterialIcon name="chevron-right" size={28} color="#cbd5e1" />
+            <MaterialIcon name="chevron-right" size={24} color="#CBD5E1" />
           </TouchableOpacity>
         )}
-        ListFooterComponent={
-          <View style={styles.footerContainer}>
-            <Text style={styles.footerText}>
-              Can't find your doctor?{' '}
-              <Text style={styles.searchLink}>Search here</Text>
-            </Text>
-          </View>
-        }
       />
-
-      {/* Floating Action Button (FAB) */}
-      <TouchableOpacity style={styles.fab}>
-        <Icon name="moon-waning-crescent" size={24} color="#fff" />
-      </TouchableOpacity>
-
-      {/* Bottom Navigation Mock */}
-      <View style={styles.bottomTab}>
-        <View style={styles.tabItem}>
-          <Icon name="home" size={28} color="#2d7576" />
-          <Text style={[styles.tabLabel, {color: '#2d7576'}]}>Home</Text>
-        </View>
-        <View style={styles.tabItem}>
-          <Icon name="calendar-check" size={24} color="#94a3b8" />
-          <Text style={styles.tabLabel}>Bookings</Text>
-        </View>
-        <View style={styles.tabItem}>
-          <Icon name="chat-processing" size={24} color="#94a3b8" />
-          <Text style={styles.tabLabel}>Chat</Text>
-        </View>
-        <View style={styles.tabItem}>
-          <Icon name="account" size={24} color="#94a3b8" />
-          <Text style={styles.tabLabel}>Profile</Text>
-        </View>
-      </View>
     </SafeAreaView>
   );
 };
 
-export default HospitalDoctorsScreen;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
   },
+  /* Header */
   header: {
-    paddingHorizontal: 20,
     paddingTop: 10,
-    paddingBottom: 20,
+    paddingBottom: 10,
   },
-  backBtn: {
-    marginBottom: 10,
-    marginLeft: -5,
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 15,
   },
-  headerTopLabel: {
-    fontSize: 14,
+  backButton: {
+    padding: 5,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1E293B',
+    textAlign: 'center',
+  },
+  hospitalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginTop: 10,
+  },
+  hospitalName: {
+    fontSize: 16,
+    color: '#64748B',
     fontWeight: '600',
-    color: '#2d7576',
-    letterSpacing: 1,
+    marginLeft: 8,
   },
-  title: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    color: '#1f4c4c',
-    marginTop: 5,
+
+  /* Categories (Horizontal Pills - Medium Size) */
+  categoriesContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 15,
   },
+  categoryPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 25,
+    backgroundColor: '#F0FDFA', // Pale medical teal
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  categoryPillActive: {
+    backgroundColor: '#0D9488',
+    borderColor: '#0D9488',
+  },
+  categoryText: {
+    marginLeft: 10,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0D9488',
+  },
+  categoryTextActive: {
+    color: '#FFFFFF',
+  },
+
+  /* Search Bar */
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 20,
+    marginBottom: 15,
+    paddingHorizontal: 14,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 15,
+    height: 52,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 10,
+    fontSize: 16,
+    color: '#1E293B',
+  },
+  filterButton: {
+    padding: 5,
+  },
+
+  /* Doctor Cards (Medium Size) */
   listContent: {
     paddingHorizontal: 20,
-    paddingBottom: 100,
+    paddingBottom: 30,
   },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     borderRadius: 20,
     padding: 12,
     marginBottom: 15,
     borderWidth: 1,
-    borderColor: '#f1f5f9',
-    // Shadow
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
+    borderColor: '#F1F5F9',
     elevation: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.03,
+    shadowRadius: 5,
   },
-  image: {
-    width: 90,
-    height: 90,
+  avatar: {
+    width: 75,
+    height: 75,
     borderRadius: 15,
   },
-  info: {
+  cardInfo: {
     flex: 1,
     marginLeft: 15,
   },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+  },
   name: {
     fontSize: 18,
+    fontWeight: '700',
+    color: '#1E293B',
+  },
+  topRatedBadge: {
+    marginLeft: 8,
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  topRatedText: {
+    fontSize: 10,
     fontWeight: 'bold',
-    color: '#0f172a',
+    color: '#166534',
   },
   specialty: {
     fontSize: 15,
-    color: '#2d7576',
+    color: '#0D9488',
     fontWeight: '600',
     marginVertical: 4,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   ratingRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginRight: 15,
   },
   ratingText: {
-    fontSize: 14,
-    color: '#64748b',
     marginLeft: 4,
-    fontWeight: '500',
+    fontSize: 13,
+    color: '#64748B',
+    fontWeight: '600',
   },
-  footerContainer: {
-    marginTop: 20,
-    alignItems: 'center',
-  },
-  footerText: {
-    fontSize: 16,
-    color: '#94a3b8',
-  },
-  searchLink: {
-    color: '#2d7576',
-    fontWeight: 'bold',
-    textDecorationLine: 'underline',
-  },
-  fab: {
-    position: 'absolute',
-    bottom: 100,
-    right: 20,
-    backgroundColor: '#2d7576',
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 5,
-  },
-  bottomTab: {
+  availableRow: {
     flexDirection: 'row',
-    height: 70,
-    borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
-    backgroundColor: '#fff',
-    paddingBottom: 10,
-  },
-  tabItem: {
-    flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
   },
-  tabLabel: {
-    fontSize: 12,
-    color: '#94a3b8',
-    marginTop: 4,
+  availableDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: '#22C55E',
+    marginRight: 6,
+  },
+  availableText: {
+    fontSize: 13,
+    color: '#22C55E',
+    fontWeight: '600',
   },
 });
+
+export default HospitalDoctorsScreen;

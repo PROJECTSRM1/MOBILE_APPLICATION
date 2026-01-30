@@ -8,8 +8,11 @@ import {
   StyleSheet,
   Switch,
   StatusBar,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRoute, useNavigation } from '@react-navigation/native';
+
 
 // Icon component placeholder - replace with react-native-vector-icons or your icon library
 const Icon = ({ name, size = 24, color = '#64748b' }: { name: string; size?: number; color?: string }) => (
@@ -17,7 +20,43 @@ const Icon = ({ name, size = 24, color = '#64748b' }: { name: string; size?: num
 );
 
 const DoctorProfile = () => {
+   const route = useRoute<any>();
+  const navigation = useNavigation<any>();
+  const { doctor } = route.params;
   const [assistantEnabled, setAssistantEnabled] = useState(false);
+  const [showAssistantModal, setShowAssistantModal] = useState(false);
+const [selectedAssistant, setSelectedAssistant] = useState<any>(null);
+
+
+const assistants = [
+  {
+    id: 1,
+    name: 'Emily Watson',
+    image: 'https://randomuser.me/api/portraits/women/44.jpg',
+    rating: 4.8,
+    reviews: 230,
+    price: 1200,
+    works: [
+      'Queue management',
+      'Report collection',
+      'Medicine assistance',
+      'Food assistance',
+    ],
+  },
+  {
+    id: 2,
+    name: 'Sophia Brown',
+    image: 'https://randomuser.me/api/portraits/women/68.jpg',
+    rating: 4.6,
+    reviews: 180,
+    price: 1000,
+    works: [
+      'Basic patient care',
+      'Medicine reminders',
+      'Mobility support',
+    ],
+  },
+];
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -25,7 +64,10 @@ const DoctorProfile = () => {
       
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.iconButton}>
+        <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() => navigation.goBack()}
+          >
           <Icon name="←" size={20} color="#64748b" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Doctor Profile</Text>
@@ -43,9 +85,9 @@ const DoctorProfile = () => {
         <View style={styles.doctorSection}>
           <View style={styles.doctorImageContainer}>
             <Image
-              source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuALdtsN03FkaeKqp-LuEQl3zRCSSGFrIPP8olMubt83zP37HhgaWcFF8lfKRj3oxqJOgIQbs_SQNF3wh70Csp6MTddFP4kTR_q8387HWQqH5FowvHFVziqzdPPBLo70zIaORmAmK77S-CPeVrj44he6oILlHB3gE0x1KYNS77Jf0VUofoRbmlwMGTX97AbFTjtSLefBInpTKnZ4i5nKDRahqt3EJzR4oRBKndt83udNFU_w3TazPmg_vQoW1OfP3rMkRMcGQ-1sV9M' }}
-              style={styles.doctorImage}
-            />
+            source={{ uri: doctor.image }}
+            style={styles.doctorImage}
+          />
           </View>
           
           <View style={styles.doctorInfo}>
@@ -53,13 +95,16 @@ const DoctorProfile = () => {
               <Text style={styles.topRatedText}>TOP RATED</Text>
             </View>
             
-            <Text style={styles.doctorName}>Dr. Sarah Jenkins</Text>
-            <Text style={styles.specialty}>Senior Cardiologist</Text>
+            <Text style={styles.doctorName}>{doctor.name}</Text>
+
+           <Text style={styles.specialty}>{doctor.specialty}</Text>
             
             <View style={styles.ratingContainer}>
               <Text style={styles.starIcon}>★</Text>
-              <Text style={styles.rating}>4.9</Text>
-              <Text style={styles.reviews}>(120+ Reviews)</Text>
+              <Text style={styles.rating}>{doctor.rating}</Text>
+              <Text style={styles.reviews}>
+                    ({doctor.reviews || '100+'} Reviews)
+                  </Text>
             </View>
             
             <View style={styles.statsContainer}>
@@ -96,26 +141,47 @@ const DoctorProfile = () => {
                 </View>
               </View>
               <View style={styles.priceContainer}>
-                <Text style={styles.price}>+$25</Text>
+                <Text style={styles.price}>
+                  {selectedAssistant ? `₹${selectedAssistant.price}` : '+$25'}
+                </Text>
                 <Text style={styles.priceLabel}>PER VISIT</Text>
               </View>
             </View>
 
             <View style={styles.assistantProfile}>
               <Image
-                source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCAq_z58w1zHFfWcBsg0rEmBbgw1OARhYW5vLSdfXBMnaa5IHIMHlr4NKnAP5gdvcW0zTIQKP9qPved6iNVTZZUyMCYPVO_XLcNsii-yKaXWe-vfHeDygrsE1NwEp4wHcIJIupJ0hgNLytB4K1RWTVOc1WdbeHHu17UeB9ACvxoEX-L-UwuIak3PoX11bsZbOAqEbkRdppEzGZ5Dx-c48Q1vdR-sjLa6rSZPJPXzHHndGL1VrtFLJTDW_bdoCTIznoZ3oNf0GVNQ4A' }}
+                source={{
+                  uri: selectedAssistant
+                    ? selectedAssistant.image
+                    : 'https://randomuser.me/api/portraits/women/44.jpg',
+                }}
                 style={styles.assistantImage}
               />
+
               <View style={styles.assistantDetails}>
-                <Text style={styles.assistantName}>Emily Watson</Text>
-                <Text style={styles.assistantAvailability}>Available for your session</Text>
+                <Text style={styles.assistantName}>
+                  {selectedAssistant ? selectedAssistant.name : 'Select Assistant'}
+                </Text>
+
+                <Text style={styles.assistantAvailability}>
+                  {selectedAssistant
+                    ? `₹${selectedAssistant.price} per visit`
+                    : 'Available for your session'}
+                </Text>
               </View>
               <Switch
-                value={assistantEnabled}
-                onValueChange={setAssistantEnabled}
-                trackColor={{ false: '#e2e8f0', true: '#2D7E7E' }}
-                thumbColor="#ffffff"
-              />
+                    value={assistantEnabled}
+                    onValueChange={(value) => {
+                      if (value) {
+                        setShowAssistantModal(true);
+                      } else {
+                        setAssistantEnabled(false);
+                        setSelectedAssistant(null);
+                      }
+                    }}
+                    trackColor={{ false: '#e2e8f0', true: '#2D7E7E' }}
+                    thumbColor="#ffffff"
+                  />
             </View>
 
             <View style={styles.featuresContainer}>
@@ -175,6 +241,91 @@ const DoctorProfile = () => {
           <Text style={styles.calendarIcon}>📅</Text>
         </TouchableOpacity>
       </View>
+      {/* Personal Assistant Bottom Modal */}
+<Modal visible={showAssistantModal} transparent animationType="slide">
+  <View style={assistantStyles.overlay}>
+    <View style={assistantStyles.modal}>
+
+      <Text style={assistantStyles.title}>
+        Select Personal Care Assistant
+      </Text>
+
+      {assistants.map((assistant) => {
+        const isSelected = selectedAssistant?.id === assistant.id;
+
+        return (
+          <TouchableOpacity
+            key={assistant.id}
+            style={[
+              assistantStyles.card,
+              isSelected && assistantStyles.cardActive,
+            ]}
+            onPress={() => setSelectedAssistant(assistant)}
+          >
+            <Image
+              source={{ uri: assistant.image }}
+              style={assistantStyles.image}
+            />
+
+            <View style={{ flex: 1 }}>
+              <Text style={assistantStyles.name}>{assistant.name}</Text>
+
+              <View style={assistantStyles.ratingRow}>
+                <Text style={{ color: '#fbbf24' }}>★</Text>
+                <Text style={assistantStyles.rating}>
+                  {assistant.rating}
+                </Text>
+                <Text style={assistantStyles.reviews}>
+                  ({assistant.reviews})
+                </Text>
+              </View>
+
+              <Text style={assistantStyles.price}>
+                ₹{assistant.price} / visit
+              </Text>
+            </View>
+
+            {isSelected && (
+              <Text style={assistantStyles.check}>✓</Text>
+            )}
+          </TouchableOpacity>
+        );
+      })}
+
+      {selectedAssistant && (
+        <View style={assistantStyles.workList}>
+          {selectedAssistant.works.map((work: string, index: number) => (
+            <View key={index} style={assistantStyles.workItem}>
+              <Text style={{ color: '#2D7E7E' }}>✓</Text>
+              <Text style={assistantStyles.workText}>{work}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+
+      <View style={assistantStyles.actions}>
+        <TouchableOpacity
+          onPress={() => setShowAssistantModal(false)}
+        >
+          <Text style={assistantStyles.cancel}>Cancel</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          disabled={!selectedAssistant}
+          onPress={() => {
+            setAssistantEnabled(true);
+            setShowAssistantModal(false);
+          }}
+        >
+          <Text style={assistantStyles.confirm}>
+            Select Assistant
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+    </View>
+  </View>
+</Modal>
     </SafeAreaView>
   );
 };
@@ -519,5 +670,91 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
 });
-
+const assistantStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  modal: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 16,
+  },
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: '#f8fafc',
+  },
+  cardActive: {
+    borderWidth: 2,
+    borderColor: '#2D7E7E',
+    backgroundColor: '#ecfeff',
+  },
+  image: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    marginRight: 12,
+  },
+  name: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  ratingRow: {
+    flexDirection: 'row',
+    gap: 4,
+    marginTop: 4,
+  },
+  rating: {
+    fontWeight: '600',
+  },
+  reviews: {
+    fontSize: 12,
+    color: '#64748b',
+  },
+  price: {
+    marginTop: 4,
+    fontWeight: '700',
+    color: '#2D7E7E',
+  },
+  check: {
+    fontSize: 18,
+    color: '#2D7E7E',
+    fontWeight: '800',
+  },
+  workList: {
+    marginTop: 12,
+  },
+  workItem: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 6,
+  },
+  workText: {
+    fontSize: 13,
+  },
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 16,
+  },
+  cancel: {
+    color: '#64748b',
+    fontWeight: '600',
+  },
+  confirm: {
+    color: '#2D7E7E',
+    fontWeight: '700',
+  },
+});
 export default DoctorProfile;

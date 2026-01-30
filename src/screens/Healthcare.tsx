@@ -18,7 +18,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
-
+import { launchCamera, launchImageLibrary, ImagePickerResponse } from 'react-native-image-picker';
 const { width } = Dimensions.get('window');
 
 const DoctorListScreen = () => {
@@ -53,18 +53,26 @@ const DoctorListScreen = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [wantsAmbulance, setWantsAmbulance] = useState<string | null>(null);
   const [pickupTime, setPickupTime] = useState('');
-  const [showAddonButton, setShowAddonButton] = useState(false);
-  const [showAssetsField, setShowAssetsField] = useState(false);
-  const [wantsAssets, setWantsAssets] = useState<string | null>(null);
-  const [selectedAssistant, setSelectedAssistant] = useState<number | null>(null);
   const [ambulanceFieldLocked, setAmbulanceFieldLocked] = useState(false);
 
   // Time Picker States
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedTime, setSelectedTime] = useState(new Date());
   const [showPickupTimePicker, setShowPickupTimePicker] = useState(false);
   const [selectedPickupTime, setSelectedPickupTime] = useState(new Date());
+  const [showLabStoreModal, setShowLabStoreModal] = useState(false);
+const [isDelivery, setIsDelivery] = useState<boolean | null>(null);
+const [address, setAddress] = useState('');
+const [instructions, setInstructions] = useState('');
+const [prescription, setPrescription] = useState<string | null>(null);
+const [customTimeModal, setCustomTimeModal] = useState(false);
+const [hour, setHour] = useState('9');
+const [minute, setMinute] = useState('00');
+const [ampm, setAmPm] = useState<'AM' | 'PM'>('AM');
+const [showDatePicker, setShowDatePicker] = useState(false);
+
+
+
 
   // Auto-scroll state
   const scrollViewRef = useRef<ScrollView>(null);
@@ -195,38 +203,89 @@ const DoctorListScreen = () => {
   ];
 
   // Sample data for hospitals, labs, and medical stores
-  const hospitals = [
-    {
-      id: 101,
-      name: 'City General Hospital',
-      specialty: 'Multi-specialty',
-      rating: 4.8,
-      nextAvailable: 'Open 24/7',
-      price: 150,
-      type: 'hospital',
-      image: 'https://i.pravatar.cc/150?img=60',
-    },
-    {
-      id: 102,
-      name: 'Apollo Medical Center',
-      specialty: 'Complete Treatment',
-      rating: 4.9,
-      nextAvailable: 'Open Now',
-      price: 200,
-      type: 'hospital',
-      image: 'https://i.pravatar.cc/150?img=61',
-    },
-    {
-      id: 103,
-      name: 'Max Healthcare',
-      specialty: 'Complete Treatment',
-      rating: 4.7,
-      nextAvailable: 'Open 24/7',
-      price: 180,
-      type: 'hospital',
-      image: 'https://i.pravatar.cc/150?img=62',
-    },
-  ];
+const hospitals = [
+  {
+    id: 101,
+    name: 'City General Hospital',
+    specialty: 'Multi-specialty',
+    rating: 4.8,
+    nextAvailable: 'Open 24/7',
+    price: 150,
+    type: 'hospital',
+    image: require('../../assets/hospital1.jpg'),
+    doctors: [
+      { id: 1, name: 'Dr. Rahul Verma', specialty: 'Cardiologist', rating: 4.8, image: 'https://i.pravatar.cc/150?img=12' },
+      { id: 2, name: 'Dr. Anjali Mehta', specialty: 'Neurologist', rating: 4.9, image: 'https://i.pravatar.cc/150?img=26' },
+    ],
+  },
+  {
+    id: 102,
+    name: 'Apollo Medical Center',
+    specialty: 'Complete Treatment',
+    rating: 4.9,
+    nextAvailable: 'Open Now',
+    price: 200,
+    type: 'hospital',
+    image: require('../../assets/hospital2.jpg'),
+    doctors: [
+      { id: 3, name: 'Dr. Sameer Khan', specialty: 'Orthopedic', rating: 4.7, image: 'https://i.pravatar.cc/150?img=11' },
+    ],
+  },
+  {
+    id: 103,
+    name: 'Sunrise Children’s Clinic',
+    specialty: 'Pediatrics',
+    rating: 4.7,
+    nextAvailable: '9:00 AM Tomorrow',
+    price: 100,
+    type: 'clinic',
+    image: require('../../assets/hospital3.jpg'),
+    doctors: [
+      { id: 4, name: 'Dr. Priya Das', specialty: 'Pediatrician', rating: 4.9, image: 'https://i.pravatar.cc/150?img=32' },
+      { id: 5, name: 'Dr. Amit Shah', specialty: 'Child Psychologist', rating: 4.6, image: 'https://i.pravatar.cc/150?img=15' },
+    ],
+  },
+  {
+    id: 104,
+    name: 'Green Valley Eye Care',
+    specialty: 'Ophthalmology',
+    rating: 4.5,
+    nextAvailable: 'Open Now',
+    price: 120,
+    type: 'specialist center',
+    image: require('../../assets/hospital4.jpg'),
+    doctors: [
+      { id: 6, name: 'Dr. Vikram Seth', specialty: 'Eye Surgeon', rating: 4.8, image: 'https://i.pravatar.cc/150?img=53' },
+    ],
+  },
+  {
+    id: 105,
+    name: 'Metropolis Heart Institute',
+    specialty: 'Cardiology',
+    rating: 4.9,
+    nextAvailable: 'Open 24/7',
+    price: 300,
+    type: 'hospital',
+    image: require('../../assets/hospital1.jpg'),
+    doctors: [
+      { id: 7, name: 'Dr. Sarah Johnson', specialty: 'Cardiac Surgeon', rating: 5.0, image: 'https://i.pravatar.cc/150?img=45' },
+      { id: 8, name: 'Dr. Kevin Lee', specialty: 'Cardiologist', rating: 4.7, image: 'https://i.pravatar.cc/150?img=51' },
+    ],
+  },
+  {
+    id: 106,
+    name: 'Wellness Dental Hub',
+    specialty: 'Dentistry',
+    rating: 4.6,
+    nextAvailable: '2:00 PM Today',
+    price: 80,
+    type: 'clinic',
+    image: 'https://i.pravatar.cc/150?img=65',
+    doctors: [
+      { id: 9, name: 'Dr. Neha Kapoor', specialty: 'Orthodontist', rating: 4.8, image: 'https://i.pravatar.cc/150?img=49' },
+    ],
+  }
+];
 
   const labs = [
     {
@@ -237,7 +296,7 @@ const DoctorListScreen = () => {
       nextAvailable: '9:00 AM - 8:00 PM',
       price: 50,
       type: 'lab',
-      image: 'https://i.pravatar.cc/150?img=70',
+      image: require('../../assets/lab1.jpg'),
     },
     {
       id: 202,
@@ -247,7 +306,7 @@ const DoctorListScreen = () => {
       nextAvailable: 'Open Now',
       price: 75,
       type: 'lab',
-      image: 'https://i.pravatar.cc/150?img=71',
+      image: require('../../assets/lab2.jpg'),
     },
     {
       id: 203,
@@ -257,7 +316,7 @@ const DoctorListScreen = () => {
       nextAvailable: '8:00 AM - 9:00 PM',
       price: 60,
       type: 'lab',
-      image: 'https://i.pravatar.cc/150?img=72',
+      image: require('../../assets/lab3.jpg'),
     },
   ];
 
@@ -270,7 +329,7 @@ const DoctorListScreen = () => {
       nextAvailable: 'Open 24/7',
       price: 0,
       type: 'store',
-      image: 'https://i.pravatar.cc/150?img=80',
+      image: require('../../assets/lab4.jpg'),
     },
     {
       id: 302,
@@ -280,7 +339,7 @@ const DoctorListScreen = () => {
       nextAvailable: 'Open Now',
       price: 0,
       type: 'store',
-      image: 'https://i.pravatar.cc/150?img=81',
+      image: require('../../assets/med1.jpg'),
     },
     {
       id: 303,
@@ -290,15 +349,23 @@ const DoctorListScreen = () => {
       nextAvailable: '8:00 AM - 11:00 PM',
       price: 0,
       type: 'store',
-      image: 'https://i.pravatar.cc/150?img=82',
+      image: require('../../assets/med2.jpg'),
     },
   ];
 
-  const searchSuggestions = ['fever', 'cough', 'cold', 'vomiting', 'sinus'];
+const searchSuggestions =
+  serviceType === 'Doctor'
+    ? ['fever', 'cold', 'cough', 'skin', 'heart']
+    : serviceType === 'Labs'
+    ? ['blood test', 'x-ray', 'cbc']
+    : serviceType === 'Medical Store'
+    ? ['apollo pharmacy', 'medplus']
+    : ['apollo', 'city hospital', 'clinic'];
+
 
   // Consultation type options
   const consultationOptions = ['Online', 'Offline'];
-  
+
   // Service type options
   const serviceOptions = ['Doctor', 'Complete Treatment', 'Labs', 'Medical Store'];
 
@@ -337,50 +404,107 @@ const DoctorListScreen = () => {
     return doctors; // Default
   };
 
+  const symptomToSpecialtyMap: Record<string, string[]> = {
+  fever: ['General Practitioner'],
+  cold: ['General Practitioner'],
+  cough: ['General Practitioner'],
+  heart: ['Cardiologist'],
+  chest: ['Cardiologist'],
+  skin: ['Dermatologist'],
+  acne: ['Dermatologist'],
+  mental: ['Psychiatrist'],
+  stress: ['Psychiatrist'],
+  eye: ['Ophthalmologist'],
+  diet: ['Nutritionist'],
+  vomiting: ['General Practitioner'],
+};
+
   // Filter data based on selected category and filters
-  const getFilteredData = () => {
-    let data = getAvailableData();
-    
-    let filtered = selectedCategory 
-      ? data.filter(item => item.specialty === selectedCategory)
-      : data;
+const getFilteredData = () => {
+  let data = getAvailableData();
 
-    // Apply price filter
-    if (filterPriceRange) {
-      if (filterPriceRange === 'low') {
-        filtered = filtered.filter(doc => doc.price < 100);
-      } else if (filterPriceRange === 'medium') {
-        filtered = filtered.filter(doc => doc.price >= 100 && doc.price < 120);
-      } else if (filterPriceRange === 'high') {
-        filtered = filtered.filter(doc => doc.price >= 120);
-      }
-    }
+  const query = searchQuery.trim().toLowerCase();
 
-    // Apply rating filter
-    if (filterRating) {
-      filtered = filtered.filter(doc => doc.rating >= filterRating);
-    }
+  // 🔎 SEARCH FILTER
+  if (query.length > 0) {
+    // 1️⃣ ONLINE → DOCTORS (symptom-based + name-based)
+    if (consultationType === 'Online' && serviceType === 'Doctor') {
+      const matchedSpecialties =
+        symptomToSpecialtyMap[query] || [];
 
-    // Apply availability filter
-    if (filterAvailability === 'now') {
-      filtered = filtered.filter(doc => 
-        doc.nextAvailable === 'Available Now' || 
-        doc.nextAvailable === 'Open Now' ||
-        doc.nextAvailable === 'Open 24/7'
+      data = data.filter((doc: any) =>
+        doc.name.toLowerCase().includes(query) ||
+        doc.specialty.toLowerCase().includes(query) ||
+        matchedSpecialties.includes(doc.specialty)
       );
     }
 
-    // Apply sorting
-    if (sortBy === 'price-low') {
-      filtered = [...filtered].sort((a, b) => a.price - b.price);
-    } else if (sortBy === 'price-high') {
-      filtered = [...filtered].sort((a, b) => b.price - a.price);
-    } else if (sortBy === 'rating') {
-      filtered = [...filtered].sort((a, b) => b.rating - a.rating);
+    // 2️⃣ OFFLINE → HOSPITALS / CLINICS
+    else if (consultationType === 'Offline') {
+      data = data.filter((hospital: any) =>
+        hospital.name.toLowerCase().includes(query) ||
+        hospital.specialty.toLowerCase().includes(query)
+      );
     }
 
-    return filtered;
-  };
+    // 3️⃣ LABS
+    else if (serviceType === 'Labs') {
+      data = data.filter((lab: any) =>
+        lab.name.toLowerCase().includes(query) ||
+        lab.specialty.toLowerCase().includes(query)
+      );
+    }
+
+    // 4️⃣ MEDICAL STORES
+    else if (serviceType === 'Medical Store') {
+      data = data.filter((store: any) =>
+        store.name.toLowerCase().includes(query)
+      );
+    }
+  }
+
+  // 🎯 CATEGORY FILTER (existing)
+  if (selectedCategory) {
+    data = data.filter(item => item.specialty === selectedCategory);
+  }
+
+  // 💰 PRICE FILTER
+  if (filterPriceRange) {
+    if (filterPriceRange === 'low') {
+      data = data.filter(item => item.price < 100);
+    } else if (filterPriceRange === 'medium') {
+      data = data.filter(item => item.price >= 100 && item.price < 120);
+    } else if (filterPriceRange === 'high') {
+      data = data.filter(item => item.price >= 120);
+    }
+  }
+
+  // ⭐ RATING FILTER
+  if (filterRating) {
+    data = data.filter(item => item.rating >= filterRating);
+  }
+
+  // ⏰ AVAILABILITY FILTER
+  if (filterAvailability === 'now') {
+    data = data.filter(item =>
+      item.nextAvailable === 'Available Now' ||
+      item.nextAvailable === 'Open Now' ||
+      item.nextAvailable === 'Open 24/7'
+    );
+  }
+
+  // 🔃 SORTING
+  if (sortBy === 'price-low') {
+    data = [...data].sort((a, b) => a.price - b.price);
+  } else if (sortBy === 'price-high') {
+    data = [...data].sort((a, b) => b.price - a.price);
+  } else if (sortBy === 'rating') {
+    data = [...data].sort((a, b) => b.rating - a.rating);
+  }
+
+  return data;
+};
+
 
   const filteredData = getFilteredData();
 
@@ -413,15 +537,61 @@ const DoctorListScreen = () => {
 const handleBookNow = (item: any) => {
   setSelectedDoctor(item);
 
-  if (item.type === 'hospital') {
-    // Offline hospital booking → open offline form
+  if (
+  item.type === 'hospital' ||
+  item.type === 'clinic' ||
+  item.type === 'specialist center'
+){
     setShowOfflineForm(true);
+  } else if (item.type === 'lab' || item.type === 'store') {
+    setShowLabStoreModal(true); // Open the new Bottom Sheet
   } else {
-    // Doctors / Labs / Stores
-    setShowDoctorBookedModal(true);
+    setShowDoctorBookedModal(true); // Standard Doctor booking
   }
 };
 
+const handleLabStoreConfirm = () => {
+  if (!prescription) return Alert.alert("Required", "Please upload a prescription");
+  if (isDelivery === null) return Alert.alert("Required", "Please select delivery option");
+  if (isDelivery && !address.trim()) return Alert.alert("Required", "Please enter delivery address");
+
+  Alert.alert(
+    "Order Placed!", 
+    `Your request for ${selectedDoctor.name} has been received.\nMode: ${isDelivery ? 'Delivery' : 'Self-Visit'}`
+  );
+  closeLabStoreModal();
+};
+
+const closeLabStoreModal = () => {
+  setShowLabStoreModal(false);
+  setIsDelivery(null);
+  setAddress('');
+  setInstructions('');
+  setPrescription(null);
+};
+
+const handleCamera = async () => {
+  const result: ImagePickerResponse = await launchCamera({
+    mediaType: 'photo',
+    quality: 0.8, // Slightly lower quality to save bandwidth
+    saveToPhotos: true,
+  });
+
+  if (result.assets && result.assets.length > 0) {
+    setPrescription(result.assets[0].uri || null);
+  }
+};
+
+const handleGallery = async () => {
+  const result: ImagePickerResponse = await launchImageLibrary({
+    mediaType: 'photo',
+    quality: 0.8,
+  });
+
+  if (result.assets && result.assets.length > 0) {
+    setPrescription(result.assets[0].uri || null);
+  }
+};
 
   const clearAllFilters = () => {
     setFilterPriceRange(null);
@@ -449,9 +619,6 @@ const handleBookNow = (item: any) => {
   const closeForm = () => {
     setShowOfflineForm(false);
     setWantsAmbulance(null);
-    setShowAssetsField(false);
-    setWantsAssets(null);
-    setSelectedAssistant(null);
     setAppointmentTime('');
     setAppointmentDate('');
     setPickupTime('');
@@ -493,7 +660,7 @@ const handleBookNow = (item: any) => {
   };
 
   const onDateChange = (event: any, selectedDateValue?: Date) => {
-    setShowDatePicker(false);
+     setShowDatePicker(false);
     if (selectedDateValue) {
       setSelectedDate(selectedDateValue);
       setAppointmentDate(formatDate(selectedDateValue));
@@ -561,36 +728,31 @@ const handleBookNow = (item: any) => {
       return Alert.alert("Missing", "Please select pickup time");
     }
 
-    if (!showAssetsField) {
-      return Alert.alert("Missing", "Please complete addon selection");
-    }
-
-    if (wantsAssets === "yes" && !selectedAssistant) {
-      return Alert.alert("Missing", "Please select an assistant");
-    }
-
     // Show final confirmation with all details
-    Alert.alert(
-      "Booking Confirmed ✅",
-      `${selectedDoctor?.type === 'doctor' ? 'Doctor' : selectedDoctor?.type === 'hospital' ? 'Hospital' : selectedDoctor?.type === 'lab' ? 'Lab' : 'Store'}: ${selectedDoctor?.name || 'N/A'}
+Alert.alert(
+  "Booking Confirmed ✅",
+  `${selectedDoctor?.type === 'doctor' ? 'Doctor' : 'Hospital'}: ${selectedDoctor?.name}
 Specialty: ${selectedDoctor?.specialty || 'N/A'}
 Date: ${appointmentDate}
 Time: ${appointmentTime}
 ${selectedDoctor?.price > 0 ? `Price: $${selectedDoctor?.price}/hr` : 'Price: Contact for details'}
-Ambulance: ${wantsAmbulance === 'yes' ? `Yes (Pickup: ${pickupTime})` : 'No'}
-Patient Assistance: ${wantsAssets === 'yes' ? `Yes (Assistant ${selectedAssistant === 1 ? 'A' : selectedAssistant === 2 ? 'B' : 'C'})` : 'No'}`,
-      [
-  {
-    text: "View Hospital Doctors",
-    onPress: () => {
-      closeForm();
-      navigation.navigate("Offline", {
-        hospital: selectedDoctor,
-      });
+Ambulance: ${wantsAmbulance === 'yes' ? `Yes (Pickup: ${pickupTime})` : 'No'}`,
+  [
+    {
+      text: "View Hospital Doctors",
+      onPress: () => {
+        closeForm();
+        navigation.navigate("Offline", {
+          hospital: selectedDoctor,
+        });
+      },
     },
-  },
-]
-    );
+    {
+      text: "OK",
+      style: "cancel",
+    },
+  ]
+);
   };
 
   // Get section title based on service type
@@ -614,6 +776,19 @@ Patient Assistance: ${wantsAssets === 'yes' ? `Yes (Assistant ${selectedAssistan
     
     return 'Available Services';
   };
+  const parseCustomTimeToDate = (
+  hour: string,
+  minute: string,
+  ampm: 'AM' | 'PM'
+) => {
+  const h = parseInt(hour, 10) % 12 + (ampm === 'PM' ? 12 : 0);
+  const m = parseInt(minute, 10);
+
+  const date = new Date(selectedDate);
+  date.setHours(h, m, 0, 0);
+  return date;
+};
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -763,21 +938,13 @@ Patient Assistance: ${wantsAssets === 'yes' ? `Yes (Assistant ${selectedAssistan
                   </Animated.Text>
                 </View>
               )}
-              <TextInput
+             <TextInput
                 style={styles.searchInput}
                 value={searchQuery}
-                onChangeText={(text) => {
-                  setSearchQuery(text);
-                  setShowDropdown(true);
-                }}
-                onFocus={() => {
-                  setShowDropdown(true);
-                  setIsSearchFocused(true);
-                }}
-                onBlur={() => {
-                  setTimeout(() => setShowDropdown(false), 150);
-                  setIsSearchFocused(false);
-                }}
+                onChangeText={setSearchQuery}
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setIsSearchFocused(false)}
+                placeholder=""
               />
             </View>
             <TouchableOpacity onPress={() => setShowFilterModal(true)}>
@@ -787,28 +954,6 @@ Patient Assistance: ${wantsAssets === 'yes' ? `Yes (Assistant ${selectedAssistan
               </View>
             </TouchableOpacity>
           </View>
-          
-          {showDropdown && (
-            <View style={styles.dropdownContainer}>
-              {filteredSuggestions.length > 0 ? (
-                filteredSuggestions.map((item) => (
-                  <TouchableOpacity 
-                    key={item} 
-                    style={styles.dropdownItem}
-                    onPress={() => handleDropdownSelect(item)}
-                  >
-                    <Icon name="search" size={16} color="#9ca3af" style={{ marginRight: 12 }} />
-                    <Text style={styles.dropdownText}>{item}</Text>
-                  </TouchableOpacity>
-                ))
-              ) : (
-                <View style={styles.dropdownItem}>
-                  <Icon name="search-off" size={16} color="#ef4444" style={{ marginRight: 12 }} />
-                  <Text style={[styles.dropdownText, { color: '#ef4444' }]}>No results found</Text>
-                </View>
-              )}
-            </View>
-          )}
         </View>
 
         {/* Only show categories for Doctors */}
@@ -879,7 +1024,15 @@ Patient Assistance: ${wantsAssets === 'yes' ? `Yes (Assistant ${selectedAssistan
             {filteredData.length > 0 ? (
               filteredData.map((item) => (
                 <TouchableOpacity key={item.id} style={styles.doctorCard}>
-                  <Image source={{ uri: item.image }} style={styles.doctorImage} />
+                  <Image
+                      source={
+                        typeof item.image === 'string'
+                          ? { uri: item.image }
+                          : item.image
+                      }
+                      style={styles.doctorImage}
+                    />
+
                   <View style={styles.doctorInfo}>
                     <View style={styles.doctorHeader}>
                       <Text style={styles.doctorName}>{item.name}</Text>
@@ -998,7 +1151,7 @@ Patient Assistance: ${wantsAssets === 'yes' ? `Yes (Assistant ${selectedAssistan
                 </Text>
                 <TouchableOpacity 
                   style={styles.modernInput}
-                  onPress={() => setShowDatePicker(true)}
+                  onPress={() =>  setShowDatePicker(true)}
                 >
                   <View style={styles.inputContent}>
                     <Icon name="calendar-today" size={20} color={appointmentDate ? '#2d7576' : '#9ca3af'} />
@@ -1010,15 +1163,7 @@ Patient Assistance: ${wantsAssets === 'yes' ? `Yes (Assistant ${selectedAssistan
                 </TouchableOpacity>
               </View>
 
-              {showDatePicker && (
-                <DateTimePicker
-                  value={selectedDate}
-                  mode="date"
-                  display="default"
-                  minimumDate={new Date()}
-                  onChange={onDateChange}
-                />
-              )}
+
 
               {/* Time Selection */}
               <View style={styles.formSection}>
@@ -1032,7 +1177,7 @@ Patient Assistance: ${wantsAssets === 'yes' ? `Yes (Assistant ${selectedAssistan
                       Alert.alert('Select Date First', 'Please select an appointment date before choosing time.');
                       return;
                     }
-                    setShowTimePicker(true);
+                    setCustomTimeModal(true);
                   }}
                 >
                   <View style={styles.inputContent}>
@@ -1045,16 +1190,6 @@ Patient Assistance: ${wantsAssets === 'yes' ? `Yes (Assistant ${selectedAssistan
                 </TouchableOpacity>
               </View>
 
-              {showTimePicker && (
-                <DateTimePicker
-                  value={selectedTime}
-                  mode="time"
-                  is24Hour={false}
-                  display="default"
-                  minimumDate={isToday(selectedDate) ? getMinimumTime() : undefined}
-                  onChange={onTimeChange}
-                />
-              )}
 
               {/* Ambulance Selection */}
               {!ambulanceFieldLocked && (
@@ -1079,7 +1214,6 @@ Patient Assistance: ${wantsAssets === 'yes' ? `Yes (Assistant ${selectedAssistan
                       style={[styles.modernChoiceBtn, wantsAmbulance === 'no' && styles.modernChoiceBtnActive]}
                       onPress={() => { 
                         setWantsAmbulance('no'); 
-                        setShowAssetsField(true); 
                         setAmbulanceFieldLocked(true);
                       }}
                     >
@@ -1106,7 +1240,7 @@ Patient Assistance: ${wantsAssets === 'yes' ? `Yes (Assistant ${selectedAssistan
                           Alert.alert('Select Appointment Time First', 'Please select appointment time before choosing pickup time.');
                           return;
                         }
-                        setShowPickupTimePicker(true);
+                        setCustomTimeModal(true);
                       }}
                     >
                       <View style={styles.inputContent}>
@@ -1119,94 +1253,9 @@ Patient Assistance: ${wantsAssets === 'yes' ? `Yes (Assistant ${selectedAssistan
                     </TouchableOpacity>
                   </View>
 
-                  {showPickupTimePicker && (
-                    <DateTimePicker
-                      value={selectedPickupTime}
-                      mode="time"
-                      is24Hour={false}
-                      display="default"
-                      onChange={onPickupTimeChange}
-                    />
-                  )}
-
-                  {pickupTime && !showAssetsField && (
-                    <TouchableOpacity 
-                      style={styles.modernAddonBtn} 
-                      onPress={() => setShowAssetsField(true)}
-                    >
-                      <Icon name="add-circle-outline" size={20} color="#2d7576" />
-                      <Text style={styles.modernAddonBtnText}>Add Patient Assistance</Text>
-                    </TouchableOpacity>
-                  )}
                 </>
               )}
-
-              {/* Patient Assistance */}
-              {showAssetsField && (
-                <View style={styles.formSection}>
-                  <Text style={styles.inputLabel}>
-                    <Icon name="accessibility" size={16} color="#2d7576" /> Patient Assistance Required?
-                  </Text>
-                  <View style={styles.choiceRow}>
-                    <TouchableOpacity 
-                      style={[styles.modernChoiceBtn, wantsAssets === 'yes' && styles.modernChoiceBtnActive]}
-                      onPress={() => setWantsAssets('yes')}
-                    >
-                      <Icon name="check-circle" size={20} color={wantsAssets === 'yes' ? '#fff' : '#2d7576'} />
-                      <Text style={wantsAssets === 'yes' ? styles.modernChoiceTextActive : styles.modernChoiceText}>
-                        Yes, I need
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                      style={[styles.modernChoiceBtn, wantsAssets === 'no' && styles.modernChoiceBtnActive]}
-                      onPress={() => setWantsAssets('no')}
-                    >
-                      <Icon name="cancel" size={20} color={wantsAssets === 'no' ? '#fff' : '#ef4444'} />
-                      <Text style={wantsAssets === 'no' ? styles.modernChoiceTextActive : styles.modernChoiceText}>
-                        No, thanks
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-
-                  {wantsAssets === 'yes' && (
-                    <View style={styles.assistantsList}>
-                      <Text style={styles.assistantListTitle}>Select Your Assistant</Text>
-                      {[1, 2, 3].map((item) => {
-                        const isSelected = selectedAssistant === item;
-                        return (
-                          <TouchableOpacity 
-                            key={item} 
-                            style={[
-                              styles.modernAssetItem, 
-                              isSelected && styles.modernAssetItemActive
-                            ]}
-                            onPress={() => setSelectedAssistant(item)}
-                          >
-                            <Image 
-                              source={{uri: `https://i.pravatar.cc/100?u=${item + 10}`}} 
-                              style={styles.assetImg} 
-                            />
-                            <View style={{flex: 1, marginLeft: 12}}>
-                              <Text style={[styles.assetName, isSelected && {color: '#2d7576', fontWeight: '700'}]}>
-                                Assistant {item === 1 ? 'A' : item === 2 ? 'B' : 'C'}
-                              </Text>
-                              <View style={styles.ratingContainer}>
-                                <Icon name="star" size={12} color="#eab308" />
-                                <Text style={styles.ratingText}>4.{8 + item} • Professional Care</Text>
-                              </View>
-                            </View>
-                            
-                            <View style={[styles.modernRadioButton, isSelected && styles.modernRadioButtonActive]}>
-                              {isSelected && <View style={styles.modernRadioInner} />}
-                            </View>
-                          </TouchableOpacity>
-                        );
-                      })}
-                    </View>
-                  )}
-                </View>
-              )}
-
+            
               <TouchableOpacity
                 style={styles.modernFinalBookBtn}
                 onPress={handleFinalBooking}
@@ -1222,7 +1271,22 @@ Patient Assistance: ${wantsAssets === 'yes' ? `Yes (Assistant ${selectedAssistan
           </View>
         </View>
       </Modal>
-
+    {showDatePicker && (
+  <DateTimePicker
+    value={selectedDate}
+    mode="date"
+    display="default"
+    minimumDate={new Date()}
+    onChange={(event, date) => {
+      setShowDatePicker(false);
+      if (date) {
+        setSelectedDate(date);
+        setAppointmentDate(formatDate(date));
+        setAppointmentTime('');
+      }
+    }}
+  />
+)}
       {/* Filter Modal */}
       <Modal visible={showFilterModal} transparent animationType="slide">
         <View style={styles.modalOverlay}>
@@ -1344,6 +1408,86 @@ Patient Assistance: ${wantsAssets === 'yes' ? `Yes (Assistant ${selectedAssistan
           </View>
         </View>
       </Modal>
+      <Modal visible={customTimeModal} transparent animationType="fade">
+  <View style={styles.timeOverlay}>
+    <View style={styles.timeCard}>
+
+      <Text style={styles.timeTitle}>Enter Time</Text>
+
+      <View style={styles.timeRow}>
+        {/* Hour */}
+        <TextInput
+          style={styles.timeBoxActive}
+          keyboardType="number-pad"
+          maxLength={2}
+          value={hour}
+          onChangeText={setHour}
+        />
+
+        <Text style={styles.colon}>:</Text>
+
+        {/* Minute */}
+        <TextInput
+          style={styles.timeBox}
+          keyboardType="number-pad"
+          maxLength={2}
+          value={minute}
+          onChangeText={setMinute}
+        />
+
+        {/* AM / PM */}
+        <View style={styles.ampmBox}>
+          <TouchableOpacity
+            style={ampm === 'AM' ? styles.ampmActive : styles.ampm}
+            onPress={() => setAmPm('AM')}
+          >
+            <Text style={ampm === 'AM' ? styles.ampmTextActive : styles.ampmText}>AM</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={ampm === 'PM' ? styles.ampmActive : styles.ampm}
+            onPress={() => setAmPm('PM')}
+          >
+            <Text style={ampm === 'PM' ? styles.ampmTextActive : styles.ampmText}>PM</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={styles.timeActions}>
+        <TouchableOpacity onPress={() => setCustomTimeModal(false)}>
+          <Text style={styles.cancelText}>CANCEL</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => {
+  const appointmentDateTime = parseCustomTimeToDate(hour, minute, ampm);
+
+  // ❌ block past time if today
+  if (isToday(selectedDate) && appointmentDateTime <= new Date()) {
+    Alert.alert("Invalid Time", "Please select a future time");
+    return;
+  }
+
+  // ✅ appointment time
+  setSelectedTime(appointmentDateTime);
+  setAppointmentTime(formatTime(appointmentDateTime));
+
+  // ✅ ambulance pickup = 1 hour before
+  const pickup = new Date(appointmentDateTime);
+  pickup.setHours(pickup.getHours() - 1);
+
+  setSelectedPickupTime(pickup);
+  setPickupTime(formatTime(pickup));
+
+  setCustomTimeModal(false);
+}}>
+          <Text style={styles.okText}>OK</Text>
+        </TouchableOpacity>
+      </View>
+
+    </View>
+  </View>
+</Modal>
 
       <View style={styles.bottomNav}>
         <TouchableOpacity style={styles.navItemActive}>
@@ -1363,6 +1507,114 @@ Patient Assistance: ${wantsAssets === 'yes' ? `Yes (Assistant ${selectedAssistan
           <Text style={styles.navText}>Profile</Text>
         </TouchableOpacity>
       </View>
+      <Modal 
+  visible={showLabStoreModal} 
+  transparent 
+  animationType="slide"
+  onRequestClose={closeLabStoreModal}
+>
+  <View style={styles.bottomSheetOverlay}>
+    <View style={styles.bottomSheetContainer}>
+      <View style={styles.sheetHandle} />
+      
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{paddingBottom: 40}}>
+        <Text style={styles.sheetTitle}>
+          {selectedDoctor?.type === 'lab' ? 'Book Lab Test' : 'Order Medicines'}
+        </Text>
+        <Text style={styles.sheetSub}>{selectedDoctor?.name}</Text>
+
+        {/* Prescription Upload Section */}
+        <View style={styles.sheetSection}>
+  <Text style={styles.sheetLabel}>Upload Prescription</Text>
+  <View style={styles.uploadRow}>
+    
+    {/* CAMERA BUTTON */}
+    <TouchableOpacity style={styles.uploadBtn} onPress={handleCamera}>
+      <Icon name="photo-camera" size={24} color="#2d7576" />
+      <Text style={styles.uploadBtnText}>Camera</Text>
+    </TouchableOpacity>
+
+    {/* GALLERY BUTTON */}
+    <TouchableOpacity style={styles.uploadBtn} onPress={handleGallery}>
+      <Icon name="image" size={24} color="#2d7576" />
+      <Text style={styles.uploadBtnText}>Gallery</Text>
+    </TouchableOpacity>
+    
+  </View>
+
+  {/* Preview of uploaded image */}
+  {prescription && (
+    <View style={styles.previewContainer}>
+      <Image source={{ uri: prescription }} style={styles.prescriptionPreview} />
+      <TouchableOpacity 
+        style={styles.removeImageBtn} 
+        onPress={() => setPrescription(null)}
+      >
+        <Icon name="cancel" size={20} color="#ef4444" />
+      </TouchableOpacity>
+      <Text style={styles.uploadSuccessText}>Prescription attached</Text>
+    </View>
+  )}
+</View>
+        {/* Delivery Toggle */}
+        <View style={styles.sheetSection}>
+          <Text style={styles.sheetLabel}>How would you like to proceed?</Text>
+          <View style={styles.choiceRow}>
+            <TouchableOpacity 
+              style={[styles.modernChoiceBtn, isDelivery === true && styles.modernChoiceBtnActive]}
+              onPress={() => setIsDelivery(true)}
+            >
+              <Icon name="local-shipping" size={20} color={isDelivery === true ? '#fff' : '#2d7576'} />
+              <Text style={isDelivery === true ? styles.modernChoiceTextActive : styles.modernChoiceText}>Delivery</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.modernChoiceBtn, isDelivery === false && styles.modernChoiceBtnActive]}
+              onPress={() => setIsDelivery(false)}
+            >
+              <Icon name="store" size={20} color={isDelivery === false ? '#fff' : '#2d7576'} />
+              <Text style={isDelivery === false ? styles.modernChoiceTextActive : styles.modernChoiceText}>Visit Store</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Conditional Address Field */}
+        {isDelivery && (
+          <View style={styles.sheetSection}>
+            <Text style={styles.sheetLabel}>Delivery Address</Text>
+            <TextInput 
+              style={styles.sheetInput}
+              placeholder="Enter full address..."
+              multiline
+              numberOfLines={3}
+              value={address}
+              onChangeText={setAddress}
+            />
+          </View>
+        )}
+
+        {/* Special Instructions */}
+        <View style={styles.sheetSection}>
+          <Text style={styles.sheetLabel}>Special Instructions (Optional)</Text>
+          <TextInput 
+            style={styles.sheetInput}
+            placeholder="E.g. Call before arrival, substitute generic names..."
+            value={instructions}
+            onChangeText={setInstructions}
+          />
+        </View>
+
+        {/* Action Buttons */}
+        <TouchableOpacity style={styles.sheetConfirmBtn} onPress={handleLabStoreConfirm}>
+          <Text style={styles.sheetConfirmBtnText}>Confirm Order</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity style={styles.sheetCancelBtn} onPress={closeLabStoreModal}>
+          <Text style={styles.sheetCancelBtnText}>Cancel</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
+  </View>
+</Modal>
     </SafeAreaView>
   );
 };
@@ -2188,6 +2440,224 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.5,
   },
+  bottomSheetOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  bottomSheetContainer: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    maxHeight: '90%',
+  },
+  sheetHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#e5e7eb',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  sheetTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#131616',
+  },
+  sheetSub: {
+    fontSize: 14,
+    color: '#2d7576',
+    fontWeight: '600',
+    marginBottom: 20,
+  },
+  sheetSection: {
+    marginBottom: 20,
+  },
+  sheetLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#374151',
+    marginBottom: 10,
+  },
+  uploadRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  uploadBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f0f9f9',
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#2d7576',
+    borderStyle: 'dashed',
+    gap: 8,
+  },
+  uploadBtnText: {
+    color: '#2d7576',
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  uploadSuccess: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 8,
+  },
+  uploadSuccessText: {
+    color: '#16a34a',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  sheetInput: {
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 12,
+    padding: 12,
+    fontSize: 14,
+    textAlignVertical: 'top',
+  },
+  sheetConfirmBtn: {
+    backgroundColor: '#2d7576',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  sheetConfirmBtnText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  sheetCancelBtn: {
+    padding: 16,
+    alignItems: 'center',
+  },
+  sheetCancelBtnText: {
+    color: '#ef4444',
+    fontWeight: '600',
+  },
+  previewContainer: {
+    marginTop: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0fdf4',
+    padding: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+    position: 'relative',
+  },
+  prescriptionPreview: {
+    width: 50,
+    height: 50,
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  removeImageBtn: {
+    position: 'absolute',
+    top: -5,
+    left: 45,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+  },
+  timeOverlay: {
+  flex: 1,
+  backgroundColor: 'rgba(0,0,0,0.6)',
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+
+timeCard: {
+  width: '85%',
+  backgroundColor: '#2f2f2f',
+  borderRadius: 16,
+  padding: 20,
+},
+
+timeTitle: {
+  color: '#fff',
+  fontSize: 14,
+  marginBottom: 12,
+},
+
+timeRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 10,
+},
+
+timeBoxActive: {
+  backgroundColor: '#3b82f6',
+  color: '#fff',
+  width: 70,
+  height: 60,
+  textAlign: 'center',
+  fontSize: 28,
+  borderRadius: 8,
+},
+
+timeBox: {
+  backgroundColor: '#555',
+  color: '#fff',
+  width: 70,
+  height: 60,
+  textAlign: 'center',
+  fontSize: 28,
+  borderRadius: 8,
+},
+
+colon: {
+  color: '#fff',
+  fontSize: 30,
+  marginHorizontal: 4,
+},
+
+ampmBox: {
+  marginLeft: 10,
+},
+
+ampm: {
+  padding: 6,
+},
+
+ampmActive: {
+  backgroundColor: '#3b82f6',
+  padding: 6,
+  borderRadius: 6,
+},
+
+ampmText: {
+  color: '#aaa',
+},
+
+ampmTextActive: {
+  color: '#fff',
+  fontWeight: '700',
+},
+
+timeActions: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  marginTop: 20,
+},
+
+cancelText: {
+  color: '#aaa',
+  fontWeight: '700',
+},
+
+okText: {
+  color: '#3b82f6',
+  fontWeight: '800',
+},
 });
 
 export default DoctorListScreen;
