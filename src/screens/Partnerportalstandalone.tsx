@@ -10,6 +10,10 @@ import {
 } from 'react-native';
 import { useTheme } from "../context/ThemeContext";
 import { useNavigation } from "@react-navigation/native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+
+
 
 
 
@@ -24,8 +28,9 @@ const PartnerPortalStandalone = () => {
     
     
 
-  return (
-    <View style={styles.container}>
+ return (
+  <SafeAreaView style={styles.container}>
+
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       
       {/* Header */}
@@ -86,9 +91,14 @@ const PartnerPortalStandalone = () => {
               Access course materials, grades, and all student-facing features to verify the learning experience.
             </Text>
 
-            <TouchableOpacity style={styles.primaryButton}>
-              <Text style={styles.primaryButtonText}>Enter Student View</Text>
-            </TouchableOpacity>
+         <TouchableOpacity
+  style={styles.primaryButton}
+  onPress={() => navigation.navigate("institutionbranchscreen")}
+>
+  <Text style={styles.primaryButtonText}>Enter Student View</Text>
+</TouchableOpacity>
+
+
           </View>
         </View>
 
@@ -174,8 +184,9 @@ const PartnerPortalStandalone = () => {
           </View>
         </View>
       </ScrollView>
-    </View>
-  );
+    </SafeAreaView>
+);
+
 };
 
 const getStyles = (colors: any) => StyleSheet.create({
