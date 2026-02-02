@@ -378,32 +378,35 @@ const searchSuggestions =
   const filteredSuggestions = getFilteredSuggestions();
 
   // Get data based on consultation type and service type
-  const getAvailableData = () => {
-    // If offline is selected
-    if (consultationType === 'Offline') {
-      if (serviceType === 'Complete Treatment') {
-        return hospitals;
-      } else {
-        return hospitals; // Show hospitals for offline by default
-      }
+const getAvailableData = () => {
+  // If offline is selected
+  if (consultationType === 'Offline') {
+    if (serviceType === 'Doctor') {
+      return hospitals; // Show hospitals when Doctor is selected in Offline
+    } else if (serviceType === 'Complete Treatment') {
+      return hospitals;
+    } else if (serviceType === 'Labs') {
+      return labs; // ✅ Add this
+    } else if (serviceType === 'Medical Store') {
+      return medicalStores; // ✅ Add this
     }
-    
-    // If online is selected
-    if (consultationType === 'Online') {
-      if (serviceType === 'Doctor') {
-        return doctors;
-      } else if (serviceType === 'Labs') {
-        return labs;
-      } else if (serviceType === 'Medical Store') {
-        return medicalStores;
-      } else if (serviceType === 'Complete Treatment') {
-        return hospitals;
-      }
-    }
-    
-    return doctors; // Default
-  };
+  }
 
+  // If online is selected
+  if (consultationType === 'Online') {
+    if (serviceType === 'Doctor') {
+      return doctors;
+    } else if (serviceType === 'Labs') {
+      return labs;
+    } else if (serviceType === 'Medical Store') {
+      return medicalStores;
+    } else if (serviceType === 'Complete Treatment') {
+      return hospitals;
+    }
+  }
+
+  return doctors; // Default
+};
   const symptomToSpecialtyMap: Record<string, string[]> = {
   fever: ['General Practitioner'],
   cold: ['General Practitioner'],
@@ -426,42 +429,45 @@ const getFilteredData = () => {
   const query = searchQuery.trim().toLowerCase();
 
   // 🔎 SEARCH FILTER
-  if (query.length > 0) {
-    // 1️⃣ ONLINE → DOCTORS (symptom-based + name-based)
-    if (consultationType === 'Online' && serviceType === 'Doctor') {
-      const matchedSpecialties =
-        symptomToSpecialtyMap[query] || [];
-
-      data = data.filter((doc: any) =>
-        doc.name.toLowerCase().includes(query) ||
-        doc.specialty.toLowerCase().includes(query) ||
-        matchedSpecialties.includes(doc.specialty)
-      );
-    }
-
-    // 2️⃣ OFFLINE → HOSPITALS / CLINICS
-    else if (consultationType === 'Offline') {
-      data = data.filter((hospital: any) =>
-        hospital.name.toLowerCase().includes(query) ||
-        hospital.specialty.toLowerCase().includes(query)
-      );
-    }
-
-    // 3️⃣ LABS
-    else if (serviceType === 'Labs') {
-      data = data.filter((lab: any) =>
-        lab.name.toLowerCase().includes(query) ||
-        lab.specialty.toLowerCase().includes(query)
-      );
-    }
-
-    // 4️⃣ MEDICAL STORES
-    else if (serviceType === 'Medical Store') {
-      data = data.filter((store: any) =>
-        store.name.toLowerCase().includes(query)
-      );
-    }
+  // 🔎 SEARCH FILTER
+if (query.length > 0) {
+  // 1️⃣ ONLINE → DOCTORS (symptom-based + name-based)
+  if (consultationType === 'Online' && serviceType === 'Doctor') {
+    const matchedSpecialties = symptomToSpecialtyMap[query] || [];
+    data = data.filter((doc: any) =>
+      doc.name.toLowerCase().includes(query) ||
+      doc.specialty.toLowerCase().includes(query) ||
+      matchedSpecialties.includes(doc.specialty)
+    );
   }
+  // 2️⃣ OFFLINE → HOSPITALS / CLINICS
+  else if (consultationType === 'Offline' && serviceType === 'Doctor') {
+    data = data.filter((hospital: any) =>
+      hospital.name.toLowerCase().includes(query) ||
+      hospital.specialty.toLowerCase().includes(query)
+    );
+  }
+  // 3️⃣ LABS (both Online and Offline) ✅
+  else if (serviceType === 'Labs') {
+    data = data.filter((lab: any) =>
+      lab.name.toLowerCase().includes(query) ||
+      lab.specialty.toLowerCase().includes(query)
+    );
+  }
+  // 4️⃣ MEDICAL STORES (both Online and Offline) ✅
+  else if (serviceType === 'Medical Store') {
+    data = data.filter((store: any) =>
+      store.name.toLowerCase().includes(query)
+    );
+  }
+  // 5️⃣ COMPLETE TREATMENT (both modes) ✅
+  else if (serviceType === 'Complete Treatment') {
+    data = data.filter((hospital: any) =>
+      hospital.name.toLowerCase().includes(query) ||
+      hospital.specialty.toLowerCase().includes(query)
+    );
+  }
+}
 
   // 🎯 CATEGORY FILTER (existing)
   if (selectedCategory) {
@@ -535,20 +541,31 @@ const getFilteredData = () => {
   };
 
 const handleBookNow = (item: any) => {
-  setSelectedDoctor(item);
-
-  if (
-  item.type === 'hospital' ||
-  item.type === 'clinic' ||
-  item.type === 'specialist center'
-){
-    setShowOfflineForm(true);
-  } else if (item.type === 'lab' || item.type === 'store') {
-    setShowLabStoreModal(true); // Open the new Bottom Sheet
-  } else {
-    setShowDoctorBookedModal(true); // Standard Doctor booking
+  // 🟢 ONLINE → DOCTOR → NAVIGATE
+  if (consultationType === 'Online' && item.type === 'doctor') {
+    navigation.navigate('AppointmentBooking', {
+      doctor: item,
+    });
+    return;
   }
-  navigation.navigate('AppointmentBooking', { doctor: item });
+
+  // 🟡 LAB / MEDICAL STORE (both Online & Offline)
+  if (item.type === 'lab' || item.type === 'store') {
+    setSelectedDoctor(item);
+    setShowLabStoreModal(true);
+    return;
+  }
+
+  // 🔵 OFFLINE → HOSPITAL / CLINIC
+  if (
+    item.type === 'hospital' ||
+    item.type === 'clinic' ||
+    item.type === 'specialist center'
+  ) {
+    setSelectedDoctor(item);
+    setShowOfflineForm(true);
+    return;
+  }
 };
 
 const handleLabStoreConfirm = () => {
@@ -736,7 +753,6 @@ Alert.alert(
 Specialty: ${selectedDoctor?.specialty || 'N/A'}
 Date: ${appointmentDate}
 Time: ${appointmentTime}
-${selectedDoctor?.price > 0 ? `Price: $${selectedDoctor?.price}/hr` : 'Price: Contact for details'}
 Ambulance: ${wantsAmbulance === 'yes' ? `Yes (Pickup: ${pickupTime})` : 'No'}`,
   [
     {
@@ -757,26 +773,30 @@ Ambulance: ${wantsAmbulance === 'yes' ? `Yes (Pickup: ${pickupTime})` : 'No'}`,
   };
 
   // Get section title based on service type
-  const getSectionTitle = () => {
-    if (consultationType === 'Offline') {
-      if (serviceType === 'Complete Treatment') {
-        return 'Available Hospitals';
-      }
+ const getSectionTitle = () => {
+  if (consultationType === 'Offline') {
+    if (serviceType === 'Complete Treatment' || serviceType === 'Doctor') {
       return 'Available Hospitals';
-    }
-    
-    if (serviceType === 'Doctor') {
-      return selectedCategory ? `${selectedCategory}s` : 'Available Doctors';
     } else if (serviceType === 'Labs') {
-      return 'Available Labs';
+      return 'Available Labs'; // ✅ Add this
     } else if (serviceType === 'Medical Store') {
-      return 'Available Medical Stores';
-    } else if (serviceType === 'Complete Treatment') {
-      return 'Available Hospitals';
+      return 'Available Medical Stores'; // ✅ Add this
     }
-    
-    return 'Available Services';
-  };
+  }
+
+  // Online mode
+  if (serviceType === 'Doctor') {
+    return selectedCategory ? `${selectedCategory}s` : 'Available Doctors';
+  } else if (serviceType === 'Labs') {
+    return 'Available Labs';
+  } else if (serviceType === 'Medical Store') {
+    return 'Available Medical Stores';
+  } else if (serviceType === 'Complete Treatment') {
+    return 'Available Hospitals';
+  }
+
+  return 'Available Services';
+};
   const parseCustomTimeToDate = (
   hour: string,
   minute: string,
@@ -788,6 +808,19 @@ Ambulance: ${wantsAmbulance === 'yes' ? `Yes (Pickup: ${pickupTime})` : 'No'}`,
   const date = new Date(selectedDate);
   date.setHours(h, m, 0, 0);
   return date;
+};
+
+const getImageSource = (image: any) => {
+  if (typeof image === 'string' && image.startsWith('http')) {
+    return { uri: image };
+  }
+
+  if (typeof image === 'number') {
+    return image; // require() images
+  }
+
+  // fallback image
+  return require('../../assets/hospital1.jpg');
 };
 
 
@@ -1026,13 +1059,10 @@ Ambulance: ${wantsAmbulance === 'yes' ? `Yes (Pickup: ${pickupTime})` : 'No'}`,
               filteredData.map((item) => (
                 <TouchableOpacity key={item.id} style={styles.doctorCard}>
                   <Image
-                      source={
-                        typeof item.image === 'string'
-                          ? { uri: item.image }
-                          : item.image
-                      }
-                      style={styles.doctorImage}
-                    />
+  source={getImageSource(item.image)}
+  style={styles.doctorImage}
+/>
+
 
                   <View style={styles.doctorInfo}>
                     <View style={styles.doctorHeader}>
@@ -1495,14 +1525,12 @@ Ambulance: ${wantsAmbulance === 'yes' ? `Yes (Pickup: ${pickupTime})` : 'No'}`,
           <Icon name="home" size={24} color="#2d7576" />
           <Text style={styles.navTextActive}>Home</Text>
         </TouchableOpacity>
-     <TouchableOpacity
-  style={styles.navItem}
-  onPress={() => navigation.navigate('MyBookings')}
->
-  <Icon name="calendar-today" size={24} color="#9ca3af" />
-  <Text style={styles.navText}>My Bookings</Text>
-</TouchableOpacity>
-
+        <TouchableOpacity style={styles.navItem} 
+        onPress={()=>{navigation.navigate("MyBookings")}}
+        >
+          <Icon name="calendar-today" size={24} color="#9ca3af" />
+          <Text style={styles.navText}>Bookings</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.navItem}>
           <Icon name="folder-open" size={24} color="#9ca3af" />
           <Text style={styles.navText}>Records</Text>

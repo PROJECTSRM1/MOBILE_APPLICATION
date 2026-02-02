@@ -118,7 +118,12 @@ const HospitalDoctorsScreen = () => {
             style={styles.card}
             onPress={() => navigation.navigate('DoctorProfile', { doctor: item })}
           >
-            <Image source={{ uri: item.image }} style={styles.avatar} />
+            <Image
+                source={{
+                  uri: item.image || 'https://i.pravatar.cc/150?img=12',
+                }}
+                style={styles.avatar}
+              />
 
             <View style={styles.cardInfo}>
               <View style={styles.nameRow}>
