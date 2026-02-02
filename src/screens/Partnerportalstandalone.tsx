@@ -6,39 +6,30 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
+  Image,
   Dimensions,
 } from 'react-native';
 import { useTheme } from "../context/ThemeContext";
 import { useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-
-
-
-
-
 const { width, height } = Dimensions.get('window');
 
 const PartnerPortalStandalone = () => {
-    const navigation = useNavigation<any>();
-     const { colors } = useTheme();
-     const styles = getStyles(colors);
+  const navigation = useNavigation<any>();
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
 
-
-    
-    
-
- return (
-  <SafeAreaView style={styles.container}>
-
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
       
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.closeButton}>
-          <Text style={styles.closeIcon}>×</Text>
-        </TouchableOpacity>
+        <View style={styles.closeButton} />
+        
         <Text style={styles.headerTitle}>Partner Portal</Text>
+        
         <TouchableOpacity style={styles.helpButton}>
           <Text style={styles.helpIcon}>?</Text>
         </TouchableOpacity>
@@ -60,7 +51,17 @@ const PartnerPortalStandalone = () => {
         {/* Student View Card */}
         <View style={styles.card}>
           <View style={[styles.cardImageContainer, styles.studentGradient]}>
-            {/* Classroom Image Placeholder */}
+            {/* Background Image */}
+            <Image 
+              source={require('../../assets/student1.jpg')}
+              style={styles.backgroundImage}
+              resizeMode="cover"
+            />
+            
+            {/* Overlay */}
+            <View style={styles.imageOverlay} />
+            
+            {/* Classroom Graphics */}
             <View style={styles.classroomContainer}>
               <View style={styles.classroomWindow} />
               <View style={styles.classroomDoor} />
@@ -68,8 +69,8 @@ const PartnerPortalStandalone = () => {
               <View style={styles.classroomDesk2} />
               <View style={styles.classroomDesk3} />
             </View>
-            
-            {/* Student Icon */}
+
+            {/* Graduation Cap Icon */}
             <View style={styles.iconCircle}>
               <View style={styles.graduationCap}>
                 <View style={styles.capTop} />
@@ -90,30 +91,39 @@ const PartnerPortalStandalone = () => {
             <Text style={styles.cardDescription}>
               Access course materials, grades, and all student-facing features to verify the learning experience.
             </Text>
-
-         <TouchableOpacity
-  style={styles.primaryButton}
-  onPress={() => navigation.navigate("institutionbranchscreen")}
->
-  <Text style={styles.primaryButtonText}>Enter Student View</Text>
-</TouchableOpacity>
-
-
+            
+            <TouchableOpacity 
+              style={styles.primaryButton}
+              onPress={() => navigation.navigate("institutionbranchscreen" as never)}
+            >
+              <Text style={styles.primaryButtonText}>Enter Student View</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
         {/* Management View Card */}
         <View style={styles.card}>
           <View style={[styles.cardImageContainer, styles.managementGradient]}>
-            {/* Dashboard/Tablet Mockup */}
+            {/* Background Image */}
+            <Image 
+              source={require('../../assets/management.jpg')}
+              style={styles.backgroundImage}
+              resizeMode="cover"
+            />
+            
+            {/* Overlay */}
+            <View style={styles.imageOverlay} />
+            
+            {/* Tablet/Dashboard Graphics */}
             <View style={styles.tabletContainer}>
               <View style={styles.tabletScreen}>
+                {/* Header Lines */}
                 <View style={styles.tabletHeader}>
                   <View style={styles.tabletHeaderLine} />
-                  <View style={[styles.tabletHeaderLine, { width: 60 }]} />
+                  <View style={styles.tabletHeaderLine} />
                 </View>
-                
-                {/* Dashboard Items */}
+
+                {/* Dashboard Grid */}
                 <View style={styles.dashboardGrid}>
                   <View style={styles.dashboardItem}>
                     <View style={styles.dashboardLine} />
@@ -134,14 +144,14 @@ const PartnerPortalStandalone = () => {
                   <View style={styles.chartBar5} />
                 </View>
               </View>
+            </View>
 
-              {/* Analytics Icon */}
-              <View style={styles.analyticsIcon}>
-                <View style={styles.analyticsGraph}>
-                  <View style={styles.analyticsLine} />
-                  <View style={styles.analyticsDot1} />
-                  <View style={styles.analyticsDot2} />
-                </View>
+            {/* Analytics Icon */}
+            <View style={styles.analyticsIcon}>
+              <View style={styles.analyticsGraph}>
+                <View style={styles.analyticsLine} />
+                <View style={styles.analyticsDot1} />
+                <View style={styles.analyticsDot2} />
                 <View style={styles.analyticsCog}>
                   <View style={styles.cogCenter} />
                 </View>
@@ -160,23 +170,24 @@ const PartnerPortalStandalone = () => {
             <Text style={styles.cardDescription}>
               Review analytics, manage enrollments, configure portal settings, and generate institution reports.
             </Text>
-
+            
             <TouchableOpacity 
-  style={styles.primaryButton}
-  onPress={() => navigation.navigate("ManagementOverview")}
->
-  <Text style={styles.primaryButtonText}>Enter Management View</Text>
-</TouchableOpacity>
-
+              style={styles.primaryButton}
+              onPress={() => navigation.navigate("ManagementOverview" as never)}
+            >
+              <Text style={styles.primaryButtonText}>Enter Management View</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
         {/* Footer Section */}
         <View style={styles.footerSection}>
-          <Text style={styles.footerText}>Need assistance with your account?</Text>
-          <TouchableOpacity>
-            <Text style={styles.footerLink}>Contact System Administrator</Text>
-          </TouchableOpacity>
+          <Text style={styles.footerText}>
+            Need assistance with your account?
+          </Text>
+          <Text style={styles.footerLink}>
+            Contact System Administrator
+          </Text>
           
           <View style={styles.statusIndicator}>
             <View style={styles.statusDot} />
@@ -185,12 +196,10 @@ const PartnerPortalStandalone = () => {
         </View>
       </ScrollView>
     </SafeAreaView>
-);
-
+  );
 };
 
 const getStyles = (colors: any) => StyleSheet.create({
-
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -260,7 +269,7 @@ const getStyles = (colors: any) => StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 420,
-    backgroundColor: 'colors.card',
+    backgroundColor: colors.card,
     borderRadius: 16,
     marginBottom: 24,
     shadowColor: '#000',
@@ -280,6 +289,19 @@ const getStyles = (colors: any) => StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
+  },
+  backgroundImage: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    top: 0,
+    left: 0,
+  },
+  imageOverlay: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(43, 135, 184, 0.3)',
   },
   studentGradient: {
     backgroundColor: '#2b87b8',
@@ -346,7 +368,7 @@ const getStyles = (colors: any) => StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: colors.card,
+    backgroundColor: 'white',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'absolute',
@@ -387,7 +409,7 @@ const getStyles = (colors: any) => StyleSheet.create({
     left: 8,
     width: 20,
     height: 16,
-    backgroundColor: colors.primary,
+    backgroundColor: '#1a73e8',
     borderRadius: 2,
   },
   capTassel: {
@@ -396,7 +418,7 @@ const getStyles = (colors: any) => StyleSheet.create({
     right: 6,
     width: 3,
     height: 12,
-    backgroundColor: colors.primary,
+    backgroundColor: '#1a73e8',
   },
   // Management View - Tablet/Dashboard Graphics
   tabletContainer: {
@@ -407,7 +429,7 @@ const getStyles = (colors: any) => StyleSheet.create({
   tabletScreen: {
     width: 140,
     height: 100,
-    backgroundColor: colors.card,
+    backgroundColor: 'white',
     borderRadius: 8,
     borderWidth: 3,
     borderColor: '#2d3748',
@@ -425,6 +447,10 @@ const getStyles = (colors: any) => StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 6,
+  },
+  cardImage: {
+    width: '100%',
+    height: '100%',
   },
   tabletHeaderLine: {
     width: 40,
@@ -463,31 +489,31 @@ const getStyles = (colors: any) => StyleSheet.create({
   chartBar1: {
     width: 8,
     height: 20,
-    backgroundColor: colors.primary,
+    backgroundColor: '#1a73e8',
     borderRadius: 2,
   },
   chartBar2: {
     width: 8,
     height: 12,
-    backgroundColor: colors.primary,
+    backgroundColor: '#1a73e8',
     borderRadius: 2,
   },
   chartBar3: {
     width: 8,
     height: 28,
-    backgroundColor: colors.primary,
+    backgroundColor: '#1a73e8',
     borderRadius: 2,
   },
   chartBar4: {
     width: 8,
     height: 16,
-    backgroundColor: colors.primary,
+    backgroundColor: '#1a73e8',
     borderRadius: 2,
   },
   chartBar5: {
     width: 8,
     height: 32,
-    backgroundColor: colors.primary,
+    backgroundColor: '#1a73e8',
     borderRadius: 2,
   },
   analyticsIcon: {
@@ -497,7 +523,7 @@ const getStyles = (colors: any) => StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: colors.card,
+    backgroundColor: 'white',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -520,7 +546,7 @@ const getStyles = (colors: any) => StyleSheet.create({
     left: 2,
     width: 24,
     height: 2,
-    backgroundColor: colors.primary,
+    backgroundColor: '#1a73e8',
     transform: [{ rotate: '25deg' }],
   },
   analyticsDot1: {
@@ -530,7 +556,7 @@ const getStyles = (colors: any) => StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: colors.primary,
+    backgroundColor: '#1a73e8',
   },
   analyticsDot2: {
     position: 'absolute',
@@ -539,7 +565,7 @@ const getStyles = (colors: any) => StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: colors.primary,
+    backgroundColor: '#1a73e8',
   },
   analyticsCog: {
     position: 'absolute',
@@ -558,7 +584,7 @@ const getStyles = (colors: any) => StyleSheet.create({
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: colors.primary,
+    backgroundColor: '#1a73e8',
   },
   cardContent: {
     padding: 24,
@@ -575,7 +601,7 @@ const getStyles = (colors: any) => StyleSheet.create({
     color: colors.text,
   },
   previewBadge: {
-    backgroundColor: colors.surfaceAlt,
+    backgroundColor: colors.surfaceAlt || '#f0f4ff',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 4,
@@ -583,11 +609,11 @@ const getStyles = (colors: any) => StyleSheet.create({
   previewText: {
     fontSize: 11,
     fontWeight: '700',
-    color: colors.primary,
+    color: colors.primary || '#1a73e8',
     letterSpacing: 0.5,
   },
   adminBadge: {
-    backgroundColor: colors.success + '22',
+    backgroundColor: (colors.success || '#10b981') + '22',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 4,
@@ -595,7 +621,7 @@ const getStyles = (colors: any) => StyleSheet.create({
   adminText: {
     fontSize: 11,
     fontWeight: '700',
-    color: colors.success,
+    color: colors.success || '#10b981',
     letterSpacing: 0.5,
   },
   cardDescription: {
@@ -605,12 +631,12 @@ const getStyles = (colors: any) => StyleSheet.create({
     marginBottom: 20,
   },
   primaryButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.primary || '#1a73e8',
     paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 8,
     alignItems: 'center',
-    shadowColor: colors.primary,
+    shadowColor: colors.primary || '#1a73e8',
     shadowOffset: {
       width: 0,
       height: 4,
@@ -637,7 +663,7 @@ const getStyles = (colors: any) => StyleSheet.create({
   footerLink: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.primary,
+    color: colors.primary || '#1a73e8',
     marginBottom: 20,
   },
   statusIndicator: {
@@ -648,7 +674,7 @@ const getStyles = (colors: any) => StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: colors.success,
+    backgroundColor: colors.success || '#10b981',
     marginRight: 8,
   },
   statusText: {
