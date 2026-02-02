@@ -92,6 +92,7 @@ import InstitutionStudents from "./src/screens/InstitutionStudents";
 
 
 
+
 export type RootStackParamList = {
   Splash: undefined;
   Onboarding: undefined;
@@ -187,9 +188,8 @@ export type RootStackParamList = {
   MidTermNotifications : undefined;
   FinalExamSchedule: undefined;
 institutionbranchscreen:undefined
-
-
   instututionstudents: undefined
+ 
 };
 
 /* ================= NAV ================= */
@@ -290,6 +290,7 @@ function AppNavigator() {
         <Stack.Screen name="SalaryOverview" component={SalaryOverview} />
         <Stack.Screen name="MidTermNotifications" component={MidTermNotifications} />
         <Stack.Screen name="FinalExamSchedule" component={FinalExamSchedule} />
+      
 
         <Stack.Screen 
           name="PartnerPortalStandalone" 

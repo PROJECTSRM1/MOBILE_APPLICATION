@@ -11,6 +11,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useTheme } from "../context/ThemeContext";
 import { useNavigation } from "@react-navigation/native";
+import api from "../services/api";
+
 
 
 const ManagementOverview = () => {
@@ -111,6 +113,21 @@ const ManagementOverview = () => {
             </View>
           </View>
         </View>
+
+        {/* Create Bus Button */}
+        <TouchableOpacity
+          style={styles.createBusButton}
+          onPress={() => navigation.navigate("CreateBusForm")}
+        >
+          <View style={styles.createBusIconContainer}>
+            <MaterialIcons name="add-circle" size={24} color={colors.primary} />
+          </View>
+          <View style={styles.createBusContent}>
+            <Text style={styles.createBusTitle}>Add New Bus</Text>
+            <Text style={styles.createBusSubtitle}>Register a new bus to the fleet</Text>
+          </View>
+          <MaterialIcons name="chevron-right" size={24} color={colors.subText} />
+        </TouchableOpacity>
 
         {/* Staff & Payroll Section */}
         <Text style={styles.sectionTitle}>Staff & Payroll</Text>
@@ -383,6 +400,46 @@ const createStyles = (colors: any) =>
     color: colors.text,
   },
   operationSubtitle: {
+    fontSize: 14,
+    color: colors.subText,
+  },
+
+  // Create Bus Button
+  createBusButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginTop: 12,
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  createBusIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  createBusContent: {
+    flex: 1,
+  },
+  createBusTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 2,
+  },
+  createBusSubtitle: {
     fontSize: 14,
     color: colors.subText,
   },

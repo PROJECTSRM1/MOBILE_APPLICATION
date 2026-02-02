@@ -88,7 +88,7 @@ const CleaningCategorySelectScreen = () => {
         {/* ICON CARDS GRID */}
         <View style={styles.gridWrapper}>
           <ServiceCard
-            title="Home Cleaning"
+            title="Cleaning Services"
             sub="Deep cleaning, Sanitization & Janitorial"
             icon="cleaning-services"
             color="#1a5cff"
