@@ -17,6 +17,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { useTheme } from "../context/ThemeContext";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
 
 const BASE_URL = "https://swachify-india-be-1-mcrb.onrender.com";
 const STORAGE_KEY = "@institution_registration_step1";
@@ -28,6 +29,15 @@ const API_CONFIG = {
   MAX_RETRIES: 2, // Maximum retry attempts per request
   RETRY_DELAY: 3000, // 3 seconds delay before retry
 };
+
+const api = axios.create({
+  baseURL: BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+  timeout: API_CONFIG.REQUEST_TIMEOUT,
+});
+
 
 interface Branch {
   id: string;
@@ -183,347 +193,182 @@ const InstitutionRegistrationStep2 = () => {
   };
 
   /**
-   * Fetch with timeout wrapper
-   */
-  const fetchWithTimeout = async (
-    url: string,
-    options: RequestInit,
-    timeout: number = API_CONFIG.REQUEST_TIMEOUT
-  ): Promise<Response> => {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-    try {
-      const response = await fetch(url, {
-        ...options,
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
-      return response;
-    } catch (error) {
-      clearTimeout(timeoutId);
-      throw error;
-    }
-  };
-
-  /**
    * Create a single branch with retry logic
    */
   const createSingleBranch = async (
-    branch: Branch,
-    institutionId: number | string,
-    branchIndex: number,
-    retryCount: number = 0
-  ): Promise<{ success: boolean; error?: string }> => {
-    const branchPayload = {
-      institution_id: Number(institutionId),
-      branch_name: branch.branchName.trim(),
-      city: branch.locationCity.trim(),
-      branch_code: branch.branchCode.trim(),
-      branch_head: branch.branchHead.trim(),
-      is_active: true,
-    };
+  branch: Branch,
+  institutionId: number,
+  index: number
+): Promise<boolean> => {
 
-    console.log(`\n[Attempt ${retryCount + 1}] Creating Branch ${branchIndex + 1}/${branches.length}`);
-    console.log("Payload:", JSON.stringify(branchPayload, null, 2));
-
-    try {
-      const response = await fetchWithTimeout(
-        `${BASE_URL}/institution/student/branch`,
-        {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(branchPayload),
-        }
-      );
-
-      const responseText = await response.text();
-      console.log(`Branch ${branchIndex + 1} Status:`, response.status);
-      console.log(`Branch ${branchIndex + 1} Response:`, responseText);
-
-      if (!response.ok) {
-        // Check if we should retry
-        if (retryCount < API_CONFIG.MAX_RETRIES && response.status >= 500) {
-          console.log(`Server error (${response.status}), retrying in ${API_CONFIG.RETRY_DELAY}ms...`);
-          await delay(API_CONFIG.RETRY_DELAY);
-          return createSingleBranch(branch, institutionId, branchIndex, retryCount + 1);
-        }
-
-        return {
-          success: false,
-          error: responseText || `Server error: ${response.status}`,
-        };
-      }
-
-      return { success: true };
-    } catch (error: any) {
-      console.error(`Branch ${branchIndex + 1} Error:`, error);
-
-      // Retry on network errors
-      if (retryCount < API_CONFIG.MAX_RETRIES && 
-          (error.name === "AbortError" || error.message.includes("Network"))) {
-        console.log(`Network error, retrying in ${API_CONFIG.RETRY_DELAY}ms...`);
-        await delay(API_CONFIG.RETRY_DELAY);
-        return createSingleBranch(branch, institutionId, branchIndex, retryCount + 1);
-      }
-
-      return {
-        success: false,
-        error: error.message || "Network error occurred",
-      };
-    }
+  const payload = {
+    institution_id: Number(institutionId),
+    branch_name: branch.branchName.trim(),
+    city: branch.locationCity.trim(),
+    branch_code: branch.branchCode.trim(),
+    branch_head: branch.branchHead.trim(),
+    is_active: true,
   };
+
+  console.log("Sending Branch:", payload);
+
+  try {
+    const res = await api.post(
+      "/institution/student/branch",
+      payload
+    );
+
+    console.log(`Branch ${index + 1} created`, res.data);
+    return true;
+
+  } catch (err: any) {
+    console.log(
+      `Branch ${index + 1} error`,
+      err?.response?.data || err.message
+    );
+    return false;
+  }
+};
+
 
   /**
    * Create all branches sequentially with delays
    */
-  const createBranches = async (institutionId: number | string) => {
-    console.log("\n=== Creating Branches Sequentially with Delays ===");
-    const failedBranches: Array<{ name: string; error: string }> = [];
-    const successfulBranches: string[] = [];
+  const createBranches = async (institutionId: number) => {
 
-    for (let i = 0; i < branches.length; i++) {
-      const branch = branches[i];
+  for (let i = 0; i < branches.length; i++) {
 
-      // Update loading message
-      setLoadingMessage(`Creating branch ${i + 1} of ${branches.length}...`);
+    setLoadingMessage(`Creating branch ${i + 1} of ${branches.length}`);
 
-      const result = await createSingleBranch(branch, institutionId, i);
+    const success = await createSingleBranch(
+      branches[i],
+      institutionId,
+      i
+    );
 
-      if (result.success) {
-        successfulBranches.push(branch.branchName);
-        console.log(`✓ Branch ${i + 1} created successfully`);
-      } else {
-        failedBranches.push({
-          name: branch.branchName,
-          error: result.error || "Unknown error",
-        });
-        console.log(`✗ Branch ${i + 1} failed:`, result.error);
-      }
+    if (!success) return false;
 
-      // Add delay between requests (except after the last one)
-      if (i < branches.length - 1) {
-        console.log(`Waiting ${API_CONFIG.BRANCH_CREATION_DELAY}ms before next branch...`);
-        setLoadingMessage(`Waiting before creating next branch...`);
-        await delay(API_CONFIG.BRANCH_CREATION_DELAY);
-      }
+    if (i < branches.length - 1) {
+      await delay(API_CONFIG.BRANCH_CREATION_DELAY);
     }
+  }
 
-    console.log("\n=== Branch Creation Summary ===");
-    console.log(`Successful: ${successfulBranches.length}`);
-    console.log(`Failed: ${failedBranches.length}`);
-    console.log("================================\n");
+  return true;
+};
 
-    if (failedBranches.length > 0) {
-      const failedDetails = failedBranches
-        .map((b) => `• ${b.name}: ${b.error}`)
-        .join("\n");
-      return {
-        success: false,
-        message: `${failedBranches.length} of ${branches.length} branches failed to create`,
-        details: failedDetails,
-        successCount: successfulBranches.length,
-        failedCount: failedBranches.length,
-      };
-    }
-
-    return { success: true };
-  };
 
   const registerInstitution = async () => {
-    if (!validateBranches()) {
+  if (!validateBranches()) {
+    Alert.alert(
+      "Validation Error",
+      "Please fill all required fields for each branch"
+    );
+    return;
+  }
+
+  setLoading(true);
+  setLoadingMessage("Registering institution...");
+
+  try {
+    // -----------------------------
+    // STEP 1 : REGISTER INSTITUTION
+    // -----------------------------
+    const payload = {
+      institution_name: step1Data.institutionName,
+      institution_type_id: Number(step1Data.institutionType),
+      identity_type_id: Number(step1Data.identityType),
+      identity_number: step1Data.registrationNumber,
+      location: step1Data.physicalAddress,
+      representative_name: step1Data.contactPerson,
+      email: step1Data.emailAddress,
+      phone_number: step1Data.phoneNumber,
+      upload_id_proof: step1Data.idProof?.uri || "",
+      upload_address_proof: step1Data.addressProof?.uri || "",
+      institute_website: step1Data.website || "",
+      total_branches: branches.length,
+      academic_year_start: formatDateForAPI(academicYearStart),
+      academic_year_end: formatDateForAPI(academicYearEnd),
+      created_by: 0,
+      is_active: true,
+    };
+
+    console.log("=== STEP 1: Institution Registration ===");
+    console.log(payload);
+
+    const res = await api.post(
+      "/institution/student/register",
+      payload
+    );
+
+    const responseData = res.data;
+
+    console.log("Institution API Response:", responseData);
+
+    const institutionId =
+      responseData.institution_id ||
+      responseData.id ||
+      responseData.data?.institution_id ||
+      responseData.data?.id;
+
+    if (!institutionId) {
+      throw new Error("Institution ID not found in response");
+    }
+
+    console.log("Institution ID:", institutionId);
+
+    // Small pause before branch creation
+    await delay(1000);
+
+    // -----------------------------
+    // STEP 2 : CREATE BRANCHES
+    // -----------------------------
+    setLoadingMessage("Creating branches...");
+
+    const branchSuccess = await createBranches(institutionId);
+
+    if (!branchSuccess) {
       Alert.alert(
-        "Validation Error",
-        "Please fill all required fields for each branch"
+        "Partial Success",
+        `Institution registered but branch creation failed.\n\nInstitution ID: ${institutionId}`
       );
       return;
     }
 
-    setLoading(true);
-    setLoadingMessage("Registering institution...");
+    // -----------------------------
+    // SUCCESS
+    // -----------------------------
+    await clearSavedData();
 
-    try {
-      // Step 1: Register Institution
-      const payload = {
-        institution_name: step1Data.institutionName,
-        institution_type_id: parseInt(step1Data.institutionType),
-        identity_type_id: parseInt(step1Data.identityType),
-        identity_number: step1Data.registrationNumber,
-        location: step1Data.physicalAddress,
-        representative_name: step1Data.contactPerson,
-        email: step1Data.emailAddress,
-        phone_number: step1Data.phoneNumber,
-        upload_id_proof: step1Data.idProof?.uri || "",
-        upload_address_proof: step1Data.addressProof?.uri || "",
-        institute_website: step1Data.website || "",
-        total_branches: branches.length,
-        academic_year_start: formatDateForAPI(academicYearStart),
-        academic_year_end: formatDateForAPI(academicYearEnd),
-        created_by: 0,
-        is_active: true,
-      };
-
-      console.log("\n=== STEP 1: Institution Registration ===");
-      console.log("URL:", `${BASE_URL}/institution/student/register`);
-      console.log("Payload:", JSON.stringify(payload, null, 2));
-      console.log("========================================\n");
-
-      const response = await fetchWithTimeout(
-        `${BASE_URL}/institution/student/register`,
+    Alert.alert(
+      "Registration Complete",
+      "Your institution and all branches have been registered successfully!",
+      [
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
+          text: "OK",
+          onPress: () => {
+            navigation.navigate("PartnerPortalStandalone");
           },
-          body: JSON.stringify(payload),
-        }
-      );
+        },
+      ]
+    );
 
-      console.log("=== Institution API Response ===");
-      console.log("Status:", response.status);
-      console.log("Status Text:", response.statusText);
-      console.log("Content-Type:", response.headers.get("content-type"));
+  } catch (error: any) {
+    console.log("=== API ERROR ===");
+    console.log(error?.response?.data || error.message);
 
-      const responseText = await response.text();
-      console.log("Response Text:", responseText);
-      console.log("================================\n");
+    Alert.alert(
+      "Error",
+      error?.response?.data?.message ||
+        error?.response?.data ||
+        error.message ||
+        "Something went wrong"
+    );
+  } finally {
+    setLoading(false);
+    setLoadingMessage("");
+  }
+};
 
-      let responseData;
-
-      // Check if response is actually JSON
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        try {
-          responseData = JSON.parse(responseText);
-        } catch (parseError) {
-          console.error("JSON Parse Error:", parseError);
-          throw new Error("Invalid JSON response from server");
-        }
-      } else {
-        // Non-JSON response (likely plain text error)
-        console.error("Non-JSON response received:", responseText);
-
-        if (!response.ok) {
-          throw new Error(responseText || `Server error: ${response.status}`);
-        }
-
-        // If status is OK but no JSON, try to handle it
-        throw new Error(
-          "Server returned non-JSON response. Please contact support."
-        );
-      }
-
-      if (response.ok) {
-        console.log("=== Institution Registration Successful ===");
-        console.log("Response Data:", JSON.stringify(responseData, null, 2));
-        console.log("===========================================\n");
-
-        // Extract institution ID from response
-        const institutionId =
-          responseData.institution_id ||
-          responseData.id ||
-          responseData.data?.institution_id ||
-          responseData.data?.id;
-
-        if (!institutionId) {
-          console.error("No institution ID in response:", responseData);
-          throw new Error(
-            "Institution ID not found in response. Please contact support."
-          );
-        }
-
-        console.log("Institution ID:", institutionId);
-
-        // Small delay before starting branch creation
-        await delay(1000);
-
-        // Step 2: Create Branches
-        console.log("\n=== STEP 2: Creating Branches ===");
-        setLoadingMessage("Preparing to create branches...");
-        
-        const branchResult = await createBranches(institutionId);
-
-        if (!branchResult.success) {
-          Alert.alert(
-            "Partial Success",
-            `Institution registered successfully!\n\n` +
-              `✓ Institution ID: ${institutionId}\n` +
-              `✓ Successful branches: ${branchResult.successCount || 0}\n` +
-              `✗ Failed branches: ${branchResult.failedCount || 0}\n\n` +
-              `Error Details:\n${branchResult.details || branchResult.message}\n\n` +
-              `Please contact support with Institution ID: ${institutionId}`,
-            [
-              {
-                text: "Continue",
-                onPress: async () => {
-                  await clearSavedData();
-                  navigation.navigate("PartnerPortalStandalone");
-                },
-              },
-            ]
-          );
-        } else {
-          // Clear saved data after successful registration
-          await clearSavedData();
-
-          Alert.alert(
-            "Registration Complete",
-            "Your institution and all branches have been registered successfully!",
-            [
-              {
-                text: "OK",
-                onPress: () => {
-                  navigation.navigate("PartnerPortalStandalone");
-                },
-              },
-            ]
-          );
-        }
-      } else {
-        console.error("=== Institution Registration Failed ===");
-        console.error("Error Data:", responseData);
-        console.error("=======================================\n");
-
-        const errorMessage =
-          responseData.message ||
-          responseData.detail ||
-          responseData.error ||
-          "Registration failed. Please try again.";
-
-        Alert.alert("Registration Failed", errorMessage);
-      }
-    } catch (error: any) {
-      console.error("=== API Error ===");
-      console.error("Error:", error);
-      console.error("Error Message:", error.message);
-      console.error("Error Stack:", error.stack);
-      console.error("=================\n");
-
-      let errorMessage = "An unexpected error occurred. Please try again.";
-
-      if (error.name === "AbortError") {
-        errorMessage =
-          "Request timed out. Please check your internet connection and try again.";
-      } else if (
-        error.message.includes("Network request failed") ||
-        error.name === "TypeError"
-      ) {
-        errorMessage =
-          "Unable to connect to the server. Please check your internet connection and try again.";
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
-      Alert.alert("Error", errorMessage);
-    } finally {
-      setLoading(false);
-      setLoadingMessage("");
-    }
-  };
 
   const handleCompleteRegistration = () => {
     registerInstitution();
