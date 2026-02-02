@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,10 +10,12 @@ import {
   Platform,
   Share,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useTheme } from '../context/ThemeContext';
+import api from '../services/api';
 
 interface Staff {
   id: string;
@@ -21,9 +23,18 @@ interface Staff {
   role: string;
   employeeId: string;
   department: string;
-  netSalary: string;
+  email?: string;
+  phone?: string;
+  netSalary?: string;
+  latestPayPeriod?: string;
+}
+
+interface Payslip {
+  id: string;
+  staff_id: string;
   payPeriod: string;
   paymentDate: string;
+  netSalary: string;
   basicPay: string;
   hra: string;
   medicalAllowance: string;
@@ -35,120 +46,246 @@ interface Staff {
 
 interface PayslipDetailsScreenProps {
   navigation?: any;
+  route?: any;
 }
 
-const STAFF_DATA: Staff[] = [
-  {
-    id: '1',
-    name: 'Johnathan Doe',
-    role: 'Senior Math Coordinator',
-    employeeId: 'EDU-2023-042',
-    department: 'Mathematics',
-    netSalary: '$4,850.00',
-    payPeriod: 'September 2023',
-    paymentDate: 'Oct 01, 2023',
-    basicPay: '$3,500.00',
-    hra: '$800.00',
-    medicalAllowance: '$450.00',
-    performanceBonus: '$600.00',
-    pf: '$250.00',
-    incomeTax: '$200.00',
-    professionalTax: '$50.00',
-  },
-  {
-    id: '2',
-    name: 'Sarah Williams',
-    role: 'Science Department Head',
-    employeeId: 'EDU-2023-015',
-    department: 'Science',
-    netSalary: '$5,200.00',
-    payPeriod: 'September 2023',
-    paymentDate: 'Oct 01, 2023',
-    basicPay: '$4,000.00',
-    hra: '$900.00',
-    medicalAllowance: '$500.00',
-    performanceBonus: '$800.00',
-    pf: '$300.00',
-    incomeTax: '$250.00',
-    professionalTax: '$50.00',
-  },
-  {
-    id: '3',
-    name: 'Michael Chen',
-    role: 'English Teacher',
-    employeeId: 'EDU-2023-028',
-    department: 'English',
-    netSalary: '$3,950.00',
-    payPeriod: 'September 2023',
-    paymentDate: 'Oct 01, 2023',
-    basicPay: '$2,800.00',
-    hra: '$700.00',
-    medicalAllowance: '$400.00',
-    performanceBonus: '$500.00',
-    pf: '$200.00',
-    incomeTax: '$150.00',
-    professionalTax: '$50.00',
-  },
-  {
-    id: '4',
-    name: 'Emily Rodriguez',
-    role: 'Art & Music Coordinator',
-    employeeId: 'EDU-2023-061',
-    department: 'Arts',
-    netSalary: '$3,650.00',
-    payPeriod: 'September 2023',
-    paymentDate: 'Oct 01, 2023',
-    basicPay: '$2,500.00',
-    hra: '$650.00',
-    medicalAllowance: '$400.00',
-    performanceBonus: '$450.00',
-    pf: '$180.00',
-    incomeTax: '$120.00',
-    professionalTax: '$50.00',
-  },
-  {
-    id: '5',
-    name: 'David Kumar',
-    role: 'Physical Education Teacher',
-    employeeId: 'EDU-2023-073',
-    department: 'Sports',
-    netSalary: '$3,450.00',
-    payPeriod: 'September 2023',
-    paymentDate: 'Oct 01, 2023',
-    basicPay: '$2,400.00',
-    hra: '$600.00',
-    medicalAllowance: '$350.00',
-    performanceBonus: '$400.00',
-    pf: '$170.00',
-    incomeTax: '$110.00',
-    professionalTax: '$50.00',
-  },
-];
-
-const PaySlipsScreen = ({ navigation }: PayslipDetailsScreenProps) => {
+const PaySlipsScreen = ({ navigation, route }: PayslipDetailsScreenProps) => {
   const [currentScreen, setCurrentScreen] = useState<'list' | 'details'>('list');
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
+  const [selectedPayslips, setSelectedPayslips] = useState<Payslip[]>([]);
+  const [selectedPayslip, setSelectedPayslip] = useState<Payslip | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('Payroll');
-  const { colors, lightMode, toggleTheme } = useTheme();
+  const [staffList, setStaffList] = useState<Staff[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [payslipsLoading, setPayslipsLoading] = useState(false);
+  const { colors, lightMode } = useTheme();
+
+  // Fetch all staff on component mount
+  useEffect(() => {
+    fetchAllStaff();
+  }, []);
+
+  const fetchAllStaff = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/institution/management/staff-profile/all');
+      
+      console.log('=== RAW BACKEND RESPONSE ===');
+      console.log('Full response:', JSON.stringify(response.data, null, 2));
+      console.log('First staff member:', JSON.stringify(response.data[0], null, 2));
+      console.log('===========================');
+      
+      if (response.data && Array.isArray(response.data)) {
+        // Map backend data to our interface
+        const mappedStaff = response.data.map((staff: any, index: number) => {
+          console.log(`\n--- Processing staff ${index + 1} ---`);
+          console.log('Available keys:', Object.keys(staff));
+          console.log('Raw staff object:', staff);
+          
+          // Handle name - check multiple possible field structures
+          let displayName = '';
+          
+          // Check all possible name field combinations
+          if (staff.name && typeof staff.name === 'string' && staff.name.trim()) {
+            displayName = staff.name.trim();
+            console.log('Using staff.name:', displayName);
+          } else if (staff.full_name && typeof staff.full_name === 'string' && staff.full_name.trim()) {
+            displayName = staff.full_name.trim();
+            console.log('Using full_name:', displayName);
+          } else if (staff.fullName && typeof staff.fullName === 'string' && staff.fullName.trim()) {
+            displayName = staff.fullName.trim();
+            console.log('Using fullName:', displayName);
+          } else if (staff.staff_name && typeof staff.staff_name === 'string' && staff.staff_name.trim()) {
+            displayName = staff.staff_name.trim();
+            console.log('Using staff_name:', displayName);
+          } else if (staff.staffName && typeof staff.staffName === 'string' && staff.staffName.trim()) {
+            displayName = staff.staffName.trim();
+            console.log('Using staffName:', displayName);
+          } else if (staff.display_name && typeof staff.display_name === 'string' && staff.display_name.trim()) {
+            displayName = staff.display_name.trim();
+            console.log('Using display_name:', displayName);
+          } else if (staff.displayName && typeof staff.displayName === 'string' && staff.displayName.trim()) {
+            displayName = staff.displayName.trim();
+            console.log('Using displayName:', displayName);
+          } else if (staff.first_name && staff.last_name) {
+            displayName = `${staff.first_name} ${staff.last_name}`.trim();
+            console.log('Using first_name + last_name:', displayName);
+          } else if (staff.firstName && staff.lastName) {
+            displayName = `${staff.firstName} ${staff.lastName}`.trim();
+            console.log('Using firstName + lastName:', displayName);
+          } else if (staff.first_name && !staff.last_name) {
+            displayName = staff.first_name.trim();
+            console.log('Using first_name only:', displayName);
+          } else if (staff.firstName && !staff.lastName) {
+            displayName = staff.firstName.trim();
+            console.log('Using firstName only:', displayName);
+          } else if (staff.last_name && !staff.first_name) {
+            displayName = staff.last_name.trim();
+            console.log('Using last_name only:', displayName);
+          } else if (staff.lastName && !staff.firstName) {
+            displayName = staff.lastName.trim();
+            console.log('Using lastName only:', displayName);
+          } else if (staff.user_name || staff.username) {
+            displayName = (staff.user_name || staff.username).trim();
+            console.log('Using username:', displayName);
+          } else if (staff.user && typeof staff.user === 'object') {
+            // Check if name is nested in a user object
+            if (staff.user.name) {
+              displayName = staff.user.name.trim();
+              console.log('Using user.name:', displayName);
+            } else if (staff.user.full_name) {
+              displayName = staff.user.full_name.trim();
+              console.log('Using user.full_name:', displayName);
+            } else if (staff.user.first_name && staff.user.last_name) {
+              displayName = `${staff.user.first_name} ${staff.user.last_name}`.trim();
+              console.log('Using user.first_name + user.last_name:', displayName);
+            }
+          } else if (staff.profile && typeof staff.profile === 'object') {
+            // Check if name is nested in a profile object
+            if (staff.profile.name) {
+              displayName = staff.profile.name.trim();
+              console.log('Using profile.name:', displayName);
+            } else if (staff.profile.full_name) {
+              displayName = staff.profile.full_name.trim();
+              console.log('Using profile.full_name:', displayName);
+            }
+          }
+          
+          // If still no valid name, use fallback
+          if (!displayName) {
+            displayName = staff.email || `Staff ${index + 1}`;
+            console.log('Using fallback:', displayName);
+          }
+
+          // Handle role
+          let displayRole = '';
+          if (staff.role && typeof staff.role === 'string' && staff.role.trim()) {
+            displayRole = staff.role.trim();
+            console.log('Using staff.role:', displayRole);
+          } else if (staff.position) {
+            displayRole = staff.position.trim();
+            console.log('Using staff.position:', displayRole);
+          } else if (staff.designation) {
+            displayRole = staff.designation.trim();
+            console.log('Using staff.designation:', displayRole);
+          } else if (staff.job_title || staff.jobTitle) {
+            displayRole = (staff.job_title || staff.jobTitle).trim();
+            console.log('Using job_title:', displayRole);
+          } else {
+            displayRole = 'Staff';
+            console.log('Using default role: Staff');
+          }
+
+          // Handle salary - check if backend includes latest salary
+          let netSalary: string | undefined;
+          if (staff.net_salary || staff.netSalary || staff.salary || staff.latest_salary) {
+            const salaryValue = staff.net_salary || staff.netSalary || staff.salary || staff.latest_salary;
+            netSalary = typeof salaryValue === 'number' 
+              ? formatCurrency(salaryValue) 
+              : salaryValue;
+            console.log('Found salary:', netSalary);
+          }
+
+          const mappedStaffMember = {
+            id: staff.id || staff._id || staff.staff_id || staff.staffId || `temp_${index}`,
+            name: displayName,
+            role: displayRole,
+            employeeId: staff.employee_id || staff.employeeId || staff.staff_id || staff.staffId || 'N/A',
+            department: staff.department || staff.dept || 'General',
+            email: staff.email,
+            phone: staff.phone || staff.mobile,
+            netSalary: netSalary,
+            latestPayPeriod: staff.latest_pay_period || staff.latestPayPeriod || staff.pay_period,
+          };
+          
+          console.log('Mapped to:', mappedStaffMember);
+          return mappedStaffMember;
+        });
+        
+        console.log('\n=== FINAL MAPPED STAFF LIST ===');
+        console.log(JSON.stringify(mappedStaff, null, 2));
+        console.log('================================\n');
+        
+        setStaffList(mappedStaff);
+      }
+    } catch (error: any) {
+      console.error('Error fetching staff:', error);
+      console.error('Error details:', error.response?.data);
+      Alert.alert(
+        'Error',
+        error.response?.data?.message || 'Failed to fetch staff data. Please try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchStaffPayslips = async (staffId: string) => {
+    try {
+      setPayslipsLoading(true);
+      const response = await api.get(`/institution/management/${staffId}/payslips`);
+      
+      if (response.data && Array.isArray(response.data)) {
+        // Map backend data to our interface
+        const mappedPayslips = response.data.map((payslip: any) => ({
+          id: payslip.id || payslip._id,
+          staff_id: staffId,
+          payPeriod: payslip.pay_period || payslip.payPeriod || 'N/A',
+          paymentDate: payslip.payment_date || payslip.paymentDate || 'N/A',
+          netSalary: formatCurrency(payslip.net_salary || payslip.netSalary || 0),
+          basicPay: formatCurrency(payslip.basic_pay || payslip.basicPay || 0),
+          hra: formatCurrency(payslip.hra || 0),
+          medicalAllowance: formatCurrency(payslip.medical_allowance || payslip.medicalAllowance || 0),
+          performanceBonus: formatCurrency(payslip.performance_bonus || payslip.performanceBonus || 0),
+          pf: formatCurrency(payslip.pf || 0),
+          incomeTax: formatCurrency(payslip.income_tax || payslip.incomeTax || 0),
+          professionalTax: formatCurrency(payslip.professional_tax || payslip.professionalTax || 0),
+        }));
+        setSelectedPayslips(mappedPayslips);
+        
+        // Auto-select the most recent payslip if available
+        if (mappedPayslips.length > 0) {
+          setSelectedPayslip(mappedPayslips[0]);
+        }
+      }
+    } catch (error: any) {
+      console.error('Error fetching payslips:', error);
+      Alert.alert(
+        'Error',
+        error.response?.data?.message || 'Failed to fetch payslip data. Please try again.'
+      );
+      // Don't block navigation, just show empty state
+      setSelectedPayslips([]);
+    } finally {
+      setPayslipsLoading(false);
+    }
+  };
+
+  const formatCurrency = (amount: number | string): string => {
+    const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+    return `$${numAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
 
   // Filter staff based on search query
-  const filteredStaff = STAFF_DATA.filter(staff =>
+  const filteredStaff = staffList.filter(staff =>
     staff.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     staff.employeeId.toLowerCase().includes(searchQuery.toLowerCase()) ||
     staff.department.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Handler functions
-  const handleStaffSelect = (staff: Staff) => {
+  const handleStaffSelect = async (staff: Staff) => {
     setSelectedStaff(staff);
     setCurrentScreen('details');
+    await fetchStaffPayslips(staff.id);
   };
 
   const handleBack = () => {
     if (currentScreen === 'details') {
       setCurrentScreen('list');
       setSelectedStaff(null);
+      setSelectedPayslips([]);
+      setSelectedPayslip(null);
     } else if (navigation) {
       navigation.goBack();
     } else {
@@ -170,7 +307,7 @@ const PaySlipsScreen = ({ navigation }: PayslipDetailsScreenProps) => {
   const handleEmailPDF = async () => {
     try {
       await Share.share({
-        message: `Payslip for ${selectedStaff?.payPeriod} - ${selectedStaff?.name}\nNet Salary: ${selectedStaff?.netSalary}`,
+        message: `Payslip for ${selectedPayslip?.payPeriod} - ${selectedStaff?.name}\nNet Salary: ${selectedPayslip?.netSalary}`,
         title: 'Share Payslip',
       });
     } catch (error) {
@@ -189,18 +326,18 @@ const PaySlipsScreen = ({ navigation }: PayslipDetailsScreenProps) => {
     );
   };
 
-  // Calculate totals for selected staff
-  const calculateTotals = (staff: Staff | null) => {
-    if (!staff) return { totalEarnings: '$0.00', totalDeductions: '$0.00' };
+  // Calculate totals for selected payslip
+  const calculateTotals = (payslip: Payslip | null) => {
+    if (!payslip) return { totalEarnings: '$0.00', totalDeductions: '$0.00' };
     
-    const earnings = parseFloat(staff.basicPay.replace('$', '').replace(',', '')) +
-                    parseFloat(staff.hra.replace('$', '').replace(',', '')) +
-                    parseFloat(staff.medicalAllowance.replace('$', '').replace(',', '')) +
-                    parseFloat(staff.performanceBonus.replace('$', '').replace(',', ''));
+    const earnings = parseFloat(payslip.basicPay.replace('$', '').replace(',', '')) +
+                    parseFloat(payslip.hra.replace('$', '').replace(',', '')) +
+                    parseFloat(payslip.medicalAllowance.replace('$', '').replace(',', '')) +
+                    parseFloat(payslip.performanceBonus.replace('$', '').replace(',', ''));
     
-    const deductions = parseFloat(staff.pf.replace('$', '').replace(',', '')) +
-                      parseFloat(staff.incomeTax.replace('$', '').replace(',', '')) +
-                      parseFloat(staff.professionalTax.replace('$', '').replace(',', ''));
+    const deductions = parseFloat(payslip.pf.replace('$', '').replace(',', '')) +
+                      parseFloat(payslip.incomeTax.replace('$', '').replace(',', '')) +
+                      parseFloat(payslip.professionalTax.replace('$', '').replace(',', ''));
     
     return {
       totalEarnings: `$${earnings.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
@@ -208,7 +345,14 @@ const PaySlipsScreen = ({ navigation }: PayslipDetailsScreenProps) => {
     };
   };
 
-  const totals = calculateTotals(selectedStaff);
+  const totals = calculateTotals(selectedPayslip);
+
+  // Get the latest payslip net salary for list view
+  const getLatestNetSalary = (staffId: string) => {
+    // This would need to be fetched from backend or cached
+    // For now, return placeholder
+    return 'View Details';
+  };
 
   // Staff List Screen
   if (currentScreen === 'list') {
@@ -231,6 +375,7 @@ const PaySlipsScreen = ({ navigation }: PayslipDetailsScreenProps) => {
           
           <Text style={[styles.headerTitle, { color: colors.text }]}>Staff Payslips</Text>
           
+          <View style={styles.headerRight} />
         </View>
 
         {/* Search Bar */}
@@ -257,62 +402,73 @@ const PaySlipsScreen = ({ navigation }: PayslipDetailsScreenProps) => {
           <View style={[styles.statsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <View style={styles.statItem}>
               <MaterialIcons name="groups" size={24} color={colors.primary} />
-              <Text style={[styles.statValue, { color: colors.text }]}>{STAFF_DATA.length}</Text>
+              <Text style={[styles.statValue, { color: colors.text }]}>{staffList.length}</Text>
               <Text style={[styles.statLabel, { color: colors.subText }]}>Total Staff</Text>
             </View>
             <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
             <View style={styles.statItem}>
               <MaterialIcons name="attach-money" size={24} color={colors.success} />
-              <Text style={[styles.statValue, { color: colors.text }]}>Sep 2023</Text>
+              <Text style={[styles.statValue, { color: colors.text }]}>
+                {staffList[0]?.latestPayPeriod || 'Current'}
+              </Text>
               <Text style={[styles.statLabel, { color: colors.subText }]}>Pay Period</Text>
             </View>
           </View>
         </View>
 
         {/* Staff List */}
-        <ScrollView 
-          style={styles.scrollView}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.listScrollContent}
-        >
-          {filteredStaff.length === 0 ? (
-            <View style={styles.emptyState}>
-              <MaterialIcons name="search-off" size={64} color={colors.placeholder} />
-              <Text style={[styles.emptyStateText, { color: colors.subText }]}>
-                No staff found matching "{searchQuery}"
-              </Text>
-            </View>
-          ) : (
-            filteredStaff.map((staff) => (
-              <TouchableOpacity
-                key={staff.id}
-                style={[styles.staffCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-                onPress={() => handleStaffSelect(staff)}
-                activeOpacity={0.7}
-              >
-                <View style={styles.staffCardLeft}>
-                  <View style={[styles.staffAvatar, { backgroundColor: lightMode ? 'rgba(59, 130, 246, 0.1)' : 'rgba(59, 130, 246, 0.2)' }]}>
-                    <MaterialIcons name="account-circle" size={40} color={colors.primary} />
-                  </View>
-                  <View style={styles.staffInfo}>
-                    <Text style={[styles.staffName, { color: colors.text }]}>{staff.name}</Text>
-                    <Text style={[styles.staffRole, { color: colors.subText }]}>{staff.role}</Text>
-                    <View style={styles.staffMeta}>
-                      <View style={[styles.staffBadge, { backgroundColor: colors.surface }]}>
-                        <Text style={[styles.staffId, { color: colors.primary }]}>{staff.employeeId}</Text>
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={[styles.loadingText, { color: colors.subText }]}>Loading staff...</Text>
+          </View>
+        ) : (
+          <ScrollView 
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.listScrollContent}
+          >
+            {filteredStaff.length === 0 ? (
+              <View style={styles.emptyState}>
+                <MaterialIcons name="search-off" size={64} color={colors.placeholder} />
+                <Text style={[styles.emptyStateText, { color: colors.subText }]}>
+                  {searchQuery ? `No staff found matching "${searchQuery}"` : 'No staff available'}
+                </Text>
+              </View>
+            ) : (
+              filteredStaff.map((staff) => (
+                <TouchableOpacity
+                  key={staff.id}
+                  style={[styles.staffCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+                  onPress={() => handleStaffSelect(staff)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.staffCardLeft}>
+                    <View style={[styles.staffAvatar, { backgroundColor: lightMode ? 'rgba(59, 130, 246, 0.1)' : 'rgba(59, 130, 246, 0.2)' }]}>
+                      <MaterialIcons name="account-circle" size={40} color={colors.primary} />
+                    </View>
+                    <View style={styles.staffInfo}>
+                      <Text style={[styles.staffName, { color: colors.text }]}>{staff.name}</Text>
+                      <Text style={[styles.staffRole, { color: colors.subText }]}>{staff.role}</Text>
+                      <View style={styles.staffMeta}>
+                        <View style={[styles.staffBadge, { backgroundColor: colors.surface }]}>
+                          <Text style={[styles.staffId, { color: colors.primary }]}>{staff.employeeId}</Text>
+                        </View>
+                        <Text style={[styles.staffDepartment, { color: colors.placeholder }]}>• {staff.department}</Text>
                       </View>
-                      <Text style={[styles.staffDepartment, { color: colors.placeholder }]}>• {staff.department}</Text>
                     </View>
                   </View>
-                </View>
-                <View style={styles.staffCardRight}>
-                  <Text style={[styles.staffSalary, { color: colors.success }]}>{staff.netSalary}</Text>
-                  <MaterialIcons name="chevron-right" size={24} color={colors.placeholder} />
-                </View>
-              </TouchableOpacity>
-            ))
-          )}
-        </ScrollView>
+                  <View style={styles.staffCardRight}>
+                    {staff.netSalary && (
+                      <Text style={[styles.staffSalary, { color: colors.success }]}>{staff.netSalary}</Text>
+                    )}
+                    <MaterialIcons name="chevron-right" size={24} color={colors.placeholder} />
+                  </View>
+                </TouchableOpacity>
+              ))
+            )}
+          </ScrollView>
+        )}
 
         {/* Home Indicator */}
         {Platform.OS === 'ios' && (
@@ -353,139 +509,153 @@ const PaySlipsScreen = ({ navigation }: PayslipDetailsScreenProps) => {
         </View>
       </View>
 
-      <ScrollView 
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* Employee Info Card */}
-        <View style={[styles.employeeCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={styles.employeeHeader}>
-            <View style={[styles.avatarContainer, { backgroundColor: lightMode ? 'rgba(59, 130, 246, 0.1)' : 'rgba(59, 130, 246, 0.1)' }]}>
-              <MaterialIcons name="account-circle" size={48} color={colors.primary} />
-            </View>
-            <View style={styles.employeeInfo}>
-              <Text style={[styles.employeeName, { color: colors.text }]}>{selectedStaff?.name}</Text>
-              <Text style={[styles.employeeRole, { color: colors.subText }]}>{selectedStaff?.role}</Text>
-              <Text style={[styles.employeeId, { color: colors.primary }]}>ID: {selectedStaff?.employeeId}</Text>
-            </View>
-          </View>
-
-          <View style={[styles.payPeriodContainer, { borderTopColor: colors.border }]}>
-            <View style={styles.payPeriodItem}>
-              <Text style={[styles.payPeriodLabel, { color: colors.placeholder }]}>PAY PERIOD</Text>
-              <Text style={[styles.payPeriodValue, { color: colors.text }]}>{selectedStaff?.payPeriod}</Text>
-            </View>
-            <View style={[styles.payPeriodItem, styles.payPeriodRight]}>
-              <Text style={[styles.payPeriodLabel, { color: colors.placeholder }]}>PAYMENT DATE</Text>
-              <Text style={[styles.payPeriodValue, { color: colors.text }]}>{selectedStaff?.paymentDate}</Text>
-            </View>
-          </View>
+      {payslipsLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.subText }]}>Loading payslips...</Text>
         </View>
-
-        {/* Net Salary Card */}
-        <View style={styles.netSalaryCard}>
-          <View style={styles.netSalaryContent}>
-            <Text style={styles.netSalaryLabel}>Net Take-Home Salary</Text>
-            <Text style={styles.netSalaryAmount}>{selectedStaff?.netSalary}</Text>
-            <View style={styles.disbursedBadge}>
-              <MaterialIcons name="check-circle" size={16} color="#ffffff" />
-              <Text style={styles.disbursedText}>Disbursed to Bank Account</Text>
-            </View>
-          </View>
-          <View style={styles.netSalaryGlow} />
+      ) : selectedPayslips.length === 0 ? (
+        <View style={styles.emptyState}>
+          <MaterialIcons name="receipt-long" size={64} color={colors.placeholder} />
+          <Text style={[styles.emptyStateText, { color: colors.subText }]}>
+            No payslips available for this staff member
+          </Text>
         </View>
-
-        {/* Earnings Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.subText }]}>EARNINGS</Text>
-            <MaterialIcons name="add-circle-outline" size={20} color={colors.success} />
-          </View>
-
-          <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <View style={styles.cardContent}>
-              <View style={styles.listItem}>
-                <Text style={[styles.listItemLabel, { color: colors.subText }]}>Basic Pay</Text>
-                <Text style={[styles.listItemValue, { color: colors.text }]}>{selectedStaff?.basicPay}</Text>
+      ) : (
+        <ScrollView 
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          {/* Employee Info Card */}
+          <View style={[styles.employeeCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={styles.employeeHeader}>
+              <View style={[styles.avatarContainer, { backgroundColor: lightMode ? 'rgba(59, 130, 246, 0.1)' : 'rgba(59, 130, 246, 0.1)' }]}>
+                <MaterialIcons name="account-circle" size={48} color={colors.primary} />
               </View>
-              <View style={styles.listItem}>
-                <Text style={[styles.listItemLabel, { color: colors.subText }]}>HRA (House Rent)</Text>
-                <Text style={[styles.listItemValue, { color: colors.text }]}>{selectedStaff?.hra}</Text>
-              </View>
-              <View style={styles.listItem}>
-                <Text style={[styles.listItemLabel, { color: colors.subText }]}>Medical Allowance</Text>
-                <Text style={[styles.listItemValue, { color: colors.text }]}>{selectedStaff?.medicalAllowance}</Text>
-              </View>
-              <View style={styles.listItem}>
-                <Text style={[styles.listItemLabel, { color: colors.subText }]}>Performance Bonus</Text>
-                <Text style={[styles.listItemValue, { color: colors.success }]}>+{selectedStaff?.performanceBonus}</Text>
+              <View style={styles.employeeInfo}>
+                <Text style={[styles.employeeName, { color: colors.text }]}>{selectedStaff?.name}</Text>
+                <Text style={[styles.employeeRole, { color: colors.subText }]}>{selectedStaff?.role}</Text>
+                <Text style={[styles.employeeId, { color: colors.primary }]}>ID: {selectedStaff?.employeeId}</Text>
               </View>
             </View>
 
-            <View style={[styles.totalRow, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
-              <Text style={[styles.totalLabel, { color: colors.text }]}>Total Gross Earnings</Text>
-              <Text style={[styles.totalValue, { color: colors.text }]}>{totals.totalEarnings}</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Deductions Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.subText }]}>DEDUCTIONS</Text>
-            <MaterialIcons name="remove-circle-outline" size={20} color={colors.danger} />
-          </View>
-
-          <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <View style={styles.cardContent}>
-              <View style={styles.listItem}>
-                <Text style={[styles.listItemLabel, { color: colors.subText }]}>Provident Fund (PF)</Text>
-                <Text style={[styles.listItemValue, { color: colors.text }]}>{selectedStaff?.pf}</Text>
+            <View style={[styles.payPeriodContainer, { borderTopColor: colors.border }]}>
+              <View style={styles.payPeriodItem}>
+                <Text style={[styles.payPeriodLabel, { color: colors.placeholder }]}>PAY PERIOD</Text>
+                <Text style={[styles.payPeriodValue, { color: colors.text }]}>{selectedPayslip?.payPeriod}</Text>
               </View>
-              <View style={styles.listItem}>
-                <Text style={[styles.listItemLabel, { color: colors.subText }]}>Income Tax (TDS)</Text>
-                <Text style={[styles.listItemValue, { color: colors.text }]}>{selectedStaff?.incomeTax}</Text>
-              </View>
-              <View style={styles.listItem}>
-                <Text style={[styles.listItemLabel, { color: colors.subText }]}>Professional Tax</Text>
-                <Text style={[styles.listItemValue, { color: colors.text }]}>{selectedStaff?.professionalTax}</Text>
+              <View style={[styles.payPeriodItem, styles.payPeriodRight]}>
+                <Text style={[styles.payPeriodLabel, { color: colors.placeholder }]}>PAYMENT DATE</Text>
+                <Text style={[styles.payPeriodValue, { color: colors.text }]}>{selectedPayslip?.paymentDate}</Text>
               </View>
             </View>
+          </View>
 
-            <View style={[styles.totalRow, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
-              <Text style={[styles.totalLabel, { color: colors.text }]}>Total Deductions</Text>
-              <Text style={[styles.totalValue, { color: colors.danger }]}>{totals.totalDeductions}</Text>
+          {/* Net Salary Card */}
+          <View style={styles.netSalaryCard}>
+            <View style={styles.netSalaryContent}>
+              <Text style={styles.netSalaryLabel}>Net Take-Home Salary</Text>
+              <Text style={styles.netSalaryAmount}>{selectedPayslip?.netSalary}</Text>
+              <View style={styles.disbursedBadge}>
+                <MaterialIcons name="check-circle" size={16} color="#ffffff" />
+                <Text style={styles.disbursedText}>Disbursed to Bank Account</Text>
+              </View>
+            </View>
+            <View style={styles.netSalaryGlow} />
+          </View>
+
+          {/* Earnings Section */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.subText }]}>EARNINGS</Text>
+              <MaterialIcons name="add-circle-outline" size={20} color={colors.success} />
+            </View>
+
+            <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <View style={styles.cardContent}>
+                <View style={styles.listItem}>
+                  <Text style={[styles.listItemLabel, { color: colors.subText }]}>Basic Pay</Text>
+                  <Text style={[styles.listItemValue, { color: colors.text }]}>{selectedPayslip?.basicPay}</Text>
+                </View>
+                <View style={styles.listItem}>
+                  <Text style={[styles.listItemLabel, { color: colors.subText }]}>HRA (House Rent)</Text>
+                  <Text style={[styles.listItemValue, { color: colors.text }]}>{selectedPayslip?.hra}</Text>
+                </View>
+                <View style={styles.listItem}>
+                  <Text style={[styles.listItemLabel, { color: colors.subText }]}>Medical Allowance</Text>
+                  <Text style={[styles.listItemValue, { color: colors.text }]}>{selectedPayslip?.medicalAllowance}</Text>
+                </View>
+                <View style={styles.listItem}>
+                  <Text style={[styles.listItemLabel, { color: colors.subText }]}>Performance Bonus</Text>
+                  <Text style={[styles.listItemValue, { color: colors.success }]}>+{selectedPayslip?.performanceBonus}</Text>
+                </View>
+              </View>
+
+              <View style={[styles.totalRow, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
+                <Text style={[styles.totalLabel, { color: colors.text }]}>Total Gross Earnings</Text>
+                <Text style={[styles.totalValue, { color: colors.text }]}>{totals.totalEarnings}</Text>
+              </View>
             </View>
           </View>
-        </View>
 
-        {/* Action Buttons */}
-        <View style={styles.actionButtons}>
-          <TouchableOpacity 
-            style={[styles.emailButton, { backgroundColor: colors.card, borderColor: colors.border }]}
-            onPress={handleEmailPDF}
-            activeOpacity={0.7}
-          >
-            <MaterialIcons name="mail" size={20} color={colors.text} />
-            <Text style={[styles.emailButtonText, { color: colors.text }]}>Email PDF</Text>
-          </TouchableOpacity>
+          {/* Deductions Section */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.subText }]}>DEDUCTIONS</Text>
+              <MaterialIcons name="remove-circle-outline" size={20} color={colors.danger} />
+            </View>
 
-          <TouchableOpacity 
-            style={styles.printButton}
-            onPress={handlePrint}
-            activeOpacity={0.7}
-          >
-            <MaterialIcons name="print" size={20} color="#ffffff" />
-            <Text style={styles.printButtonText}>Print</Text>
-          </TouchableOpacity>
-        </View>
+            <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <View style={styles.cardContent}>
+                <View style={styles.listItem}>
+                  <Text style={[styles.listItemLabel, { color: colors.subText }]}>Provident Fund (PF)</Text>
+                  <Text style={[styles.listItemValue, { color: colors.text }]}>{selectedPayslip?.pf}</Text>
+                </View>
+                <View style={styles.listItem}>
+                  <Text style={[styles.listItemLabel, { color: colors.subText }]}>Income Tax (TDS)</Text>
+                  <Text style={[styles.listItemValue, { color: colors.text }]}>{selectedPayslip?.incomeTax}</Text>
+                </View>
+                <View style={styles.listItem}>
+                  <Text style={[styles.listItemLabel, { color: colors.subText }]}>Professional Tax</Text>
+                  <Text style={[styles.listItemValue, { color: colors.text }]}>{selectedPayslip?.professionalTax}</Text>
+                </View>
+              </View>
 
-        {/* Footer Text */}
-        <Text style={[styles.footerText, { color: colors.placeholder }]}>
-          Computer generated document. No signature required.
-        </Text>
-      </ScrollView>
+              <View style={[styles.totalRow, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
+                <Text style={[styles.totalLabel, { color: colors.text }]}>Total Deductions</Text>
+                <Text style={[styles.totalValue, { color: colors.danger }]}>{totals.totalDeductions}</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Action Buttons */}
+          <View style={styles.actionButtons}>
+            <TouchableOpacity 
+              style={[styles.emailButton, { backgroundColor: colors.card, borderColor: colors.border }]}
+              onPress={handleEmailPDF}
+              activeOpacity={0.7}
+            >
+              <MaterialIcons name="mail" size={20} color={colors.text} />
+              <Text style={[styles.emailButtonText, { color: colors.text }]}>Email PDF</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.printButton}
+              onPress={handlePrint}
+              activeOpacity={0.7}
+            >
+              <MaterialIcons name="print" size={20} color="#ffffff" />
+              <Text style={styles.printButtonText}>Print</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Footer Text */}
+          <Text style={[styles.footerText, { color: colors.placeholder }]}>
+            Computer generated document. No signature required.
+          </Text>
+        </ScrollView>
+      )}
 
       {/* Home Indicator */}
       {Platform.OS === 'ios' && (
@@ -525,6 +695,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    width: 40,
   },
   filterButton: {
     width: 40,
@@ -589,6 +760,17 @@ const styles = StyleSheet.create({
   statDivider: {
     width: 1,
     marginHorizontal: 16,
+  },
+
+  // Loading State
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 16,
+  },
+  loadingText: {
+    fontSize: 15,
   },
 
   // Staff List Styles
@@ -668,6 +850,7 @@ const styles = StyleSheet.create({
   emptyStateText: {
     fontSize: 15,
     textAlign: 'center',
+    paddingHorizontal: 32,
   },
 
   // Details Screen Styles
