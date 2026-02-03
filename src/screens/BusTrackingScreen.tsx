@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,12 +10,14 @@ import {
   Modal,
   Platform,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
+import api from '../services/api';
 
 
 // TypeScript Interface
@@ -39,106 +41,237 @@ interface Bus {
   alert?: boolean;
 }
 
+interface BusAlert {
+  id: number;
+  bus_id: string;
+  alert_type: string;
+  alert_message: string;
+  alert_time: string;
+  resolved: boolean;
+  is_active: boolean;
+}
+
 type FilterType = 'ALL' | 'MOVING' | 'IDLE' | 'OFF-ROUTE';
 
 const BusTrackingScreen = () => {
+  // Call all hooks at the top level unconditionally
+  const theme = useTheme();
   const navigation = useNavigation<any>();
+  
+  // Destructure after hooks are called
+  const { colors, lightMode } = theme;
+  
   const [searchText, setSearchText] = useState<string>('');
   const [selectedBus, setSelectedBus] = useState<Bus | null>(null);
   const [showMapView, setShowMapView] = useState<boolean>(false);
   const [showFilterMenu, setShowFilterMenu] = useState<boolean>(false);
   const [activeFilter, setActiveFilter] = useState<FilterType>('ALL');
-  const { colors, lightMode } = useTheme();
+  const [busData, setBusData] = useState<Bus[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [alerts, setAlerts] = useState<BusAlert[]>([]);
+  const [showAlertsModal, setShowAlertsModal] = useState<boolean>(false);
+  const [loadingAlerts, setLoadingAlerts] = useState<boolean>(false);
 
-  const busData: Bus[] = [
-    {
-      id: 1,
-      number: '042',
-      name: 'Alpha',
-      driver: 'John Doe',
-      status: 'MOVING',
-      statusColor: colors.success,
-      location: 'North Main St • 2.4 miles away',
-      iconBg: lightMode ? '#dbeafe' : '#1e3a8a',
-      iconColor: colors.primary,
-      icon: '🚌',
-      borderColor: colors.border,
-      speed: '35 mph',
-      speedChange: '+5 mph from avg',
-      nextStop: 'Maple Avenue',
-      eta: '4 mins',
-    },
-    {
-      id: 2,
-      number: '018',
-      name: 'Bravo',
-      driver: 'Sarah Smith',
-      status: 'IDLE',
-      statusColor: '#f59e0b',
-      location: 'East Gate Terminal • Stationary',
-      iconBg: lightMode ? '#fef3c7' : '#78350f',
-      iconColor: '#f59e0b',
-      icon: '🚌',
-      borderColor: colors.border,
-      speed: '0 mph',
-      speedChange: 'Stationary',
-      nextStop: 'Main Terminal',
-      eta: '10 mins',
-    },
-    {
-      id: 3,
-      number: '109',
-      name: 'Charlie',
-      driver: 'Mike Johnson',
-      status: 'MOVING',
-      statusColor: colors.success,
-      location: 'Arriving at Main Campus',
-      iconBg: lightMode ? '#dbeafe' : '#1e3a8a',
-      iconColor: colors.primary,
-      icon: '🚌',
-      borderColor: colors.border,
-      highlight: true,
-      speed: '28 mph',
-      speedChange: '+2 mph from avg',
-      nextStop: 'Main Campus',
-      eta: '2 mins',
-    },
-    {
-      id: 4,
-      number: '007',
-      name: 'Delta',
-      driver: 'Tom Brown',
-      status: 'OFF-ROUTE',
-      statusColor: colors.danger,
-      location: 'Unknown Location • GPS Lag',
-      iconBg: lightMode ? '#fee2e2' : '#7f1d1d',
-      iconColor: colors.danger,
-      icon: '⚠️',
-      borderColor: lightMode ? '#fecaca' : '#991b1b',
-      alert: true,
-      speed: '15 mph',
-      speedChange: 'GPS Error',
-      nextStop: 'Unknown',
-      eta: 'N/A',
-    },
-    {
-      id: 5,
-      number: '055',
-      name: 'Echo',
-      driver: 'Lisa Davis',
-      status: 'MOVING',
-      statusColor: colors.success,
-      location: 'Central Expressway • In Transit',
-      iconBg: lightMode ? '#dbeafe' : '#1e3a8a',
-      iconColor: colors.primary,
-      icon: '🚌',
-      borderColor: colors.border,
-      speed: '42 mph',
-      speedChange: '+8 mph from avg',
-      nextStop: 'Express Terminal',
-      eta: '6 mins',
-    },
-  ];
+  // Fetch bus data from API
+  const fetchBusData = useCallback(async (isRefreshing = false) => {
+    try {
+      if (!isRefreshing) {
+        setLoading(true);
+      }
+      
+      const response = await api.get('/institution/management/bus-fleet/get-all-buses');
+      
+      // Transform API response to match our Bus interface
+      const transformedData: Bus[] = response.data.map((bus: any, index: number) => {
+        // Determine status - using random logic for demo since API doesn't provide status
+        // In production, you should have actual status from GPS/tracking system
+        const randomStatus = Math.random();
+        let status: 'MOVING' | 'IDLE' | 'OFF-ROUTE' = 'IDLE';
+        let statusColor = '#f59e0b';
+        let iconBg = lightMode ? '#fef3c7' : '#78350f';
+        let iconColor = '#f59e0b';
+        let borderColor = colors.border;
+        let alert = false;
+        
+        // Random status assignment for demo (replace with actual logic)
+        if (randomStatus > 0.6) {
+          status = 'MOVING';
+          statusColor = colors.success;
+          iconBg = lightMode ? '#dbeafe' : '#1e3a8a';
+          iconColor = colors.primary;
+        } else if (randomStatus > 0.4) {
+          status = 'IDLE';
+          statusColor = '#f59e0b';
+          iconBg = lightMode ? '#fef3c7' : '#78350f';
+          iconColor = '#f59e0b';
+        } else {
+          status = 'OFF-ROUTE';
+          statusColor = colors.danger;
+          iconBg = lightMode ? '#fee2e2' : '#7f1d1d';
+          iconColor = colors.danger;
+          borderColor = lightMode ? '#fecaca' : '#991b1b';
+          alert = true;
+        }
+        
+        // Random location generation for demo
+        const locations = [
+          'North Main St • 2.4 miles away',
+          'East Gate Terminal • Stationary',
+          'Arriving at Main Campus',
+          'Central Expressway • In Transit',
+          'Unknown Location • GPS Lag',
+        ];
+        
+        const speeds = ['35 mph', '28 mph', '0 mph', '42 mph', '15 mph'];
+        const speedChanges = ['+5 mph from avg', '+2 mph from avg', 'Stationary', '+8 mph from avg', 'GPS Error'];
+        const nextStops = ['Maple Avenue', 'Main Terminal', 'Main Campus', 'Express Terminal', 'Unknown'];
+        const etas = ['4 mins', '10 mins', '2 mins', '6 mins', 'N/A'];
+        
+        return {
+          id: bus.id,
+          number: bus.bus_id,
+          name: bus.bus_name,
+          driver: bus.driver_name || 'Not Assigned',
+          status,
+          statusColor,
+          location: status === 'OFF-ROUTE' ? 'Unknown Location • GPS Lag' : locations[index % locations.length],
+          iconBg,
+          iconColor,
+          icon: status === 'OFF-ROUTE' ? '⚠️' : '🚌',
+          borderColor,
+          speed: status === 'IDLE' ? '0 mph' : speeds[index % speeds.length],
+          speedChange: status === 'IDLE' ? 'Stationary' : speedChanges[index % speedChanges.length],
+          nextStop: status === 'OFF-ROUTE' ? 'Unknown' : nextStops[index % nextStops.length],
+          eta: status === 'OFF-ROUTE' ? 'N/A' : etas[index % etas.length],
+          highlight: index === 2, // Highlight 3rd bus for demo
+          alert,
+        };
+      });
+      
+      setBusData(transformedData);
+    } catch (error: any) {
+      console.error('Error fetching bus data:', error);
+      Alert.alert(
+        'Error',
+        error.response?.data?.message || 'Failed to fetch bus data. Please try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [colors, lightMode]);
+
+  // Initial data fetch
+  useEffect(() => {
+    fetchBusData();
+    // Fetch alerts count silently in background
+    fetchAlertsCount();
+  }, []);
+
+  // Fetch alerts count silently (without showing modal)
+  const fetchAlertsCount = async () => {
+    try {
+      const response = await api.get('/institution/management/bus/alerts');
+      console.log('Alerts count fetch:', response.data?.length || 0);
+      
+      if (response.data && Array.isArray(response.data)) {
+        const activeAlerts = response.data.filter((alert: BusAlert) => alert.is_active && !alert.resolved);
+        setAlerts(response.data); // Store all alerts
+        console.log('Active unresolved alerts count:', activeAlerts.length);
+      }
+    } catch (error: any) {
+      console.error('Error fetching alerts count:', error);
+      // Silently fail, don't show error to user
+    }
+  };
+
+  // Refresh handler
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchBusData(true);
+  };
+
+  // Fetch alerts from API
+  const fetchAlerts = async () => {
+    try {
+      setLoadingAlerts(true);
+      setShowAlertsModal(true); // Show modal immediately with loading state
+      
+      console.log('=== FETCHING ALERTS ===');
+      const response = await api.get('/institution/management/bus/alerts');
+      
+      console.log('Response object:', response);
+      console.log('Response data type:', typeof response.data);
+      console.log('Response data:', response.data);
+      console.log('Is array?', Array.isArray(response.data));
+      
+      // Sometimes the data might be nested
+      let alertsData = response.data;
+      
+      // Check if data is nested in a property
+      if (response.data && typeof response.data === 'object' && !Array.isArray(response.data)) {
+        console.log('Data is object, checking for nested array...');
+        console.log('Object keys:', Object.keys(response.data));
+        
+        // Try common response wrapper keys
+        if (response.data.data) {
+          alertsData = response.data.data;
+          console.log('Found data.data:', alertsData);
+        } else if (response.data.alerts) {
+          alertsData = response.data.alerts;
+          console.log('Found data.alerts:', alertsData);
+        } else if (response.data.results) {
+          alertsData = response.data.results;
+          console.log('Found data.results:', alertsData);
+        }
+      }
+      
+      if (!alertsData || !Array.isArray(alertsData)) {
+        console.error('Invalid response format. Expected array, got:', typeof alertsData);
+        console.log('Setting empty alerts array');
+        setAlerts([]);
+        return;
+      }
+      
+      console.log('Valid alerts array found, length:', alertsData.length);
+      
+      // Show all alerts (sorted by time, newest first)
+      const sortedAlerts = [...alertsData].sort((a: BusAlert, b: BusAlert) => {
+        const dateA = new Date(a.alert_time).getTime();
+        const dateB = new Date(b.alert_time).getTime();
+        return dateB - dateA;
+      });
+      
+      console.log('Sorted alerts count:', sortedAlerts.length);
+      console.log('First alert:', sortedAlerts[0]);
+      
+      setAlerts(sortedAlerts);
+      console.log('Alerts state updated');
+    } catch (error: any) {
+      console.error('=== ERROR FETCHING ALERTS ===');
+      console.error('Error:', error);
+      console.error('Error message:', error.message);
+      console.error('Error response:', error.response);
+      console.error('Error response data:', error.response?.data);
+      
+      setAlerts([]); // Set to empty array on error
+      Alert.alert(
+        'Error',
+        error.response?.data?.message || error.message || 'Failed to fetch alerts. Please try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      console.log('=== FETCH ALERTS COMPLETE ===');
+      setLoadingAlerts(false);
+    }
+  };
+
+  // Handle alerts card press
+  const handleAlertsPress = () => {
+    fetchAlerts();
+  };
 
   // Filter and Search Logic
   const filteredBuses = busData.filter((bus) => {
@@ -165,10 +298,9 @@ const BusTrackingScreen = () => {
     setShowFilterMenu(false);
   };
 
- const handleBackPress = () => {
-  navigation.goBack();
-};
-
+  const handleBackPress = () => {
+    navigation.goBack();
+  };
 
   const handleViewMap = (): void => {
     // Select the first bus by default when opening map view
@@ -184,7 +316,25 @@ const BusTrackingScreen = () => {
   // Active bus count
   const activeBusCount = busData.filter(b => b.status === 'MOVING').length;
   const totalBusCount = busData.length;
-  const alertCount = busData.filter(b => b.alert).length;
+  
+  // Alert count - use actual alerts if available, otherwise count from bus data
+  const alertCount = alerts.length > 0 ? alerts.filter(a => a.is_active && !a.resolved).length : busData.filter(b => b.alert).length;
+
+  // Loading State
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
+        <StatusBar 
+          barStyle={lightMode ? 'dark-content' : 'light-content'} 
+          backgroundColor={colors.background} 
+        />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.text }]}>Loading bus data...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   // LIST VIEW COMPONENT
   const renderListView = () => (
@@ -243,19 +393,23 @@ const BusTrackingScreen = () => {
               {activeBusCount} / <Text style={[styles.statValueGray, { color: colors.subText }]}>{totalBusCount}</Text>
             </Text>
             <View style={[styles.progressBar, { backgroundColor: lightMode ? '#e2e8f0' : '#1e293b' }]}>
-              <View style={[styles.progressFill, { backgroundColor: colors.primary, width: `${(activeBusCount / totalBusCount) * 100}%` }]} />
+              <View style={[styles.progressFill, { backgroundColor: colors.primary, width: `${totalBusCount > 0 ? (activeBusCount / totalBusCount) * 100 : 0}%` }]} />
             </View>
           </View>
 
-          {/* Alerts Card */}
-          <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          {/* Alerts Card - Now Clickable */}
+          <TouchableOpacity 
+            style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+            onPress={handleAlertsPress}
+            activeOpacity={0.7}
+          >
             <View style={styles.statHeader}>
               <Text style={[styles.statLabel, { color: colors.subText }]}>ALERTS</Text>
               <MaterialIcons name="warning" size={16} color="#f59e0b" />
             </View>
             <Text style={[styles.statValue, { color: colors.text }]}>0{alertCount}</Text>
             <Text style={[styles.statSubtext, { color: colors.subText }]}>REQUIRE ATTENTION</Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Fleet Status Section */}
@@ -363,6 +517,165 @@ const BusTrackingScreen = () => {
           </View>
         </View>
       </ScrollView>
+
+      {/* Alerts Modal */}
+      <Modal
+        visible={showAlertsModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowAlertsModal(false)}
+      >
+        <View style={styles.alertsModalOverlay}>
+          <View style={[styles.alertsModalContent, { backgroundColor: colors.background }]}>
+            {/* Header */}
+            <View style={styles.alertsModalHeader}>
+              <View style={styles.alertsHeaderLeft}>
+                <MaterialIcons name="warning" size={24} color="#f59e0b" />
+                <View>
+                  <Text style={[styles.alertsModalTitle, { color: colors.text }]}>Bus Alerts</Text>
+                  {!loadingAlerts && (
+                    <Text style={[styles.alertsCount, { color: colors.subText }]}>
+                      {alerts.length} {alerts.length === 1 ? 'alert' : 'alerts'}
+                    </Text>
+                  )}
+                </View>
+              </View>
+              <TouchableOpacity 
+                onPress={() => setShowAlertsModal(false)}
+                activeOpacity={0.7}
+              >
+                <MaterialIcons name="close" size={24} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Alerts List */}
+            {loadingAlerts ? (
+              <View style={styles.alertsLoadingContainer}>
+                <ActivityIndicator size="large" color={colors.primary} />
+                <Text style={[styles.alertsLoadingText, { color: colors.text }]}>Loading alerts...</Text>
+              </View>
+            ) : (
+              <View style={{ flex: 1 }}>
+                {/* Debug info */}
+                <View style={{ padding: 16, backgroundColor: colors.surface, margin: 16, borderRadius: 8 }}>
+                  <Text style={{ color: colors.text, fontSize: 12 }}>
+                    Debug Info:{'\n'}
+                    Alerts array length: {alerts?.length || 0}{'\n'}
+                    Alerts is array: {Array.isArray(alerts) ? 'Yes' : 'No'}{'\n'}
+                    Alerts is null: {alerts === null ? 'Yes' : 'No'}{'\n'}
+                    Alerts is undefined: {alerts === undefined ? 'Yes' : 'No'}
+                  </Text>
+                </View>
+
+                {alerts && alerts.length > 0 ? (
+                  <ScrollView 
+                    contentContainerStyle={styles.alertsScrollViewContent}
+                    showsVerticalScrollIndicator={false}
+                  >
+                    {alerts.map((alert, index) => {
+                      console.log(`Rendering alert ${index}:`, alert);
+                      
+                      // Format the date
+                      let formattedDate = 'Invalid Date';
+                      let formattedTime = 'Invalid Time';
+                      
+                      try {
+                        const alertDate = new Date(alert.alert_time);
+                        formattedDate = alertDate.toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        });
+                        formattedTime = alertDate.toLocaleTimeString('en-US', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        });
+                      } catch (e) {
+                        console.error('Date parsing error:', e);
+                      }
+
+                      return (
+                        <View 
+                          key={`alert-${alert.id}-${index}`}
+                          style={[
+                            styles.alertCard,
+                            { 
+                              backgroundColor: colors.card, 
+                              borderColor: alert.resolved ? colors.border : '#f59e0b',
+                              opacity: alert.resolved ? 0.6 : 1,
+                            }
+                          ]}
+                        >
+                          <View style={styles.alertCardHeader}>
+                            <View style={styles.alertBusInfo}>
+                              <MaterialCommunityIcons 
+                                name="bus-alert" 
+                                size={20} 
+                                color={alert.resolved ? colors.success : '#f59e0b'} 
+                              />
+                              <Text style={[styles.alertBusId, { color: colors.text }]}>
+                                Bus #{alert.bus_id}
+                              </Text>
+                            </View>
+                            <View style={[
+                              styles.alertTypeBadge,
+                              { 
+                                backgroundColor: alert.alert_type === 'delay' 
+                                  ? lightMode ? '#fef3c7' : '#78350f'
+                                  : lightMode ? '#fee2e2' : '#7f1d1d'
+                              }
+                            ]}>
+                              <Text style={[
+                                styles.alertTypeText,
+                                { 
+                                  color: alert.alert_type === 'delay' ? '#f59e0b' : colors.danger 
+                                }
+                              ]}>
+                                {alert.alert_type.toUpperCase()}
+                              </Text>
+                            </View>
+                          </View>
+
+                          <Text style={[styles.alertMessage, { color: colors.text }]}>
+                            {alert.alert_message}
+                          </Text>
+
+                          <View style={styles.alertFooter}>
+                            <View style={styles.alertTimeContainer}>
+                              <MaterialIcons name="access-time" size={14} color={colors.subText} />
+                              <Text style={[styles.alertTime, { color: colors.subText }]}>
+                                {formattedDate} at {formattedTime}
+                              </Text>
+                            </View>
+                            {alert.resolved && (
+                              <View style={styles.resolvedBadge}>
+                                <MaterialIcons name="check-circle" size={14} color={colors.success} />
+                                <Text style={[styles.resolvedText, { color: colors.success }]}>
+                                  Resolved
+                                </Text>
+                              </View>
+                            )}
+                          </View>
+                        </View>
+                      );
+                    })}
+                  </ScrollView>
+                ) : (
+                  <View style={styles.noAlertsContainer}>
+                    <MaterialIcons name="check-circle-outline" size={64} color={colors.success} />
+                    <Text style={[styles.noAlertsTitle, { color: colors.text }]}>
+                      All Clear!
+                    </Text>
+                    <Text style={[styles.noAlertsSubtitle, { color: colors.subText }]}>
+                      No alerts found
+                    </Text>
+                  </View>
+                )}
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
 
       {/* Filter Menu Modal */}
       <Modal
@@ -662,6 +975,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 16,
+  },
+  loadingText: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
   header: {
     paddingHorizontal: 20,
     paddingVertical: 12,
@@ -846,26 +1169,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 12,
   },
-//   bottomNav: {
-//     borderTopWidth: 1,
-//     paddingHorizontal: 24,
-//     paddingTop: 12,
-//     paddingBottom: Platform.OS === 'ios' ? 0 : 12,
-//     flexDirection: 'row',
-//     justifyContent: 'space-between',
-//   },
-//   navItem: {
-//     alignItems: 'center',
-//     gap: 4,
-//   },
-//   navLabelInactive: {
-//     fontSize: 10,
-//     fontWeight: '500',
-//   },
-//   navLabelActive: {
-//     fontSize: 10,
-//     fontWeight: '500',
-//   },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -903,6 +1206,137 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     flex: 1,
+  },
+
+  // ALERTS MODAL STYLES
+  alertsModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  alertsModalContent: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '85%',
+    paddingBottom: Platform.OS === 'ios' ? 34 : 16,
+  },
+  alertsModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.1)',
+  },
+  alertsHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  alertsModalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  alertsCount: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  alertsLoadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 48,
+    gap: 16,
+  },
+  alertsLoadingText: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  alertsScrollView: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+  },
+  alertsScrollViewContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 24,
+  },
+  alertCard: {
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 12,
+    borderWidth: 2,
+  },
+  alertCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  alertBusInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  alertBusId: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  alertTypeBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  alertTypeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  alertMessage: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 12,
+  },
+  alertFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  alertTimeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  alertTime: {
+    fontSize: 12,
+  },
+  resolvedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+  },
+  resolvedText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  noAlertsContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 64,
+    gap: 12,
+  },
+  noAlertsTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  noAlertsSubtitle: {
+    fontSize: 14,
   },
 
   // MAP VIEW STYLES
