@@ -89,7 +89,7 @@ import MidTermNotifications from "./src/screens/MidTermNotifications";
 import FinalExamSchedule from "./src/screens/FinalExamSchedule";
 import InstitutionBranch from "./src/screens/institutionbranch";
 import InstitutionStudents from "./src/screens/InstitutionStudents";
-
+import CleaningDetailScreen from "./src/screens/CleaningDetailScreen";
 
 
 
@@ -149,6 +149,7 @@ export type RootStackParamList = {
   Training: undefined;
   TrainingDetails: undefined;
   ApplicationSuccess: undefined;
+  CleaningDetailScreen: { title: string };
   AppointmentBooking: { doctor: any };
   // ReviewApplication: undefined;
    ReviewApplication: { internship: Internship };
@@ -218,6 +219,7 @@ function AppNavigator() {
         <Stack.Screen name="CandidateProfile" component={CandidateProfile} />
         <Stack.Screen name="EducationHome" component={EducationHome} />
         <Stack.Screen name="AuthScreen" component={AuthScreen} />
+        <Stack.Screen name="CleaningDetailScreen" component={CleaningDetailScreen} />
         <Stack.Screen name="ProfileInformation" component={ProfileInformation} />
         <Stack.Screen name="EmployeeAllocation" component={EmployeeAllocation} />
         <Stack.Screen name="CompaniesListingScreen" component={CompaniesListingScreen} />

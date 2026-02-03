@@ -177,18 +177,7 @@ const isSelected = selectedServices.some(s => s.id === item.id);
 
 }
   >
-    <LinearGradient
-      colors={["#1a5cff", "#0f4ae0"]}
-      style={[
-        styles.ctaButton,
-        selectedServices.length === 0 && styles.ctaDisabled,
-      ]}
-    >
-      <Text style={styles.ctaText}>
-        Continue ({selectedServices.length} Selected)
-      </Text>
-      <Icon name="arrow-forward" size={20} color="#fff" />
-    </LinearGradient>
+  
   </TouchableOpacity>
 </View>
 
