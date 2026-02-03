@@ -454,10 +454,10 @@ const BuyerPage = ({ route, navigation }: any) => {
               placeholder="John Doe" 
             />
             <CustomInput 
-              label="MOBILE NUMBER (10+ digits)" 
+              label="MOBILE NUMBER" 
               value={mobileNumber} 
               onChange={handleMobileNumberChange} 
-              placeholder="+91 98765 43210" 
+              placeholder="Enter mobile number with country code" 
               keyboard="phone-pad" 
             />
             <CustomInput 

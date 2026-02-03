@@ -67,6 +67,9 @@ const SellItem = ({ navigation }: any) => {
   const [petFriendly, setPetFriendly] = useState(false);
   const [cancellationPolicy, setCancellationPolicy] = useState('');
 
+  // NEW: Rating field
+  const [rating, setRating] = useState('4.0');
+
   const propertyTypes = [
     'Apartment', 'Villa', 'Independent House', 'Land', 'Bike', 'Car',
     'Lorry', 'Auto', 'Bus', 'Office', 'Hospital', 'Commercial Space', 'Hostel', 'Hotel'
@@ -88,21 +91,23 @@ const SellItem = ({ navigation }: any) => {
 
   // Validation functions
   const validateName = (text: string): boolean => {
-    // Only allow letters and spaces
     const nameRegex = /^[a-zA-Z\s]*$/;
     return nameRegex.test(text);
   };
 
   const validatePhoneNumber = (text: string): boolean => {
-    // Only allow numbers, +, -, and spaces
     const phoneRegex = /^[0-9+\-\s]*$/;
     return phoneRegex.test(text);
   };
 
   const validateNumericInput = (text: string): boolean => {
-    // Only allow numbers
     const numericRegex = /^[0-9]*$/;
     return numericRegex.test(text);
+  };
+
+  const validateDecimalInput = (text: string): boolean => {
+    const decimalRegex = /^[0-9]*\.?[0-9]*$/;
+    return decimalRegex.test(text);
   };
 
   const handleOwnerNameChange = (text: string) => {
@@ -112,7 +117,6 @@ const SellItem = ({ navigation }: any) => {
   };
 
   const handleHotelNameChange = (text: string) => {
-    // Hotel names can contain letters, numbers, spaces, and some special chars
     setHotelName(text);
   };
 
@@ -170,6 +174,15 @@ const SellItem = ({ navigation }: any) => {
     }
   };
 
+  const handleRatingChange = (text: string) => {
+    if (validateDecimalInput(text)) {
+      const value = parseFloat(text);
+      if (text === '' || (value >= 1.0 && value <= 5.0)) {
+        setRating(text);
+      }
+    }
+  };
+
   const pickImage = () => {
     launchImageLibrary({ mediaType: 'photo', selectionLimit: 10 - images.length }, (response) => {
       if (response.assets) {
@@ -219,6 +232,12 @@ const SellItem = ({ navigation }: any) => {
     }
     if (!price || parseFloat(price) <= 0) {
       Alert.alert('Validation Error', 'Please enter a valid price');
+      return false;
+    }
+
+    // Validate rating
+    if (!rating || parseFloat(rating) < 1.0 || parseFloat(rating) > 5.0) {
+      Alert.alert('Validation Error', 'Please enter a valid rating between 1.0 and 5.0');
       return false;
     }
 
@@ -412,6 +431,7 @@ const SellItem = ({ navigation }: any) => {
       images,
       description,
       price,
+      rating: parseFloat(rating),
       sqft: (isHouse || isCommercial || isLand) ? sqft : null,
       bhk: isHouse ? bhk : null,
       location,
@@ -638,7 +658,6 @@ const SellItem = ({ navigation }: any) => {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Sell Item Form</Text>
         <TouchableOpacity>
-          <MaterialIcons name="more-vert" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
 
@@ -718,6 +737,24 @@ const SellItem = ({ navigation }: any) => {
             value={price}
             onChangeText={handlePriceChange}
           />
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.label}>RATING (1.0 - 5.0) *</Text>
+          <View style={styles.ratingInputContainer}>
+            <MaterialIcons name="star" size={20} color="#fbbf24" style={{ marginRight: 8 }} />
+            <TextInput
+              style={styles.ratingInput}
+              placeholder="4.5"
+              placeholderTextColor="#4b5563"
+              keyboardType="decimal-pad"
+              value={rating}
+              onChangeText={handleRatingChange}
+              maxLength={3}
+            />
+            <Text style={styles.ratingHelper}>/ 5.0</Text>
+          </View>
+          <Text style={styles.ratingHint}>Enter a rating between 1.0 and 5.0 (e.g., 4.5)</Text>
         </View>
 
         {isHouse && (
@@ -1417,6 +1454,10 @@ const styles = StyleSheet.create({
   picker: { backgroundColor: '#161b26', borderWidth: 1, borderColor: '#232936', borderRadius: 16, paddingHorizontal: 16, paddingVertical: 14, fontSize: 16, fontWeight: '500', color: '#fff' },
   pickerIcon: { position: 'absolute', right: 16, top: 14 },
   input: { backgroundColor: '#161b26', borderWidth: 1, borderColor: '#232936', borderRadius: 16, paddingHorizontal: 16, paddingVertical: 14, fontSize: 16, fontWeight: '500', color: '#fff' },
+  ratingInputContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#161b26', borderWidth: 1, borderColor: '#232936', borderRadius: 16, paddingHorizontal: 16, paddingVertical: 14 },
+  ratingInput: { flex: 1, fontSize: 16, fontWeight: '500', color: '#fff', marginRight: 8 },
+  ratingHelper: { fontSize: 14, fontWeight: '500', color: '#64748b' },
+  ratingHint: { fontSize: 11, color: '#64748b', marginTop: 6, fontStyle: 'italic' },
   row: { flexDirection: 'row', gap: 12, marginBottom: 16 },
   halfField: { flex: 1 },
   fieldContainer: { marginBottom: 16 },
