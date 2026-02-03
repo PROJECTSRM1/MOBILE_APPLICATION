@@ -52,33 +52,35 @@ const InstitutionStudents = () => {
   }
     const fetchStudents = async () => {
       try {
-     const response = await fetch(
-  `https://swachify-india-be-1-mcrb.onrender.com/institution/student/by-branch?branch_id=${Number(branchId)}`
-);
+  const url = `https://swachify-india-be-1-mcrb.onrender.com/institution/student/by_branch_id?branch_id=${branchId}`;
+console.log("🌍 Calling API:", url);
 
-if (!response.ok) {
-  throw new Error(`Server error ${response.status}`);
-}
+const response = await fetch(url);
+console.log("📡 Status:", response.status)
 
 const data = await response.json();
-console.log("🎯 Students API Response:", data);
+
+console.log("🎯 RAW Students API:", data);
 
 
-       const formatted: Student[] = Array.isArray(data)
-  ? data.map((item: any, index: number) => ({
-      id: item.student_id || index.toString(), // better than index only
-      name: item.student_name,
-      studentId: item.student_id,
-      year: parseInt(item.academic_year?.split('-')[0]) || 1,
-      avatar: item.profile_image_url || undefined,
-      initials: item.student_name
-        .split(' ')
-        .map((n: string) => n[0])
-        .join('')
-        .toUpperCase(),
-      color: ['#64748b', '#3b82f6', '#8b5cf6', '#10b981', '#f59e0b'][index % 5],
-    }))
-  : [];
+
+
+const studentList = Array.isArray(data) ? data : data.students || [];
+
+const formatted: Student[] = studentList.map((item: any, index: number) => ({
+  id: item.student_id?.toString() || index.toString(),
+  name: item.student_name,
+  studentId: item.student_id,
+  year: parseInt(item.academic_year?.split('-')[0]) || 1,
+  avatar: item.profile_image_url || undefined,
+  initials: item.student_name
+    ?.split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .toUpperCase(),
+  color: ['#64748b', '#3b82f6', '#8b5cf6', '#10b981', '#f59e0b'][index % 5],
+}));
+
 
 
         setStudents(formatted);

@@ -53,7 +53,8 @@ const BranchDirectoryScreen = () => {
 
       // Map API response to Branch type
       const mappedBranches: Branch[] = data.map((branch: any) => ({
-        id: branch.branch_id?.toString(),
+      id: branch.branch_id,
+
         name: branch.branch_name,
         location: branch.location || "Location not specified",
         students: branch.student_count || 0,
