@@ -7,7 +7,8 @@ import {
   Image,
   ScrollView,
   TextInput,
-  Alert
+  Alert,
+  Linking,
 } from "react-native";
 import {
   ChevronLeft,
@@ -17,6 +18,7 @@ import {
   UploadCloud,
   BadgeCheck,
   Phone,
+
 } from "lucide-react-native";
 import { useNavigation, RouteProp, useRoute } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -45,7 +47,7 @@ type RootStackParamList = {
    MAIN SCREEN
 ========================= */
 const CandidateProfile = () => {
-  const navigation = useNavigation as any;
+ const navigation = useNavigation<any>();
   const route = useRoute<RouteProp<RootStackParamList, "CandidateProfile">>();
   const { student, onSave } = route.params;
 
@@ -417,7 +419,7 @@ if (profileLoading) {
             disabled={documents.length === 0}
           >
             <Download size={16} color={colors.text} />
-            <Text style={styles.secondaryText}>Download Resume</Text>
+            <Text style={styles.secondaryText}>Share Resume</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.secondaryBtn} onPress={pickDocuments}>
@@ -542,6 +544,19 @@ const EducationCard = ({ degree, institute, score, setScore, year, editMode }: a
 const FamilyEditable = ({ label, name, setName, phone, setPhone, editMode }: any) => {
   const { colors } = useTheme();
   const styles = getStyles(colors);
+  
+ const handleCall = () => {
+  const phoneNumber = phone.replace(/[^0-9]/g, ''); // Remove non-numeric characters
+  if (phoneNumber) {
+    Linking.openURL(`tel:${phoneNumber}`).catch((err: any) => {
+      Alert.alert('Error', 'Unable to make a call');
+      console.error('Call error:', err);
+    });
+  } else {
+    Alert.alert('Error', 'Invalid phone number');
+  }
+};
+  
   return (
     <View style={styles.familyCard}>
       <Text style={styles.familyLabel}>{label}</Text>
@@ -559,10 +574,10 @@ const FamilyEditable = ({ label, name, setName, phone, setPhone, editMode }: any
          <TextInput
   value={phone}
   onChangeText={(text) => {
-    const cleaned = text.replace(/[^0-9]/g, "");
+    const cleaned = text.replace(/[^0-9+\s]/g, "");
     setPhone(cleaned);
   }}
-  keyboardType="numeric"
+  keyboardType="phone-pad"
   style={styles.editInput}
 />
 
@@ -570,10 +585,10 @@ const FamilyEditable = ({ label, name, setName, phone, setPhone, editMode }: any
       ) : (
         <>
           <Text style={styles.familyName}>{name}</Text>
-          <View style={styles.phoneRow}>
+          <TouchableOpacity style={styles.phoneRow} onPress={handleCall} activeOpacity={0.7}>
             <Phone size={14} color={colors.primary} />
             <Text style={styles.phoneText}>{phone}</Text>
-          </View>
+          </TouchableOpacity>
         </>
       )}
     </View>

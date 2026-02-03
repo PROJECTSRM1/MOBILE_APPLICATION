@@ -364,16 +364,37 @@ const fetchTrendingStudents = async () => {
 useEffect(() => {
   if (!filteredTrendingStudents.length) return;
 
-  const CARD_HEIGHT = 96;
-  const interval = setInterval(() => {
-    trendingCurrentIndex.current =
-      (trendingCurrentIndex.current + 1) % filteredTrendingStudents.length;
+  const CARD_HEIGHT = 96; // Card height + margin
+  let scrollPosition = 0;
+  const totalHeight = filteredTrendingStudents.length * CARD_HEIGHT;
 
-    trendingScrollRef.current?.scrollTo({
-      y: trendingCurrentIndex.current * CARD_HEIGHT,
-      animated: true,
-    });
-  }, 1800);
+  const interval = setInterval(() => {
+    scrollPosition += CARD_HEIGHT;
+
+    // When we reach the end, reset to start seamlessly
+    if (scrollPosition >= totalHeight) {
+      // Jump to start instantly (no animation)
+      trendingScrollRef.current?.scrollTo({
+        y: 0,
+        animated: false,
+      });
+      scrollPosition = CARD_HEIGHT; // Set to first item position
+      
+      // Then animate to first item after a tiny delay
+      setTimeout(() => {
+        trendingScrollRef.current?.scrollTo({
+          y: scrollPosition,
+          animated: true,
+        });
+      }, 50);
+    } else {
+      // Normal scroll
+      trendingScrollRef.current?.scrollTo({
+        y: scrollPosition,
+        animated: true,
+      });
+    }
+  }, 1800); // Changed from 1800 to match the timing
 
   return () => clearInterval(interval);
 }, [filteredTrendingStudents.length]);
@@ -423,26 +444,28 @@ useEffect(() => {
         style={styles.container}
       >
         <SafeAreaView edges={["top"]} style={styles.headerSafe}></SafeAreaView>
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <Image
-              source={{ uri: "https://randomuser.me/api/portraits/men/11.jpg" }}
-              style={styles.avatar}
-            />
-            <View>
-              <Text style={styles.welcome}>Welcome back,</Text>
-              <Text style={styles.username}>
-                {user ? `${user.firstName} ${user.lastName}` : "User"}
-              </Text>
-            </View>
-          </View>
-          <TouchableOpacity
-            style={styles.bell}
-            onPress={() => navigation.navigate("Notifications")}
-          >
-            <Icon name="notifications-none" size={28} color={colors.text} />
-          </TouchableOpacity>
-        </View>
+      <View style={styles.header}>
+  <View style={styles.headerLeft}>
+    <TouchableOpacity onPress={() => navigation.navigate("ProfileInformation")}>
+      <Image
+        source={{ uri: "https://randomuser.me/api/portraits/men/11.jpg" }}
+        style={styles.avatar}
+      />
+    </TouchableOpacity>
+    <View>
+      <Text style={styles.welcome}>Welcome back,</Text>
+      <Text style={styles.username}>
+        {user ? `${user.firstName} ${user.lastName}` : "User"}
+      </Text>
+    </View>
+  </View>
+  <TouchableOpacity
+    style={styles.bell}
+    onPress={() => navigation.navigate("Notifications")}
+  >
+    <Icon name="notifications-none" size={28} color={colors.text} />
+  </TouchableOpacity>
+</View>
 
         <View style={styles.searchBox}>
           <Icon name="search" size={20} color="#9da6b9" />
@@ -453,7 +476,7 @@ useEffect(() => {
             value={searchText}
             onChangeText={setSearchText}
           />
-          <Icon name="mic" size={20} color="#1a5cff" />
+          {/* <Icon name="mic" size={20} color="#1a5cff" /> */}
         </View>
 
         <ScrollView
@@ -532,85 +555,134 @@ useEffect(() => {
               </Text>
             </TouchableOpacity>
           </View>
-
-          <View
-            style={{
-              height: 380,
-              overflow: "hidden",
-              paddingHorizontal: 16,
-            }}
-          >
-            <ScrollView
-              ref={trendingScrollRef}
-              scrollEnabled={false}
-              showsVerticalScrollIndicator={false}
+<View
+  style={{
+    height: showAllTrending ? 'auto' : 380,
+    maxHeight: showAllTrending ? undefined : 380,
+    overflow: "hidden",
+    paddingHorizontal: 16,
+  }}
+>
+  <ScrollView
+    ref={trendingScrollRef}
+    scrollEnabled={showAllTrending}
+    showsVerticalScrollIndicator={false}
+  >
+    {/* Original items */}
+    {(showAllTrending
+      ? filteredTrendingStudents
+      : filteredTrendingStudents.slice(0, 4)
+    ).map((student) => (
+      <TouchableOpacity
+        key={student.id}
+        style={styles.trendingRowCard}
+        activeOpacity={0.8}
+        onPress={() =>
+          navigation.navigate("CandidateProfile", {
+            student: student,
+          })
+        }
+      >
+        <Image
+          source={{ uri: student.avatar }}
+          style={styles.trendingAvatar}
+        />
+        <View style={styles.trendingInfo}>
+          <Text style={styles.trendingName}>{student.name}</Text>
+          <Text style={styles.trendingSub}>{student.program}</Text>
+          <Text style={styles.trendingScore}>
+            {student.academicScore}% Academic Score
+          </Text>
+          <View style={styles.trendingFooter}>
+            <Text style={styles.rating}>⭐ {student.rating}</Text>
+            <Text
+              style={[
+                styles.status,
+                student.status === "active"
+                  ? styles.active
+                  : styles.completed,
+              ]}
             >
-              {(showAllTrending
-                ? filteredTrendingStudents
-                : filteredTrendingStudents.slice(0, 4)
-              ).map((student) => (
-                <TouchableOpacity
-                  key={student.id}
-                  style={styles.trendingRowCard}
-                  activeOpacity={0.8}
-                  onPress={() =>
-                    navigation.navigate("CandidateProfile", {
-                      student: student,
-                    })
-                  }
-                >
-                  <Image
-                    source={{ uri: student.avatar }}
-                    style={styles.trendingAvatar}
-                  />
-                  <View style={styles.trendingInfo}>
-                    <Text style={styles.trendingName}>{student.name}</Text>
-                    <Text style={styles.trendingSub}>{student.program}</Text>
-                    <Text style={styles.trendingScore}>
-                      {student.academicScore}% Academic Score
-                    </Text>
-                    <View style={styles.trendingFooter}>
-                      <Text style={styles.rating}>⭐ {student.rating}</Text>
-                      <Text
-                        style={[
-                          styles.status,
-                          student.status === "active"
-                            ? styles.active
-                            : styles.completed,
-                        ]}
-                      >
-                        {student.status.toUpperCase()}
-                      </Text>
-                    </View>
-                    <Text style={styles.shift}>{student.shift}</Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+              {student.status.toUpperCase()}
+            </Text>
           </View>
+          <Text style={styles.shift}>{student.shift}</Text>
+        </View>
+      </TouchableOpacity>
+    ))}
+    
+    {/* Duplicate items for seamless loop - only when NOT showing all */}
+    {!showAllTrending && filteredTrendingStudents.slice(0, 4).map((student) => (
+      <TouchableOpacity
+        key={`${student.id}-duplicate`}
+        style={styles.trendingRowCard}
+        activeOpacity={0.8}
+        onPress={() =>
+          navigation.navigate("CandidateProfile", {
+            student: student,
+          })
+        }
+      >
+        <Image
+          source={{ uri: student.avatar }}
+          style={styles.trendingAvatar}
+        />
+        <View style={styles.trendingInfo}>
+          <Text style={styles.trendingName}>{student.name}</Text>
+          <Text style={styles.trendingSub}>{student.program}</Text>
+          <Text style={styles.trendingScore}>
+            {student.academicScore}% Academic Score
+          </Text>
+          <View style={styles.trendingFooter}>
+            <Text style={styles.rating}>⭐ {student.rating}</Text>
+            <Text
+              style={[
+                styles.status,
+                student.status === "active"
+                  ? styles.active
+                  : styles.completed,
+              ]}
+            >
+              {student.status.toUpperCase()}
+            </Text>
+          </View>
+          <Text style={styles.shift}>{student.shift}</Text>
+        </View>
+      </TouchableOpacity>
+    ))}
+  </ScrollView>
+</View>
         </ScrollView>
 
         <View style={styles.bottomNav}>
-          {[
-            { icon: "home", label: "Home" },
-            { icon: "school", label: "Education", active: true },
-            { icon: "credit-card", label: "Finance" },
-            { icon: "person", label: "Profile" },
-          ].map((item, index) => (
-            <View key={index} style={styles.navItem}>
-              <Icon
-                name={item.icon}
-                size={24}
-                color={item.active ? "#1a5cff" : "#9da6b9"}
-              />
-              <Text
-                style={[styles.navText, item.active && { color: "#1a5cff" }]}
-              >
-                {item.label}
-              </Text>
-            </View>
-          ))}
-        </View>
+  {[
+    { icon: "home", label: "Home", screen: "Landing" },
+    { icon: "school", label: "Education", active: true, screen: "EducationHome" },
+    { icon: "credit-card", label: "Institution", screen: "InstitutionWelcomeScreen" },
+    { icon: "person", label: "Profile", screen: "ProfileInformation" },
+  ].map((item, index) => (
+    <TouchableOpacity 
+      key={index} 
+      style={styles.navItem}
+      onPress={() => {
+        if (item.screen) {
+          navigation.navigate(item.screen);
+        }
+      }}
+    >
+      <Icon
+        name={item.icon}
+        size={24}
+        color={item.active ? "#1a5cff" : "#9da6b9"}
+      />
+      <Text
+        style={[styles.navText, item.active && { color: "#1a5cff" }]}
+      >
+        {item.label}
+      </Text>
+    </TouchableOpacity>
+  ))}
+</View>
       </LinearGradient>
     </SafeAreaView>
   );

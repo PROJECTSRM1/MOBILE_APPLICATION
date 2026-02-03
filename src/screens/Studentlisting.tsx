@@ -324,7 +324,7 @@ const ListHeader = () => (
         />
 
         <Dropdown
-          label="Cert"
+          label="Certification"
           value={selectedCert}
           options={certFilters}
           onSelect={setSelectedCert}

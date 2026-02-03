@@ -1,4 +1,4 @@
-// import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,11 +6,13 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
+  ActivityIndicator
 } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useTheme } from "../context/ThemeContext";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+
 
 /* ---------------- TYPES ---------------- */
 
@@ -54,58 +56,58 @@ interface StudentData {
 
 /* ---------------- DUMMY DATA ---------------- */
 
-const studentData: StudentData = {
-  name: "Rahul Sharma",
-  fatherName: "Mr. Suresh Sharma",
-  academicYear: "2023–2024",
-  background: "Science Stream, CBSE",
-  admissionDate: "15 Aug 2021",
+// const studentData: StudentData = {
+//   name: "Rahul Sharma",
+//   fatherName: "Mr. Suresh Sharma",
+//   academicYear: "2023–2024",
+//   background: "Science Stream, CBSE",
+//   admissionDate: "15 Aug 2021",
 
-  documents: {
-    aadhaar: "**** 8920",
-    pan: "ABCP****3D",
-    casteCertificate: false,
-  },
+//   documents: {
+//     aadhaar: "**** 8920",
+//     pan: "ABCP****3D",
+//     casteCertificate: false,
+//   },
 
-  marks: {
-    tenth: "89.4%",
-    inter: "87.2%",
-    degree: "SGPA 8.92",
-  },
+//   marks: {
+//     tenth: "89.4%",
+//     inter: "87.2%",
+//     degree: "SGPA 8.92",
+//   },
 
-  installments: [
-    {
-      title: "1st Installment",
-      amount: "₹45,000",
-      date: "Paid on 12 Sep",
-      status: "PAID",
-    },
-    {
-      title: "2nd Installment",
-      amount: "₹45,000",
-      date: "Overdue (Due 05 Jan)",
-      status: "OVERDUE",
-    },
-    {
-      title: "3rd Installment",
-      amount: "₹45,000",
-      date: "Due 20 May 2024",
-      status: "UPCOMING",
-    },
-  ],
+//   installments: [
+//     {
+//       title: "1st Installment",
+//       amount: "₹45,000",
+//       date: "Paid on 12 Sep",
+//       status: "PAID",
+//     },
+//     {
+//       title: "2nd Installment",
+//       amount: "₹45,000",
+//       date: "Overdue (Due 05 Jan)",
+//       status: "OVERDUE",
+//     },
+//     {
+//       title: "3rd Installment",
+//       amount: "₹45,000",
+//       date: "Due 20 May 2024",
+//       status: "UPCOMING",
+//     },
+//   ],
 
-  scholarship: {
-    eligible: true,
-    amount: "₹25,000.00",
-    disbursedDate: "10 Oct 2023",
-  },
+//   scholarship: {
+//     eligible: true,
+//     amount: "₹25,000.00",
+//     disbursedDate: "10 Oct 2023",
+//   },
 
-  academicProgress: {
-    currentSGPA: "8.92",
-    attendance: "92%",
-    backlogs: 0,
-  },
-};
+//   academicProgress: {
+//     currentSGPA: "8.92",
+//     attendance: "92%",
+//     backlogs: 0,
+//   },
+// };
 
 /* ---------------- COMPONENT ---------------- */
 
@@ -115,6 +117,73 @@ const StudentOverviewScreen: React.FC = () => {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const { student } = route.params;
+  const [studentDetails, setStudentDetails] = useState<any>(null);
+const [loading, setLoading] = useState(true);
+const [installments, setInstallments] = useState<Installment[]>([]);
+
+
+useEffect(() => {
+  const fetchStudentDetails = async () => {
+    try {
+      const url = `https://swachify-india-be-1-mcrb.onrender.com/institution/student/academic-details?student_id=${student.studentId}&institution_id=1`;
+
+      console.log("📡 Fetching student details:", url);
+
+      const response = await fetch(url);
+      const data = await response.json();
+
+      console.log("🎯 Student Academic Details:", data);
+
+      setStudentDetails(data[0]); // API returns array
+    } catch (error) {
+      console.log("❌ Error fetching student details:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchStudentDetails();
+}, [student.studentId]);
+
+useEffect(() => {
+  const fetchInstallments = async () => {
+    try {
+      const url = `https://swachify-india-be-1-mcrb.onrender.com/institution/student/fee-installments?student_id=${student.studentId}&institution_id=1`;
+
+      const response = await fetch(url);
+      const data = await response.json();
+
+      const formatted: Installment[] = (data || []).map((item: any) => ({
+        title: item.installment_name,
+        amount: `₹${item.amount}`,
+        date:
+          item.status === "PAID"
+            ? `Paid on ${item.due_date}`
+            : item.status === "OVERDUE"
+            ? `Overdue (Due ${item.due_date})`
+            : `Due ${item.due_date}`,
+        status: item.status,
+      }));
+
+      setInstallments(formatted);
+    } catch (err) {
+      console.log("❌ Installments error:", err);
+    }
+  };
+
+  fetchInstallments();
+}, [student.studentId]);
+
+
+if (loading) {
+  return (
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <ActivityIndicator size="large" color="#2196F3" />
+    </View>
+  );
+}
+
+
 
   return (
     <View style={styles.container}>
@@ -131,7 +200,7 @@ const StudentOverviewScreen: React.FC = () => {
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Profile Card */}
-        <View style={styles.profileCard}>
+        {/* <View style={styles.profileCard}>
           <View style={styles.profileHeader}>
             <Image
               source={{ uri: "https://randomuser.me/api/portraits/men/32.jpg" }}
@@ -144,26 +213,44 @@ const StudentOverviewScreen: React.FC = () => {
               </Text>
               <Text style={styles.profileId}>{student.studentId}</Text>
             </View>
-          </View>
+          </View> */}
+          <View style={styles.profileHeader}>
+  <Image
+    source={{ uri: "https://randomuser.me/api/portraits/men/32.jpg"  }}
+    style={styles.profileImage}
+  />
 
-          <View style={styles.profileDetails}>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Father's Name</Text>
-              <Text style={styles.detailValue}>{studentData.fatherName}</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Background</Text>
-              <Text style={styles.detailValue}>{studentData.background}</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Admission Date</Text>
-              <Text style={styles.detailValue}>{studentData.admissionDate}</Text>
-            </View>
-          </View>
-        </View>
+  <View style={styles.profileInfo}>
+    <Text style={styles.profileName}>{student.name}</Text>
+
+    <Text style={styles.profileCourse}>
+      {studentDetails?.course_name || "—"} | {studentDetails?.academic_year || "—"}
+    </Text>
+
+    <Text style={styles.profileId}>{student.studentId}</Text>
+  </View>
+</View>
+
+
+<View style={styles.profileDetails}>
+  <View style={styles.detailRow}>
+    <Text style={styles.detailLabel}>Father's Name</Text>
+    <Text style={styles.detailValue}>
+      {studentDetails?.father_name || "—"}
+    </Text>
+  </View>
+
+  <View style={styles.detailRow}>
+    <Text style={styles.detailLabel}>Admission Date</Text>
+    <Text style={styles.detailValue}>
+      {studentDetails?.admission_date || "—"}
+    </Text>
+  </View>
+</View>
+
 
         {/* Identity Documents */}
-        <View style={styles.sectionCard}>
+        {/* <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>Identity Documents</Text>
 
           <View style={styles.documentItem}>
@@ -185,10 +272,10 @@ const StudentOverviewScreen: React.FC = () => {
             </View>
             <MaterialIcons name="verified" size={20} color="#4CAF50" />
           </View>
-        </View>
+        </View> */}
 
         {/* Scholarship */}
-        {studentData.scholarship.eligible && (
+        {/* {studentData.scholarship.eligible && (
           <View style={styles.scholarshipCard}>
             <View style={styles.scholarshipHeader}>
               <Text style={styles.scholarshipTitle}>MERIT SCHOLARSHIP</Text>
@@ -201,13 +288,14 @@ const StudentOverviewScreen: React.FC = () => {
               Disbursed on {studentData.scholarship.disbursedDate}
             </Text>
           </View>
-        )}
+        )} */}
 
         {/* Fee Installments */}
         <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>Fee Installments</Text>
 
-          {studentData.installments.map((item, index) => (
+          {installments.map((item: Installment, index: number) => (
+
             <View key={index} style={styles.installmentItem}>
               <View style={styles.installmentLeft}>
                 <View
@@ -256,7 +344,7 @@ const StudentOverviewScreen: React.FC = () => {
         </View>
 
         {/* Academic Progress */}
-        <View style={styles.sectionCard}>
+        {/* <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>Academic Progress</Text>
 
           <View style={styles.progressGrid}>
@@ -272,25 +360,33 @@ const StudentOverviewScreen: React.FC = () => {
             <View style={styles.progressItem}>
               <Text style={styles.progressLabel}>Sem 4</Text>
             </View>
-          </View>
+          </View> */}
 
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Current SGPA</Text>
-              <Text style={styles.statValue}>{studentData.academicProgress.currentSGPA}</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Attendance</Text>
-              <Text style={styles.statValue}>{studentData.academicProgress.attendance}</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Backlogs</Text>
-              <Text style={styles.statValue}>{studentData.academicProgress.backlogs}</Text>
-            </View>
-          </View>
-        </View>
+<View style={styles.statsRow}>
+  <View style={styles.statItem}>
+    <Text style={styles.statLabel}>Current SGPA</Text>
+    <Text style={styles.statValue}>
+      {studentDetails?.sgpa || "—"}
+    </Text>
+  </View>
 
-        {/* Action Buttons */}
+  <View style={styles.statItem}>
+    <Text style={styles.statLabel}>Attendance</Text>
+    <Text style={styles.statValue}>
+      {studentDetails?.attendance || "—"}%
+    </Text>
+  </View>
+
+  <View style={styles.statItem}>
+    <Text style={styles.statLabel}>Backlogs</Text>
+    <Text style={styles.statValue}>
+      {studentDetails?.backlogs ?? 0}
+    </Text>
+</View>
+      </View>
+
+
+      {/* Action Buttons */}
         <TouchableOpacity style={styles.primaryButton}>
           <MaterialIcons name="download" size={20} color="#fff" />
           <Text style={styles.primaryButtonText}>Download Transcript</Text>

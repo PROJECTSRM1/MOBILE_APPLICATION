@@ -356,69 +356,82 @@ useEffect(() => {
         </ScrollView>
 
         {/* Bottom Navigation */}
-        <SafeAreaView style={styles.bottomNavContainer} edges={['bottom']}>
-          <View style={styles.bottomNav}>
-            <TouchableOpacity 
-              style={styles.navItem}
-              onPress={() => setActiveTab(0)}
-            >
-              <Icon 
-                name="home" 
-                size={24} 
-                color={activeTab === 0 ? '#135bec' : '#9da6b9'} 
-              />
-              <Text style={[
-                styles.navLabel,
-                activeTab === 0 && styles.navLabelActive
-              ]}>Home</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.navItem}
-              onPress={() => setActiveTab(1)}
-            >
-              <Icon 
-                name="school" 
-                size={24} 
-                color={activeTab === 1 ? '#135bec' : '#9da6b9'} 
-              />
-              <Text style={[
-                styles.navLabel,
-                activeTab === 1 && styles.navLabelActive
-              ]}>Education</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.navItem}
-              onPress={() => setActiveTab(2)}
-            >
-              <Icon 
-                name="work" 
-                size={24} 
-                color={activeTab === 2 ? '#135bec' : '#9da6b9'} 
-              />
-              <Text style={[
-                styles.navLabel,
-                activeTab === 2 && styles.navLabelActive
-              ]}>Jobs</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.navItem}
-              onPress={() => setActiveTab(3)}
-            >
-              <Icon 
-                name="person" 
-                size={24} 
-                color={activeTab === 3 ? '#135bec' : '#9da6b9'} 
-              />
-              <Text style={[
-                styles.navLabel,
-                activeTab === 3 && styles.navLabelActive
-              ]}>Profile</Text>
-            </TouchableOpacity>
-          </View>
-        </SafeAreaView>
+   {/* Bottom Navigation */}
+<SafeAreaView style={styles.bottomNavContainer} edges={['bottom']}>
+  <View style={styles.bottomNav}>
+    <TouchableOpacity 
+      style={styles.navItem}
+      onPress={() => {
+        setActiveTab(0);
+        navigation.navigate('Landing');
+      }}
+    >
+      <Icon 
+        name="home" 
+        size={24} 
+        color={activeTab === 0 ? '#135bec' : '#9da6b9'} 
+      />
+      <Text style={[
+        styles.navLabel,
+        activeTab === 0 && styles.navLabelActive
+      ]}>Home</Text>
+    </TouchableOpacity>
+    
+    <TouchableOpacity 
+      style={styles.navItem}
+      onPress={() => {
+        setActiveTab(1);
+        navigation.navigate('EducationHome');
+      }}
+    >
+      <Icon 
+        name="school" 
+        size={24} 
+        color={activeTab === 1 ? '#135bec' : '#9da6b9'} 
+      />
+      <Text style={[
+        styles.navLabel,
+        activeTab === 1 && styles.navLabelActive
+      ]}>Education</Text>
+    </TouchableOpacity>
+    
+    <TouchableOpacity 
+      style={styles.navItem}
+      onPress={() => {
+        setActiveTab(2);
+        navigation.navigate('CompaniesListingScreen');
+      }}
+    >
+      <Icon 
+        name="work" 
+        size={24} 
+        color={activeTab === 2 ? '#135bec' : '#9da6b9'} 
+      />
+      <Text style={[
+        styles.navLabel,
+        activeTab === 2 && styles.navLabelActive
+      ]}>Jobs</Text>
+    </TouchableOpacity>
+    
+    <TouchableOpacity 
+      style={styles.navItem}
+      onPress={() => {
+        setActiveTab(3);
+        navigation.navigate('ProfileInformation');
+      }}
+    >
+      <Icon 
+        name="person" 
+        size={24} 
+        color={activeTab === 3 ? '#135bec' : '#9da6b9'} 
+      />
+      <Text style={[
+        styles.navLabel,
+        activeTab === 3 && styles.navLabelActive
+      ]}>Profile</Text>
+    </TouchableOpacity>
+  </View>
+</SafeAreaView>
       </SafeAreaView>
     </SafeAreaProvider>
   );
