@@ -1,15 +1,16 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  RefreshControl,
+  StatusBar,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context"; // Import SafeAreaView
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useTheme } from "../context/ThemeContext";
 
 interface CartItem {
@@ -21,68 +22,42 @@ interface CartItem {
 }
 
 const CartScreen = () => {
-//   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const { colors } = useTheme();
-    const styles = getStyles(colors) as any;
-const [cartItems, setCartItems] = useState<CartItem[]>([
-  {
-    id: "clean-001",
-    title: "Bathroom Deep Cleaning",
-    category: "Housing / Cleaning",
-    duration: "2 hrs",
-    price: 899,
-  },
-  {
-    id: "edu-002",
-    title: "Math Home Tutor (Class 10)",
-    category: "Education",
-    duration: "1 hr",
-    price: 500,
-  },
-  {
-    id: "free-003",
-    title: "Electrician – Power Issue",
-    category: "Freelance",
-    price: 300,
-  },
-]);
+  const navigation = useNavigation<any>();
+  const styles = getStyles(colors) as any;
 
-  const [loading, setLoading] = useState(false);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [showPriceBreakup, setShowPriceBreakup] = useState(false);
 
+  /* ================= LOAD REAL DATA FROM STORAGE ================= */
+  const loadCartData = async () => {
+    try {
+      const storedItems = await AsyncStorage.getItem("cartItems");
+      if (storedItems) {
+        setCartItems(JSON.parse(storedItems));
+      } else {
+        setCartItems([]);
+      }
+    } catch (error) {
+      console.error("Failed to load cart items", error);
+    }
+  };
 
-  /* ================= LOAD CART ================= */
+  useFocusEffect(
+    useCallback(() => {
+      loadCartData();
+    }, [])
+  );
 
-
-// const loadCart = useCallback(async () => {
-//   try {
-//     setLoading(true);
-//     const data = await AsyncStorage.getItem("cartItems");
-//     setCartItems(data ? JSON.parse(data) : []);
-//   } catch (e) {
-//     console.log("Failed to load cart", e);
-//     setCartItems([]);
-//   } finally {
-//     setLoading(false);
-//   }
-// }, []);
-
-// useFocusEffect(
-//   useCallback(() => {
-//     loadCart();
-//   }, [loadCart])
-// );
-
-
-//   useEffect(() => {
-//     loadCart();
-//   }, [loadCart]);
-
-  /* ================= REMOVE ITEM ================= */
+  /* ================= REMOVE ITEM LOGIC ================= */
   const removeItem = async (id: string) => {
-    const updated = cartItems.filter((i) => i.id !== id);
-    setCartItems(updated);
-    await AsyncStorage.setItem("cartItems", JSON.stringify(updated));
+    try {
+      const updated = cartItems.filter((i) => i.id !== id);
+      setCartItems(updated);
+      await AsyncStorage.setItem("cartItems", JSON.stringify(updated));
+    } catch (error) {
+      console.error("Failed to remove item", error);
+    }
   };
 
   /* ================= CALCULATIONS ================= */
@@ -90,460 +65,184 @@ const [cartItems, setCartItems] = useState<CartItem[]>([
   const convenienceFee = cartItems.length ? 49 : 0;
   const totalPayable = serviceTotal + convenienceFee;
 
-  /* ================= EMPTY STATE ================= */
-  if (!cartItems.length) {
+  /* ================= EMPTY STATE UI ================= */
+  if (cartItems.length === 0) {
     return (
-      <View style={styles.emptyContainer}>
-        <MaterialIcons name="shopping-cart" size={64} color="#334155" />
-        <Text style={styles.emptyTitle}>Your cart is empty</Text>
-        <Text style={styles.emptySub}>
-          Add services from Core Services to continue
-        </Text>
-      </View>
+      <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+        <View style={styles.emptyContainer}>
+          <StatusBar backgroundColor={colors.background} barStyle="dark-content" />
+          <MaterialIcons name="shopping-cart" size={80} color={colors.border} />
+          <Text style={styles.emptyTitle}>Your cart is empty</Text>
+          <Text style={styles.emptySub}>
+            Looks like you haven't added any services yet.
+          </Text>
+          <TouchableOpacity 
+            style={styles.goBackBtn} 
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.goBackText}>Browse Services</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
-      {/* HEADER */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>My Cart</Text>
-      </View>
-
-      {/* SERVICES */}
-      {/* <ScrollView
-        refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={loadCart} />
-        }
-      > */}
-      <ScrollView showsVerticalScrollIndicator={false}>
-
-        {cartItems.map((item) => (
-          <View key={item.id} style={styles.card}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.serviceTitle}>{item.title}</Text>
-              <Text style={styles.serviceMeta}>
-                {item.category}
-                {item.duration ? ` • ${item.duration}` : ""}
-              </Text>
-              <Text style={styles.price}>₹{item.price}</Text>
-            </View>
-
-            <TouchableOpacity onPress={() => removeItem(item.id)}>
-              <MaterialIcons name="delete-outline" size={22} color="#ef4444" />
-            </TouchableOpacity>
-          </View>
-        ))}
-
-        <View style={{ height: 140 }} />
-      </ScrollView>
-
-      {/* BOTTOM BAR */}
-      <View style={styles.bottomBar}>
-        <TouchableOpacity onPress={() => setShowPriceBreakup(true)}>
-          <Text style={styles.totalLabel}>Total Payable</Text>
-          <Text style={styles.totalAmount}>₹{totalPayable}</Text>
-        </TouchableOpacity>
-
-        {/* <TouchableOpacity style={styles.proceedBtn}> */}
-        <TouchableOpacity
-  style={[
-    styles.proceedBtn,
-    cartItems.length === 0 && { opacity: 0.5 },
-  ]}
-  disabled={cartItems.length === 0}
->
-
-          <Text style={styles.proceedText}>Proceed</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* PRICE BREAKUP */}
-      {showPriceBreakup && (
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalSheet}>
-            <Text style={styles.modalTitle}>Price Details</Text>
-
-            <Row label="Services" value={serviceTotal} />
-            <Row label="Convenience Fee" value={convenienceFee} />
-            <View style={styles.divider} />
-            <Row label="Total" value={totalPayable} bold />
-
-            <TouchableOpacity
-              style={styles.closeBtn}
-              onPress={() => setShowPriceBreakup(false)}
-            >
-              <Text style={{ color: "#fff" }}>Close</Text>
-            </TouchableOpacity>
-          </View>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+      <StatusBar backgroundColor={colors.surface} barStyle="dark-content" />
+      
+      <View style={styles.container}>
+        {/* HEADER */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <MaterialIcons name="arrow-back" size={24} color={colors.text} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Review Cart ({cartItems.length})</Text>
+          <View style={{ width: 24 }} />
         </View>
-      )}
-    </View>
+
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {cartItems.map((item) => (
+            <View key={item.id} style={styles.card}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.serviceTitle}>{item.title}</Text>
+                <Text style={styles.serviceMeta}>
+                  {item.category}
+                  {item.duration ? ` • ${item.duration}` : ""}
+                </Text>
+                <Text style={styles.price}>₹{item.price}</Text>
+              </View>
+
+              <TouchableOpacity 
+                style={styles.deleteBtn} 
+                onPress={() => removeItem(item.id)}
+              >
+                <MaterialIcons name="delete-outline" size={24} color="#ef4444" />
+              </TouchableOpacity>
+            </View>
+          ))}
+
+          {/* Safety Note */}
+          <View style={styles.safetyCard}>
+            <MaterialIcons name="verified-user" size={20} color="#10b981" />
+            <Text style={styles.safetyText}>UC Safe: Professionals follow 100% safety protocols</Text>
+          </View>
+
+          <View style={{ height: 140 }} />
+        </ScrollView>
+
+        {/* BOTTOM ACTION BAR */}
+        <View style={styles.bottomBar}>
+          <TouchableOpacity 
+            style={styles.priceContainer} 
+            onPress={() => setShowPriceBreakup(true)}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+               <Text style={styles.totalAmount}>₹{totalPayable}</Text>
+               <MaterialIcons name="keyboard-arrow-up" size={20} color={colors.text} />
+            </View>
+            <Text style={styles.viewDetailText}>View Price Breakup</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.proceedBtn}
+            onPress={() => navigation.navigate("BookCleaning", { 
+              selectedServices: cartItems 
+            })}
+          >
+            <Text style={styles.proceedText}>Proceed to Book</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* PRICE BREAKUP MODAL */}
+        {showPriceBreakup && (
+          <TouchableOpacity 
+              style={styles.modalOverlay} 
+              activeOpacity={1} 
+              onPress={() => setShowPriceBreakup(false)}
+          >
+            <View style={styles.modalSheet}>
+              <View style={styles.modalIndicator} />
+              <Text style={styles.modalTitle}>Payment Summary</Text>
+
+              <Row label="Item Total" value={serviceTotal} styles={styles} />
+              <Row label="Convenience Fee" value={convenienceFee} styles={styles} />
+              
+              <View style={styles.divider} />
+              
+              <Row label="Total Payable" value={totalPayable} bold styles={styles} />
+
+              <TouchableOpacity
+                style={styles.closeBtn}
+                onPress={() => setShowPriceBreakup(false)}
+              >
+                <Text style={{ color: "#fff", fontWeight: '700' }}>Done</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        )}
+      </View>
+    </SafeAreaView>
   );
 };
 
-// const Row = ({ label, value, bold }: any) => (
-//   <View style={styles.row}>
-//     <Text style={[styles.rowText, bold && styles.bold]}>{label}</Text>
-//     <Text style={[styles.rowText, bold && styles.bold]}>₹{value}</Text>
-//   </View>
-// );
+/* ================= HELPER COMPONENT ================= */
 const Row = ({ label, value, bold, styles }: any) => (
   <View style={styles.row}>
-    <Text style={[styles.rowText, bold && styles.bold]}>{label}</Text>
-    <Text style={[styles.rowText, bold && styles.bold]}>₹{value}</Text>
+    <Text style={[styles.rowText, bold && styles.boldText]}>{label}</Text>
+    <Text style={[styles.rowText, bold && styles.boldText]}>₹{value}</Text>
   </View>
 );
 
-
-export default CartScreen;
-
-
 /* ================= STYLES ================= */
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: "#0f172a",
-//   },
-
-//   header: {
-//     padding: 16,
-//     flexDirection: "row",
-//     justifyContent: "space-between",
-//     alignItems: "center",
-//     borderBottomWidth: 1,
-//     borderColor: "#1e293b",
-//   },
-
-//   headerTitle: {
-//     color: "#fff",
-//     fontSize: 20,
-//     fontWeight: "600",
-//   },
-
-//   cartBadge: {
-//     position: "absolute",
-//     top: -6,
-//     right: -8,
-//     backgroundColor: "#ef4444",
-//     minWidth: 18,
-//     height: 18,
-//     borderRadius: 9,
-//     justifyContent: "center",
-//     alignItems: "center",
-//     paddingHorizontal: 4,
-//   },
-
-//   cartBadgeText: {
-//     color: "#fff",
-//     fontSize: 10,
-//     fontWeight: "700",
-//   },
-
-//   safetyBadge: {
-//     flexDirection: "row",
-//     alignItems: "center",
-//     backgroundColor: "#052e16",
-//     margin: 16,
-//     paddingVertical: 10,
-//     paddingHorizontal: 14,
-//     borderRadius: 12,
-//     gap: 6,
-//   },
-
-//   safetyText: {
-//     color: "#22c55e",
-//     fontSize: 13,
-//     fontWeight: "500",
-//   },
-
-//   serviceRow: {
-//     flexDirection: "row",
-//     alignItems: "center",
-//     paddingHorizontal: 16,
-//     paddingVertical: 18,
-//     borderBottomWidth: 1,
-//     borderColor: "#1e293b",
-//   },
-
-//   serviceTitle: {
-//     color: "#fff",
-//     fontSize: 15,
-//     fontWeight: "500",
-//   },
-
-//   serviceMeta: {
-//     color: "#9ca3af",
-//     fontSize: 13,
-//     marginTop: 4,
-//   },
-
-//   addMore: {
-//     flexDirection: "row",
-//     alignItems: "center",
-//     paddingHorizontal: 16,
-//     paddingVertical: 18,
-//   },
-
-//   addMoreText: {
-//     color: "#2563eb",
-//     fontSize: 14,
-//     marginLeft: 6,
-//     fontWeight: "500",
-//   },
-
-//   bottomBar: {
-//     position: "absolute",
-//     bottom: 0,
-//     left: 0,
-//     right: 0,
-//     backgroundColor: "#020617",
-//     borderTopWidth: 1,
-//     borderColor: "#1e293b",
-//     padding: 16,
-//     flexDirection: "row",
-//     justifyContent: "space-between",
-//     alignItems: "center",
-//   },
-
-//   totalLabel: {
-//     color: "#9ca3af",
-//     fontSize: 12,
-//   },
-
-//   totalAmount: {
-//     color: "#fff",
-//     fontSize: 18,
-//     fontWeight: "600",
-//   },
-
-//   breakupText: {
-//     color: "#3b82f6",
-//     fontSize: 12,
-//     marginTop: 2,
-//   },
-
-//   bookBtn: {
-//     backgroundColor: "#2563eb",
-//     paddingHorizontal: 28,
-//     paddingVertical: 12,
-//     borderRadius: 10,
-//   },
-
-//   bookText: {
-//     color: "#fff",
-//     fontWeight: "600",
-//     fontSize: 14,
-//   },
-
-//   modalOverlay: {
-//     position: "absolute",
-//     top: 0,
-//     left: 0,
-//     right: 0,
-//     bottom: 0,
-//     backgroundColor: "rgba(0,0,0,0.5)",
-//     justifyContent: "flex-end",
-//   },
-
-//   modalSheet: {
-//     backgroundColor: "#020617",
-//     borderTopLeftRadius: 22,
-//     borderTopRightRadius: 22,
-//     padding: 20,
-//   },
-
-//   modalHeader: {
-//     flexDirection: "row",
-//     justifyContent: "space-between",
-//     marginBottom: 16,
-//   },
-
-//   modalTitle: {
-//     color: "#fff",
-//     fontSize: 16,
-//     fontWeight: "600",
-//   },
-
-//   priceRow: {
-//     flexDirection: "row",
-//     justifyContent: "space-between",
-//     paddingVertical: 10,
-//   },
-
-//   priceLabel: {
-//     color: "#9ca3af",
-//     fontSize: 14,
-//   },
-
-//   priceValue: {
-//     color: "#fff",
-//     fontSize: 14,
-//   },
-
-//   divider: {
-//     height: 1,
-//     backgroundColor: "#1e293b",
-//     marginVertical: 10,
-//   },
-
-//   totalFinal: {
-//     color: "#fff",
-//     fontSize: 16,
-//     fontWeight: "600",
-//   },
-// });
-// const styles = StyleSheet.create({
-//   container: { flex: 1, backgroundColor: "#0f172a" },
-
-//   header: {
-//     padding: 16,
-//     borderBottomWidth: 1,
-//     borderColor: "#1e293b",
-//   },
-
-//   headerTitle: { color: "#fff", fontSize: 20, fontWeight: "600" },
-
-//   card: {
-//     flexDirection: "row",
-//     backgroundColor: "#1e293b",
-//     margin: 16,
-//     padding: 16,
-//     borderRadius: 14,
-//     alignItems: "center",
-//   },
-
-//   serviceTitle: { color: "#fff", fontSize: 15, fontWeight: "500" },
-//   serviceMeta: { color: "#9ca3af", fontSize: 12, marginVertical: 4 },
-//   price: { color: "#3b82f6", fontWeight: "600" },
-
-//   bottomBar: {
-//     position: "absolute",
-//     bottom: 0,
-//     left: 0,
-//     right: 0,
-//     backgroundColor: "#020617",
-//     padding: 16,
-//     flexDirection: "row",
-//     justifyContent: "space-between",
-//     alignItems: "center",
-//     borderTopWidth: 1,
-//     borderColor: "#1e293b",
-//   },
-
-//   totalLabel: { color: "#9ca3af", fontSize: 12 },
-//   totalAmount: { color: "#fff", fontSize: 18, fontWeight: "600" },
-
-//   proceedBtn: {
-//     backgroundColor: "#2563eb",
-//     paddingHorizontal: 30,
-//     paddingVertical: 12,
-//     borderRadius: 12,
-//   },
-
-//   proceedText: { color: "#fff", fontWeight: "600" },
-
-//   emptyContainer: {
-//     flex: 1,
-//     justifyContent: "center",
-//     alignItems: "center",
-//     backgroundColor: "#0f172a",
-//   },
-
-//   emptyTitle: { color: "#fff", fontSize: 18, marginTop: 12 },
-//   emptySub: { color: "#9ca3af", marginTop: 4 },
-
-//   modalOverlay: {
-//     position: "absolute",
-//     inset: 0,
-//     backgroundColor: "rgba(0,0,0,0.6)",
-//     justifyContent: "flex-end",
-//   },
-
-//   modalSheet: {
-//     backgroundColor: "#020617",
-//     padding: 20,
-//     borderTopLeftRadius: 22,
-//     borderTopRightRadius: 22,
-//   },
-
-//   modalTitle: { color: "#fff", fontSize: 16, marginBottom: 16 },
-
-//   row: {
-//     flexDirection: "row",
-//     justifyContent: "space-between",
-//     marginVertical: 6,
-//   },
-
-//   rowText: { color: "#9ca3af" },
-//   bold: { color: "#fff", fontWeight: "600" },
-
-//   divider: { height: 1, backgroundColor: "#1e293b", marginVertical: 10 },
-
-//   closeBtn: {
-//     marginTop: 16,
-//     backgroundColor: "#2563eb",
-//     padding: 12,
-//     borderRadius: 10,
-//     alignItems: "center",
-//   },
-// });
-
 const getStyles = (colors: any) =>
   StyleSheet.create({
-    container: {
+    safeArea: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: colors.surface, // Matches header/footer background
     },
-
+    container: { 
+      flex: 1, 
+      backgroundColor: colors.background 
+    },
     header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
       padding: 16,
       backgroundColor: colors.surface,
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
-
-    headerTitle: {
-      color: colors.text,
-      fontSize: 20,
-      fontWeight: "600",
-    },
-
+    headerTitle: { color: colors.text, fontSize: 18, fontWeight: "700" },
     card: {
       flexDirection: "row",
       backgroundColor: colors.card,
-      margin: 16,
+      marginHorizontal: 16,
+      marginTop: 16,
       padding: 16,
-      borderRadius: 16,
+      borderRadius: 12,
       alignItems: "center",
       borderWidth: 1,
       borderColor: colors.border,
     },
-
-    serviceTitle: {
-      color: colors.text,
-      fontSize: 15,
-      fontWeight: "600",
+    serviceTitle: { color: colors.text, fontSize: 16, fontWeight: "700" },
+    serviceMeta: { color: colors.subText, fontSize: 12, marginVertical: 4 },
+    price: { color: colors.text, fontWeight: "700", fontSize: 15, marginTop: 4 },
+    deleteBtn: { padding: 8 },
+    safetyCard: {
+      flexDirection: 'row',
+      backgroundColor: '#f0fdf4',
+      margin: 16,
+      padding: 12,
+      borderRadius: 8,
+      alignItems: 'center',
+      gap: 10,
     },
-
-    serviceMeta: {
-      color: colors.subText,
-      fontSize: 12,
-      marginVertical: 4,
-    },
-
-    price: {
-      color: colors.primary,
-      fontWeight: "600",
-    },
-
+    safetyText: { color: '#065f46', fontSize: 12, flex: 1 },
+    
     /* BOTTOM BAR */
     bottomBar: {
-      position: "absolute",
-      bottom: 0,
-      left: 0,
-      right: 0,
       backgroundColor: colors.surface,
       padding: 16,
       flexDirection: "row",
@@ -551,105 +250,46 @@ const getStyles = (colors: any) =>
       alignItems: "center",
       borderTopWidth: 1,
       borderTopColor: colors.border,
+      // Removed absolute positioning as SafeAreaView handles the spacing
     },
-
-    totalLabel: {
-      color: colors.subText,
-      fontSize: 12,
-    },
-
-    totalAmount: {
-      color: colors.text,
-      fontSize: 18,
-      fontWeight: "700",
-    },
-
+    priceContainer: { flex: 1 },
+    totalAmount: { color: colors.text, fontSize: 20, fontWeight: "800" },
+    viewDetailText: { color: colors.primary, fontSize: 12, fontWeight: '600' },
     proceedBtn: {
       backgroundColor: colors.primary,
-      paddingHorizontal: 30,
-      paddingVertical: 12,
-      borderRadius: 14,
+      paddingHorizontal: 24,
+      paddingVertical: 14,
+      borderRadius: 12,
     },
-
-    proceedText: {
-      color: "#fff",
-      fontWeight: "600",
-      fontSize: 14,
-    },
+    proceedText: { color: "#fff", fontWeight: "700", fontSize: 15 },
 
     /* EMPTY STATE */
-    emptyContainer: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: colors.background,
-    },
-
-    emptyTitle: {
-      color: colors.text,
-      fontSize: 18,
-      fontWeight: "600",
-      marginTop: 12,
-    },
-
-    emptySub: {
-      color: colors.subText,
-      marginTop: 4,
-      fontSize: 13,
-    },
+    emptyContainer: { flex: 1, justifyContent: "center", alignItems: "center", padding: 20 },
+    emptyTitle: { color: colors.text, fontSize: 20, fontWeight: "700", marginTop: 20 },
+    emptySub: { color: colors.subText, textAlign: 'center', marginTop: 10, fontSize: 14 },
+    goBackBtn: { marginTop: 30, backgroundColor: colors.primary, paddingHorizontal: 30, paddingVertical: 12, borderRadius: 10 },
+    goBackText: { color: '#fff', fontWeight: '700' },
 
     /* MODAL */
     modalOverlay: {
       position: "absolute",
-      inset: 0,
-      backgroundColor: "rgba(0,0,0,0.6)",
+      top: 0, left: 0, right: 0, bottom: 0,
+      backgroundColor: "rgba(0,0,0,0.5)",
       justifyContent: "flex-end",
     },
-
     modalSheet: {
       backgroundColor: colors.surface,
-      padding: 20,
-      borderTopLeftRadius: 22,
-      borderTopRightRadius: 22,
-      borderTopWidth: 1,
-      borderTopColor: colors.border,
+      padding: 24,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
     },
-
-    modalTitle: {
-      color: colors.text,
-      fontSize: 16,
-      fontWeight: "600",
-      marginBottom: 16,
-    },
-
-    row: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      marginVertical: 6,
-    },
-
-    rowText: {
-      color: colors.subText,
-      fontSize: 13,
-    },
-
-    bold: {
-      color: colors.text,
-      fontWeight: "600",
-    },
-
-    divider: {
-      height: 1,
-      backgroundColor: colors.border,
-      marginVertical: 10,
-    },
-
-    closeBtn: {
-      marginTop: 16,
-      backgroundColor: colors.primary,
-      paddingVertical: 12,
-      borderRadius: 12,
-      alignItems: "center",
-    },
+    modalIndicator: { width: 40, height: 4, backgroundColor: colors.border, alignSelf: 'center', borderRadius: 2, marginBottom: 20 },
+    modalTitle: { color: colors.text, fontSize: 18, fontWeight: "800", marginBottom: 20 },
+    row: { flexDirection: "row", justifyContent: "space-between", marginVertical: 8 },
+    rowText: { color: colors.subText, fontSize: 14 },
+    boldText: { color: colors.text, fontWeight: "700", fontSize: 16 },
+    divider: { height: 1, backgroundColor: colors.border, marginVertical: 15 },
+    closeBtn: { marginTop: 20, backgroundColor: colors.primary, paddingVertical: 14, borderRadius: 12, alignItems: "center" },
   });
 
+export default CartScreen;

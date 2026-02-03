@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -12,8 +12,9 @@ import {
   TextInput,
 } from 'react-native';
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTheme } from "../context/ThemeContext";
 
 const { width } = Dimensions.get('window');
@@ -53,7 +54,6 @@ const VEHICLE_DATA: any = {
   truck: { brands: ['Tata', 'Ashok Leyland', 'Eicher', 'BharatBenz'], fuel: ['Diesel', 'CNG'], icon: 'local-shipping' }
 };
 
-// Garage Names per Category
 const GARAGE_NAMES: any = {
   car: ['Supreme Car Care', 'Apex Auto Garage', 'Luxury Wheels Rajkot'],
   bike: ['Rapid Bike Fix', 'QuickCycle Hub', 'Two-Wheeler Masters'],
@@ -76,14 +76,29 @@ const VehicleSub = () => {
   const [fuel, setFuel] = useState(VEHICLE_DATA['car'].fuel[0]);
   const [showBrandDropdown, setShowBrandDropdown] = useState(false);
   const [showFuelDropdown, setShowFuelDropdown] = useState(false);
-const [description, setDescription] = useState('');
-  // Detail Modal States
+  const [description, setDescription] = useState('');
+  
   const [showDetail, setShowDetail] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
   const [tempServices, setTempServices] = useState<any[]>([]);
   const [selectedEmp, setSelectedEmp] = useState(EMPLOYEES[0]);
 
-  // Dynamic Service Packages based on Vehicle Type
+  // Cart State
+  const [cartItems, setCartItems] = useState<any[]>([]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadCart();
+    }, [])
+  );
+
+  const loadCart = async () => {
+    try {
+      const existing = await AsyncStorage.getItem("cartItems");
+      setCartItems(existing ? JSON.parse(existing) : []);
+    } catch (e) { console.log(e); }
+  };
+
   const packages = useMemo(() => [
     { id: 'p1', name: 'Standard Service', garageName: GARAGE_NAMES[vehicleType][0], address: '102, Royal Plaza, Rajkot', rating: '4.8', basePrice: 1200 },
     { id: 'p2', name: 'Comprehensive Care', garageName: GARAGE_NAMES[vehicleType][1], address: 'Plot 45, GIDC Phase 3, Rajkot', rating: '4.9', basePrice: 2500 },
@@ -110,26 +125,35 @@ const [description, setDescription] = useState('');
     return servicesTotal + garageFee;
   }, [tempServices, selectedPackage]);
 
-  const handleFinalBook = () => {
-    setShowDetail(false);
-    
-    // Prefixing the name with vehicle type ensures detectCategoryFromTitle works
-    // const finalServiceName = `${vehicleType.charAt(0).toUpperCase() + vehicleType.slice(1)} ${selectedPackage.name}`;
-    const selectedSubServices = tempServices.filter(s => s.selected);
-    navigation.navigate("BookCleaning", {
-        selectedService: selectedPackage.name, // The package name
-      selectedServices: selectedSubServices,
-      allocatedEmployee: selectedEmp,
-      vehicleType: vehicleType, // Sending the full employee object
-      vehicleInfo: `${brand} (${fuel})`,
-      consultationCharge: selectedPackage.basePrice,
-      description: description,
-      pricing: { 
-        total: currentTotal,
-        base: currentTotal - selectedPackage.basePrice
-      }
-    });
+  // FIXED ACTION: ADD TO CART
+  const handleAddToCart = async () => {
+    try {
+      const existing = await AsyncStorage.getItem("cartItems");
+      let cart = existing ? JSON.parse(existing) : [];
+      
+      const newCartItem = {
+        id: `veh-${Date.now()}`,
+        title: `${brand} ${selectedPackage.name}`,
+        category: "Vehicle",
+        price: currentTotal,
+        // Metadata for the BookCleaning form
+        vehicleType,
+        brand,
+        fuel,
+        description,
+        allocatedEmployee: selectedEmp,
+        consultationCharge: selectedPackage.basePrice,
+        subServices: tempServices.filter(s => s.selected)
+      };
+
+      cart.push(newCartItem);
+      await AsyncStorage.setItem("cartItems", JSON.stringify(cart));
+      setCartItems(cart);
+      setShowDetail(false);
+    } catch (e) { console.log(e); }
   };
+
+  const totalCartPrice = cartItems.reduce((sum, item) => sum + item.price, 0);
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
@@ -138,7 +162,7 @@ const [description, setDescription] = useState('');
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}><MaterialIcons name="arrow-back" size={24} color={colors.text} /></TouchableOpacity>
         <Text style={styles.headerTitle}>Vehicle Services</Text>
-        <View style={{ width: 40 }}><MaterialIcons name="notifications-none" size={24} color={colors.text} /></View>
+        <View style={{ width: 40 }} />
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -206,7 +230,26 @@ const [description, setDescription] = useState('');
             </View>
           ))}
         </View>
+        <View style={{height: 100}} />
       </ScrollView>
+
+      {/* Floating View Cart Bar */}
+      {cartItems.length > 0 && (
+        <TouchableOpacity 
+          style={styles.floatingCart} 
+          onPress={() => navigation.navigate("Cart")}
+          activeOpacity={0.9}
+        >
+          <View>
+            <Text style={styles.cartCountText}>{cartItems.length} ITEM{cartItems.length > 1 ? 'S' : ''}</Text>
+            <Text style={styles.cartPriceText}>₹{totalCartPrice}</Text>
+          </View>
+          <View style={styles.viewCartAction}>
+            <Text style={styles.cartActionText}>View Cart</Text>
+            <MaterialIcons name="shopping-cart" size={18} color="#fff" />
+          </View>
+        </TouchableOpacity>
+      )}
 
       {/* --- DETAILS MODAL --- */}
       <Modal visible={showDetail} animationType="slide">
@@ -236,19 +279,20 @@ const [description, setDescription] = useState('');
                 </TouchableOpacity>
               ))}
             </View>
-{/* Description Field */}
-<View style={{ padding: 16 }}>
-  <Text style={styles.sectionTitle}>Problem Description (Optional)</Text>
-  <TextInput
-    placeholder="e.g. Brakes are making noise, oil leak noticed, etc."
-    placeholderTextColor={colors.subText}
-    multiline
-    numberOfLines={4}
-    style={[styles.textArea, { backgroundColor: colors.card, borderColor: colors.border }]}
-    value={description}
-    onChangeText={setDescription}
-  />
-</View>
+
+            <View style={{ padding: 16 }}>
+              <Text style={styles.sectionTitle}>Problem Description (Optional)</Text>
+              <TextInput
+                placeholder="e.g. Brakes are making noise, oil leak noticed, etc."
+                placeholderTextColor={colors.subText}
+                multiline
+                numberOfLines={4}
+                style={[styles.textArea, { backgroundColor: colors.card, borderColor: colors.border }]}
+                value={description}
+                onChangeText={setDescription}
+              />
+            </View>
+
             <View style={{ padding: 16 }}>
               <Text style={styles.sectionTitle}>ALLOCATE PROFESSIONAL</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -262,6 +306,7 @@ const [description, setDescription] = useState('');
                 ))}
               </ScrollView>
             </View>
+            <View style={{height: 120}} />
           </ScrollView>
 
           <View style={[styles.cardFooter, { padding: 20, backgroundColor: colors.card }]}>
@@ -269,8 +314,8 @@ const [description, setDescription] = useState('');
                 <Text style={styles.dropdownLabel}>ESTIMATED TOTAL</Text>
                 <Text style={styles.bottomPrice}>₹ {currentTotal}</Text>
              </View>
-             <TouchableOpacity style={styles.buyButton} onPress={handleFinalBook}>
-                <Text style={styles.buyButtonText}>BOOK NOW</Text>
+             <TouchableOpacity style={styles.buyButton} onPress={handleAddToCart}>
+                <Text style={styles.buyButtonText}>ADD TO CART</Text>
              </TouchableOpacity>
           </View>
         </SafeAreaView>
@@ -286,7 +331,7 @@ const getStyles = (colors: any) => StyleSheet.create({
   content: { flex: 1 },
   detailsSection: { padding: 16 },
   sectionTitle: { fontSize: 14, fontWeight: '800', color: colors.text, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 },
-  typeBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, borderWidth: 1 },
+  typeBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, borderWidth: 1, marginRight: 8 },
   dropdownRow: { flexDirection: 'row', gap: 10, marginTop: 15 },
   dropdownBtn: { flex: 1, backgroundColor: colors.card, paddingVertical: 8, paddingHorizontal: 10, borderRadius: 10, borderWidth: 1, borderColor: colors.border },
   dropdownLabel: { fontSize: 9, color: colors.subText, fontWeight: '800' },
@@ -305,16 +350,31 @@ const getStyles = (colors: any) => StyleSheet.create({
   empImg: { width: 45, height: 45, borderRadius: 25 },
   cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderTopWidth: 1, borderTopColor: colors.border },
   bottomPrice: { fontSize: 22, fontWeight: '800', color: colors.primary },
-  textArea: {
-  borderWidth: 1,
-  borderRadius: 12,
-  padding: 12,
-  color: colors.text,
-  fontSize: 14,
-  height: 100,
-  textAlignVertical: 'top',
-  marginTop: 5,
-},
+  textArea: { borderWidth: 1, borderRadius: 12, padding: 12, color: colors.text, fontSize: 14, height: 100, textAlignVertical: 'top', marginTop: 5 },
+  
+  // Floating Cart Bar
+  floatingCart: { 
+    position: 'absolute', 
+    bottom: 20, 
+    left: 16, 
+    right: 16, 
+    backgroundColor: colors.primary, 
+    flexDirection: 'row', 
+    paddingHorizontal: 20, 
+    paddingVertical: 12, 
+    borderRadius: 12, 
+    alignItems: 'center', 
+    justifyContent: 'space-between',
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5
+  },
+  cartCountText: { color: 'rgba(255,255,255,0.8)', fontSize: 10, fontWeight: '700' },
+  cartPriceText: { color: '#fff', fontSize: 16, fontWeight: '800' },
+  viewCartAction: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  cartActionText: { color: '#fff', fontWeight: '700', fontSize: 14 },
 });
 
 export default VehicleSub;

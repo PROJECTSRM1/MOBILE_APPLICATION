@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -18,9 +18,6 @@ const HomeSub: React.FC = () => {
   const { colors } = useTheme();
   const styles = getStyles(colors);
 
-  // 1. State to track selected services
-  const [selectedTitles, setSelectedTitles] = useState<string[]>([]);
-
   const subServices = [
     { title: 'Kitchen Cleaning', description: 'Degreasing, cabinets & appliances', image: require("../../assets/kitchen.jpg") },
     { title: 'Washroom Cleaning', description: 'Sanitization & tile scrubbing', image: require("../../assets/bathroom.jpg") },
@@ -29,26 +26,6 @@ const HomeSub: React.FC = () => {
     { title: 'Window Cleaning', description: 'Interior & exterior glass shine', image: require("../../assets/window.jpg") },
     { title: 'Full Deep Cleaning', description: 'Entire house detailed cleaning', image: require("../../assets/home.jpg") },
   ];
-
-  // 2. Toggle selection logic
-  const toggleService = (title: string) => {
-    if (selectedTitles.includes(title)) {
-      setSelectedTitles(prev => prev.filter(t => t !== title));
-    } else {
-      setSelectedTitles(prev => [...prev, title]);
-    }
-  };
-
-  const handleProceed = () => {
-  if (selectedTitles.length === 0) return;
-
-  navigation.navigate("BookCleaning", {
-    mainService: selectedTitles[0],      // Kitchen Cleaning
-    addonServices: selectedTitles.slice(1), // Washroom etc
-    serviceCategory: "Home",
-  });
-};
-
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -67,36 +44,26 @@ const HomeSub: React.FC = () => {
         <View style={styles.content}>
           <View style={styles.titleRow}>
              <Text style={styles.sectionTitle}>Select Services</Text>
-             {selectedTitles.length > 0 && (
-                 <Text style={styles.selectedCount}>{selectedTitles.length} Selected</Text>
-             )}
           </View>
 
           <View style={styles.gridContainer}>
             {subServices.map((service, index) => {
-              const isSelected = selectedTitles.includes(service.title);
               return (
                 <TouchableOpacity 
                   key={index} 
-                  style={[styles.gridItem, isSelected && styles.gridItemActive]}
-                  onPress={() => toggleService(service.title)}
-                  activeOpacity={0.8}
+                  style={styles.gridItem}
+                  onPress={() => navigation.navigate("CleaningDetailScreen", { title: service.title })} // <--- Changed
                 >
                   <ImageBackground
                     source={service.image}
                     style={styles.cardImage}
                     imageStyle={styles.cardImageStyle}
                   >
-                    <View style={[styles.gradient, isSelected && styles.gradientActive]}>
-                        {isSelected && (
-                            <View style={styles.checkBadge}>
-                                <MaterialIcons name="check" size={16} color="#fff" />
-                            </View>
-                        )}
+                    <View style={styles.gradient}>
                     </View>
                   </ImageBackground>
                   <View style={styles.cardTextContainer}>
-                    <Text style={[styles.cardTitle, isSelected && {color: colors.primary}]}>
+                    <Text style={styles.cardTitle}>
                         {service.title}
                     </Text>
                     <Text style={styles.cardDescription}>{service.description}</Text>
@@ -108,15 +75,6 @@ const HomeSub: React.FC = () => {
         </View>
       </ScrollView>
 
-      {/* 3. Proceed Button at Bottom Nav Area */}
-      {selectedTitles.length > 0 && (
-        <SafeAreaView edges={['bottom']} style={styles.bottomBar}>
-          <TouchableOpacity style={styles.proceedBtn} onPress={handleProceed}>
-            <Text style={styles.proceedBtnText}>Proceed to Booking</Text>
-            <MaterialIcons name="arrow-forward" size={20} color="#fff" />
-          </TouchableOpacity>
-        </SafeAreaView>
-      )}
     </SafeAreaView>
   );
 };

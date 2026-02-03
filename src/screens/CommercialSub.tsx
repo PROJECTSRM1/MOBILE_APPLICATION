@@ -33,12 +33,15 @@ const CommercialPropertyScreen = () => {
   const [selectedProperty, setSelectedProperty] = useState<PropertyType>('medium');
 
 const handleContinue = () => {
+  // 1. Find the object for the selected ID (small, medium, etc.)
   const selectedData = properties.find(p => p.id === selectedProperty);
 
-  (navigation as any).navigate("BookCleaning", { 
-    selectedService: selectedData ? `${selectedData.title} Cleaning` : "Small Office Cleaning",
-    serviceCategory: "Commercial",   // ✅ THIS LINE ADDED
-  });
+  if (selectedData) {
+    // 2. Navigate to the Detail screen using the Title as the key
+    navigation.navigate("CleaningDetailScreen", { 
+      title: selectedData.title // e.g., "Small Office"
+    });
+  }
 };
 
 
@@ -171,7 +174,7 @@ const handleContinue = () => {
             activeOpacity={0.9}
           >
             <Text style={styles.continueButtonText}>
-              Continue to Schedule
+              View Packages for {properties.find(p => p.id === selectedProperty)?.title}
             </Text>
           </TouchableOpacity>
         </View>
