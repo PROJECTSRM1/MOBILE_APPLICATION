@@ -31,7 +31,7 @@ const InstitutionStudents = () => {
   const { colors, lightMode } = useTheme();
   const styles = getStyles(colors);
 
-  // 🟢 Branch ID from previous screen (or default 1)
+  //  Branch ID from previous screen (or default 1)
  const branchId = route?.params?.branchId;
  console.log("📌 Received branchId:", branchId);
 
