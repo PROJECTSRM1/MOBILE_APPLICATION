@@ -9,14 +9,18 @@ import {
   SafeAreaView,
   StatusBar,
   Dimensions,
-  Platform,
   Modal,
   FlatList,
+  ActivityIndicator,
+  Alert,
+  Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
 const { width, height } = Dimensions.get('window');
+
+const API_BASE_URL = 'https://swachify-india-be-1-mcrb.onrender.com';
 
 const monthNames = [
   "January", "February", "March", "April", "May", "June",
@@ -26,12 +30,15 @@ const monthNames = [
 const AppointmentBookingScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  
+
   const doctor = (route.params as any)?.doctor || {
     name: 'Dr. Sarah Jenkins',
     specialty: 'Cardiologist',
     rating: 4.9,
     image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBBROnWXidRzaw7EPTx5VFvmmDYHcpOKYDyII0kwHPPBPQ1ZkobWhUS_lH2OOi18HIk1npptJgLhqai1mOQv7F4ZFuLgzHRuOEd484WIE5UtUsMmhuy9w4-Md8V9mM8-ZH0ANyqqLpxh00MyYlNx8C_5UllV40E2TMuiAEqtk-8MgC7LGxWCYGCEzeIhfBRuNDosbjt0m2kKZRgzOsZRs_j1BTdy4XgVcXsAs8qatCjbHY7g9dPQ77AlmzwtAhn6VNnfp42SmFvZA2K',
+    doctor_id: 0,
+    specialization_id: 0,
+    price: 50,
   };
 
   const [selectedDateId, setSelectedDateId] = useState<number>(0);
@@ -39,7 +46,9 @@ const AppointmentBookingScreen = () => {
   const [dynamicDates, setDynamicDates] = useState<any[]>([]);
   const [selectedMonthIndex, setSelectedMonthIndex] = useState(new Date().getMonth());
   const [isMonthModalVisible, setIsMonthModalVisible] = useState(false);
-  const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
+
+  // API loading flag — drives the spinner + disabled state on the button
+  const [isBookingLoading, setIsBookingLoading] = useState(false);
 
   const timeSlots = {
     Morning: ['08:00 AM', '09:30 AM', '10:00 AM', '11:30 AM'],
@@ -49,16 +58,17 @@ const AppointmentBookingScreen = () => {
 
   const disabledSlots = ['11:30 AM'];
 
-  // Logic to check if a time slot has already passed for Today
+  // ---------------------------------------------------------------
+  // greyed-out past slots — only applies when the user is looking
+  // at today's date
+  // ---------------------------------------------------------------
   const isTimeInPast = (timeStr: string) => {
     const today = new Date();
     const isSelectedMonthCurrent = selectedMonthIndex === today.getMonth();
     const isSelectedDayToday = dynamicDates[selectedDateId]?.dateNumber === today.getDate();
 
-    // If it's not today, all slots are available (unless manually disabled)
     if (!isSelectedMonthCurrent || !isSelectedDayToday) return false;
 
-    // Parse "09:30 AM"
     const [time, modifier] = timeStr.split(' ');
     let [hours, minutes] = time.split(':').map(Number);
 
@@ -74,19 +84,27 @@ const AppointmentBookingScreen = () => {
     return false;
   };
 
+  // ---------------------------------------------------------------
+  // effects
+  // ---------------------------------------------------------------
   useEffect(() => {
     generateDatesForMonth(selectedMonthIndex);
   }, [selectedMonthIndex]);
 
-  // When date changes, find the first available time slot
+  // auto-pick the first available slot whenever the chosen date changes
   useEffect(() => {
     const allSlots = [...timeSlots.Morning, ...timeSlots.Afternoon, ...timeSlots.Evening];
-    const firstAvailable = allSlots.find(slot => !isTimeInPast(slot) && !disabledSlots.includes(slot));
+    const firstAvailable = allSlots.find(
+      (slot) => !isTimeInPast(slot) && !disabledSlots.includes(slot)
+    );
     setSelectedTime(firstAvailable || '');
   }, [selectedDateId, dynamicDates]);
 
+  // ---------------------------------------------------------------
+  // date list builder
+  // ---------------------------------------------------------------
   const generateDatesForMonth = (monthIdx: number) => {
-    const days = [];
+    const days: any[] = [];
     const today = new Date();
     const currentYear = today.getFullYear();
     let startDate = new Date(currentYear, monthIdx, 1);
@@ -100,13 +118,109 @@ const AppointmentBookingScreen = () => {
         dayName: tempDate.toLocaleDateString('en-US', { weekday: 'short' }),
         dateNumber: tempDate.getDate(),
         id: i,
-        fullDate: `${tempDate.getDate()} ${monthNames[tempDate.getMonth()]} ${tempDate.getFullYear()}`
+        fullDate: `${tempDate.getDate()} ${monthNames[tempDate.getMonth()]} ${tempDate.getFullYear()}`,
+        rawDate: new Date(tempDate),
       });
     }
     setDynamicDates(days);
     setSelectedDateId(0);
   };
 
+  // ---------------------------------------------------------------
+  // helpers: "08:00 AM" → 24-h object  |  date + slot → ISO string
+  // ---------------------------------------------------------------
+  const parseTimeSlot = (timeStr: string): { hours: number; minutes: number } => {
+    const [time, modifier] = timeStr.split(' ');
+    let [hours, minutes] = time.split(':').map(Number);
+    if (modifier === 'PM' && hours < 12) hours += 12;
+    if (modifier === 'AM' && hours === 12) hours = 0;
+    return { hours, minutes };
+  };
+
+  const buildAppointmentISO = (): string => {
+    const selectedDateObj: Date = dynamicDates[selectedDateId]?.rawDate ?? new Date();
+    const { hours, minutes } = parseTimeSlot(selectedTime);
+    const dt = new Date(selectedDateObj);
+    dt.setHours(hours, minutes, 0, 0);
+    return dt.toISOString();
+  };
+
+  // ---------------------------------------------------------------
+  // POST /healthcare/appointments
+  //   called directly by the "Confirm Appointment" button
+  //   ✅ success  →  navigate('HealthcarePayment', { … })
+  //   ❌ failure  →  Alert with the server message
+  // ---------------------------------------------------------------
+  const createAppointment = async () => {
+    if (!selectedTime) return;
+
+    setIsBookingLoading(true);
+
+    try {
+      const appointmentTime = buildAppointmentISO();
+
+      // only the fields relevant to an online doctor booking are sent;
+      // ambulance / assistant / lab / pharmacy keys are intentionally omitted
+      const payload: Record<string, any> = {
+        user_id: 1,                                                // swap with real authenticated user id
+        consultation_type_id: 1,                                   // 1 = Online
+        appointment_time: new Date(appointmentTime)
+    .toISOString()
+    .slice(0, 19),
+        doctor_id: doctor.doctor_id ?? Number(doctor.id) ?? null,
+        doctor_specialization_id: doctor.specialization_id ?? null,
+        description: "General consultation",
+        days_of_suffering: 0,
+
+        health_insurance: false,
+
+        required_ambulance: false,
+        ambulance_id: null,
+        pickup_time: null,
+
+        required_assistant: false,
+        assistant_id: null,
+
+        labs_id: null,
+        pharmacies_id: null
+      };
+
+      const response = await fetch(`${API_BASE_URL}/healthcare/appointments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(errorBody || `Server error (${response.status})`);
+      }
+
+      // ✅ appointment created — move to payment
+      (navigation as any).navigate('HealthcarePayment', {
+        doctor: doctor,
+        date: dynamicDates[selectedDateId]?.fullDate,
+        time: selectedTime,
+        amount: doctor.price ?? 50,
+        homeServiceId: '26',
+      });
+    } catch (error: any) {
+      console.error('Appointment creation failed:', error);
+      Alert.alert(
+        'Booking Failed',
+        error?.message || 'Something went wrong. Please try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsBookingLoading(false);
+    }
+  };
+
+  // ---------------------------------------------------------------
+  // sub-components
+  // ---------------------------------------------------------------
   const TimeSlot = ({ time }: { time: string }) => {
     const isSelected = selectedTime === time;
     const isPast = isTimeInPast(time);
@@ -118,26 +232,47 @@ const AppointmentBookingScreen = () => {
         disabled={isDisabled}
         onPress={() => setSelectedTime(time)}
         style={[
-          styles.timeSlot, 
-          isSelected && styles.timeSlotSelected, 
-          isDisabled && styles.timeSlotDisabled
+          styles.timeSlot,
+          isSelected && styles.timeSlotSelected,
+          isDisabled && styles.timeSlotDisabled,
         ]}
       >
-        <Text style={[
-          styles.timeSlotText, 
-          isSelected && styles.timeSlotTextSelected, 
-          isDisabled && styles.timeSlotTextDisabled
-        ]}>
+        <Text
+          style={[
+            styles.timeSlotText,
+            isSelected && styles.timeSlotTextSelected,
+            isDisabled && styles.timeSlotTextDisabled,
+          ]}
+        >
           {time}
         </Text>
       </TouchableOpacity>
     );
   };
 
+  const TabItem = ({
+    icon,
+    label,
+    active,
+  }: {
+    icon: string;
+    label: string;
+    active?: boolean;
+  }) => (
+    <TouchableOpacity style={styles.tabItem}>
+      <Icon name={icon as any} size={22} color={active ? '#136dec' : '#9ca3af'} />
+      <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>{label}</Text>
+    </TouchableOpacity>
+  );
+
+  // ---------------------------------------------------------------
+  // render
+  // ---------------------------------------------------------------
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#f6f7f8" />
-      
+
+      {/* ── header ── */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Icon name="arrow-back-ios" size={18} color="#000" />
@@ -146,8 +281,12 @@ const AppointmentBookingScreen = () => {
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContainer}>
-        {/* Profile */}
+      {/* ── scrollable body ── */}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContainer}
+      >
+        {/* doctor card */}
         <View style={styles.profileCard}>
           <Image source={{ uri: doctor.image }} style={styles.profileImage} />
           <View style={styles.profileInfo}>
@@ -155,22 +294,25 @@ const AppointmentBookingScreen = () => {
             <Text style={styles.specialtyText}>Specialist {doctor.specialty}</Text>
             <View style={styles.ratingRow}>
               <Icon name="star" size={14} color="#fbbf24" />
-              <Text style={styles.ratingText}>{doctor.rating} <Text style={styles.reviewText}>(120 reviews)</Text></Text>
+              <Text style={styles.ratingText}>
+                {doctor.rating}{' '}
+                <Text style={styles.reviewText}>(120 reviews)</Text>
+              </Text>
             </View>
           </View>
         </View>
 
-        {/* Date Section */}
+        {/* date row + month selector */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Select Date</Text>
           <TouchableOpacity onPress={() => setIsMonthModalVisible(true)}>
-            <View style={{flexDirection: 'row', alignItems: 'center'}}>
-               <Text style={styles.monthText}>{monthNames[selectedMonthIndex]}</Text>
-               <Icon name="expand-more" size={16} color="#136dec" style={{marginLeft: 2}} />
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.monthText}>{monthNames[selectedMonthIndex]}</Text>
+              <Icon name="expand-more" size={16} color="#136dec" style={{ marginLeft: 2 }} />
             </View>
           </TouchableOpacity>
         </View>
-        
+
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.dateList}>
           {dynamicDates.map((item) => (
             <TouchableOpacity
@@ -178,81 +320,57 @@ const AppointmentBookingScreen = () => {
               onPress={() => setSelectedDateId(item.id)}
               style={[styles.dateChip, selectedDateId === item.id && styles.dateChipSelected]}
             >
-              <Text style={[styles.dayText, selectedDateId === item.id && styles.textWhite]}>{item.dayName}</Text>
-              <Text style={[styles.dateNumber, selectedDateId === item.id && styles.textWhite]}>{item.dateNumber}</Text>
+              <Text style={[styles.dayText, selectedDateId === item.id && styles.textWhite]}>
+                {item.dayName}
+              </Text>
+              <Text style={[styles.dateNumber, selectedDateId === item.id && styles.textWhite]}>
+                {item.dateNumber}
+              </Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
 
-        {/* Slots */}
+        {/* Morning slots */}
         <View style={styles.slotHeader}>
           <Icon name="light-mode" size={18} color="#fb923c" />
           <Text style={styles.slotTitle}>Morning</Text>
         </View>
-        <View style={styles.grid}>{timeSlots.Morning.map((time) => <TimeSlot key={time} time={time} />)}</View>
+        <View style={styles.grid}>
+          {timeSlots.Morning.map((time) => (
+            <TimeSlot key={time} time={time} />
+          ))}
+        </View>
 
+        {/* Afternoon slots */}
         <View style={styles.slotHeader}>
           <Icon name="wb-sunny" size={18} color="#eab308" />
           <Text style={styles.slotTitle}>Afternoon</Text>
         </View>
-        <View style={styles.grid}>{timeSlots.Afternoon.map((time) => <TimeSlot key={time} time={time} />)}</View>
+        <View style={styles.grid}>
+          {timeSlots.Afternoon.map((time) => (
+            <TimeSlot key={time} time={time} />
+          ))}
+        </View>
 
+        {/* Evening slots */}
         <View style={styles.slotHeader}>
           <Icon name="dark-mode" size={18} color="#818cf8" />
           <Text style={styles.slotTitle}>Evening</Text>
         </View>
-        <View style={styles.grid}>{timeSlots.Evening.map((time) => <TimeSlot key={time} time={time} />)}</View>
+        <View style={styles.grid}>
+          {timeSlots.Evening.map((time) => (
+            <TimeSlot key={time} time={time} />
+          ))}
+        </View>
       </ScrollView>
 
-      {/* Confirmation Modal */}
-      <Modal visible={isConfirmModalVisible} transparent animationType="slide">
-        <View style={styles.confirmOverlay}>
-          <SafeAreaView style={styles.confirmModalContent}>
-            <View style={styles.bottomSheetHandle} />
-            <ScrollView contentContainerStyle={{paddingBottom: 40}}>
-                <Text style={styles.confirmHeadline}>Appointment Confirmed! 🎉</Text>
-                <Text style={styles.confirmSubheadline}>Your slot is reserved. Please complete payment to confirm.</Text>
-                <View style={styles.summaryCard}>
-                    <Image source={{ uri: doctor.image }} style={styles.summaryImage} />
-                    <View>
-                        <Text style={styles.specialtyTag}>{doctor.specialty.toUpperCase()}</Text>
-                        <Text style={styles.summaryName}>{doctor.name}</Text>
-                        <Text style={styles.summaryHospital}>St. Mary's Hospital, NY</Text>
-                    </View>
-                </View>
-                <View style={styles.detailList}>
-                    <DetailItem icon="calendar-today" label="Date" value={dynamicDates[selectedDateId]?.fullDate || ""} />
-                    <DetailItem icon="schedule" label="Time (IST)" value={selectedTime} />
-                    <DetailItem icon="videocam" label="Meeting Mode" value="Online Video Consultation" />
-                </View>
-                <View style={styles.confirmActionContainer}>
-                    <TouchableOpacity 
-                        style={styles.payNowBtn}
-                        onPress={() => {
-                            setIsConfirmModalVisible(false);
-                            (navigation as any).navigate('HealthcarePayment', {
-                                doctor: doctor,
-                                date: dynamicDates[selectedDateId]?.fullDate,
-                                time: selectedTime,
-                                amount: 50,
-                                homeServiceId: "26"
-                            });
-                        }}
-                    >
-                        <Text style={styles.payNowBtnText}>Pay Now ($50.00)</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.cancelBookingBtn} onPress={() => setIsConfirmModalVisible(false)}>
-                        <Text style={styles.cancelBookingBtnText}>Cancel Appointment</Text>
-                    </TouchableOpacity>
-                </View>
-            </ScrollView>
-          </SafeAreaView>
-        </View>
-      </Modal>
-
-      {/* Month Selection Modal */}
+      {/* ── month picker modal ── */}
       <Modal visible={isMonthModalVisible} transparent animationType="fade">
-        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setIsMonthModalVisible(false)}>
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setIsMonthModalVisible(false)}
+        >
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Select Month</Text>
             <FlatList
@@ -261,10 +379,24 @@ const AppointmentBookingScreen = () => {
               renderItem={({ item, index }) => (
                 <TouchableOpacity
                   disabled={index < new Date().getMonth()}
-                  style={[styles.monthOption, selectedMonthIndex === index && styles.monthOptionActive]}
-                  onPress={() => { setSelectedMonthIndex(index); setIsMonthModalVisible(false); }}
+                  style={[
+                    styles.monthOption,
+                    selectedMonthIndex === index && styles.monthOptionActive,
+                  ]}
+                  onPress={() => {
+                    setSelectedMonthIndex(index);
+                    setIsMonthModalVisible(false);
+                  }}
                 >
-                  <Text style={[styles.monthOptionText, selectedMonthIndex === index && styles.monthOptionTextActive, index < new Date().getMonth() && {color: '#cbd5e1'}]}>{item}</Text>
+                  <Text
+                    style={[
+                      styles.monthOptionText,
+                      selectedMonthIndex === index && styles.monthOptionTextActive,
+                      index < new Date().getMonth() && { color: '#cbd5e1' },
+                    ]}
+                  >
+                    {item}
+                  </Text>
                 </TouchableOpacity>
               )}
             />
@@ -272,17 +404,25 @@ const AppointmentBookingScreen = () => {
         </TouchableOpacity>
       </Modal>
 
-      {/* Footer */}
+      {/* ── fixed footer ── */}
       <View style={styles.bottomFixedContainer}>
         <View style={styles.buttonWrapper}>
-          <TouchableOpacity 
-            style={[styles.confirmButton, !selectedTime && {backgroundColor: '#cbd5e1'}]} 
-            disabled={!selectedTime}
-            onPress={() => setIsConfirmModalVisible(true)}
+          <TouchableOpacity
+            style={[
+              styles.confirmButton,
+              (!selectedTime || isBookingLoading) && { backgroundColor: '#cbd5e1' },
+            ]}
+            disabled={!selectedTime || isBookingLoading}
+            onPress={createAppointment}
           >
-            <Text style={styles.confirmButtonText}>Confirm Appointment</Text>
+            {isBookingLoading ? (
+              <ActivityIndicator size="small" color="#ffffff" />
+            ) : (
+              <Text style={styles.confirmButtonText}>Confirm Appointment</Text>
+            )}
           </TouchableOpacity>
         </View>
+
         <View style={styles.tabBar}>
           <TabItem icon="home" label="Home" />
           <TabItem icon="calendar-month" label="Booking" active />
@@ -362,12 +502,15 @@ const styles = StyleSheet.create({
   summaryName: { fontSize: 18, fontWeight: '800', color: '#0d131b', marginTop: 2 },
   summaryHospital: { fontSize: 12, color: '#4c6c9a', marginTop: 1 },
   detailList: { marginTop: 10 },
+  detailRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 10, paddingHorizontal: 4 },
+  detailIconWrap: { width: 48, height: 48, backgroundColor: 'rgba(19, 109, 236, 0.1)', borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginRight: 16 },
   detailItemRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 10, paddingHorizontal: 4 },
   detailIconBg: { width: 48, height: 48, backgroundColor: 'rgba(19, 109, 236, 0.1)', borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginRight: 16 },
   detailValue: { fontSize: 16, fontWeight: '700', color: '#0d131b' },
   detailLabel: { fontSize: 12, color: '#4c6c9a', marginTop: 1 },
   confirmActionContainer: { marginTop: 20 },
   payNowBtn: { backgroundColor: '#136dec', paddingVertical: 18, borderRadius: 16, alignItems: 'center', elevation: 4 },
+  payNowBtnDisabled: { backgroundColor: '#cbd5e1' },
   payNowBtnText: { color: '#fff', fontSize: 17, fontWeight: '800' },
   cancelBookingBtn: { paddingVertical: 16, alignItems: 'center', marginTop: 4 },
   cancelBookingBtnText: { color: '#4c6c9a', fontSize: 15, fontWeight: '700' },
@@ -378,6 +521,8 @@ const styles = StyleSheet.create({
   monthOptionActive: { backgroundColor: '#eff6ff' },
   monthOptionText: { fontSize: 15, fontWeight: '600' },
   monthOptionTextActive: { color: '#136dec' },
+  errorBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fee2e2', borderRadius: 12, padding: 12, marginVertical: 12 },
+  errorBannerText: { fontSize: 14, color: '#ef4444', fontWeight: '600', marginLeft: 8 },
 });
 
 export default AppointmentBookingScreen;

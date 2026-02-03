@@ -12,14 +12,87 @@ import {
   Dimensions,
   Alert,
   Animated,
-  FlatList,
+  ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { launchCamera, launchImageLibrary, ImagePickerResponse } from 'react-native-image-picker';
+
 const { width } = Dimensions.get('window');
+
+// API Base URL - Update this with your actual base URL
+const API_BASE_URL = 'https://swachify-india-be-1-mcrb.onrender.com';
+
+interface Doctor {
+  id: string;
+  name: string;
+  specialty: string;
+  rating: number;
+  nextAvailable: string;
+  price: number;
+  type: 'doctor';
+  image: string;
+  experience?: number;
+  availableFrom?: string;
+  availableTo?: string;
+}
+
+interface Hospital {
+  id: string;
+  name: string;
+  specialty: string;
+  rating: number;
+  nextAvailable: string;
+  price: number;
+  type: 'hospital' | 'clinic' | 'specialist center';
+  image: string;
+  location?: string;
+  contactNumber?: string;
+  status?: string;
+  doctors?: Array<{
+    id: string;
+    name: string;
+    specialty: string;
+    rating: number;
+    image: string;
+  }>;
+}
+
+interface Lab {
+  id: string;
+  name: string;
+  specialty: string;
+  rating: number;
+  nextAvailable: string;
+  price: number;
+  type: 'lab';
+  image: string;
+  homeCollection?: boolean;
+  distance?: number;
+  status?: string;
+  estimatedDelivery?: string;
+}
+
+interface Pharmacy {
+  id: string;
+  name: string;
+  specialty: string;
+  rating: number;
+  nextAvailable: string;
+  price: number;
+  type: 'store';
+  image: string;
+  pharmacyType?: string;
+  services?: string;
+  deliveryTime?: string;
+  homeDelivery?: boolean;
+  distance?: number;
+  status?: string;
+}
+
+type ServiceItem = Doctor | Hospital | Lab | Pharmacy;
 
 const DoctorListScreen = () => {
   const navigation = useNavigation<any>();
@@ -29,6 +102,16 @@ const DoctorListScreen = () => {
   const [showConsultationDropdown, setShowConsultationDropdown] = useState(false);
   const [serviceType, setServiceType] = useState('Doctor');
   const [showServiceDropdown, setShowServiceDropdown] = useState(false);
+
+  // --- API Data States ---
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [hospitals, setHospitals] = useState<Hospital[]>([]);
+  const [labs, setLabs] = useState<Lab[]>([]);
+  const [pharmacies, setPharmacies] = useState<Pharmacy[]>([]);
+  
+  // --- Loading States ---
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   // --- New States for functionality ---
   const [searchQuery, setSearchQuery] = useState('');
@@ -61,18 +144,15 @@ const DoctorListScreen = () => {
   const [showPickupTimePicker, setShowPickupTimePicker] = useState(false);
   const [selectedPickupTime, setSelectedPickupTime] = useState(new Date());
   const [showLabStoreModal, setShowLabStoreModal] = useState(false);
-const [isDelivery, setIsDelivery] = useState<boolean | null>(null);
-const [address, setAddress] = useState('');
-const [instructions, setInstructions] = useState('');
-const [prescription, setPrescription] = useState<string | null>(null);
-const [customTimeModal, setCustomTimeModal] = useState(false);
-const [hour, setHour] = useState('9');
-const [minute, setMinute] = useState('00');
-const [ampm, setAmPm] = useState<'AM' | 'PM'>('AM');
-const [showDatePicker, setShowDatePicker] = useState(false);
-
-
-
+  const [isDelivery, setIsDelivery] = useState<boolean | null>(null);
+  const [address, setAddress] = useState('');
+  const [instructions, setInstructions] = useState('');
+  const [prescription, setPrescription] = useState<string | null>(null);
+  const [customTimeModal, setCustomTimeModal] = useState(false);
+  const [hour, setHour] = useState('9');
+  const [minute, setMinute] = useState('00');
+  const [ampm, setAmPm] = useState<'AM' | 'PM'>('AM');
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Auto-scroll state
   const scrollViewRef = useRef<ScrollView>(null);
@@ -84,6 +164,235 @@ const [showDatePicker, setShowDatePicker] = useState(false);
   const [currentPlaceholderIndex, setCurrentPlaceholderIndex] = useState(0);
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const slideAnim = useRef(new Animated.Value(0)).current;
+
+  // ==================== API FUNCTIONS ====================
+
+  // Fetch Available Doctors
+  const fetchDoctors = async () => {
+    setIsLoading(true);
+    setApiError(null);
+    try {
+      const response = await fetch(`${API_BASE_URL}/healthcare/available-doctors`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Transform API response to match our interface
+      const transformedDoctors: Doctor[] = data.map((doctor: any) => ({
+        id: String(doctor.doctor_id),
+        name: doctor.doctor_name,
+        specialty: doctor.specialization_name,
+        rating: doctor.rating || 0,
+        nextAvailable: doctor.available_from && doctor.available_to 
+          ? `${formatTimeFromAPI(doctor.available_from)} - ${formatTimeFromAPI(doctor.available_to)}`
+          : 'Not Available',
+        price: doctor.fees_per_hour || 0,
+        type: 'doctor' as const,
+        image: 'https://i.pravatar.cc/150?img=' + (doctor.doctor_id % 70),
+        experience: doctor.experience_years,
+        availableFrom: doctor.available_from,
+        availableTo: doctor.available_to,
+      }));
+
+      setDoctors(transformedDoctors);
+    } catch (error) {
+      console.error('Error fetching doctors:', error);
+      setApiError('Failed to load doctors. Please try again.');
+      setDoctors([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch Available Hospitals
+  const fetchHospitals = async () => {
+    setIsLoading(true);
+    setApiError(null);
+    try {
+      const response = await fetch(`${API_BASE_URL}/healthcare/available-hospitals`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      const transformedHospitals: Hospital[] = data.map((hospital: any) => ({
+        id: String(hospital.hospital_id),
+        name: hospital.hospital_name,
+        specialty: hospital.specialty_type,
+        rating: hospital.rating || 0,
+        nextAvailable: hospital.hospital_status === 'OPEN' ? 'Open Now' : 'Open 24/7',
+        price: hospital.fees_per_hour || 0,
+        type: 'hospital' as const,
+        image: require('../../assets/hospital1.jpg'),
+        location: hospital.location,
+        contactNumber: hospital.contact_number,
+        status: hospital.hospital_status,
+        doctors: [],
+      }));
+
+      setHospitals(transformedHospitals);
+    } catch (error) {
+      console.error('Error fetching hospitals:', error);
+      setApiError('Failed to load hospitals. Please try again.');
+      setHospitals([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch Available Labs
+  const fetchLabs = async () => {
+    setIsLoading(true);
+    setApiError(null);
+    try {
+      const response = await fetch(`${API_BASE_URL}/healthcare/available-labs`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      const transformedLabs: Lab[] = data.map((lab: any) => ({
+        id: String(lab.lab_id),
+        name: lab.lab_name,
+        specialty: lab.specialization_name || 'All Lab Tests',
+        rating: lab.rating || 0,
+        nextAvailable: lab.status === 'OPEN' 
+          ? (lab.next_available || 'Available Now')
+          : (lab.next_available || 'Currently Closed'),
+        price: lab.fees_per_test || 0,
+        type: 'lab' as const,
+        image: require('../../assets/lab1.jpg'),
+        homeCollection: lab.home_collection || false,
+        distance: lab.distance_km,
+        status: lab.status,
+        estimatedDelivery: lab.estimated_delivery,
+      }));
+
+      setLabs(transformedLabs);
+    } catch (error) {
+      console.error('Error fetching labs:', error);
+      setApiError('Failed to load labs. Please try again.');
+      setLabs([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch Available Pharmacies
+  const fetchPharmacies = async () => {
+    setIsLoading(true);
+    setApiError(null);
+    try {
+      const response = await fetch(`${API_BASE_URL}/healthcare/available-pharmacies`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      const transformedPharmacies: Pharmacy[] = data.map((pharmacy: any) => ({
+        id: String(pharmacy.pharmacy_id),
+        name: pharmacy.pharmacy_name,
+        specialty: pharmacy.services || 'Medicines & Healthcare',
+        rating: pharmacy.rating || 0,
+        nextAvailable: pharmacy.status === 'OPEN' 
+          ? (pharmacy.next_available || 'Open Now')
+          : (pharmacy.next_available || 'Currently Closed'),
+        price: 0,
+        type: 'store' as const,
+        image: require('../../assets/med1.jpg'),
+        pharmacyType: pharmacy.pharmacy_type,
+        services: pharmacy.services,
+        deliveryTime: pharmacy.delivery_time,
+        homeDelivery: pharmacy.home_delivery || false,
+        distance: pharmacy.distance_km,
+        status: pharmacy.status,
+      }));
+
+      setPharmacies(transformedPharmacies);
+    } catch (error) {
+      console.error('Error fetching pharmacies:', error);
+      setApiError('Failed to load pharmacies. Please try again.');
+      setPharmacies([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Helper function to format time from API
+  const formatTimeFromAPI = (timeString: string) => {
+    if (!timeString) return '';
+    
+    // Handle HH:MM:SS format
+    const parts = timeString.split(':');
+    if (parts.length >= 2) {
+      let hours = parseInt(parts[0]);
+      const minutes = parts[1];
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12 || 12;
+      return `${hours}:${minutes} ${ampm}`;
+    }
+    
+    return timeString;
+  };
+
+  // ==================== EFFECTS ====================
+
+  // Initial load - fetch doctors by default
+  useEffect(() => {
+    fetchDoctors();
+  }, []);
+
+  // Fetch data when service type changes
+  useEffect(() => {
+    if (consultationType === 'Online') {
+      if (serviceType === 'Doctor') {
+        fetchDoctors();
+      } else if (serviceType === 'Labs') {
+        fetchLabs();
+      } else if (serviceType === 'Medical Store') {
+        fetchPharmacies();
+      } else if (serviceType === 'Complete Treatment') {
+        fetchHospitals();
+      }
+    } else if (consultationType === 'Offline') {
+      if (serviceType === 'Doctor' || serviceType === 'Complete Treatment') {
+        fetchHospitals();
+      } else if (serviceType === 'Labs') {
+        fetchLabs();
+      } else if (serviceType === 'Medical Store') {
+        fetchPharmacies();
+      }
+    }
+  }, [serviceType, consultationType]);
 
   useEffect(() => {
     if (!isSearchFocused && searchQuery === '') {
@@ -139,229 +448,14 @@ const [showDatePicker, setShowDatePicker] = useState(false);
     { id: 5, name: 'Diet', icon: 'restaurant', color: '#16a34a', bgColor: '#dcfce7', specialty: 'Nutritionist' },
   ];
 
-  const doctors = [
-    {
-      id: 1,
-      name: 'Dr. Sarah Jenkins',
-      specialty: 'Cardiologist',
-      rating: 4.9,
-      nextAvailable: '2:00 PM',
-      price: 120,
-      type: 'doctor',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDefhoSvqKkMBWYVqZmO31qWWnyETobXPIsvpgbpzACIuHiMFEibbVFxBem0oGX3QoB0fhv_F1vxstFtpZ9MZtJrSR0w6C0hWrFdCCM4W9SvwqLpolKvEc-_XcCTQTkxb3ssl0Y2_54wJJhFeAav5jIY1u67UzbCzmwt9ZDmKzDS1B1a0oNg8Bk0UYaIHl3t-4pmKj1J0rBtiCQ166vq6P6-J-EY8t-SLAd_04RsNPEY5nG6FNOxfdVdqN-6THzt-DkVYTRVoyf43-p',
-    },
-    {
-      id: 2,
-      name: 'Dr. Marcus Chen',
-      specialty: 'Dermatologist',
-      rating: 4.8,
-      nextAvailable: '4:30 PM',
-      price: 95,
-      type: 'doctor',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDZxglrHKMq2uMTcYd1cm6mtfzxS1mY1mpgodoSsZvgEo3YKjv3ywe7slrcDWxhv_7JZYJujIKEXQ9Wk0k3C0kTB-7uKOxGgxJO32Vtygny2g4Mq-OHjSYSclsDnK7DQae1TVtgVgG50NmWJnHhsJC35bRYTkdmjUlo3TqLSJ_YA8tcuZJykmHycmTwRlimQA1t2X778p2trNfkwF66UJkETjd4JWPTCnP9d3PK7LiZ-ZTg6ImvDnQS4p_lhGV49CcvLmQo9GrIDHT8',
-    },
-    {
-      id: 3,
-      name: 'Dr. Elena Rodriguez',
-      specialty: 'General Practitioner',
-      rating: 5.0,
-      nextAvailable: 'Available Now',
-      price: 110,
-      type: 'doctor',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD07PPrdJIIL_BVVG0Ju36so7KdlOsmi-K67ouC847RMwRD1yYS-tHGoR3TP7kMVZ7ceepz5vEbGi9hQgCAzaTc8iShTgdIxbChTvIfnUFqQiXjtHLncBOfPynmXFABLYshcwfgQDUiQUNTpW-eQ6shkBwwhzL_hSoTNpMcRdsQLwKOH8lwqvRRq19WrdfiiyFt3Xl451O1geQIf_VrJc3ZRvbcxDmYaVwpVdFj609MY_zUYwjMqB-93ZfuJ7zBGw8XOYoO3r3c1yPa',
-    },
-    {
-      id: 4,
-      name: 'Dr. James Wilson',
-      specialty: 'Psychiatrist',
-      rating: 4.7,
-      nextAvailable: '3:00 PM',
-      price: 130,
-      type: 'doctor',
-      image: 'https://i.pravatar.cc/150?img=12',
-    },
-    {
-      id: 5,
-      name: 'Dr. Emily Thompson',
-      specialty: 'Ophthalmologist',
-      rating: 4.9,
-      nextAvailable: '1:30 PM',
-      price: 105,
-      type: 'doctor',
-      image: 'https://i.pravatar.cc/150?img=47',
-    },
-    {
-      id: 6,
-      name: 'Dr. Michael Brown',
-      specialty: 'Nutritionist',
-      rating: 4.6,
-      nextAvailable: '5:00 PM',
-      price: 85,
-      type: 'doctor',
-      image: 'https://i.pravatar.cc/150?img=13',
-    },
-  ];
-
-  // Sample data for hospitals, labs, and medical stores
-const hospitals = [
-  {
-    id: 101,
-    name: 'City General Hospital',
-    specialty: 'Multi-specialty',
-    rating: 4.8,
-    nextAvailable: 'Open 24/7',
-    price: 150,
-    type: 'hospital',
-    image: require('../../assets/hospital1.jpg'),
-    doctors: [
-      { id: 1, name: 'Dr. Rahul Verma', specialty: 'Cardiologist', rating: 4.8, image: 'https://i.pravatar.cc/150?img=12' },
-      { id: 2, name: 'Dr. Anjali Mehta', specialty: 'Neurologist', rating: 4.9, image: 'https://i.pravatar.cc/150?img=26' },
-    ],
-  },
-  {
-    id: 102,
-    name: 'Apollo Medical Center',
-    specialty: 'Complete Treatment',
-    rating: 4.9,
-    nextAvailable: 'Open Now',
-    price: 200,
-    type: 'hospital',
-    image: require('../../assets/hospital2.jpg'),
-    doctors: [
-      { id: 3, name: 'Dr. Sameer Khan', specialty: 'Orthopedic', rating: 4.7, image: 'https://i.pravatar.cc/150?img=11' },
-    ],
-  },
-  {
-    id: 103,
-    name: 'Sunrise Children’s Clinic',
-    specialty: 'Pediatrics',
-    rating: 4.7,
-    nextAvailable: '9:00 AM Tomorrow',
-    price: 100,
-    type: 'clinic',
-    image: require('../../assets/hospital3.jpg'),
-    doctors: [
-      { id: 4, name: 'Dr. Priya Das', specialty: 'Pediatrician', rating: 4.9, image: 'https://i.pravatar.cc/150?img=32' },
-      { id: 5, name: 'Dr. Amit Shah', specialty: 'Child Psychologist', rating: 4.6, image: 'https://i.pravatar.cc/150?img=15' },
-    ],
-  },
-  {
-    id: 104,
-    name: 'Green Valley Eye Care',
-    specialty: 'Ophthalmology',
-    rating: 4.5,
-    nextAvailable: 'Open Now',
-    price: 120,
-    type: 'specialist center',
-    image: require('../../assets/hospital4.jpg'),
-    doctors: [
-      { id: 6, name: 'Dr. Vikram Seth', specialty: 'Eye Surgeon', rating: 4.8, image: 'https://i.pravatar.cc/150?img=53' },
-    ],
-  },
-  {
-    id: 105,
-    name: 'Metropolis Heart Institute',
-    specialty: 'Cardiology',
-    rating: 4.9,
-    nextAvailable: 'Open 24/7',
-    price: 300,
-    type: 'hospital',
-    image: require('../../assets/hospital1.jpg'),
-    doctors: [
-      { id: 7, name: 'Dr. Sarah Johnson', specialty: 'Cardiac Surgeon', rating: 5.0, image: 'https://i.pravatar.cc/150?img=45' },
-      { id: 8, name: 'Dr. Kevin Lee', specialty: 'Cardiologist', rating: 4.7, image: 'https://i.pravatar.cc/150?img=51' },
-    ],
-  },
-  {
-    id: 106,
-    name: 'Wellness Dental Hub',
-    specialty: 'Dentistry',
-    rating: 4.6,
-    nextAvailable: '2:00 PM Today',
-    price: 80,
-    type: 'clinic',
-    image: 'https://i.pravatar.cc/150?img=65',
-    doctors: [
-      { id: 9, name: 'Dr. Neha Kapoor', specialty: 'Orthodontist', rating: 4.8, image: 'https://i.pravatar.cc/150?img=49' },
-    ],
-  }
-];
-
-  const labs = [
-    {
-      id: 201,
-      name: 'PathLabs Diagnostics',
-      specialty: 'Complete Blood Count',
-      rating: 4.6,
-      nextAvailable: '9:00 AM - 8:00 PM',
-      price: 50,
-      type: 'lab',
-      image: require('../../assets/lab1.jpg'),
-    },
-    {
-      id: 202,
-      name: 'Dr. Lal PathLab',
-      specialty: 'X-Ray & Imaging',
-      rating: 4.8,
-      nextAvailable: 'Open Now',
-      price: 75,
-      type: 'lab',
-      image: require('../../assets/lab2.jpg'),
-    },
-    {
-      id: 203,
-      name: 'SRL Diagnostics',
-      specialty: 'All Lab Tests',
-      rating: 4.7,
-      nextAvailable: '8:00 AM - 9:00 PM',
-      price: 60,
-      type: 'lab',
-      image: require('../../assets/lab3.jpg'),
-    },
-  ];
-
-  const medicalStores = [
-    {
-      id: 301,
-      name: 'Apollo Pharmacy',
-      specialty: 'Medicines & Healthcare',
-      rating: 4.5,
-      nextAvailable: 'Open 24/7',
-      price: 0,
-      type: 'store',
-      image: require('../../assets/lab4.jpg'),
-    },
-    {
-      id: 302,
-      name: 'MedPlus Pharmacy',
-      specialty: 'Prescription Drugs',
-      rating: 4.6,
-      nextAvailable: 'Open Now',
-      price: 0,
-      type: 'store',
-      image: require('../../assets/med1.jpg'),
-    },
-    {
-      id: 303,
-      name: 'Guardian Pharmacy',
-      specialty: 'OTC & Medicines',
-      rating: 4.4,
-      nextAvailable: '8:00 AM - 11:00 PM',
-      price: 0,
-      type: 'store',
-      image: require('../../assets/med2.jpg'),
-    },
-  ];
-
-const searchSuggestions =
-  serviceType === 'Doctor'
-    ? ['fever', 'cold', 'cough', 'skin', 'heart']
-    : serviceType === 'Labs'
-    ? ['blood test', 'x-ray', 'cbc']
-    : serviceType === 'Medical Store'
-    ? ['apollo pharmacy', 'medplus']
-    : ['apollo', 'city hospital', 'clinic'];
-
+  const searchSuggestions =
+    serviceType === 'Doctor'
+      ? ['fever', 'cold', 'cough', 'skin', 'heart']
+      : serviceType === 'Labs'
+      ? ['blood test', 'x-ray', 'cbc']
+      : serviceType === 'Medical Store'
+      ? ['apollo pharmacy', 'medplus']
+      : ['apollo', 'city hospital', 'clinic'];
 
   // Consultation type options
   const consultationOptions = ['Online', 'Offline'];
@@ -378,139 +472,125 @@ const searchSuggestions =
   const filteredSuggestions = getFilteredSuggestions();
 
   // Get data based on consultation type and service type
-const getAvailableData = () => {
-  // If offline is selected
-  if (consultationType === 'Offline') {
-    if (serviceType === 'Doctor') {
-      return hospitals; // Show hospitals when Doctor is selected in Offline
-    } else if (serviceType === 'Complete Treatment') {
-      return hospitals;
-    } else if (serviceType === 'Labs') {
-      return labs; // ✅ Add this
-    } else if (serviceType === 'Medical Store') {
-      return medicalStores; // ✅ Add this
+  const getAvailableData = (): ServiceItem[] => {
+    if (consultationType === 'Offline') {
+      if (serviceType === 'Doctor' || serviceType === 'Complete Treatment') {
+        return hospitals;
+      } else if (serviceType === 'Labs') {
+        return labs;
+      } else if (serviceType === 'Medical Store') {
+        return pharmacies;
+      }
     }
-  }
 
-  // If online is selected
-  if (consultationType === 'Online') {
-    if (serviceType === 'Doctor') {
-      return doctors;
-    } else if (serviceType === 'Labs') {
-      return labs;
-    } else if (serviceType === 'Medical Store') {
-      return medicalStores;
-    } else if (serviceType === 'Complete Treatment') {
-      return hospitals;
+    if (consultationType === 'Online') {
+      if (serviceType === 'Doctor') {
+        return doctors;
+      } else if (serviceType === 'Labs') {
+        return labs;
+      } else if (serviceType === 'Medical Store') {
+        return pharmacies;
+      } else if (serviceType === 'Complete Treatment') {
+        return hospitals;
+      }
     }
-  }
 
-  return doctors; // Default
-};
+    return doctors;
+  };
+
   const symptomToSpecialtyMap: Record<string, string[]> = {
-  fever: ['General Practitioner'],
-  cold: ['General Practitioner'],
-  cough: ['General Practitioner'],
-  heart: ['Cardiologist'],
-  chest: ['Cardiologist'],
-  skin: ['Dermatologist'],
-  acne: ['Dermatologist'],
-  mental: ['Psychiatrist'],
-  stress: ['Psychiatrist'],
-  eye: ['Ophthalmologist'],
-  diet: ['Nutritionist'],
-  vomiting: ['General Practitioner'],
-};
+    fever: ['General Practitioner'],
+    cold: ['General Practitioner'],
+    cough: ['General Practitioner'],
+    heart: ['Cardiologist'],
+    chest: ['Cardiologist'],
+    skin: ['Dermatologist'],
+    acne: ['Dermatologist'],
+    mental: ['Psychiatrist'],
+    stress: ['Psychiatrist'],
+    eye: ['Ophthalmologist'],
+    diet: ['Nutritionist'],
+    vomiting: ['General Practitioner'],
+  };
 
   // Filter data based on selected category and filters
-const getFilteredData = () => {
-  let data = getAvailableData();
+  const getFilteredData = () => {
+    let data = getAvailableData();
 
-  const query = searchQuery.trim().toLowerCase();
+    const query = searchQuery.trim().toLowerCase();
 
-  // 🔎 SEARCH FILTER
-  // 🔎 SEARCH FILTER
-if (query.length > 0) {
-  // 1️⃣ ONLINE → DOCTORS (symptom-based + name-based)
-  if (consultationType === 'Online' && serviceType === 'Doctor') {
-    const matchedSpecialties = symptomToSpecialtyMap[query] || [];
-    data = data.filter((doc: any) =>
-      doc.name.toLowerCase().includes(query) ||
-      doc.specialty.toLowerCase().includes(query) ||
-      matchedSpecialties.includes(doc.specialty)
-    );
-  }
-  // 2️⃣ OFFLINE → HOSPITALS / CLINICS
-  else if (consultationType === 'Offline' && serviceType === 'Doctor') {
-    data = data.filter((hospital: any) =>
-      hospital.name.toLowerCase().includes(query) ||
-      hospital.specialty.toLowerCase().includes(query)
-    );
-  }
-  // 3️⃣ LABS (both Online and Offline) ✅
-  else if (serviceType === 'Labs') {
-    data = data.filter((lab: any) =>
-      lab.name.toLowerCase().includes(query) ||
-      lab.specialty.toLowerCase().includes(query)
-    );
-  }
-  // 4️⃣ MEDICAL STORES (both Online and Offline) ✅
-  else if (serviceType === 'Medical Store') {
-    data = data.filter((store: any) =>
-      store.name.toLowerCase().includes(query)
-    );
-  }
-  // 5️⃣ COMPLETE TREATMENT (both modes) ✅
-  else if (serviceType === 'Complete Treatment') {
-    data = data.filter((hospital: any) =>
-      hospital.name.toLowerCase().includes(query) ||
-      hospital.specialty.toLowerCase().includes(query)
-    );
-  }
-}
-
-  // 🎯 CATEGORY FILTER (existing)
-  if (selectedCategory) {
-    data = data.filter(item => item.specialty === selectedCategory);
-  }
-
-  // 💰 PRICE FILTER
-  if (filterPriceRange) {
-    if (filterPriceRange === 'low') {
-      data = data.filter(item => item.price < 100);
-    } else if (filterPriceRange === 'medium') {
-      data = data.filter(item => item.price >= 100 && item.price < 120);
-    } else if (filterPriceRange === 'high') {
-      data = data.filter(item => item.price >= 120);
+    // 🔎 SEARCH FILTER
+    if (query.length > 0) {
+      if (consultationType === 'Online' && serviceType === 'Doctor') {
+        const matchedSpecialties = symptomToSpecialtyMap[query] || [];
+        data = data.filter((doc: any) =>
+          doc.name.toLowerCase().includes(query) ||
+          doc.specialty.toLowerCase().includes(query) ||
+          matchedSpecialties.includes(doc.specialty)
+        );
+      } else if (consultationType === 'Offline' && serviceType === 'Doctor') {
+        data = data.filter((hospital: any) =>
+          hospital.name.toLowerCase().includes(query) ||
+          hospital.specialty.toLowerCase().includes(query)
+        );
+      } else if (serviceType === 'Labs') {
+        data = data.filter((lab: any) =>
+          lab.name.toLowerCase().includes(query) ||
+          lab.specialty.toLowerCase().includes(query)
+        );
+      } else if (serviceType === 'Medical Store') {
+        data = data.filter((store: any) =>
+          store.name.toLowerCase().includes(query)
+        );
+      } else if (serviceType === 'Complete Treatment') {
+        data = data.filter((hospital: any) =>
+          hospital.name.toLowerCase().includes(query) ||
+          hospital.specialty.toLowerCase().includes(query)
+        );
+      }
     }
-  }
 
-  // ⭐ RATING FILTER
-  if (filterRating) {
-    data = data.filter(item => item.rating >= filterRating);
-  }
+    // 🎯 CATEGORY FILTER
+    if (selectedCategory) {
+      data = data.filter(item => item.specialty === selectedCategory);
+    }
 
-  // ⏰ AVAILABILITY FILTER
-  if (filterAvailability === 'now') {
-    data = data.filter(item =>
-      item.nextAvailable === 'Available Now' ||
-      item.nextAvailable === 'Open Now' ||
-      item.nextAvailable === 'Open 24/7'
-    );
-  }
+    // 💰 PRICE FILTER
+    if (filterPriceRange) {
+      if (filterPriceRange === 'low') {
+        data = data.filter(item => item.price < 500);
+      } else if (filterPriceRange === 'medium') {
+        data = data.filter(item => item.price >= 500 && item.price < 1000);
+      } else if (filterPriceRange === 'high') {
+        data = data.filter(item => item.price >= 1000);
+      }
+    }
 
-  // 🔃 SORTING
-  if (sortBy === 'price-low') {
-    data = [...data].sort((a, b) => a.price - b.price);
-  } else if (sortBy === 'price-high') {
-    data = [...data].sort((a, b) => b.price - a.price);
-  } else if (sortBy === 'rating') {
-    data = [...data].sort((a, b) => b.rating - a.rating);
-  }
+    // ⭐ RATING FILTER
+    if (filterRating) {
+      data = data.filter(item => item.rating >= filterRating);
+    }
 
-  return data;
-};
+    // ⏰ AVAILABILITY FILTER
+    if (filterAvailability === 'now') {
+      data = data.filter(item =>
+        item.nextAvailable === 'Available Now' ||
+        item.nextAvailable === 'Open Now' ||
+        item.nextAvailable === 'Open 24/7'
+      );
+    }
 
+    // 🔃 SORTING
+    if (sortBy === 'price-low') {
+      data = [...data].sort((a, b) => a.price - b.price);
+    } else if (sortBy === 'price-high') {
+      data = [...data].sort((a, b) => b.price - a.price);
+    } else if (sortBy === 'rating') {
+      data = [...data].sort((a, b) => b.rating - a.rating);
+    }
+
+    return data;
+  };
 
   const filteredData = getFilteredData();
 
@@ -540,76 +620,73 @@ if (query.length > 0) {
     }
   };
 
-const handleBookNow = (item: any) => {
-  // 🟢 ONLINE → DOCTOR → NAVIGATE
-  if (consultationType === 'Online' && item.type === 'doctor') {
-    navigation.navigate('AppointmentBooking', {
-      doctor: item,
+  const handleBookNow = (item: any) => {
+    if (consultationType === 'Online' && item.type === 'doctor') {
+      navigation.navigate('AppointmentBooking', {
+        doctor: item,
+      });
+      return;
+    }
+
+    if (item.type === 'lab' || item.type === 'store') {
+      setSelectedDoctor(item);
+      setShowLabStoreModal(true);
+      return;
+    }
+
+    if (
+      item.type === 'hospital' ||
+      item.type === 'clinic' ||
+      item.type === 'specialist center'
+    ) {
+      setSelectedDoctor(item);
+      setShowOfflineForm(true);
+      return;
+    }
+  };
+
+  const handleLabStoreConfirm = () => {
+    if (!prescription) return Alert.alert("Required", "Please upload a prescription");
+    if (isDelivery === null) return Alert.alert("Required", "Please select delivery option");
+    if (isDelivery && !address.trim()) return Alert.alert("Required", "Please enter delivery address");
+
+    Alert.alert(
+      "Order Placed!", 
+      `Your request for ${selectedDoctor.name} has been received.\nMode: ${isDelivery ? 'Delivery' : 'Self-Visit'}`
+    );
+    closeLabStoreModal();
+  };
+
+  const closeLabStoreModal = () => {
+    setShowLabStoreModal(false);
+    setIsDelivery(null);
+    setAddress('');
+    setInstructions('');
+    setPrescription(null);
+  };
+
+  const handleCamera = async () => {
+    const result: ImagePickerResponse = await launchCamera({
+      mediaType: 'photo',
+      quality: 0.8,
+      saveToPhotos: true,
     });
-    return;
-  }
 
-  // 🟡 LAB / MEDICAL STORE (both Online & Offline)
-  if (item.type === 'lab' || item.type === 'store') {
-    setSelectedDoctor(item);
-    setShowLabStoreModal(true);
-    return;
-  }
+    if (result.assets && result.assets.length > 0) {
+      setPrescription(result.assets[0].uri || null);
+    }
+  };
 
-  // 🔵 OFFLINE → HOSPITAL / CLINIC
-  if (
-    item.type === 'hospital' ||
-    item.type === 'clinic' ||
-    item.type === 'specialist center'
-  ) {
-    setSelectedDoctor(item);
-    setShowOfflineForm(true);
-    return;
-  }
-};
+  const handleGallery = async () => {
+    const result: ImagePickerResponse = await launchImageLibrary({
+      mediaType: 'photo',
+      quality: 0.8,
+    });
 
-const handleLabStoreConfirm = () => {
-  if (!prescription) return Alert.alert("Required", "Please upload a prescription");
-  if (isDelivery === null) return Alert.alert("Required", "Please select delivery option");
-  if (isDelivery && !address.trim()) return Alert.alert("Required", "Please enter delivery address");
-
-  Alert.alert(
-    "Order Placed!", 
-    `Your request for ${selectedDoctor.name} has been received.\nMode: ${isDelivery ? 'Delivery' : 'Self-Visit'}`
-  );
-  closeLabStoreModal();
-};
-
-const closeLabStoreModal = () => {
-  setShowLabStoreModal(false);
-  setIsDelivery(null);
-  setAddress('');
-  setInstructions('');
-  setPrescription(null);
-};
-
-const handleCamera = async () => {
-  const result: ImagePickerResponse = await launchCamera({
-    mediaType: 'photo',
-    quality: 0.8, // Slightly lower quality to save bandwidth
-    saveToPhotos: true,
-  });
-
-  if (result.assets && result.assets.length > 0) {
-    setPrescription(result.assets[0].uri || null);
-  }
-};
-
-const handleGallery = async () => {
-  const result: ImagePickerResponse = await launchImageLibrary({
-    mediaType: 'photo',
-    quality: 0.8,
-  });
-
-  if (result.assets && result.assets.length > 0) {
-    setPrescription(result.assets[0].uri || null);
-  }
-};
+    if (result.assets && result.assets.length > 0) {
+      setPrescription(result.assets[0].uri || null);
+    }
+  };
 
   const clearAllFilters = () => {
     setFilterPriceRange(null);
@@ -678,7 +755,7 @@ const handleGallery = async () => {
   };
 
   const onDateChange = (event: any, selectedDateValue?: Date) => {
-     setShowDatePicker(false);
+    setShowDatePicker(false);
     if (selectedDateValue) {
       setSelectedDate(selectedDateValue);
       setAppointmentDate(formatDate(selectedDateValue));
@@ -692,40 +769,6 @@ const handleGallery = async () => {
         futureTime.setHours(9, 0, 0, 0);
         setSelectedTime(futureTime);
       }
-    }
-  };
-
-  const onTimeChange = (event: any, selectedTimeValue?: Date) => {
-    setShowTimePicker(false);
-    if (selectedTimeValue) {
-      if (isToday(selectedDate)) {
-        const now = new Date();
-        if (selectedTimeValue <= now) {
-          Alert.alert('Invalid Time', 'Please select a future time for today\'s appointment.');
-          return;
-        }
-      }
-      
-      setSelectedTime(selectedTimeValue);
-      setAppointmentTime(formatTime(selectedTimeValue));
-      
-      const pickupDate = new Date(selectedTimeValue);
-      pickupDate.setHours(pickupDate.getHours() - 1);
-      setSelectedPickupTime(pickupDate);
-      setPickupTime(formatTime(pickupDate));
-    }
-  };
-
-  const onPickupTimeChange = (event: any, selectedTimeValue?: Date) => {
-    setShowPickupTimePicker(false);
-    if (selectedTimeValue) {
-      if (selectedTimeValue >= selectedTime) {
-        Alert.alert('Invalid Time', 'Pickup time must be before appointment time.');
-        return;
-      }
-      
-      setSelectedPickupTime(selectedTimeValue);
-      setPickupTime(formatTime(selectedTimeValue));
     }
   };
 
@@ -746,83 +789,79 @@ const handleGallery = async () => {
       return Alert.alert("Missing", "Please select pickup time");
     }
 
-    // Show final confirmation with all details
-Alert.alert(
-  "Booking Confirmed ✅",
-  `${selectedDoctor?.type === 'doctor' ? 'Doctor' : 'Hospital'}: ${selectedDoctor?.name}
+    Alert.alert(
+      "Booking Confirmed ✅",
+      `${selectedDoctor?.type === 'doctor' ? 'Doctor' : 'Hospital'}: ${selectedDoctor?.name}
 Specialty: ${selectedDoctor?.specialty || 'N/A'}
 Date: ${appointmentDate}
 Time: ${appointmentTime}
 Ambulance: ${wantsAmbulance === 'yes' ? `Yes (Pickup: ${pickupTime})` : 'No'}`,
-  [
-    {
-      text: "View Hospital Doctors",
-      onPress: () => {
-        closeForm();
-        navigation.navigate("Offline", {
-          hospital: selectedDoctor,
-        });
-      },
-    },
-    {
-      text: "OK",
-      style: "cancel",
-    },
-  ]
-);
+      [
+        {
+          text: "View Hospital Doctors",
+          onPress: () => {
+            closeForm();
+            navigation.navigate("Offline", {
+              hospital: selectedDoctor,
+            });
+          },
+        },
+        {
+          text: "OK",
+          style: "cancel",
+        },
+      ]
+    );
   };
 
-  // Get section title based on service type
- const getSectionTitle = () => {
-  if (consultationType === 'Offline') {
-    if (serviceType === 'Complete Treatment' || serviceType === 'Doctor') {
-      return 'Available Hospitals';
-    } else if (serviceType === 'Labs') {
-      return 'Available Labs'; // ✅ Add this
-    } else if (serviceType === 'Medical Store') {
-      return 'Available Medical Stores'; // ✅ Add this
+  const getSectionTitle = () => {
+    if (consultationType === 'Offline') {
+      if (serviceType === 'Complete Treatment' || serviceType === 'Doctor') {
+        return 'Available Hospitals';
+      } else if (serviceType === 'Labs') {
+        return 'Available Labs';
+      } else if (serviceType === 'Medical Store') {
+        return 'Available Medical Stores';
+      }
     }
-  }
 
-  // Online mode
-  if (serviceType === 'Doctor') {
-    return selectedCategory ? `${selectedCategory}s` : 'Available Doctors';
-  } else if (serviceType === 'Labs') {
-    return 'Available Labs';
-  } else if (serviceType === 'Medical Store') {
-    return 'Available Medical Stores';
-  } else if (serviceType === 'Complete Treatment') {
-    return 'Available Hospitals';
-  }
+    if (serviceType === 'Doctor') {
+      return selectedCategory ? `${selectedCategory}s` : 'Available Doctors';
+    } else if (serviceType === 'Labs') {
+      return 'Available Labs';
+    } else if (serviceType === 'Medical Store') {
+      return 'Available Medical Stores';
+    } else if (serviceType === 'Complete Treatment') {
+      return 'Available Hospitals';
+    }
 
-  return 'Available Services';
-};
+    return 'Available Services';
+  };
+
   const parseCustomTimeToDate = (
-  hour: string,
-  minute: string,
-  ampm: 'AM' | 'PM'
-) => {
-  const h = parseInt(hour, 10) % 12 + (ampm === 'PM' ? 12 : 0);
-  const m = parseInt(minute, 10);
+    hour: string,
+    minute: string,
+    ampm: 'AM' | 'PM'
+  ) => {
+    const h = parseInt(hour, 10) % 12 + (ampm === 'PM' ? 12 : 0);
+    const m = parseInt(minute, 10);
 
-  const date = new Date(selectedDate);
-  date.setHours(h, m, 0, 0);
-  return date;
-};
+    const date = new Date(selectedDate);
+    date.setHours(h, m, 0, 0);
+    return date;
+  };
 
-const getImageSource = (image: any) => {
-  if (typeof image === 'string' && image.startsWith('http')) {
-    return { uri: image };
-  }
+  const getImageSource = (image: any) => {
+    if (typeof image === 'string' && image.startsWith('http')) {
+      return { uri: image };
+    }
 
-  if (typeof image === 'number') {
-    return image; // require() images
-  }
+    if (typeof image === 'number') {
+      return image;
+    }
 
-  // fallback image
-  return require('../../assets/hospital1.jpg');
-};
-
+    return require('../../assets/hospital1.jpg');
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -844,7 +883,6 @@ const getImageSource = (image: any) => {
 
       {/* Dropdowns Row */}
       <View style={styles.dropdownsRow}>
-        {/* Consultation Type Dropdown */}
         <View style={styles.dropdownWrapper}>
           <TouchableOpacity 
             style={styles.dropdownButton}
@@ -866,7 +904,6 @@ const getImageSource = (image: any) => {
                   onPress={() => {
                     setConsultationType(option);
                     setShowConsultationDropdown(false);
-                    // Reset category when changing consultation type
                     setSelectedCategory(null);
                   }}
                 >
@@ -885,7 +922,6 @@ const getImageSource = (image: any) => {
           )}
         </View>
 
-        {/* Service Type Dropdown */}
         <View style={styles.dropdownWrapper}>
           <TouchableOpacity 
             style={styles.dropdownButton}
@@ -907,7 +943,6 @@ const getImageSource = (image: any) => {
                   onPress={() => {
                     setServiceType(option);
                     setShowServiceDropdown(false);
-                    // Reset category when changing service type
                     setSelectedCategory(null);
                   }}
                 >
@@ -972,7 +1007,7 @@ const getImageSource = (image: any) => {
                   </Animated.Text>
                 </View>
               )}
-             <TextInput
+              <TextInput
                 style={styles.searchInput}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
@@ -990,7 +1025,6 @@ const getImageSource = (image: any) => {
           </View>
         </View>
 
-        {/* Only show categories for Doctors */}
         {serviceType === 'Doctor' && consultationType === 'Online' && (
           <ScrollView
             horizontal
@@ -1047,59 +1081,124 @@ const getImageSource = (image: any) => {
           </TouchableOpacity>
         </View>
 
-        <ScrollView
-          ref={scrollViewRef}
-          style={styles.doctorsScrollView}
-          showsVerticalScrollIndicator={false}
-          onTouchStart={() => setAutoScrollEnabled(false)}
-          nestedScrollEnabled={true}
-        >
-          <View style={styles.doctorsList}>
-            {filteredData.length > 0 ? (
-              filteredData.map((item) => (
-                <TouchableOpacity key={item.id} style={styles.doctorCard}>
-                  <Image
-  source={getImageSource(item.image)}
-  style={styles.doctorImage}
-/>
+        {/* Loading Indicator */}
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#2d7576" />
+            <Text style={styles.loadingText}>Loading {serviceType.toLowerCase()}...</Text>
+          </View>
+        ) : apiError ? (
+          <View style={styles.errorContainer}>
+            <Icon name="error-outline" size={48} color="#ef4444" />
+            <Text style={styles.errorText}>{apiError}</Text>
+            <TouchableOpacity 
+              style={styles.retryButton}
+              onPress={() => {
+                if (consultationType === 'Online') {
+                  if (serviceType === 'Doctor') fetchDoctors();
+                  else if (serviceType === 'Labs') fetchLabs();
+                  else if (serviceType === 'Medical Store') fetchPharmacies();
+                  else if (serviceType === 'Complete Treatment') fetchHospitals();
+                } else {
+                  if (serviceType === 'Doctor' || serviceType === 'Complete Treatment') fetchHospitals();
+                  else if (serviceType === 'Labs') fetchLabs();
+                  else if (serviceType === 'Medical Store') fetchPharmacies();
+                }
+              }}
+            >
+              <Icon name="refresh" size={20} color="#fff" />
+              <Text style={styles.retryButtonText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <ScrollView
+            ref={scrollViewRef}
+            style={styles.doctorsScrollView}
+            showsVerticalScrollIndicator={false}
+            onTouchStart={() => setAutoScrollEnabled(false)}
+            nestedScrollEnabled={true}
+          >
+            <View style={styles.doctorsList}>
+              {filteredData.length > 0 ? (
+                filteredData.map((item) => (
+                  <TouchableOpacity key={item.id} style={styles.doctorCard}>
+                    <Image
+                      source={getImageSource(item.image)}
+                      style={styles.doctorImage}
+                    />
 
-
-                  <View style={styles.doctorInfo}>
-                    <View style={styles.doctorHeader}>
-                      <Text style={styles.doctorName}>{item.name}</Text>
-                      <View style={styles.ratingContainer}>
-                        <Icon name="star" size={14} color="#eab308" />
-                        <Text style={styles.ratingText}>{item.rating}</Text>
+                    <View style={styles.doctorInfo}>
+                      <View style={styles.doctorHeader}>
+                        <Text style={styles.doctorName}>{item.name}</Text>
+                        <View style={styles.ratingContainer}>
+                          <Icon name="star" size={14} color="#eab308" />
+                          <Text style={styles.ratingText}>
+                            {item.rating > 0 ? item.rating.toFixed(1) : 'N/A'}
+                          </Text>
+                        </View>
+                      </View>
+                      <Text style={styles.specialtyText}>{item.specialty.toUpperCase()}</Text>
+                      
+                      {/* Additional info based on type */}
+                      {item.type === 'doctor' && (item as Doctor).experience && (
+                        <Text style={styles.experienceText}>
+                          {(item as Doctor).experience} years experience
+                        </Text>
+                      )}
+                      
+                      {item.type === 'hospital' && (item as Hospital).location && (
+                        <Text style={styles.locationText}>
+                          <Icon name="location-on" size={12} color="#9ca3af" /> {(item as Hospital).location}
+                        </Text>
+                      )}
+                      
+                      {item.type === 'lab' && (item as Lab).homeCollection && (
+                        <View style={styles.badgeContainer}>
+                          <Icon name="home" size={12} color="#16a34a" />
+                          <Text style={styles.badgeText}>Home Collection</Text>
+                        </View>
+                      )}
+                      
+                      {item.type === 'store' && (item as Pharmacy).pharmacyType && (
+                        <Text style={styles.pharmacyTypeText}>
+                          {(item as Pharmacy).pharmacyType}
+                        </Text>
+                      )}
+                      
+                      <Text style={styles.availabilityText}>
+                        {item.type === 'doctor' ? 'Available: ' : item.type === 'store' ? 'Delivery: ' : 'Timing: '}
+                        {item.type === 'store' && (item as Pharmacy).deliveryTime 
+                          ? (item as Pharmacy).deliveryTime 
+                          : item.nextAvailable}
+                      </Text>
+                      
+                      <View style={styles.doctorFooter}>
+                        <Text style={styles.priceText}>
+                          {item.price > 0 
+                            ? `₹${item.price}${item.type === 'doctor' || item.type === 'hospital' ? '/hr' : ''}` 
+                            : 'Contact for price'}
+                        </Text>
+                        <TouchableOpacity 
+                          style={styles.bookButton}
+                          onPress={() => handleBookNow(item)}
+                        >
+                          <Text style={styles.bookButtonText}>
+                            {item.type === 'store' ? 'Order' : item.type === 'lab' ? 'Book Test' : 'Book Now'}
+                          </Text>
+                        </TouchableOpacity>
                       </View>
                     </View>
-                    <Text style={styles.specialtyText}>{item.specialty.toUpperCase()}</Text>
-                    <Text style={styles.availabilityText}>
-                      {item.type === 'doctor' ? 'Next available: ' : 'Timing: '}{item.nextAvailable}
-                    </Text>
-                    <View style={styles.doctorFooter}>
-                      <Text style={styles.priceText}>
-                        {item.price > 0 ? `$${item.price}/hr` : 'Contact for price'}
-                      </Text>
-                      <TouchableOpacity 
-                        style={styles.bookButton}
-                        onPress={() => handleBookNow(item)}
-                      >
-                        <Text style={styles.bookButtonText}>
-                          {item.type === 'store' ? 'Visit' : 'Book Now'}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              ))
-            ) : (
-              <View style={styles.emptyState}>
-                <Icon name="search-off" size={48} color="#9ca3af" />
-                <Text style={styles.emptyStateText}>No {serviceType.toLowerCase()}s found</Text>
-              </View>
-            )}
-          </View>
-        </ScrollView>
+                  </TouchableOpacity>
+                ))
+              ) : (
+                <View style={styles.emptyState}>
+                  <Icon name="search-off" size={48} color="#9ca3af" />
+                  <Text style={styles.emptyStateText}>No {serviceType.toLowerCase()}s found</Text>
+                </View>
+              )}
+            </View>
+          </ScrollView>
+        )}
 
         <View style={{ height: 100 }} />
       </ScrollView>
@@ -1125,7 +1224,7 @@ const getImageSource = (image: any) => {
                 <View style={styles.bookingDetailRow}>
                   <Icon name="attach-money" size={18} color="#2d7576" />
                   <Text style={styles.bookingDetailText}>
-                    ${selectedDoctor?.price}/hr
+                    ₹{selectedDoctor?.price}/hr
                   </Text>
                 </View>
               )}
@@ -1175,14 +1274,13 @@ const getImageSource = (image: any) => {
             <ScrollView showsVerticalScrollIndicator={false}>
               <Text style={styles.formHeader}>Booking Details</Text>
               
-              {/* Date Selection */}
               <View style={styles.formSection}>
                 <Text style={styles.inputLabel}>
                   <Icon name="event" size={16} color="#2d7576" /> Appointment Date
                 </Text>
                 <TouchableOpacity 
                   style={styles.modernInput}
-                  onPress={() =>  setShowDatePicker(true)}
+                  onPress={() => setShowDatePicker(true)}
                 >
                   <View style={styles.inputContent}>
                     <Icon name="calendar-today" size={20} color={appointmentDate ? '#2d7576' : '#9ca3af'} />
@@ -1194,9 +1292,6 @@ const getImageSource = (image: any) => {
                 </TouchableOpacity>
               </View>
 
-
-
-              {/* Time Selection */}
               <View style={styles.formSection}>
                 <Text style={styles.inputLabel}>
                   <Icon name="access-time" size={16} color="#2d7576" /> Appointment Time
@@ -1221,8 +1316,6 @@ const getImageSource = (image: any) => {
                 </TouchableOpacity>
               </View>
 
-
-              {/* Ambulance Selection */}
               {!ambulanceFieldLocked && (
                 <View style={styles.formSection}>
                   <Text style={styles.inputLabel}>
@@ -1257,34 +1350,30 @@ const getImageSource = (image: any) => {
                 </View>
               )}
 
-              {/* Pickup Time - only if ambulance is yes */}
               {wantsAmbulance === 'yes' && (
-                <>
-                  <View style={styles.formSection}>
-                    <Text style={styles.inputLabel}>
-                      <Icon name="local-taxi" size={16} color="#2d7576" /> Pickup Time
-                    </Text>
-                    <TouchableOpacity 
-                      style={styles.modernInput}
-                      onPress={() => {
-                        if (!appointmentTime) {
-                          Alert.alert('Select Appointment Time First', 'Please select appointment time before choosing pickup time.');
-                          return;
-                        }
-                        setCustomTimeModal(true);
-                      }}
-                    >
-                      <View style={styles.inputContent}>
-                        <Icon name="directions-car" size={20} color={pickupTime ? '#2d7576' : '#9ca3af'} />
-                        <Text style={pickupTime ? styles.inputValueText : styles.inputPlaceholderText}>
-                          {pickupTime || 'Tap to select pickup time'}
-                        </Text>
-                      </View>
-                      <Icon name="chevron-right" size={20} color="#9ca3af" />
-                    </TouchableOpacity>
-                  </View>
-
-                </>
+                <View style={styles.formSection}>
+                  <Text style={styles.inputLabel}>
+                    <Icon name="local-taxi" size={16} color="#2d7576" /> Pickup Time
+                  </Text>
+                  <TouchableOpacity 
+                    style={styles.modernInput}
+                    onPress={() => {
+                      if (!appointmentTime) {
+                        Alert.alert('Select Appointment Time First', 'Please select appointment time before choosing pickup time.');
+                        return;
+                      }
+                      setCustomTimeModal(true);
+                    }}
+                  >
+                    <View style={styles.inputContent}>
+                      <Icon name="directions-car" size={20} color={pickupTime ? '#2d7576' : '#9ca3af'} />
+                      <Text style={pickupTime ? styles.inputValueText : styles.inputPlaceholderText}>
+                        {pickupTime || 'Tap to select pickup time'}
+                      </Text>
+                    </View>
+                    <Icon name="chevron-right" size={20} color="#9ca3af" />
+                  </TouchableOpacity>
+                </View>
               )}
             
               <TouchableOpacity
@@ -1302,23 +1391,24 @@ const getImageSource = (image: any) => {
           </View>
         </View>
       </Modal>
-    {showDatePicker && (
-  <DateTimePicker
-    value={selectedDate}
-    mode="date"
-    display="default"
-    minimumDate={new Date()}
-    onChange={(event, date) => {
-      setShowDatePicker(false);
-      if (date) {
-        setSelectedDate(date);
-        setAppointmentDate(formatDate(date));
-        setAppointmentTime('');
-      }
-    }}
-  />
-)}
-      {/* Filter Modal */}
+
+      {showDatePicker && (
+        <DateTimePicker
+          value={selectedDate}
+          mode="date"
+          display="default"
+          minimumDate={new Date()}
+          onChange={(event, date) => {
+            setShowDatePicker(false);
+            if (date) {
+              setSelectedDate(date);
+              setAppointmentDate(formatDate(date));
+              setAppointmentTime('');
+            }
+          }}
+        />
+      )}
+
       <Modal visible={showFilterModal} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.filterCard}>
@@ -1330,7 +1420,6 @@ const getImageSource = (image: any) => {
             </View>
             
             <ScrollView showsVerticalScrollIndicator={false}>
-              {/* Price Range Filter */}
               <View style={styles.filterSection}>
                 <Text style={styles.filterSectionTitle}>Price Range</Text>
                 <View style={styles.filterOptionsGrid}>
@@ -1339,7 +1428,7 @@ const getImageSource = (image: any) => {
                     onPress={() => setFilterPriceRange(filterPriceRange === 'low' ? null : 'low')}
                   >
                     <Text style={[styles.filterChipText, filterPriceRange === 'low' && styles.filterChipTextActive]}>
-                      Under $100
+                      Under ₹500
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity 
@@ -1347,7 +1436,7 @@ const getImageSource = (image: any) => {
                     onPress={() => setFilterPriceRange(filterPriceRange === 'medium' ? null : 'medium')}
                   >
                     <Text style={[styles.filterChipText, filterPriceRange === 'medium' && styles.filterChipTextActive]}>
-                      $100 - $120
+                      ₹500 - ₹1000
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity 
@@ -1355,13 +1444,36 @@ const getImageSource = (image: any) => {
                     onPress={() => setFilterPriceRange(filterPriceRange === 'high' ? null : 'high')}
                   >
                     <Text style={[styles.filterChipText, filterPriceRange === 'high' && styles.filterChipTextActive]}>
-                      $120+
+                      ₹1000+
                     </Text>
                   </TouchableOpacity>
                 </View>
               </View>
 
-              {/* Availability Filter */}
+              <View style={styles.filterSection}>
+                <Text style={styles.filterSectionTitle}>Rating</Text>
+                <View style={styles.filterOptionsGrid}>
+                  <TouchableOpacity 
+                    style={[styles.filterChip, filterRating === 4 && styles.filterChipActive]}
+                    onPress={() => setFilterRating(filterRating === 4 ? null : 4)}
+                  >
+                    <Icon name="star" size={14} color={filterRating === 4 ? '#fff' : '#eab308'} />
+                    <Text style={[styles.filterChipText, filterRating === 4 && styles.filterChipTextActive]}>
+                      4+ Stars
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.filterChip, filterRating === 4.5 && styles.filterChipActive]}
+                    onPress={() => setFilterRating(filterRating === 4.5 ? null : 4.5)}
+                  >
+                    <Icon name="star" size={14} color={filterRating === 4.5 ? '#fff' : '#eab308'} />
+                    <Text style={[styles.filterChipText, filterRating === 4.5 && styles.filterChipTextActive]}>
+                      4.5+ Stars
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
               <View style={styles.filterSection}>
                 <Text style={styles.filterSectionTitle}>Availability</Text>
                 <View style={styles.filterOptionsGrid}>
@@ -1377,7 +1489,6 @@ const getImageSource = (image: any) => {
                 </View>
               </View>
 
-              {/* Sort By */}
               <View style={styles.filterSection}>
                 <Text style={styles.filterSectionTitle}>Sort By</Text>
                 <View style={styles.filterOptionsColumn}>
@@ -1421,7 +1532,6 @@ const getImageSource = (image: any) => {
               </View>
             </ScrollView>
 
-            {/* Filter Actions */}
             <View style={styles.filterActions}>
               <TouchableOpacity 
                 style={styles.filterCancelBtn}
@@ -1439,86 +1549,80 @@ const getImageSource = (image: any) => {
           </View>
         </View>
       </Modal>
+
       <Modal visible={customTimeModal} transparent animationType="fade">
-  <View style={styles.timeOverlay}>
-    <View style={styles.timeCard}>
+        <View style={styles.timeOverlay}>
+          <View style={styles.timeCard}>
+            <Text style={styles.timeTitle}>Enter Time</Text>
 
-      <Text style={styles.timeTitle}>Enter Time</Text>
+            <View style={styles.timeRow}>
+              <TextInput
+                style={styles.timeBoxActive}
+                keyboardType="number-pad"
+                maxLength={2}
+                value={hour}
+                onChangeText={setHour}
+              />
 
-      <View style={styles.timeRow}>
-        {/* Hour */}
-        <TextInput
-          style={styles.timeBoxActive}
-          keyboardType="number-pad"
-          maxLength={2}
-          value={hour}
-          onChangeText={setHour}
-        />
+              <Text style={styles.colon}>:</Text>
 
-        <Text style={styles.colon}>:</Text>
+              <TextInput
+                style={styles.timeBox}
+                keyboardType="number-pad"
+                maxLength={2}
+                value={minute}
+                onChangeText={setMinute}
+              />
 
-        {/* Minute */}
-        <TextInput
-          style={styles.timeBox}
-          keyboardType="number-pad"
-          maxLength={2}
-          value={minute}
-          onChangeText={setMinute}
-        />
+              <View style={styles.ampmBox}>
+                <TouchableOpacity
+                  style={ampm === 'AM' ? styles.ampmActive : styles.ampm}
+                  onPress={() => setAmPm('AM')}
+                >
+                  <Text style={ampm === 'AM' ? styles.ampmTextActive : styles.ampmText}>AM</Text>
+                </TouchableOpacity>
 
-        {/* AM / PM */}
-        <View style={styles.ampmBox}>
-          <TouchableOpacity
-            style={ampm === 'AM' ? styles.ampmActive : styles.ampm}
-            onPress={() => setAmPm('AM')}
-          >
-            <Text style={ampm === 'AM' ? styles.ampmTextActive : styles.ampmText}>AM</Text>
-          </TouchableOpacity>
+                <TouchableOpacity
+                  style={ampm === 'PM' ? styles.ampmActive : styles.ampm}
+                  onPress={() => setAmPm('PM')}
+                >
+                  <Text style={ampm === 'PM' ? styles.ampmTextActive : styles.ampmText}>PM</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
 
-          <TouchableOpacity
-            style={ampm === 'PM' ? styles.ampmActive : styles.ampm}
-            onPress={() => setAmPm('PM')}
-          >
-            <Text style={ampm === 'PM' ? styles.ampmTextActive : styles.ampmText}>PM</Text>
-          </TouchableOpacity>
+            <View style={styles.timeActions}>
+              <TouchableOpacity onPress={() => setCustomTimeModal(false)}>
+                <Text style={styles.cancelText}>CANCEL</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  const appointmentDateTime = parseCustomTimeToDate(hour, minute, ampm);
+
+                  if (isToday(selectedDate) && appointmentDateTime <= new Date()) {
+                    Alert.alert("Invalid Time", "Please select a future time");
+                    return;
+                  }
+
+                  setSelectedTime(appointmentDateTime);
+                  setAppointmentTime(formatTime(appointmentDateTime));
+
+                  const pickup = new Date(appointmentDateTime);
+                  pickup.setHours(pickup.getHours() - 1);
+
+                  setSelectedPickupTime(pickup);
+                  setPickupTime(formatTime(pickup));
+
+                  setCustomTimeModal(false);
+                }}
+              >
+                <Text style={styles.okText}>OK</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
-      </View>
-
-      <View style={styles.timeActions}>
-        <TouchableOpacity onPress={() => setCustomTimeModal(false)}>
-          <Text style={styles.cancelText}>CANCEL</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => {
-  const appointmentDateTime = parseCustomTimeToDate(hour, minute, ampm);
-
-  // ❌ block past time if today
-  if (isToday(selectedDate) && appointmentDateTime <= new Date()) {
-    Alert.alert("Invalid Time", "Please select a future time");
-    return;
-  }
-
-  // ✅ appointment time
-  setSelectedTime(appointmentDateTime);
-  setAppointmentTime(formatTime(appointmentDateTime));
-
-  // ✅ ambulance pickup = 1 hour before
-  const pickup = new Date(appointmentDateTime);
-  pickup.setHours(pickup.getHours() - 1);
-
-  setSelectedPickupTime(pickup);
-  setPickupTime(formatTime(pickup));
-
-  setCustomTimeModal(false);
-}}>
-          <Text style={styles.okText}>OK</Text>
-        </TouchableOpacity>
-      </View>
-
-    </View>
-  </View>
-</Modal>
+      </Modal>
 
       <View style={styles.bottomNav}>
         <TouchableOpacity style={styles.navItemActive}>
@@ -1526,7 +1630,7 @@ const getImageSource = (image: any) => {
           <Text style={styles.navTextActive}>Home</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} 
-        onPress={()=>{navigation.navigate("MyBookings")}}
+          onPress={() => navigation.navigate("MyBookings")}
         >
           <Icon name="calendar-today" size={24} color="#9ca3af" />
           <Text style={styles.navText}>Bookings</Text>
@@ -1540,114 +1644,106 @@ const getImageSource = (image: any) => {
           <Text style={styles.navText}>Profile</Text>
         </TouchableOpacity>
       </View>
+
       <Modal 
-  visible={showLabStoreModal} 
-  transparent 
-  animationType="slide"
-  onRequestClose={closeLabStoreModal}
->
-  <View style={styles.bottomSheetOverlay}>
-    <View style={styles.bottomSheetContainer}>
-      <View style={styles.sheetHandle} />
-      
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{paddingBottom: 40}}>
-        <Text style={styles.sheetTitle}>
-          {selectedDoctor?.type === 'lab' ? 'Book Lab Test' : 'Order Medicines'}
-        </Text>
-        <Text style={styles.sheetSub}>{selectedDoctor?.name}</Text>
-
-        {/* Prescription Upload Section */}
-        <View style={styles.sheetSection}>
-  <Text style={styles.sheetLabel}>Upload Prescription</Text>
-  <View style={styles.uploadRow}>
-    
-    {/* CAMERA BUTTON */}
-    <TouchableOpacity style={styles.uploadBtn} onPress={handleCamera}>
-      <Icon name="photo-camera" size={24} color="#2d7576" />
-      <Text style={styles.uploadBtnText}>Camera</Text>
-    </TouchableOpacity>
-
-    {/* GALLERY BUTTON */}
-    <TouchableOpacity style={styles.uploadBtn} onPress={handleGallery}>
-      <Icon name="image" size={24} color="#2d7576" />
-      <Text style={styles.uploadBtnText}>Gallery</Text>
-    </TouchableOpacity>
-    
-  </View>
-
-  {/* Preview of uploaded image */}
-  {prescription && (
-    <View style={styles.previewContainer}>
-      <Image source={{ uri: prescription }} style={styles.prescriptionPreview} />
-      <TouchableOpacity 
-        style={styles.removeImageBtn} 
-        onPress={() => setPrescription(null)}
+        visible={showLabStoreModal} 
+        transparent 
+        animationType="slide"
+        onRequestClose={closeLabStoreModal}
       >
-        <Icon name="cancel" size={20} color="#ef4444" />
-      </TouchableOpacity>
-      <Text style={styles.uploadSuccessText}>Prescription attached</Text>
-    </View>
-  )}
-</View>
-        {/* Delivery Toggle */}
-        <View style={styles.sheetSection}>
-          <Text style={styles.sheetLabel}>How would you like to proceed?</Text>
-          <View style={styles.choiceRow}>
-            <TouchableOpacity 
-              style={[styles.modernChoiceBtn, isDelivery === true && styles.modernChoiceBtnActive]}
-              onPress={() => setIsDelivery(true)}
-            >
-              <Icon name="local-shipping" size={20} color={isDelivery === true ? '#fff' : '#2d7576'} />
-              <Text style={isDelivery === true ? styles.modernChoiceTextActive : styles.modernChoiceText}>Delivery</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.modernChoiceBtn, isDelivery === false && styles.modernChoiceBtnActive]}
-              onPress={() => setIsDelivery(false)}
-            >
-              <Icon name="store" size={20} color={isDelivery === false ? '#fff' : '#2d7576'} />
-              <Text style={isDelivery === false ? styles.modernChoiceTextActive : styles.modernChoiceText}>Visit Store</Text>
-            </TouchableOpacity>
+        <View style={styles.bottomSheetOverlay}>
+          <View style={styles.bottomSheetContainer}>
+            <View style={styles.sheetHandle} />
+            
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{paddingBottom: 40}}>
+              <Text style={styles.sheetTitle}>
+                {selectedDoctor?.type === 'lab' ? 'Book Lab Test' : 'Order Medicines'}
+              </Text>
+              <Text style={styles.sheetSub}>{selectedDoctor?.name}</Text>
+
+              <View style={styles.sheetSection}>
+                <Text style={styles.sheetLabel}>Upload Prescription</Text>
+                <View style={styles.uploadRow}>
+                  <TouchableOpacity style={styles.uploadBtn} onPress={handleCamera}>
+                    <Icon name="photo-camera" size={24} color="#2d7576" />
+                    <Text style={styles.uploadBtnText}>Camera</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity style={styles.uploadBtn} onPress={handleGallery}>
+                    <Icon name="image" size={24} color="#2d7576" />
+                    <Text style={styles.uploadBtnText}>Gallery</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {prescription && (
+                  <View style={styles.previewContainer}>
+                    <Image source={{ uri: prescription }} style={styles.prescriptionPreview} />
+                    <TouchableOpacity 
+                      style={styles.removeImageBtn} 
+                      onPress={() => setPrescription(null)}
+                    >
+                      <Icon name="cancel" size={20} color="#ef4444" />
+                    </TouchableOpacity>
+                    <Text style={styles.uploadSuccessText}>Prescription attached</Text>
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.sheetSection}>
+                <Text style={styles.sheetLabel}>How would you like to proceed?</Text>
+                <View style={styles.choiceRow}>
+                  <TouchableOpacity 
+                    style={[styles.modernChoiceBtn, isDelivery === true && styles.modernChoiceBtnActive]}
+                    onPress={() => setIsDelivery(true)}
+                  >
+                    <Icon name="local-shipping" size={20} color={isDelivery === true ? '#fff' : '#2d7576'} />
+                    <Text style={isDelivery === true ? styles.modernChoiceTextActive : styles.modernChoiceText}>Delivery</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.modernChoiceBtn, isDelivery === false && styles.modernChoiceBtnActive]}
+                    onPress={() => setIsDelivery(false)}
+                  >
+                    <Icon name="store" size={20} color={isDelivery === false ? '#fff' : '#2d7576'} />
+                    <Text style={isDelivery === false ? styles.modernChoiceTextActive : styles.modernChoiceText}>Visit Store</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {isDelivery && (
+                <View style={styles.sheetSection}>
+                  <Text style={styles.sheetLabel}>Delivery Address</Text>
+                  <TextInput 
+                    style={styles.sheetInput}
+                    placeholder="Enter full address..."
+                    multiline
+                    numberOfLines={3}
+                    value={address}
+                    onChangeText={setAddress}
+                  />
+                </View>
+              )}
+
+              <View style={styles.sheetSection}>
+                <Text style={styles.sheetLabel}>Special Instructions (Optional)</Text>
+                <TextInput 
+                  style={styles.sheetInput}
+                  placeholder="E.g. Call before arrival, substitute generic names..."
+                  value={instructions}
+                  onChangeText={setInstructions}
+                />
+              </View>
+
+              <TouchableOpacity style={styles.sheetConfirmBtn} onPress={handleLabStoreConfirm}>
+                <Text style={styles.sheetConfirmBtnText}>Confirm Order</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.sheetCancelBtn} onPress={closeLabStoreModal}>
+                <Text style={styles.sheetCancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+            </ScrollView>
           </View>
         </View>
-
-        {/* Conditional Address Field */}
-        {isDelivery && (
-          <View style={styles.sheetSection}>
-            <Text style={styles.sheetLabel}>Delivery Address</Text>
-            <TextInput 
-              style={styles.sheetInput}
-              placeholder="Enter full address..."
-              multiline
-              numberOfLines={3}
-              value={address}
-              onChangeText={setAddress}
-            />
-          </View>
-        )}
-
-        {/* Special Instructions */}
-        <View style={styles.sheetSection}>
-          <Text style={styles.sheetLabel}>Special Instructions (Optional)</Text>
-          <TextInput 
-            style={styles.sheetInput}
-            placeholder="E.g. Call before arrival, substitute generic names..."
-            value={instructions}
-            onChangeText={setInstructions}
-          />
-        </View>
-
-        {/* Action Buttons */}
-        <TouchableOpacity style={styles.sheetConfirmBtn} onPress={handleLabStoreConfirm}>
-          <Text style={styles.sheetConfirmBtnText}>Confirm Order</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.sheetCancelBtn} onPress={closeLabStoreModal}>
-          <Text style={styles.sheetCancelBtnText}>Cancel</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </View>
-  </View>
-</Modal>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -1867,38 +1963,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: '#ef4444',
   },
-  dropdownContainer: {
-    position: 'absolute',
-    top: 56,
-    left: 16,
-    right: 16,
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 8,
-    borderWidth: 1,
-    borderColor: '#eee',
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    zIndex: 1000,
-    maxHeight: 200,
-  },
-  dropdownItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#fafafa',
-  },
-  dropdownText: {
-    fontSize: 14,
-    color: '#131616',
-    textTransform: 'capitalize',
-    fontWeight: '500',
-  },
   categoriesContainer: {
     paddingVertical: 24,
   },
@@ -1957,6 +2021,45 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#2d7576',
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#2d7576',
+    fontWeight: '600',
+  },
+  errorContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 24,
+  },
+  errorText: {
+    marginTop: 16,
+    marginBottom: 24,
+    fontSize: 16,
+    color: '#ef4444',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#2d7576',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+  },
+  retryButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '700',
   },
   doctorsScrollView: {
     maxHeight: 500,
@@ -2022,6 +2125,32 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#71717a',
     marginTop: 4,
+  },
+  experienceText: {
+    fontSize: 12,
+    color: '#71717a',
+    marginTop: 2,
+  },
+  locationText: {
+    fontSize: 12,
+    color: '#71717a',
+    marginTop: 2,
+  },
+  badgeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 2,
+  },
+  badgeText: {
+    fontSize: 12,
+    color: '#16a34a',
+    fontWeight: '600',
+  },
+  pharmacyTypeText: {
+    fontSize: 12,
+    color: '#71717a',
+    marginTop: 2,
   },
   doctorFooter: {
     flexDirection: 'row',
@@ -2224,76 +2353,6 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: '700',
     fontSize: 14,
-  },
-  modernAddonBtn: {
-    marginTop: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#e8f4f4',
-    padding: 14,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#2d7576',
-    borderStyle: 'dashed',
-    gap: 8,
-  },
-  modernAddonBtnText: {
-    color: '#2d7576',
-    fontWeight: '700',
-    fontSize: 14,
-  },
-  assistantsList: {
-    marginTop: 16,
-    gap: 12,
-  },
-  assistantListTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#374151',
-    marginBottom: 4,
-  },
-  modernAssetItem: {
-    flexDirection: 'row',
-    padding: 14,
-    backgroundColor: '#f9fafb',
-    borderRadius: 12,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#e5e7eb',
-  },
-  modernAssetItemActive: {
-    borderColor: '#2d7576',
-    backgroundColor: '#f0f9f9',
-  },
-  assetImg: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-  },
-  assetName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#374151',
-  },
-  modernRadioButton: {
-    height: 24,
-    width: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#d1d5db',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 10,
-  },
-  modernRadioButtonActive: {
-    borderColor: '#2d7576',
-  },
-  modernRadioInner: {
-    height: 12,
-    width: 12,
-    borderRadius: 6,
-    backgroundColor: '#2d7576',
   },
   modernFinalBookBtn: {
     flexDirection: 'row',
@@ -2536,12 +2595,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 14,
   },
-  uploadSuccess: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 8,
-  },
   uploadSuccessText: {
     color: '#16a34a',
     fontSize: 12,
@@ -2601,32 +2654,28 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   timeOverlay: {
-  flex: 1,
-  backgroundColor: 'rgba(0,0,0,0.6)',
-  justifyContent: 'center',
-  alignItems: 'center',
-},
-
-timeCard: {
-  width: '85%',
-  backgroundColor: '#2f2f2f',
-  borderRadius: 16,
-  padding: 20,
-},
-
-timeTitle: {
-  color: '#fff',
-  fontSize: 14,
-  marginBottom: 12,
-},
-
-timeRow: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: 10,
-},
-
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  timeCard: {
+    width: '85%',
+    backgroundColor: '#2f2f2f',
+    borderRadius: 16,
+    padding: 20,
+  },
+  timeTitle: {
+    color: '#fff',
+    fontSize: 14,
+    marginBottom: 12,
+  },
+  timeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
 timeBoxActive: {
   backgroundColor: '#3b82f6',
   color: '#fff',
