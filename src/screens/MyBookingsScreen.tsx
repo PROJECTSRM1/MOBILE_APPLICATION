@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,13 +8,17 @@ import {
   SafeAreaView,
   StatusBar,
   Dimensions,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const { width } = Dimensions.get('window');
 
-// --- Data Types ---
+const API_BASE_URL = 'https://swachify-india-be-1-mcrb.onrender.com';
+
+// ---------------- TYPES ----------------
 type BookingStatus = 'upcoming' | 'completed';
 
 interface Booking {
@@ -23,37 +27,10 @@ interface Booking {
   date: string;
   time: string;
   status: BookingStatus;
-  currentStep: number; // 0: Booked, 1: Consulted, 2: Medications, 3: Lab Tests
+  currentStep: number;
 }
 
-// --- Configuration ---
-const dummyBookings: Booking[] = [
-  {
-    id: 1,
-    doctor: 'Dr. Sarah Jenkins',
-    date: '30 Jan 2026',
-    time: '05:30 PM',
-    status: 'upcoming',
-    currentStep: 1, // At "Consulted" stage
-  },
-  {
-    id: 2,
-    doctor: 'Dr. Marcus Chen',
-    date: '30 Jan 2026',
-    time: '04:00 PM',
-    status: 'upcoming',
-    currentStep: 0, // At "Booked" stage
-  },
-  {
-    id: 3,
-    doctor: 'Dr. Elena Rodriguez',
-    date: '28 Jan 2026',
-    time: '10:15 AM',
-    status: 'completed',
-    currentStep: 3, // At "Lab Tests" stage
-  },
-];
-
+// ---------------- STEPS ----------------
 const STEPS = [
   { label: 'Booked', icon: 'event-available' },
   { label: 'Consulted', icon: 'videocam' },
@@ -61,33 +38,90 @@ const STEPS = [
   { label: 'Lab Tests', icon: 'biotech' },
 ];
 
+// ---------------- COMPONENT ----------------
 const MyBookingsScreen = () => {
   const navigation = useNavigation();
 
-  // --- Helper: Render the Tracking System ---
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  // ---------------- FETCH BOOKINGS ----------------
+  useEffect(() => {
+    fetchBookings();
+  }, []);
+
+  const fetchBookings = async () => {
+    try {
+      setLoading(true);
+
+      const response = await fetch(
+        `${API_BASE_URL}/healthcare/appointments/user/1`
+      );
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text);
+      }
+
+      const data = await response.json();
+
+      // Transform API → UI model
+      const formatted: Booking[] = data.map((item: any) => {
+        const dt = new Date(item.appointment_time + "Z");
+
+
+        const date = dt.toLocaleDateString('en-IN', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        });
+
+        const time = dt.toLocaleTimeString('en-IN', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,
+        });
+
+        return {
+          id: item.id,
+          doctor: item.doctor_name || 'Doctor',
+          date,
+          time,
+          status:
+            new Date(item.appointment_time) < new Date()
+              ? 'completed'
+              : 'upcoming',
+          currentStep: 0,
+        };
+      });
+
+      setBookings(formatted);
+    } catch (error: any) {
+      console.log('Fetch bookings error:', error);
+      Alert.alert('Error', 'Unable to load bookings');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ---------------- TRACKER ----------------
   const renderTracker = (currentStep: number) => {
-    // Calculate progress line width
     const progressPercent = (currentStep / (STEPS.length - 1)) * 100;
 
     return (
       <View style={styles.trackerContainer}>
-        {/* Progress Bar Background */}
         <View style={styles.progressLineBase} />
-        
-        {/* Active Progress Line */}
-        <View 
+        <View
           style={[
-            styles.progressLineActive, 
-            { width: `${progressPercent}%` }
-          ]} 
+            styles.progressLineActive,
+            { width: `${progressPercent}%` },
+          ]}
         />
 
-        {/* Icons and Labels */}
         <View style={styles.stepsWrapper}>
           {STEPS.map((step, index) => {
             const isCompleted = index < currentStep;
             const isActive = index === currentStep;
-            const isPending = index > currentStep;
 
             return (
               <View key={index} style={styles.stepItem}>
@@ -96,19 +130,21 @@ const MyBookingsScreen = () => {
                     styles.stepCircle,
                     isCompleted && styles.stepCircleCompleted,
                     isActive && styles.stepCircleActive,
-                    isPending && styles.stepCirclePending,
                   ]}
                 >
                   <MaterialIcons
                     name={isCompleted ? 'check' : (step.icon as any)}
                     size={16}
-                    color={isCompleted || isActive ? '#fff' : '#94a3b8'}
+                    color="#fff"
                   />
                 </View>
-                <Text style={[
-                  styles.stepLabel,
-                  (isCompleted || isActive) && styles.stepLabelActive
-                ]}>
+
+                <Text
+                  style={[
+                    styles.stepLabel,
+                    (isCompleted || isActive) && styles.stepLabelActive,
+                  ]}
+                >
                   {step.label}
                 </Text>
               </View>
@@ -119,90 +155,89 @@ const MyBookingsScreen = () => {
     );
   };
 
+  // ---------------- UI ----------------
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" />
-      
+
       <View style={styles.container}>
-        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>My Bookings</Text>
         </View>
 
-        <FlatList
-          data={dummyBookings}
-          keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          renderItem={({ item }) => {
-            const isCompleted = item.status === 'completed';
+        {loading ? (
+          <ActivityIndicator size="large" color="#2563eb" />
+        ) : (
+          <FlatList
+            data={bookings}
+            keyExtractor={(item) => item.id.toString()}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            renderItem={({ item }) => {
+              const isCompleted = item.status === 'completed';
 
-            return (
-              <View style={[styles.card, isCompleted && styles.completedCard]}>
-                {/* Doctor Info Row */}
-                <View style={styles.cardHeader}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.doctorName, isCompleted && styles.textStrikethrough]}>
-                      {item.doctor}
-                    </Text>
-                    <View style={styles.dateTimeRow}>
-                      <MaterialIcons name="calendar-today" size={14} color="#64748b" />
-                      <Text style={styles.dateTimeText}>
-                        {item.date} • {item.time}
-                      </Text>
-                    </View>
-                  </View>
-                  
-                  {isCompleted && (
-                    <View style={styles.completedBadge}>
-                      <Text style={styles.completedBadgeText}>COMPLETED</Text>
-                    </View>
-                  )}
-                </View>
-
-                {/* Join Call Button */}
-                <TouchableOpacity
-                  style={[
-                    styles.actionBtn,
-                    isCompleted ? styles.disabledBtn : styles.joinBtn,
-                  ]}
-                  disabled={isCompleted}
-                  onPress={() =>
-                    (navigation as any).navigate('VideoCall', {
-                      // 🔥 FIX: Correct object structure for VideoCall screen
-                      doctor: {
-                        name: item.doctor,
-                        title: 'General Practitioner',
-                        status: 'Online',
-                        videoUri: 'https://www.w3schools.com/html/mov_bbb.mp4', 
-                      },
-                      user: {
-                        name: 'You',
-                        videoUri: 'https://www.w3schools.com/html/mov_bbb.mp4',
-                      },
-                      onEndCall: () => (navigation as any).replace('TreatmentSummary'),
-                    })
-                  }
+              return (
+                <View
+                  style={[styles.card, isCompleted && styles.completedCard]}
                 >
-                  <Text style={[styles.btnText, isCompleted && { color: '#94a3b8' }]}>
-                    {isCompleted ? 'Call Ended' : 'Join Call'}
-                  </Text>
-                </TouchableOpacity>
+                  <View style={styles.cardHeader}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.doctorName}>
+                        {item.doctor}
+                      </Text>
 
-                {/* Tracking System */}
-                {renderTracker(item.currentStep)}
-              </View>
-            );
-          }}
-        />
+                      <View style={styles.dateTimeRow}>
+                        <MaterialIcons
+                          name="calendar-today"
+                          size={14}
+                          color="#64748b"
+                        />
+                        <Text style={styles.dateTimeText}>
+                          {item.date} • {item.time}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {isCompleted && (
+                      <View style={styles.completedBadge}>
+                        <Text style={styles.completedBadgeText}>
+                          COMPLETED
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.actionBtn,
+                      isCompleted
+                        ? styles.disabledBtn
+                        : styles.joinBtn,
+                    ]}
+                    disabled={isCompleted}
+                    onPress={() =>
+                      (navigation as any).navigate('VideoCall')
+                    }
+                  >
+                    <Text style={styles.btnText}>
+                      {isCompleted ? 'Call Ended' : 'Join Call'}
+                    </Text>
+                  </TouchableOpacity>
+
+                  {renderTracker(item.currentStep)}
+                </View>
+              );
+            }}
+          />
+        )}
       </View>
 
-      {/* Simplified Navigation Bar Placeholder (Matches design) */}
+      {/* Bottom Nav */}
       <View style={styles.bottomNav}>
-         <MaterialIcons name="home" size={24} color="#94a3b8" />
-         <MaterialIcons name="calendar-month" size={24} color="#2563eb" />
-         <MaterialIcons name="chat-bubble" size={24} color="#94a3b8" />
-         <MaterialIcons name="person" size={24} color="#94a3b8" />
+        <MaterialIcons name="home" size={24} color="#94a3b8" />
+        <MaterialIcons name="calendar-month" size={24} color="#2563eb" />
+        <MaterialIcons name="chat-bubble" size={24} color="#94a3b8" />
+        <MaterialIcons name="person" size={24} color="#94a3b8" />
       </View>
     </SafeAreaView>
   );

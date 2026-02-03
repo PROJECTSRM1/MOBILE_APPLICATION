@@ -52,7 +52,26 @@ interface VideoCallScreenProps {
 function VideoCallScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { doctor, user, onEndCall } = route.params as any;
+  const params: any = route.params || {};
+
+const doctor = params.doctor || {
+  name: 'Doctor',
+  title: 'Specialist',
+  status: 'Online',
+  videoUri: 'https://www.w3schools.com/html/mov_bbb.mp4',
+};
+
+const user = params.user || {
+  name: 'You',
+  videoUri: 'https://www.w3schools.com/html/mov_bbb.mp4',
+};
+
+const onEndCall =
+  params.onEndCall ||
+  (() => {
+    navigation.goBack();
+  });
+
   /* ---------- STATE ---------- */
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOn, setIsCameraOn] = useState(true);
