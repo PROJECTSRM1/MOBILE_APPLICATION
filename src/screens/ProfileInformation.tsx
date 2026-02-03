@@ -105,6 +105,7 @@ interface SwachifyProduct {
 
 type RootStackParamList = {
   AuthScreen: undefined;
+   Landing: undefined;
   ProfileInformation: undefined;
   Wishlist: undefined;
 };
@@ -649,14 +650,18 @@ const handleResumeImageUpload = () => {
       <StatusBar barStyle="light-content" backgroundColor="#101622" />
 
       {/* HEADER */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.headerIcon}>
-          <Icon name="arrow-back" size={24} color={colors.text} />
-        </TouchableOpacity>
+     <View style={styles.header}>
+  <TouchableOpacity
+    style={styles.headerIcon}
+    onPress={() => navigation.navigate("Landing")}   // 🔥 GO TO HOME
+  >
+    <Icon name="arrow-back" size={24} color={colors.text} />
+  </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>Profile Settings</Text>
-        <View style={styles.headerIcon} />
-      </View>
+  <Text style={styles.headerTitle}>Profile Settings</Text>
+  <View style={styles.headerIcon} />
+</View>
+
 
       <ScrollView
   showsVerticalScrollIndicator={false}
