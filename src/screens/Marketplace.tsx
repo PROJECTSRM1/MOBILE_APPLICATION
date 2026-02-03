@@ -118,9 +118,11 @@ const Marketplace = ({ navigation }: any) => {
   const [showPropertyTypeModal, setShowPropertyTypeModal] = useState(false);
   const [showDateModal, setShowDateModal] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
+  const [showSortModal, setShowSortModal] = useState(false);
   const [selectedPropertyType, setSelectedPropertyType] = useState('All');
   const [selectedDateFilter, setSelectedDateFilter] = useState('All Time');
   const [selectedRatingFilter, setSelectedRatingFilter] = useState('All Ratings');
+  const [selectedSortOption, setSelectedSortOption] = useState('Newest First');
   const [isWishlistActive, setIsWishlistActive] = useState(false);
   const [wishlistIds, setWishlistIds] = useState<string[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -158,6 +160,31 @@ const Marketplace = ({ navigation }: any) => {
     }
   };
 
+  const toggleWishlist = async (property: Property, e?: any) => {
+    if (e) {
+      e.stopPropagation();
+    }
+
+    try {
+      const storedWishlist = await AsyncStorage.getItem('marketplace_wishlist');
+      let wishlist: Property[] = storedWishlist ? JSON.parse(storedWishlist) : [];
+
+      const isCurrentlyWishlisted = wishlistIds.includes(property.id);
+
+      if (isCurrentlyWishlisted) {
+        wishlist = wishlist.filter(item => item.id !== property.id);
+        setWishlistIds(wishlistIds.filter(id => id !== property.id));
+      } else {
+        wishlist.push(property);
+        setWishlistIds([...wishlistIds, property.id]);
+      }
+
+      await AsyncStorage.setItem('marketplace_wishlist', JSON.stringify(wishlist));
+    } catch (error) {
+      Alert.alert("Error", "Could not update wishlist");
+    }
+  };
+
   const loadListings = async () => {
     try {
       const storedListings = await AsyncStorage.getItem('marketplace_listings');
@@ -186,7 +213,6 @@ const Marketplace = ({ navigation }: any) => {
             title = `${listing.propertyType} in ${listing.area || 'Unknown'}`;
           }
 
-          // Ensure images array exists and has at least one image
           const imagesArray = listing.images && Array.isArray(listing.images) && listing.images.length > 0 
             ? listing.images 
             : ['https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=500'];
@@ -195,9 +221,9 @@ const Marketplace = ({ navigation }: any) => {
             id: listing.id, 
             title: title || listing.propertyType,
             price: `₹${parseFloat(listing.price).toLocaleString('en-IN')}`,
-            image: imagesArray[0], // Always use first image from array
+            image: imagesArray[0],
             images: imagesArray, 
-            rating: 4.5 + Math.random() * 0.5,
+            rating: listing.rating || (4.0 + Math.random() * 1.0),
             distance: `${(Math.random() * 5).toFixed(1)} km away`,
             type: listing.propertyType, 
             propertyType: listing.propertyType,
@@ -322,7 +348,92 @@ const Marketplace = ({ navigation }: any) => {
     return 'All';
   };
 
-  const filteredProperties = properties.filter((property) => {
+  const smartSearch = (property: Property, query: string): boolean => {
+    const lowerQuery = query.toLowerCase().trim();
+    
+    if (!lowerQuery) return true;
+
+    // Direct property type matches
+    const propertyTypeLower = property.propertyType?.toLowerCase() || '';
+    if (propertyTypeLower.includes(lowerQuery)) return true;
+
+    // Category-based search
+    const vehicleTypes = ['bike', 'car', 'lorry', 'auto', 'bus'];
+    const houseTypes = ['villa', 'independent house'];
+    const commercialTypes = ['office', 'hospital', 'commercial space'];
+
+    if (lowerQuery === 'vehicle' || lowerQuery === 'vehicles') {
+      return vehicleTypes.includes(propertyTypeLower);
+    }
+    
+    if (lowerQuery === 'house' || lowerQuery === 'houses' || lowerQuery === 'home' || lowerQuery === 'homes') {
+      return houseTypes.includes(propertyTypeLower);
+    }
+    
+    if (lowerQuery === 'commercial') {
+      return commercialTypes.includes(propertyTypeLower);
+    }
+
+    // Search in title, area, location, brand, model, hotel name
+    const searchableFields = [
+      property.title,
+      property.area,
+      property.location,
+      property.brand,
+      property.model,
+      property.hotelName,
+      property.hostelType,
+      property.bhk,
+      property.landType
+    ].filter(Boolean).map(field => field?.toLowerCase());
+
+    return searchableFields.some(field => field?.includes(lowerQuery));
+  };
+
+  const sortProperties = (properties: Property[]): Property[] => {
+    const sorted = [...properties];
+
+    switch (selectedSortOption) {
+      case 'Newest First':
+        return sorted.sort((a, b) => {
+          const dateA = new Date(a.createdAt || 0).getTime();
+          const dateB = new Date(b.createdAt || 0).getTime();
+          return dateB - dateA;
+        });
+      
+      case 'Oldest First':
+        return sorted.sort((a, b) => {
+          const dateA = new Date(a.createdAt || 0).getTime();
+          const dateB = new Date(b.createdAt || 0).getTime();
+          return dateA - dateB;
+        });
+      
+      case 'Price: Low to High':
+        return sorted.sort((a, b) => {
+          const priceA = parseFloat(a.price.replace(/[₹,]/g, ''));
+          const priceB = parseFloat(b.price.replace(/[₹,]/g, ''));
+          return priceA - priceB;
+        });
+      
+      case 'Price: High to Low':
+        return sorted.sort((a, b) => {
+          const priceA = parseFloat(a.price.replace(/[₹,]/g, ''));
+          const priceB = parseFloat(b.price.replace(/[₹,]/g, ''));
+          return priceB - priceA;
+        });
+      
+      case 'Rating: High to Low':
+        return sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      
+      case 'Rating: Low to High':
+        return sorted.sort((a, b) => (a.rating || 0) - (b.rating || 0));
+      
+      default:
+        return sorted;
+    }
+  };
+
+  const filteredProperties = sortProperties(properties.filter((property) => {
     if (isWishlistActive && !wishlistIds.includes(property.id)) return false;
 
     const matchesTab = property.listingType === activeTab;
@@ -352,14 +463,33 @@ const Marketplace = ({ navigation }: any) => {
     const matchesRating = selectedRatingFilter === 'All Ratings' || 
       (property.rating && property.rating >= parseFloat(selectedRatingFilter.split('+')[0]));
     
-    const matchesSearch = searchQuery === '' || 
-      property.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      property.area?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      property.location?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      property.hotelName?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = smartSearch(property, searchQuery);
     
     return matchesTab && matchesCategory && matchesPropertyType && matchesDate && matchesRating && matchesSearch;
-  });
+  }));
+
+  // Auto-highlight category icon based on search
+  useEffect(() => {
+    const lowerQuery = searchQuery.toLowerCase().trim();
+    
+    if (lowerQuery === 'vehicle' || lowerQuery === 'vehicles') {
+      setSelectedCategory('Vehicle');
+    } else if (lowerQuery === 'house' || lowerQuery === 'houses' || lowerQuery === 'home' || lowerQuery === 'homes') {
+      setSelectedCategory('House');
+    } else if (lowerQuery === 'apartment' || lowerQuery === 'apartments') {
+      setSelectedCategory('Apartment');
+    } else if (lowerQuery === 'land') {
+      setSelectedCategory('Land');
+    } else if (lowerQuery === 'commercial') {
+      setSelectedCategory('Commercial');
+    } else if (lowerQuery === 'hostel' || lowerQuery === 'hostels') {
+      setSelectedCategory('Hostel');
+    } else if (lowerQuery === 'hotel' || lowerQuery === 'hotels') {
+      setSelectedCategory('Hotel');
+    } else if (!lowerQuery) {
+      // Don't auto-change if search is cleared
+    }
+  }, [searchQuery]);
 
   const handlePropertyTypeSelect = (propertyType: string) => {
     setSelectedPropertyType(propertyType);
@@ -500,7 +630,13 @@ const Marketplace = ({ navigation }: any) => {
       >
         <View style={styles.searchContainer}>
           <MaterialIcons name="search" size={20} color="#94a3b8" style={styles.searchIcon} />
-          <TextInput style={styles.searchInput} placeholder="Search homes, cars, land, hostels, hotels..." placeholderTextColor="#4b5563" value={searchQuery} onChangeText={setSearchQuery} />
+          <TextInput 
+            style={styles.searchInput} 
+            placeholder="Search: vehicles, apartments, hotels, land..." 
+            placeholderTextColor="#4b5563" 
+            value={searchQuery} 
+            onChangeText={setSearchQuery} 
+          />
         </View>
 
         <View style={styles.locationContainer}>
@@ -521,8 +657,8 @@ const Marketplace = ({ navigation }: any) => {
             { id: 'Land', icon: 'landscape', label: 'Land' },
             { id: 'Apartment', icon: 'apartment', label: 'Apartment' },
             { id: 'Vehicle', icon: 'directions-car', label: 'Vehicle' },
+            { id: 'Commercial', icon: 'business', label: 'Commercial' },
             { id: 'House', icon: 'home', label: 'House' },
-            { id: 'Commercial', icon: 'business', label: 'Commercial' }
           ].map((category) => (
             <TouchableOpacity key={category.id} style={[styles.categoryButton, selectedCategory === category.id && styles.activeCategoryButton]} onPress={() => setSelectedCategory(category.id)}>
               <MaterialIcons name={category.icon} size={18} color={selectedCategory === category.id ? '#fff' : '#94a3b8'} />
@@ -533,7 +669,10 @@ const Marketplace = ({ navigation }: any) => {
 
         <View style={styles.propertiesHeader}>
           <Text style={styles.propertiesTitle}>{filteredProperties.length} Properties Near You</Text>
-          <View style={styles.sortContainer}><MaterialIcons name="tune" size={16} color="#94a3b8" /><Text style={styles.sortText}>Sort</Text></View>
+          <TouchableOpacity style={styles.sortContainer} onPress={() => setShowSortModal(true)}>
+            <MaterialIcons name="tune" size={16} color="#94a3b8" />
+            <Text style={styles.sortText}>Sort</Text>
+          </TouchableOpacity>
         </View>
 
         {filteredProperties.length === 0 ? (
@@ -553,13 +692,16 @@ const Marketplace = ({ navigation }: any) => {
               >
                 <View style={styles.cardImage}>
                   <Image source={{ uri: property.image }} style={styles.image} />
-                  <View style={styles.favoriteButton}>
+                  <TouchableOpacity 
+                    style={styles.favoriteButton}
+                    onPress={(e) => toggleWishlist(property, e)}
+                  >
                     <MaterialIcons 
                       name={wishlistIds.includes(property.id) ? "favorite" : "favorite-border"} 
                       size={18} 
                       color={wishlistIds.includes(property.id) ? "#ef4444" : "#fff"} 
                     />
-                  </View>
+                  </TouchableOpacity>
                   {property.isUserListing && (
                     <TouchableOpacity 
                       style={styles.deleteButton}
@@ -639,6 +781,7 @@ const Marketplace = ({ navigation }: any) => {
       />
       <FilterModal visible={showDateModal} onClose={() => setShowDateModal(false)} options={['All Time', 'Today', 'Last 7 Days', 'Last 30 Days', 'Last 3 Months']} selectedValue={selectedDateFilter} onSelect={setSelectedDateFilter} title="Filter by Date" />
       <FilterModal visible={showRatingModal} onClose={() => setShowRatingModal(false)} options={['All Ratings', '4.5+ Stars', '4.0+ Stars', '3.5+ Stars', '3.0+ Stars']} selectedValue={selectedRatingFilter} onSelect={setSelectedRatingFilter} title="Filter by Rating" />
+      <FilterModal visible={showSortModal} onClose={() => setShowSortModal(false)} options={['Newest First', 'Oldest First', 'Price: Low to High', 'Price: High to Low', 'Rating: High to Low', 'Rating: Low to High']} selectedValue={selectedSortOption} onSelect={setSelectedSortOption} title="Sort By" />
       <DeleteConfirmationModal />
     </SafeAreaView>
   );
@@ -670,7 +813,7 @@ const getStyles = (colors: any) =>
     locationIconContainer: { backgroundColor: colors.primary + "1A", padding: 6, borderRadius: 8 },
     locationLabel: { fontSize: 10, fontWeight: "700", color: colors.subText, letterSpacing: 1 },
     locationText: { fontSize: 14, fontWeight: "800", color: colors.text },
-    categoryScroll: { paddingHorizontal: 16, marginBottom: 32 },
+    categoryScroll: { paddingHorizontal: 8, marginBottom: 32 },
     categoryButton: { flexDirection: "row", alignItems: "center", height: 40, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 16, borderRadius: 12, marginRight: 8, gap: 8 },
     activeCategoryButton: { backgroundColor: colors.primary, borderColor: colors.primary },
     categoryText: { fontSize: 12, fontWeight: "700", color: colors.subText },
