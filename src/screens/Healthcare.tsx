@@ -13,6 +13,7 @@ import {
   Alert,
   Animated,
   ActivityIndicator,
+  TouchableWithoutFeedback, Keyboard
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
@@ -472,31 +473,47 @@ const DoctorListScreen = () => {
   const filteredSuggestions = getFilteredSuggestions();
 
   // Get data based on consultation type and service type
-  const getAvailableData = (): ServiceItem[] => {
-    if (consultationType === 'Offline') {
-      if (serviceType === 'Doctor' || serviceType === 'Complete Treatment') {
-        return hospitals;
-      } else if (serviceType === 'Labs') {
-        return labs;
-      } else if (serviceType === 'Medical Store') {
-        return pharmacies;
-      }
+const getAvailableData = (): ServiceItem[] => {
+  // 🔹 OFFLINE MODE
+  if (consultationType === 'Offline') {
+    if (serviceType === 'Doctor') {
+      // OFFLINE doctor → show SAME doctors list as online
+      return doctors;
     }
 
-    if (consultationType === 'Online') {
-      if (serviceType === 'Doctor') {
-        return doctors;
-      } else if (serviceType === 'Labs') {
-        return labs;
-      } else if (serviceType === 'Medical Store') {
-        return pharmacies;
-      } else if (serviceType === 'Complete Treatment') {
-        return hospitals;
-      }
-    }
+    if (serviceType === 'Labs') return labs;
+    if (serviceType === 'Medical Store') return pharmacies;
+    if (serviceType === 'Complete Treatment') return hospitals;
+  }
 
-    return doctors;
-  };
+  // 🔹 ONLINE MODE
+  if (consultationType === 'Online') {
+    if (serviceType === 'Doctor') return doctors;
+    if (serviceType === 'Labs') return labs;
+    if (serviceType === 'Medical Store') return pharmacies;
+    if (serviceType === 'Complete Treatment') return hospitals;
+  }
+
+  return [];
+};
+
+const isBookingAllowed = (item: ServiceItem) => {
+  // ❌ Offline doctor list → NO booking
+  if (consultationType === 'Offline' && serviceType === 'Doctor') {
+    return false;
+  }
+
+  // ❌ Offline labs & medical store → NO booking
+  if (
+    consultationType === 'Offline' &&
+    (item.type === 'lab' || item.type === 'store')
+  ) {
+    return false;
+  }
+
+  return true; // ✅ everything else allowed
+};
+
 
   const symptomToSpecialtyMap: Record<string, string[]> = {
     fever: ['General Practitioner'],
@@ -864,6 +881,13 @@ Ambulance: ${wantsAmbulance === 'yes' ? `Yes (Pickup: ${pickupTime})` : 'No'}`,
   };
 
   return (
+     <TouchableWithoutFeedback
+    onPress={() => {
+      Keyboard.dismiss();
+      setShowConsultationDropdown(false);
+      setShowServiceDropdown(false);
+    }}
+  >
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fafaf9" />
       
@@ -1178,14 +1202,31 @@ Ambulance: ${wantsAmbulance === 'yes' ? `Yes (Pickup: ${pickupTime})` : 'No'}`,
                             ? `₹${item.price}${item.type === 'doctor' || item.type === 'hospital' ? '/hr' : ''}` 
                             : 'Contact for price'}
                         </Text>
-                        <TouchableOpacity 
-                          style={styles.bookButton}
-                          onPress={() => handleBookNow(item)}
-                        >
-                          <Text style={styles.bookButtonText}>
-                            {item.type === 'store' ? 'Order' : item.type === 'lab' ? 'Book Test' : 'Book Now'}
-                          </Text>
-                        </TouchableOpacity>
+                        {!(
+                          consultationType === 'Offline' &&
+                          (serviceType === 'Doctor' ||
+                            item.type === 'lab' ||
+                            item.type === 'store')
+                        ) ? (
+                          <TouchableOpacity
+                            style={styles.bookButton}
+                            onPress={() => handleBookNow(item)}
+                          >
+                            <Text style={styles.bookButtonText}>
+                              {item.type === 'store'
+                                ? 'Order'
+                                : item.type === 'lab'
+                                ? 'Book Test'
+                                : 'Book Now'}
+                            </Text>
+                          </TouchableOpacity>
+                        ) : (
+                          <View style={[styles.bookButton, { backgroundColor: '#e5e7eb' }]}>
+                            <Text style={[styles.bookButtonText, { color: '#9ca3af' }]}>
+                              View Only
+                            </Text>
+                          </View>
+                        )}
                       </View>
                     </View>
                   </TouchableOpacity>
@@ -1745,6 +1786,7 @@ Ambulance: ${wantsAmbulance === 'yes' ? `Yes (Pickup: ${pickupTime})` : 'No'}`,
         </View>
       </Modal>
     </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 };
 
