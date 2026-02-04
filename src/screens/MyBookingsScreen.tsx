@@ -29,6 +29,8 @@ interface Booking {
   time: string;
   status: BookingStatus;
   currentStep: number;
+  appointmentTimestamp: number;   // NEW
+  callJoined: boolean; 
 }
 
 // ---------------- STEPS ----------------
@@ -185,18 +187,23 @@ else if (item.call_booking_status === 'Lab Tests') {
   step = 3;
 }
 
+const appointmentTs = new Date(item.appointment_time).getTime();
+
 return {
   id: item.id,
-  doctor: item.doctor_name || 'Doctor',
+  doctor: item.doctor?.name || 'Doctor',
   date,
   time,
 
   status:
-    new Date(item.appointment_time).getTime() < Date.now()
+    appointmentTs < Date.now()
       ? 'completed'
       : 'upcoming',
 
   currentStep: step,
+
+  appointmentTimestamp: appointmentTs,   // NEW
+  callJoined: step > 0,                   // if already consulted, disable
 };
       });
 
@@ -253,16 +260,23 @@ return {
 
   // ---------------- HANDLE JOIN CALL ----------------
   const handleJoinCall = async (appointmentId: number) => {
-    console.log("🎥 Join Call clicked for booking:", appointmentId);
+  console.log("🎥 Join Call clicked for booking:", appointmentId);
 
-    // Update the status first
-    const updated = await updateBookingStatus(appointmentId);
+  const updated = await updateBookingStatus(appointmentId);
 
-    if (updated) {
-      // Navigate to video call screen
-      (navigation as any).navigate('VideoCall');
-    }
-  };
+  if (updated) {
+    setBookings(prev =>
+      prev.map(b =>
+        b.id === appointmentId
+          ? { ...b, callJoined: true, currentStep: 1 }
+          : b
+      )
+    );
+
+    (navigation as any).navigate('VideoCall');
+  }
+};
+
 
   // ---------------- TRACKER ----------------
   const renderTracker = (currentStep: number) => {
@@ -353,7 +367,11 @@ return {
             showsVerticalScrollIndicator={false}
             renderItem={({ item }) => {
               const isCompleted = item.status === 'completed';
+              const now = Date.now();
 
+              const isBeforeTime = now < item.appointmentTimestamp;
+              const isJoinDisabled =
+                isCompleted || isBeforeTime || item.callJoined;
               return (
                 <View
                   style={[styles.card, isCompleted && styles.completedCard]}
@@ -386,17 +404,23 @@ return {
                   </View>
 
                   <TouchableOpacity
-                    style={[
-                      styles.actionBtn,
-                      isCompleted
-                        ? styles.disabledBtn
-                        : styles.joinBtn,
-                    ]}
-                    disabled={isCompleted}
-                    onPress={() => handleJoinCall(item.id)}
-                  >
+                      style={[
+                        styles.actionBtn,
+                        isJoinDisabled
+                          ? styles.disabledBtn
+                          : styles.joinBtn,
+                      ]}
+                      disabled={isJoinDisabled}
+                      onPress={() => handleJoinCall(item.id)}
+                    >
                     <Text style={styles.btnText}>
-                      {isCompleted ? 'Call Ended' : 'Join Call'}
+                      {item.callJoined
+                        ? 'Call Joined'
+                        : isBeforeTime
+                        ? 'Not Started'
+                        : isCompleted
+                        ? 'Call Ended'
+                        : 'Join Call'}
                     </Text>
                   </TouchableOpacity>
 

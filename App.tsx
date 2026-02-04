@@ -207,7 +207,8 @@ const Stack = createNativeStackNavigator();
 /* ================= NAV WRAPPER ================= */
 function AppNavigator() {
   const { navigationTheme } = useTheme();
-  const [initialRoute, setInitialRoute] = useState<string | null>(null);
+  const [initialRoute, setInitialRoute] = useState<string>("Splash");
+
 
   useEffect(() => {
     const checkLogin = async () => {
@@ -217,12 +218,12 @@ function AppNavigator() {
     checkLogin();
   }, []);
 
-  if (!initialRoute) return null; // or splash loader
-
   return (
     <NavigationContainer theme={navigationTheme}>
-      <Stack.Navigator initialRouteName={initialRoute as any} screenOptions={{ headerShown: false }}>
-
+      <Stack.Navigator
+  initialRouteName="Splash"
+  screenOptions={{ headerShown: false }}
+>
         <Stack.Screen name="Splash" component={Splash} />
         <Stack.Screen name="Onboarding" component={Onboarding} />
         <Stack.Screen name="Internship" component={InternshipDetailsScreen} />
