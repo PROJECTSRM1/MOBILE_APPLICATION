@@ -10,6 +10,7 @@ import {
   Image,
   ActivityIndicator,
   Alert,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -45,7 +46,8 @@ const InstitutionStudents = () => {
   const [sortBy, setSortBy] = useState<'name' | 'year' | 'id'>('name');
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
-  const [visibleStudents, setVisibleStudents] = useState(10);
+  const [visibleStudents, setVisibleStudents] = useState(20); // Initial load: 20 students
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
 
   // Fetch students from backend
   useEffect(() => {
@@ -81,12 +83,17 @@ const InstitutionStudents = () => {
         const formatted: Student[] = studentList.map((item: any, index: number) => {
           // Extract first name for initials
           const fullName = item.student_name || 'Unknown';
-          const nameParts = fullName.split(' ');
-          const initials = nameParts
-            .slice(0, 2)
-            .map((n: string) => n[0])
-            .join('')
-            .toUpperCase();
+          const nameParts = fullName.trim().split(' ');
+          
+          // Get first two initials from name parts
+          let initials = '';
+          if (nameParts.length >= 2) {
+            initials = (nameParts[0][0] + nameParts[1][0]).toUpperCase();
+          } else if (nameParts.length === 1) {
+            initials = nameParts[0].substring(0, 2).toUpperCase();
+          } else {
+            initials = 'NA';
+          }
 
           return {
             id: item.student_id?.toString() || index.toString(),
@@ -99,7 +106,7 @@ const InstitutionStudents = () => {
             attendance: item.attendance || '—',
             backlogs: item.backlogs?.toString() || '0',
             avatar: item.profile_image_url || undefined,
-            initials: initials || 'NA',
+            initials: initials,
             color: ['#64748b', '#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'][index % 6],
           };
         });
@@ -133,9 +140,12 @@ const InstitutionStudents = () => {
 
   // Display limited students
   const displayedStudents = sortedStudents.slice(0, visibleStudents);
+  const remainingStudents = sortedStudents.length - visibleStudents;
+  const hasMoreStudents = remainingStudents > 0;
 
   const loadMoreStudents = () => {
-    setVisibleStudents((prev) => Math.min(prev + 10, sortedStudents.length));
+    // Load 20 more students at a time
+    setVisibleStudents((prev) => Math.min(prev + 20, sortedStudents.length));
   };
 
   const handleSortToggle = () => {
@@ -161,6 +171,24 @@ const InstitutionStudents = () => {
     });
   };
 
+  // Handle filter button click
+  const handleFilterPress = () => {
+    setShowFilterMenu(true);
+  };
+
+  // Apply filter
+  const applyFilter = (filterType: 'name' | 'year' | 'id') => {
+    setSortBy(filterType);
+    setShowFilterMenu(false);
+    // Reset visible students when filter changes
+    setVisibleStudents(20);
+  };
+
+  // Reset visible students when search changes
+  useEffect(() => {
+    setVisibleStudents(20);
+  }, [searchQuery]);
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <StatusBar
@@ -181,16 +209,13 @@ const InstitutionStudents = () => {
           {branchName || `Branch ${branchId}`}
         </Text>
 
-        {/* Three dots menu - placeholder for future functionality */}
+        {/* Filter button */}
         <TouchableOpacity 
-  style={styles.filterButton}
-  onPress={() => {
-    // Future: Add filter/sort options menu
-    Alert.alert('Coming Soon', 'Advanced filters will be available soon');
-  }}
->
-  <Icon name="tune" size={24} color={colors.text} />
-</TouchableOpacity>
+          style={styles.filterButton}
+          onPress={handleFilterPress}
+        >
+          <Icon name="tune" size={24} color={colors.text} />
+        </TouchableOpacity>
       </View>
 
       {/* Search Bar */}
@@ -214,6 +239,11 @@ const InstitutionStudents = () => {
       <View style={styles.studentsHeader}>
         <Text style={styles.studentCount}>
           STUDENTS ({filteredStudents.length})
+          {filteredStudents.length > visibleStudents && (
+            <Text style={styles.studentCountSubtext}>
+              {' '}• Showing {visibleStudents}
+            </Text>
+          )}
         </Text>
         <TouchableOpacity onPress={handleSortToggle}>
           <Text style={styles.sortButton}>{getSortLabel()}</Text>
@@ -250,6 +280,7 @@ const InstitutionStudents = () => {
                 activeOpacity={0.7}
                 onPress={() => handleStudentClick(student)}
               >
+                {/* Avatar with proper initials display */}
                 {student.avatar ? (
                   <Image 
                     source={{ uri: student.avatar }} 
@@ -281,21 +312,139 @@ const InstitutionStudents = () => {
               </TouchableOpacity>
             ))}
 
-            {/* Load More Button */}
-            {visibleStudents < sortedStudents.length && (
+            {/* Load More Button - Optimized for large lists */}
+            {hasMoreStudents && (
               <TouchableOpacity
                 style={styles.loadMoreButton}
                 onPress={loadMoreStudents}
+                activeOpacity={0.7}
               >
-                <Icon name="refresh" size={18} color={colors.primary} />
-                <Text style={styles.loadMoreText}>
-                  Load More ({sortedStudents.length - visibleStudents} remaining)
-                </Text>
+                <View style={styles.loadMoreContent}>
+                  <Icon name="expand-more" size={24} color={colors.primary} />
+                  <View style={styles.loadMoreTextContainer}>
+                    <Text style={styles.loadMoreText}>Load More Students</Text>
+                    <Text style={styles.loadMoreSubtext}>
+                      {remainingStudents} more student{remainingStudents !== 1 ? 's' : ''} available
+                    </Text>
+                  </View>
+                </View>
               </TouchableOpacity>
+            )}
+
+            {/* All Loaded Message */}
+            {!hasMoreStudents && sortedStudents.length > 20 && (
+              <View style={styles.allLoadedContainer}>
+                <Icon name="check-circle" size={20} color={colors.primary} />
+                <Text style={styles.allLoadedText}>
+                  All {sortedStudents.length} students loaded
+                </Text>
+              </View>
             )}
           </>
         )}
       </ScrollView>
+
+      {/* Filter Menu Modal */}
+      <Modal
+        visible={showFilterMenu}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowFilterMenu(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowFilterMenu(false)}
+        >
+          <View style={styles.filterMenuContainer}>
+            <View style={styles.filterMenuHeader}>
+              <Text style={styles.filterMenuTitle}>Sort & Filter</Text>
+              <TouchableOpacity onPress={() => setShowFilterMenu(false)}>
+                <Icon name="close" size={24} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.filterMenuContent}>
+              <Text style={styles.filterSectionTitle}>SORT BY</Text>
+              
+              <TouchableOpacity
+                style={[
+                  styles.filterOption,
+                  sortBy === 'name' && styles.filterOptionActive,
+                ]}
+                onPress={() => applyFilter('name')}
+              >
+                <Icon
+                  name="sort-by-alpha"
+                  size={22}
+                  color={sortBy === 'name' ? colors.primary : colors.subText}
+                />
+                <Text
+                  style={[
+                    styles.filterOptionText,
+                    sortBy === 'name' && styles.filterOptionTextActive,
+                  ]}
+                >
+                  Name (A-Z)
+                </Text>
+                {sortBy === 'name' && (
+                  <Icon name="check" size={22} color={colors.primary} />
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.filterOption,
+                  sortBy === 'year' && styles.filterOptionActive,
+                ]}
+                onPress={() => applyFilter('year')}
+              >
+                <Icon
+                  name="calendar-today"
+                  size={22}
+                  color={sortBy === 'year' ? colors.primary : colors.subText}
+                />
+                <Text
+                  style={[
+                    styles.filterOptionText,
+                    sortBy === 'year' && styles.filterOptionTextActive,
+                  ]}
+                >
+                  Academic Year
+                </Text>
+                {sortBy === 'year' && (
+                  <Icon name="check" size={22} color={colors.primary} />
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.filterOption,
+                  sortBy === 'id' && styles.filterOptionActive,
+                ]}
+                onPress={() => applyFilter('id')}
+              >
+                <Icon
+                  name="badge"
+                  size={22}
+                  color={sortBy === 'id' ? colors.primary : colors.subText}
+                />
+                <Text
+                  style={[
+                    styles.filterOptionText,
+                    sortBy === 'id' && styles.filterOptionTextActive,
+                  ]}
+                >
+                  Student ID
+                </Text>
+                {sortBy === 'id' && (
+                  <Icon name="check" size={22} color={colors.primary} />
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -373,6 +522,11 @@ const getStyles = (colors: any) =>
       color: colors.subText,
       letterSpacing: 0.5,
     },
+    studentCountSubtext: {
+      fontSize: 11,
+      fontWeight: '500',
+      color: colors.placeholder,
+    },
     sortButton: {
       fontSize: 13,
       fontWeight: '600',
@@ -429,7 +583,7 @@ const getStyles = (colors: any) =>
     studentInitials: {
       fontSize: 16,
       fontWeight: '700',
-      color: '#ffffff',
+      color: '#FFFFFF',
     },
     studentInfo: {
       flex: 1,
@@ -458,21 +612,45 @@ const getStyles = (colors: any) =>
       color: colors.primary,
     },
     loadMoreButton: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingVertical: 16,
-      marginTop: 8,
-      marginBottom: 16,
-      gap: 8,
       backgroundColor: colors.card,
       borderRadius: 12,
+      marginTop: 8,
+      marginBottom: 16,
       borderWidth: 1,
       borderColor: colors.border,
+      overflow: 'hidden',
+    },
+    loadMoreContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 16,
+      paddingHorizontal: 16,
+      gap: 12,
+    },
+    loadMoreTextContainer: {
+      alignItems: 'center',
     },
     loadMoreText: {
       fontSize: 15,
       fontWeight: '600',
+      color: colors.primary,
+      marginBottom: 2,
+    },
+    loadMoreSubtext: {
+      fontSize: 12,
+      color: colors.subText,
+    },
+    allLoadedContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 16,
+      gap: 8,
+    },
+    allLoadedText: {
+      fontSize: 14,
+      fontWeight: '500',
       color: colors.primary,
     },
     emptyState: {
@@ -492,5 +670,66 @@ const getStyles = (colors: any) =>
       color: colors.placeholder,
       textAlign: 'center',
       paddingHorizontal: 32,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'flex-end',
+    },
+    filterMenuContainer: {
+      backgroundColor: colors.card,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      paddingBottom: 40,
+    },
+    filterMenuHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    filterMenuTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    filterMenuContent: {
+      paddingHorizontal: 20,
+      paddingTop: 20,
+    },
+    filterSectionTitle: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: colors.subText,
+      letterSpacing: 0.5,
+      marginBottom: 12,
+    },
+    filterOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 16,
+      paddingHorizontal: 16,
+      borderRadius: 12,
+      marginBottom: 8,
+      backgroundColor: colors.background,
+      gap: 12,
+    },
+    filterOptionActive: {
+      backgroundColor: colors.primary + '15',
+      borderWidth: 1,
+      borderColor: colors.primary,
+    },
+    filterOptionText: {
+      flex: 1,
+      fontSize: 16,
+      fontWeight: '500',
+      color: colors.text,
+    },
+    filterOptionTextActive: {
+      color: colors.primary,
+      fontWeight: '600',
     },
   });
