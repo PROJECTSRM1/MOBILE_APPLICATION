@@ -4,13 +4,13 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
-  SafeAreaView,
   Alert,
   Image,
   StatusBar,
 } from 'react-native';
 import RazorpayCheckout from 'react-native-razorpay';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const BASE_URL = 'https://swachify-india-be-1-mcrb.onrender.com';
 const RAZORPAY_KEY = 'rzp_test_RnpmMY4LPogJ7J';

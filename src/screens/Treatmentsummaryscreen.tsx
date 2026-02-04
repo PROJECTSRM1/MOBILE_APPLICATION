@@ -7,7 +7,6 @@ import {
   Image,
   StyleSheet,
   StatusBar,
-  SafeAreaView,
   Alert,
   Platform,
   PermissionsAndroid,
@@ -16,6 +15,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { captureRef } from 'react-native-view-shot';
 import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const TreatmentSummaryScreen = () => {
   const [rating, setRating] = useState(4);

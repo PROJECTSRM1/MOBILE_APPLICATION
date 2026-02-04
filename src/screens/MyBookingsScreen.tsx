@@ -5,14 +5,15 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
   Dimensions,
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
@@ -44,31 +45,121 @@ const MyBookingsScreen = () => {
 
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(false);
+  const [userId, setUserId] = useState<number | null>(null);
+
+  // ---------------- GET USER ID FROM ASYNCSTORAGE ----------------
+  useEffect(() => {
+    getUserId();
+  }, []);
+
+  // Reload data when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      if (userId) {
+        fetchBookings();
+      }
+    }, [userId])
+  );
+
+  const getUserId = async () => {
+    console.log("=== FETCHING USER ID FROM ASYNCSTORAGE (MyBookings) ===");
+    
+    try {
+      // Try multiple sources to get user ID
+      const userData = await AsyncStorage.getItem("userData");
+      const userProfile = await AsyncStorage.getItem("userProfile");
+      
+      console.log("📦 User Data from AsyncStorage:", userData);
+      console.log("📦 User Profile from AsyncStorage:", userProfile);
+
+      if (userData) {
+        const parsed = JSON.parse(userData);
+        console.log("👤 Parsed User Data:", parsed);
+        
+        // Handle different response structures
+        if (parsed.user && parsed.user.id) {
+          setUserId(parsed.user.id);
+          console.log("✅ User ID found (user.id):", parsed.user.id);
+        } else if (parsed.id) {
+          setUserId(parsed.id);
+          console.log("✅ User ID found (id):", parsed.id);
+        } else if (parsed.user_id) {
+          setUserId(parsed.user_id);
+          console.log("✅ User ID found (user_id):", parsed.user_id);
+        } else {
+          console.log("⚠️ User ID not found in userData");
+        }
+      } else if (userProfile) {
+        const parsed = JSON.parse(userProfile);
+        console.log("👤 Parsed User Profile:", parsed);
+        
+        if (parsed.id) {
+          setUserId(parsed.id);
+          console.log("✅ User ID found in profile:", parsed.id);
+        } else {
+          console.log("⚠️ User ID not found in userProfile");
+        }
+      } else {
+        console.log("❌ No user data found in AsyncStorage");
+      }
+    } catch (error) {
+      console.error("❌ Error fetching user ID:", error);
+    }
+    
+    console.log("=== USER ID FETCH COMPLETED (MyBookings) ===\n");
+  };
 
   // ---------------- FETCH BOOKINGS ----------------
   useEffect(() => {
-    fetchBookings();
-  }, []);
+    if (userId) {
+      fetchBookings();
+    }
+  }, [userId]);
 
   const fetchBookings = async () => {
+    console.log("=== FETCHING BOOKINGS ===");
+    
+    if (!userId) {
+      console.log("❌ User ID not available, cannot fetch bookings");
+      Alert.alert(
+        'Error',
+        'User information not found. Please login again.',
+        [
+          {
+            text: 'OK',
+            onPress: () => (navigation as any).navigate('AuthScreen')
+          }
+        ]
+      );
+      return;
+    }
+
+    console.log("✅ User ID available:", userId);
+
     try {
       setLoading(true);
 
-      const response = await fetch(
-        `${API_BASE_URL}/healthcare/appointments/user/1`
-      );
+      const apiUrl = `${API_BASE_URL}/healthcare/appointments/user/${userId}`;
+      console.log("🌐 API URL:", apiUrl);
+      console.log("🚀 Starting API call...");
+
+      const response = await fetch(apiUrl);
+
+      console.log("📡 Response Status:", response.status);
+      console.log("📡 Response OK:", response.ok);
 
       if (!response.ok) {
         const text = await response.text();
+        console.log("❌ Error Response:", text);
         throw new Error(text);
       }
 
       const data = await response.json();
+      console.log("📥 Response Data:", JSON.stringify(data, null, 2));
 
       // Transform API → UI model
       const formatted: Booking[] = data.map((item: any) => {
-        const dt = new Date(item.appointment_time + "Z");
-
+        const dt = new Date(item.appointment_time);
 
         const date = dt.toLocaleDateString('en-IN', {
           day: '2-digit',
@@ -82,25 +173,94 @@ const MyBookingsScreen = () => {
           hour12: true,
         });
 
-        return {
-          id: item.id,
-          doctor: item.doctor_name || 'Doctor',
-          date,
-          time,
-          status:
-            new Date(item.appointment_time) < new Date()
-              ? 'completed'
-              : 'upcoming',
-          currentStep: 0,
-        };
+        let step = 0;
+
+if (item.call_booking_status === 'Consulted') {
+  step = 1;
+}
+else if (item.call_booking_status === 'Medications') {
+  step = 2;
+}
+else if (item.call_booking_status === 'Lab Tests') {
+  step = 3;
+}
+
+return {
+  id: item.id,
+  doctor: item.doctor_name || 'Doctor',
+  date,
+  time,
+
+  status:
+    new Date(item.appointment_time).getTime() < Date.now()
+      ? 'completed'
+      : 'upcoming',
+
+  currentStep: step,
+};
       });
 
+      console.log("✅ Bookings formatted:", formatted.length, "items");
       setBookings(formatted);
     } catch (error: any) {
-      console.log('Fetch bookings error:', error);
+      console.error('❌ Fetch bookings error:', error);
       Alert.alert('Error', 'Unable to load bookings');
     } finally {
       setLoading(false);
+      console.log("=== FETCH BOOKINGS COMPLETED ===\n");
+    }
+  };
+
+  // ---------------- UPDATE BOOKING STATUS ----------------
+  const updateBookingStatus = async (appointmentId: number) => {
+    console.log("=== UPDATING BOOKING STATUS ===");
+    console.log("📝 Appointment ID:", appointmentId);
+
+    try {
+      const apiUrl = `${API_BASE_URL}/healthcare/appointments/${appointmentId}/call-booking-status?call_booking_status=Consulted`;
+      console.log("🌐 API URL:", apiUrl);
+      console.log("🚀 Starting PATCH request...");
+
+      const response = await fetch(apiUrl, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      console.log("📡 Response Status:", response.status);
+      console.log("📡 Response OK:", response.ok);
+
+      if (!response.ok) {
+        const text = await response.text();
+        console.log("❌ Error Response:", text);
+        throw new Error(text);
+      }
+
+      const data = await response.json();
+      console.log("📥 Update Response Data:", JSON.stringify(data, null, 2));
+      console.log("✅ Booking status updated successfully");
+
+      return true;
+    } catch (error: any) {
+      console.error('❌ Update booking status error:', error);
+      Alert.alert('Error', 'Failed to update booking status');
+      return false;
+    } finally {
+      console.log("=== UPDATE BOOKING STATUS COMPLETED ===\n");
+    }
+  };
+
+  // ---------------- HANDLE JOIN CALL ----------------
+  const handleJoinCall = async (appointmentId: number) => {
+    console.log("🎥 Join Call clicked for booking:", appointmentId);
+
+    // Update the status first
+    const updated = await updateBookingStatus(appointmentId);
+
+    if (updated) {
+      // Navigate to video call screen
+      (navigation as any).navigate('VideoCall');
     }
   };
 
@@ -162,11 +322,29 @@ const MyBookingsScreen = () => {
 
       <View style={styles.container}>
         <View style={styles.header}>
+          <TouchableOpacity 
+            onPress={() => navigation.goBack()} 
+            style={styles.backButton}
+          >
+            <MaterialIcons name="arrow-back" size={24} color="#000" />
+          </TouchableOpacity>
           <Text style={styles.headerTitle}>My Bookings</Text>
+          <View style={{ width: 40 }} />
         </View>
 
         {loading ? (
-          <ActivityIndicator size="large" color="#2563eb" />
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#2563eb" />
+            <Text style={styles.loadingText}>Loading bookings...</Text>
+          </View>
+        ) : bookings.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <MaterialIcons name="event-busy" size={64} color="#cbd5e1" />
+            <Text style={styles.emptyTitle}>No Bookings Yet</Text>
+            <Text style={styles.emptyText}>
+              You haven't made any appointments yet
+            </Text>
+          </View>
         ) : (
           <FlatList
             data={bookings}
@@ -215,9 +393,7 @@ const MyBookingsScreen = () => {
                         : styles.joinBtn,
                     ]}
                     disabled={isCompleted}
-                    onPress={() =>
-                      (navigation as any).navigate('VideoCall')
-                    }
+                    onPress={() => handleJoinCall(item.id)}
                   >
                     <Text style={styles.btnText}>
                       {isCompleted ? 'Call Ended' : 'Join Call'}
@@ -234,195 +410,214 @@ const MyBookingsScreen = () => {
 
       {/* Bottom Nav */}
       <View style={styles.bottomNav}>
-        <MaterialIcons name="home" size={24} color="#94a3b8" />
+        <TouchableOpacity onPress={() => (navigation as any).navigate('Landing')}>
+          <MaterialIcons name="home" size={24} color="#94a3b8" />
+        </TouchableOpacity>
         <MaterialIcons name="calendar-month" size={24} color="#2563eb" />
         <MaterialIcons name="chat-bubble" size={24} color="#94a3b8" />
-        <MaterialIcons name="person" size={24} color="#94a3b8" />
+        <TouchableOpacity onPress={() => (navigation as any).navigate('ProfileInformation')}>
+          <MaterialIcons name="person" size={24} color="#94a3b8" />
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 };
 
-export default MyBookingsScreen;
-
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#f8fafc',
   },
   container: {
     flex: 1,
   },
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e2e8f0',
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#0F172A',
-    letterSpacing: -0.5,
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#0f172a',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#64748b',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#0f172a',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: '#64748b',
+    textAlign: 'center',
   },
   listContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 100,
-    paddingTop: 10,
+    padding: 16,
+    paddingBottom: 80,
   },
   card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 28,
-    padding: 20,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
-    // Shadow for iOS
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 12,
-    // Elevation for Android
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
   },
   completedCard: {
-    opacity: 0.9,
+    opacity: 0.8,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 20,
+    marginBottom: 12,
   },
   doctorName: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
-    color: '#0F172A',
-  },
-  textStrikethrough: {
-    textDecorationLine: 'line-through',
-    color: '#94a3b8',
+    color: '#0f172a',
+    marginBottom: 6,
   },
   dateTimeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 6,
+    gap: 6,
   },
   dateTimeText: {
-    marginLeft: 6,
     fontSize: 14,
     color: '#64748b',
-    fontWeight: '500',
   },
   completedBadge: {
-    backgroundColor: '#ecfdf5',
+    backgroundColor: '#dcfce7',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
   },
   completedBadgeText: {
-    color: '#059669',
-    fontSize: 10,
-    fontWeight: '800',
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#16a34a',
   },
   actionBtn: {
-    paddingVertical: 16,
-    borderRadius: 18,
+    borderRadius: 12,
+    paddingVertical: 12,
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 16,
   },
   joinBtn: {
     backgroundColor: '#2563eb',
-    shadowColor: '#2563eb',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
   },
   disabledBtn: {
-    backgroundColor: '#f1f5f9',
+    backgroundColor: '#e2e8f0',
   },
   btnText: {
-    color: '#fff',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
+    color: '#fff',
   },
-  // --- Tracker Styles ---
   trackerContainer: {
-    height: 60,
-    justifyContent: 'center',
-    paddingHorizontal: 5,
+    position: 'relative',
+    marginTop: 8,
   },
   progressLineBase: {
     position: 'absolute',
-    top: 18,
+    top: 20,
     left: 20,
     right: 20,
-    height: 4,
-    backgroundColor: '#f1f5f9',
-    borderRadius: 2,
+    height: 2,
+    backgroundColor: '#e2e8f0',
   },
   progressLineActive: {
     position: 'absolute',
-    top: 18,
+    top: 20,
     left: 20,
-    height: 4,
+    height: 2,
     backgroundColor: '#2563eb',
-    borderRadius: 2,
   },
   stepsWrapper: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    paddingHorizontal: 8,
   },
   stepItem: {
     alignItems: 'center',
-    width: (width - 80) / 4, // Dynamic width based on screen
+    width: width / 5,
   },
   stepCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#e2e8f0',
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 2,
-    borderWidth: 2,
-    borderColor: 'transparent',
+    marginBottom: 8,
   },
   stepCircleCompleted: {
     backgroundColor: '#2563eb',
   },
   stepCircleActive: {
-    backgroundColor: '#fff',
-    borderColor: '#2563eb',
-    borderWidth: 2,
-  },
-  stepCirclePending: {
-    backgroundColor: '#f8fafc',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
+    backgroundColor: '#2563eb',
   },
   stepLabel: {
-    fontSize: 10,
-    fontWeight: '600',
+    fontSize: 11,
     color: '#94a3b8',
-    marginTop: 8,
     textAlign: 'center',
+    fontWeight: '500',
   },
   stepLabelActive: {
     color: '#2563eb',
-    fontWeight: '700',
+    fontWeight: '600',
   },
   bottomNav: {
     position: 'absolute',
     bottom: 0,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
-    width: '100%',
-    height: 80,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderColor: '#f1f5f9',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingBottom: 20,
-  }
+    backgroundColor: '#fff',
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 5,
+  },
 });
+
+export default MyBookingsScreen;
