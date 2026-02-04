@@ -9,6 +9,7 @@ import {
   StatusBar,
   Image,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -20,6 +21,11 @@ interface Student {
   name: string;
   studentId: string;
   year: number;
+  fatherName?: string;
+  admissionDate?: string;
+  currentSgpa?: string;
+  attendance?: string;
+  backlogs?: string;
   avatar?: string;
   initials: string;
   color: string;
@@ -31,61 +37,78 @@ const InstitutionStudents = () => {
   const { colors, lightMode } = useTheme();
   const styles = getStyles(colors);
 
-  //  Branch ID from previous screen (or default 1)
- const branchId = route?.params?.branchId;
- console.log("📌 Received branchId:", branchId);
-
-
+  // Branch ID from previous screen
+  const branchId = route?.params?.branchId;
+  const branchName = route?.params?.branchName;
 
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'year' | 'id'>('name');
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
+  const [visibleStudents, setVisibleStudents] = useState(10);
 
-  const [visibleStudents, setVisibleStudents] = useState(6);
-
-  // 🟢 FETCH FROM BACKEND
+  // Fetch students from backend
   useEffect(() => {
-      if (!branchId) {
-    console.log("❌ branchId not received in InstitutionStudents screen");
-    return;
-  }
+    if (!branchId) {
+      console.log('❌ branchId not received in InstitutionStudents screen');
+      Alert.alert('Error', 'Branch ID not found');
+      setLoading(false);
+      return;
+    }
+
     const fetchStudents = async () => {
       try {
-  const url = `https://swachify-india-be-1-mcrb.onrender.com/institution/student/by_branch_id?branch_id=${branchId}`;
-console.log("🌍 Calling API:", url);
+        const url = `https://swachify-india-be-1-mcrb.onrender.com/institution/student/by_branch_id?branch_id=${branchId}`;
+        console.log('🌍 Calling API:', url);
 
-const response = await fetch(url);
-console.log("📡 Status:", response.status)
+        const response = await fetch(url);
+        console.log('📡 Status:', response.status);
 
-const data = await response.json();
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-console.log("🎯 RAW Students API:", data);
+        const data = await response.json();
+        console.log('🎯 RAW Students API Response:', data);
 
+        // Handle both array and object response formats
+        const studentList = Array.isArray(data) ? data : data.students || [];
 
+        if (studentList.length === 0) {
+          console.log('⚠️ No students found for this branch');
+        }
 
+        const formatted: Student[] = studentList.map((item: any, index: number) => {
+          // Extract first name for initials
+          const fullName = item.student_name || 'Unknown';
+          const nameParts = fullName.split(' ');
+          const initials = nameParts
+            .slice(0, 2)
+            .map((n: string) => n[0])
+            .join('')
+            .toUpperCase();
 
-const studentList = Array.isArray(data) ? data : data.students || [];
+          return {
+            id: item.student_id?.toString() || index.toString(),
+            name: fullName,
+            studentId: item.student_id?.toString() || 'N/A',
+            year: parseInt(item.academic_year?.split('-')[0]) || 1,
+            fatherName: item.father_name || '—',
+            admissionDate: item.admission_date || '—',
+            currentSgpa: item.current_sgpa || '—',
+            attendance: item.attendance || '—',
+            backlogs: item.backlogs?.toString() || '0',
+            avatar: item.profile_image_url || undefined,
+            initials: initials || 'NA',
+            color: ['#64748b', '#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'][index % 6],
+          };
+        });
 
-const formatted: Student[] = studentList.map((item: any, index: number) => ({
-  id: item.student_id?.toString() || index.toString(),
-  name: item.student_name,
-  studentId: item.student_id,
-  year: parseInt(item.academic_year?.split('-')[0]) || 1,
-  avatar: item.profile_image_url || undefined,
-  initials: item.student_name
-    ?.split(' ')
-    .map((n: string) => n[0])
-    .join('')
-    .toUpperCase(),
-  color: ['#64748b', '#3b82f6', '#8b5cf6', '#10b981', '#f59e0b'][index % 5],
-}));
-
-
-
+        console.log('✅ Formatted Students:', formatted.length);
         setStudents(formatted);
-      } catch (error) {
-        console.log('Error fetching students:', error);
+      } catch (error: any) {
+        console.error('❌ Error fetching students:', error);
+        Alert.alert('Error', 'Failed to load students. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -94,22 +117,25 @@ const formatted: Student[] = studentList.map((item: any, index: number) => ({
     fetchStudents();
   }, [branchId]);
 
+  // Filter students based on search query
   const filteredStudents = students.filter(
     (student) =>
       student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.studentId.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Sort students
   const sortedStudents = [...filteredStudents].sort((a, b) => {
     if (sortBy === 'name') return a.name.localeCompare(b.name);
     if (sortBy === 'year') return a.year - b.year;
     return a.studentId.localeCompare(b.studentId);
   });
 
+  // Display limited students
   const displayedStudents = sortedStudents.slice(0, visibleStudents);
 
   const loadMoreStudents = () => {
-    setVisibleStudents((prev) => prev + 6);
+    setVisibleStudents((prev) => Math.min(prev + 10, sortedStudents.length));
   };
 
   const handleSortToggle = () => {
@@ -124,6 +150,17 @@ const formatted: Student[] = studentList.map((item: any, index: number) => ({
     return 'Sort by: ID';
   };
 
+  // Handle student card click
+  const handleStudentClick = (student: Student) => {
+    navigation.navigate('StudentOverviewScreen', { 
+      student: {
+        ...student,
+        branchId,
+        branchName,
+      }
+    });
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <StatusBar
@@ -133,19 +170,30 @@ const formatted: Student[] = studentList.map((item: any, index: number) => ({
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={() => navigation.goBack()}
+        >
           <Icon name="arrow-back-ios" size={24} color={colors.text} />
         </TouchableOpacity>
-         <Text style={styles.headerTitle}>
-  {route?.params?.branchName || `Branch ID: ${branchId}`}
-</Text>
+        
+        <Text style={styles.headerTitle}>
+          {branchName || `Branch ${branchId}`}
+        </Text>
 
-        <TouchableOpacity style={styles.filterButton}>
-          <Icon name="tune" size={24} color={colors.text} />
-        </TouchableOpacity>
+        {/* Three dots menu - placeholder for future functionality */}
+        <TouchableOpacity 
+  style={styles.filterButton}
+  onPress={() => {
+    // Future: Add filter/sort options menu
+    Alert.alert('Coming Soon', 'Advanced filters will be available soon');
+  }}
+>
+  <Icon name="tune" size={24} color={colors.text} />
+</TouchableOpacity>
       </View>
 
-      {/* Search */}
+      {/* Search Bar */}
       <View style={styles.searchContainer}>
         <Icon name="search" size={20} color={colors.subText} style={styles.searchIcon} />
         <TextInput
@@ -155,55 +203,97 @@ const formatted: Student[] = studentList.map((item: any, index: number) => ({
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity onPress={() => setSearchQuery('')}>
+            <Icon name="close" size={20} color={colors.subText} />
+          </TouchableOpacity>
+        )}
       </View>
 
-      {/* Header Row */}
+      {/* Students Header */}
       <View style={styles.studentsHeader}>
-        <Text style={styles.studentCount}>STUDENTS ({filteredStudents.length})</Text>
+        <Text style={styles.studentCount}>
+          STUDENTS ({filteredStudents.length})
+        </Text>
         <TouchableOpacity onPress={handleSortToggle}>
           <Text style={styles.sortButton}>{getSortLabel()}</Text>
         </TouchableOpacity>
       </View>
 
-      {/* List */}
-      <ScrollView style={styles.studentsList} showsVerticalScrollIndicator={false} contentContainerStyle={styles.studentsListContent}>
+      {/* Students List */}
+      <ScrollView
+        style={styles.studentsList}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.studentsListContent}
+      >
         {loading ? (
-          <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 40 }} />
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={styles.loadingText}>Loading students...</Text>
+          </View>
+        ) : displayedStudents.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Icon name="people-outline" size={64} color={colors.border} />
+            <Text style={styles.emptyStateText}>No Students Found</Text>
+            <Text style={styles.emptyStateSubtext}>
+              {searchQuery 
+                ? 'Try a different search term' 
+                : 'No students enrolled in this branch'}
+            </Text>
+          </View>
         ) : (
-          displayedStudents.map((student) => (
-            <TouchableOpacity
-              key={student.id}
-              style={styles.studentCard}
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate('StudentOverviewScreen', { student })}
-            >
-              {student.avatar ? (
-                <Image source={{ uri: student.avatar }} style={styles.studentAvatar} />
-              ) : (
-                <View style={[styles.studentAvatarPlaceholder, { backgroundColor: student.color }]}>
-                  <Text style={styles.studentInitials}>{student.initials}</Text>
+          <>
+            {displayedStudents.map((student) => (
+              <TouchableOpacity
+                key={student.id}
+                style={styles.studentCard}
+                activeOpacity={0.7}
+                onPress={() => handleStudentClick(student)}
+              >
+                {student.avatar ? (
+                  <Image 
+                    source={{ uri: student.avatar }} 
+                    style={styles.studentAvatar} 
+                  />
+                ) : (
+                  <View
+                    style={[
+                      styles.studentAvatarPlaceholder,
+                      { backgroundColor: student.color },
+                    ]}
+                  >
+                    <Text style={styles.studentInitials}>
+                      {student.initials}
+                    </Text>
+                  </View>
+                )}
+
+                <View style={styles.studentInfo}>
+                  <Text style={styles.studentName}>{student.name}</Text>
+                  <View style={styles.studentMeta}>
+                    <Text style={styles.studentId}>ID: {student.studentId}</Text>
+                    <Text style={styles.studentMetaSeparator}> • </Text>
+                    <Text style={styles.studentYear}>Year {student.year}</Text>
+                  </View>
                 </View>
-              )}
 
-              <View style={styles.studentInfo}>
-                <Text style={styles.studentName}>{student.name}</Text>
-                <View style={styles.studentMeta}>
-                  <Text style={styles.studentId}>ID: {student.studentId}</Text>
-                  <Text style={styles.studentMetaSeparator}> • </Text>
-                  <Text style={styles.studentYear}>Year {student.year}</Text>
-                </View>
-              </View>
+                <Icon name="chevron-right" size={24} color={colors.placeholder} />
+              </TouchableOpacity>
+            ))}
 
-              <Icon name="chevron-right" size={24} color={colors.placeholder} />
-            </TouchableOpacity>
-          ))
-        )}
-
-        {visibleStudents < sortedStudents.length && (
-          <TouchableOpacity style={styles.loadMoreButton} onPress={loadMoreStudents}>
-            <Icon name="refresh" size={18} color={colors.primary} />
-            <Text style={styles.loadMoreText}>Load More Students</Text>
-          </TouchableOpacity>
+            {/* Load More Button */}
+            {visibleStudents < sortedStudents.length && (
+              <TouchableOpacity
+                style={styles.loadMoreButton}
+                onPress={loadMoreStudents}
+              >
+                <Icon name="refresh" size={18} color={colors.primary} />
+                <Text style={styles.loadMoreText}>
+                  Load More ({sortedStudents.length - visibleStudents} remaining)
+                </Text>
+              </TouchableOpacity>
+            )}
+          </>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -211,7 +301,6 @@ const formatted: Student[] = studentList.map((item: any, index: number) => ({
 };
 
 export default InstitutionStudents;
-
 
 const getStyles = (colors: any) =>
   StyleSheet.create({
@@ -239,6 +328,9 @@ const getStyles = (colors: any) =>
       fontSize: 18,
       fontWeight: '700',
       color: colors.text,
+      flex: 1,
+      textAlign: 'center',
+      marginHorizontal: 8,
     },
     filterButton: {
       width: 40,
@@ -258,7 +350,9 @@ const getStyles = (colors: any) =>
       borderWidth: 1,
       borderColor: colors.border,
     },
-    searchIcon: { marginRight: 8 },
+    searchIcon: {
+      marginRight: 8,
+    },
     searchInput: {
       flex: 1,
       fontSize: 15,
@@ -284,10 +378,23 @@ const getStyles = (colors: any) =>
       fontWeight: '600',
       color: colors.primary,
     },
-    studentsList: { flex: 1 },
+    studentsList: {
+      flex: 1,
+    },
     studentsListContent: {
       paddingHorizontal: 16,
-      paddingBottom: 140,
+      paddingBottom: 40,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingTop: 80,
+    },
+    loadingText: {
+      marginTop: 16,
+      fontSize: 14,
+      color: colors.subText,
     },
     studentCard: {
       flexDirection: 'row',
@@ -324,7 +431,9 @@ const getStyles = (colors: any) =>
       fontWeight: '700',
       color: '#ffffff',
     },
-    studentInfo: { flex: 1 },
+    studentInfo: {
+      flex: 1,
+    },
     studentName: {
       fontSize: 16,
       fontWeight: '600',
@@ -356,6 +465,10 @@ const getStyles = (colors: any) =>
       marginTop: 8,
       marginBottom: 16,
       gap: 8,
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
     },
     loadMoreText: {
       fontSize: 15,
@@ -377,52 +490,7 @@ const getStyles = (colors: any) =>
     emptyStateSubtext: {
       fontSize: 14,
       color: colors.placeholder,
-    },
-    floatingAddButton: {
-      position: 'absolute',
-      right: 20,
-      bottom: 100,
-      width: 60,
-      height: 60,
-      borderRadius: 30,
-      backgroundColor: colors.primary,
-      justifyContent: 'center',
-      alignItems: 'center',
-      shadowColor: colors.primary,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.4,
-      shadowRadius: 12,
-      elevation: 8,
-    },
-    bottomNav: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      flexDirection: 'row',
-      backgroundColor: colors.card,
-      paddingVertical: 12,
-      paddingBottom: 8,
-      borderTopWidth: 1,
-      borderTopColor: colors.border,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: -2 },
-      shadowOpacity: 0.05,
-      shadowRadius: 8,
-      elevation: 8,
-    },
-    navItem: {
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    navLabel: {
-      fontSize: 12,
-      fontWeight: '600',
-      color: colors.subText,
-      marginTop: 4,
-    },
-    navLabelActive: {
-      color: colors.primary,
+      textAlign: 'center',
+      paddingHorizontal: 32,
     },
   });

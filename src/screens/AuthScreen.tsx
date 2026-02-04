@@ -23,7 +23,7 @@ const API_BASE_URL = "https://swachify-india-be-1-mcrb.onrender.com"; // Replace
 const onlyLetters = (text: string) => text.replace(/[^a-zA-Z\s]/g, "");
 const onlyNumbers = (text: string) => text.replace(/[^0-9]/g, "");
 const validateEmail = (email: string) =>
-  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/.test(email);
 
 /* ================= SCREEN ================= */
 
@@ -36,6 +36,7 @@ const AuthScreen = () => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [mobile, setMobile] = useState("");
+ 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -66,6 +67,8 @@ const AuthScreen = () => {
       Alert.alert("Error", "Enter valid 10-digit mobile number");
       return;
     }
+
+  
 
     if (password.length < 6) {
       console.log("❌ Validation failed: Password too short");
@@ -493,7 +496,7 @@ const PasswordInput = ({ label, value, onChange, show, toggle, editable = true }
   </>
 );
 
-/* ================= STYLES ================= */
+/* ================= STYLES (UNCHANGED) ================= */
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
