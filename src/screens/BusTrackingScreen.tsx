@@ -11,6 +11,7 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
@@ -54,13 +55,19 @@ interface BusAlert {
 type FilterType = 'ALL' | 'MOVING' | 'IDLE' | 'OFF-ROUTE';
 
 const BusTrackingScreen = () => {
-  // Call all hooks at the top level unconditionally
-  const theme = useTheme();
+  // ============================================
+  // ALL HOOKS MUST BE CALLED AT THE TOP LEVEL
+  // NEVER CONDITIONALLY OR INSIDE CALLBACKS
+  // ============================================
+  
+  // 1. Navigation hook MUST come first
   const navigation = useNavigation<any>();
   
-  // Destructure after hooks are called
+  // 2. Context hooks - useTheme MUST be called unconditionally
+  const theme = useTheme();
   const { colors, lightMode } = theme;
   
+  // 3. All useState hooks
   const [searchText, setSearchText] = useState<string>('');
   const [selectedBus, setSelectedBus] = useState<Bus | null>(null);
   const [showMapView, setShowMapView] = useState<boolean>(false);
@@ -72,8 +79,10 @@ const BusTrackingScreen = () => {
   const [alerts, setAlerts] = useState<BusAlert[]>([]);
   const [showAlertsModal, setShowAlertsModal] = useState<boolean>(false);
   const [loadingAlerts, setLoadingAlerts] = useState<boolean>(false);
+  const [zoomLevel, setZoomLevel] = useState<number>(1);
+  const [isMapCentered, setIsMapCentered] = useState<boolean>(true);
 
-  // Fetch bus data from API
+  // 4. useCallback hooks - fetchBusData
   const fetchBusData = useCallback(async (isRefreshing = false) => {
     try {
       if (!isRefreshing) {
@@ -82,39 +91,39 @@ const BusTrackingScreen = () => {
       
       const response = await api.get('/institution/management/bus-fleet/get-all-buses');
       
+      // Get theme values inside the callback
+      const currentLightMode = theme.lightMode;
+      const currentColors = theme.colors;
+      
       // Transform API response to match our Bus interface
       const transformedData: Bus[] = response.data.map((bus: any, index: number) => {
-        // Determine status - using random logic for demo since API doesn't provide status
-        // In production, you should have actual status from GPS/tracking system
         const randomStatus = Math.random();
         let status: 'MOVING' | 'IDLE' | 'OFF-ROUTE' = 'IDLE';
         let statusColor = '#f59e0b';
-        let iconBg = lightMode ? '#fef3c7' : '#78350f';
+        let iconBg = currentLightMode ? '#fef3c7' : '#78350f';
         let iconColor = '#f59e0b';
-        let borderColor = colors.border;
+        let borderColor = currentColors.border;
         let alert = false;
         
-        // Random status assignment for demo (replace with actual logic)
         if (randomStatus > 0.6) {
           status = 'MOVING';
-          statusColor = colors.success;
-          iconBg = lightMode ? '#dbeafe' : '#1e3a8a';
-          iconColor = colors.primary;
+          statusColor = currentColors.success;
+          iconBg = currentLightMode ? '#dbeafe' : '#1e3a8a';
+          iconColor = currentColors.primary;
         } else if (randomStatus > 0.4) {
           status = 'IDLE';
           statusColor = '#f59e0b';
-          iconBg = lightMode ? '#fef3c7' : '#78350f';
+          iconBg = currentLightMode ? '#fef3c7' : '#78350f';
           iconColor = '#f59e0b';
         } else {
           status = 'OFF-ROUTE';
-          statusColor = colors.danger;
-          iconBg = lightMode ? '#fee2e2' : '#7f1d1d';
-          iconColor = colors.danger;
-          borderColor = lightMode ? '#fecaca' : '#991b1b';
+          statusColor = currentColors.danger;
+          iconBg = currentLightMode ? '#fee2e2' : '#7f1d1d';
+          iconColor = currentColors.danger;
+          borderColor = currentLightMode ? '#fecaca' : '#991b1b';
           alert = true;
         }
         
-        // Random location generation for demo
         const locations = [
           'North Main St • 2.4 miles away',
           'East Gate Terminal • Stationary',
@@ -144,7 +153,7 @@ const BusTrackingScreen = () => {
           speedChange: status === 'IDLE' ? 'Stationary' : speedChanges[index % speedChanges.length],
           nextStop: status === 'OFF-ROUTE' ? 'Unknown' : nextStops[index % nextStops.length],
           eta: status === 'OFF-ROUTE' ? 'N/A' : etas[index % etas.length],
-          highlight: index === 2, // Highlight 3rd bus for demo
+          highlight: index === 2,
           alert,
         };
       });
@@ -161,119 +170,83 @@ const BusTrackingScreen = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [colors, lightMode]);
+  }, [theme]);
 
-  // Initial data fetch
+  // 5. useEffect hooks
   useEffect(() => {
     fetchBusData();
-    // Fetch alerts count silently in background
     fetchAlertsCount();
-  }, []);
+  }, [fetchBusData]);
 
-  // Fetch alerts count silently (without showing modal)
+  // ============================================
+  // REGULAR FUNCTIONS (NOT HOOKS)
+  // ============================================
+
   const fetchAlertsCount = async () => {
     try {
       const response = await api.get('/institution/management/bus/alerts');
-      console.log('Alerts count fetch:', response.data?.length || 0);
       
       if (response.data && Array.isArray(response.data)) {
-        const activeAlerts = response.data.filter((alert: BusAlert) => alert.is_active && !alert.resolved);
-        setAlerts(response.data); // Store all alerts
-        console.log('Active unresolved alerts count:', activeAlerts.length);
+        setAlerts(response.data);
       }
     } catch (error: any) {
       console.error('Error fetching alerts count:', error);
-      // Silently fail, don't show error to user
     }
   };
 
-  // Refresh handler
   const handleRefresh = () => {
     setRefreshing(true);
     fetchBusData(true);
   };
 
-  // Fetch alerts from API
   const fetchAlerts = async () => {
     try {
       setLoadingAlerts(true);
-      setShowAlertsModal(true); // Show modal immediately with loading state
+      setShowAlertsModal(true);
       
-      console.log('=== FETCHING ALERTS ===');
       const response = await api.get('/institution/management/bus/alerts');
       
-      console.log('Response object:', response);
-      console.log('Response data type:', typeof response.data);
-      console.log('Response data:', response.data);
-      console.log('Is array?', Array.isArray(response.data));
-      
-      // Sometimes the data might be nested
       let alertsData = response.data;
       
-      // Check if data is nested in a property
       if (response.data && typeof response.data === 'object' && !Array.isArray(response.data)) {
-        console.log('Data is object, checking for nested array...');
-        console.log('Object keys:', Object.keys(response.data));
-        
-        // Try common response wrapper keys
         if (response.data.data) {
           alertsData = response.data.data;
-          console.log('Found data.data:', alertsData);
         } else if (response.data.alerts) {
           alertsData = response.data.alerts;
-          console.log('Found data.alerts:', alertsData);
         } else if (response.data.results) {
           alertsData = response.data.results;
-          console.log('Found data.results:', alertsData);
         }
       }
       
       if (!alertsData || !Array.isArray(alertsData)) {
-        console.error('Invalid response format. Expected array, got:', typeof alertsData);
-        console.log('Setting empty alerts array');
         setAlerts([]);
         return;
       }
       
-      console.log('Valid alerts array found, length:', alertsData.length);
-      
-      // Show all alerts (sorted by time, newest first)
       const sortedAlerts = [...alertsData].sort((a: BusAlert, b: BusAlert) => {
         const dateA = new Date(a.alert_time).getTime();
         const dateB = new Date(b.alert_time).getTime();
         return dateB - dateA;
       });
       
-      console.log('Sorted alerts count:', sortedAlerts.length);
-      console.log('First alert:', sortedAlerts[0]);
-      
       setAlerts(sortedAlerts);
-      console.log('Alerts state updated');
     } catch (error: any) {
-      console.error('=== ERROR FETCHING ALERTS ===');
-      console.error('Error:', error);
-      console.error('Error message:', error.message);
-      console.error('Error response:', error.response);
-      console.error('Error response data:', error.response?.data);
-      
-      setAlerts([]); // Set to empty array on error
+      console.error('Error fetching alerts:', error);
+      setAlerts([]);
       Alert.alert(
         'Error',
         error.response?.data?.message || error.message || 'Failed to fetch alerts. Please try again.',
         [{ text: 'OK' }]
       );
     } finally {
-      console.log('=== FETCH ALERTS COMPLETE ===');
       setLoadingAlerts(false);
     }
   };
 
-  // Handle alerts card press
   const handleAlertsPress = () => {
     fetchAlerts();
   };
 
-  // Filter and Search Logic
   const filteredBuses = busData.filter((bus) => {
     const matchesFilter = activeFilter === 'ALL' || bus.status === activeFilter;
     const matchesSearch = 
@@ -303,24 +276,63 @@ const BusTrackingScreen = () => {
   };
 
   const handleViewMap = (): void => {
-    // Select the first bus by default when opening map view
     if (busData.length > 0) {
       setSelectedBus(busData[0]);
       setShowMapView(true);
     }
   };
 
-  // Other buses for map view
-  const otherBuses: Bus[] = busData.filter(b => b.id !== selectedBus?.id);
+  const handleZoomIn = () => {
+    setZoomLevel(prev => Math.min(prev + 0.2, 2));
+    setIsMapCentered(false);
+  };
 
-  // Active bus count
+  const handleZoomOut = () => {
+    setZoomLevel(prev => Math.max(prev - 0.2, 0.5));
+    setIsMapCentered(false);
+  };
+
+  const handleRecenter = () => {
+    setZoomLevel(1);
+    setIsMapCentered(true);
+    setTimeout(() => {
+      Alert.alert('Map Recentered', 'Map view has been reset to center position');
+    }, 100);
+  };
+
+  const handleContactDriver = () => {
+    if (selectedBus) {
+      Alert.alert(
+        'Contact Driver',
+        `Do you want to call ${selectedBus.driver}?`,
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel'
+          },
+          {
+            text: 'Call',
+            onPress: () => {
+              const phoneNumber = 'tel:+1234567890';
+              Linking.openURL(phoneNumber).catch(err => {
+                Alert.alert('Error', 'Unable to make phone call');
+              });
+            }
+          }
+        ]
+      );
+    }
+  };
+
+  const otherBuses: Bus[] = busData.filter(b => b.id !== selectedBus?.id);
   const activeBusCount = busData.filter(b => b.status === 'MOVING').length;
   const totalBusCount = busData.length;
-  
-  // Alert count - use actual alerts if available, otherwise count from bus data
   const alertCount = alerts.length > 0 ? alerts.filter(a => a.is_active && !a.resolved).length : busData.filter(b => b.alert).length;
 
-  // Loading State
+  // ============================================
+  // RENDER LOGIC
+  // ============================================
+
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
@@ -336,7 +348,6 @@ const BusTrackingScreen = () => {
     );
   }
 
-  // LIST VIEW COMPONENT
   const renderListView = () => (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
       <StatusBar 
@@ -344,7 +355,6 @@ const BusTrackingScreen = () => {
         backgroundColor={colors.background} 
       />
 
-      {/* Header */}
       <View style={[styles.header, { backgroundColor: colors.background }]}>
         <TouchableOpacity 
           style={styles.headerButton} 
@@ -364,7 +374,6 @@ const BusTrackingScreen = () => {
       </View>
 
       <ScrollView style={styles.mainContent} showsVerticalScrollIndicator={false}>
-        {/* Search Bar */}
         <View style={[styles.searchContainer, { backgroundColor: colors.card }]}>
           <MaterialIcons name="search" size={20} color={colors.placeholder} style={styles.searchIcon} />
           <TextInput
@@ -381,9 +390,7 @@ const BusTrackingScreen = () => {
           )}
         </View>
 
-        {/* Stats Cards */}
         <View style={styles.statsContainer}>
-          {/* Active Card */}
           <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <View style={styles.statHeader}>
               <Text style={[styles.statLabel, { color: colors.subText }]}>ACTIVE</Text>
@@ -397,7 +404,6 @@ const BusTrackingScreen = () => {
             </View>
           </View>
 
-          {/* Alerts Card - Now Clickable */}
           <TouchableOpacity 
             style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}
             onPress={handleAlertsPress}
@@ -412,13 +418,11 @@ const BusTrackingScreen = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Fleet Status Section */}
         <View style={styles.fleetSection}>
           <View style={styles.fleetHeader}>
             <Text style={[styles.fleetTitle, { color: colors.text }]}>Fleet Status</Text>
           </View>
 
-          {/* Filter Active Indicator */}
           {activeFilter !== 'ALL' && (
             <View style={styles.filterActiveContainer}>
               <Text style={[styles.filterActiveText, { color: colors.subText }]}>
@@ -430,7 +434,6 @@ const BusTrackingScreen = () => {
             </View>
           )}
 
-          {/* Bus List */}
           <View style={styles.busList}>
             {filteredBuses.length > 0 ? (
               filteredBuses.map((bus) => (
@@ -527,7 +530,6 @@ const BusTrackingScreen = () => {
       >
         <View style={styles.alertsModalOverlay}>
           <View style={[styles.alertsModalContent, { backgroundColor: colors.background }]}>
-            {/* Header */}
             <View style={styles.alertsModalHeader}>
               <View style={styles.alertsHeaderLeft}>
                 <MaterialIcons name="warning" size={24} color="#f59e0b" />
@@ -548,7 +550,6 @@ const BusTrackingScreen = () => {
               </TouchableOpacity>
             </View>
 
-            {/* Alerts List */}
             {loadingAlerts ? (
               <View style={styles.alertsLoadingContainer}>
                 <ActivityIndicator size="large" color={colors.primary} />
@@ -556,26 +557,12 @@ const BusTrackingScreen = () => {
               </View>
             ) : (
               <View style={{ flex: 1 }}>
-                {/* Debug info */}
-                <View style={{ padding: 16, backgroundColor: colors.surface, margin: 16, borderRadius: 8 }}>
-                  <Text style={{ color: colors.text, fontSize: 12 }}>
-                    Debug Info:{'\n'}
-                    Alerts array length: {alerts?.length || 0}{'\n'}
-                    Alerts is array: {Array.isArray(alerts) ? 'Yes' : 'No'}{'\n'}
-                    Alerts is null: {alerts === null ? 'Yes' : 'No'}{'\n'}
-                    Alerts is undefined: {alerts === undefined ? 'Yes' : 'No'}
-                  </Text>
-                </View>
-
                 {alerts && alerts.length > 0 ? (
                   <ScrollView 
                     contentContainerStyle={styles.alertsScrollViewContent}
                     showsVerticalScrollIndicator={false}
                   >
                     {alerts.map((alert, index) => {
-                      console.log(`Rendering alert ${index}:`, alert);
-                      
-                      // Format the date
                       let formattedDate = 'Invalid Date';
                       let formattedTime = 'Invalid Time';
                       
@@ -737,7 +724,6 @@ const BusTrackingScreen = () => {
     </SafeAreaView>
   );
 
-  // MAP VIEW COMPONENT
   const renderMapView = () => (
     <SafeAreaView style={[styles.mapContainer, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
       <StatusBar 
@@ -745,7 +731,6 @@ const BusTrackingScreen = () => {
         backgroundColor={colors.background} 
       />
       
-      {/* Top Navigation Bar */}
       <View style={[styles.topNav, { backgroundColor: colors.background }]}>
         <TouchableOpacity 
           style={styles.backButton}
@@ -764,13 +749,11 @@ const BusTrackingScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Map Container */}
       <View style={styles.mapContent}>
-        {/* Map Background */}
-        <View style={styles.mapBackground}>
+        {/* Map Background with Zoom */}
+        <View style={[styles.mapBackground, { transform: [{ scale: zoomLevel }] }]}>
           <View style={[styles.mapOverlay, { backgroundColor: lightMode ? 'rgba(255,255,255,0.3)' : 'rgba(16,25,34,0.4)' }]} />
           
-          {/* Map Placeholder with Grid */}
           <View style={styles.mapGrid}>
             <Text style={[styles.mapLabel, { color: colors.subText }]}>West New</Text>
             <Text style={[styles.mapLabel, styles.mapLabelRight, { color: colors.subText }]}>City of New York</Text>
@@ -782,20 +765,21 @@ const BusTrackingScreen = () => {
           {selectedBus && (
             <View style={[styles.busPin, styles.selectedBusPin]}>
               <View style={styles.busMarkerContainer}>
-                <View style={[styles.busMarker, { backgroundColor: colors.primary }]}>
-                  <MaterialCommunityIcons name="bus" size={24} color="#ffffff" />
+                <View style={[styles.busMarker, { backgroundColor: colors.primary, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 8 }]}>
+                  <MaterialCommunityIcons name="bus" size={28} color="#ffffff" />
                 </View>
-                <View style={styles.busMarkerLine} />
-                <View style={[styles.busLabel, { backgroundColor: colors.card, borderColor: colors.primary }]}>
-                  <Text style={[styles.busLabelText, { color: colors.text }]}>
-                    BUS-{selectedBus.number}
-                  </Text>
+                <View style={styles.busLabelWrapper}>
+                  <View style={[styles.busLabel, { backgroundColor: colors.card, borderColor: colors.primary }]}>
+                    <Text style={[styles.busLabelText, { color: colors.text }]}>
+                      BUS-{selectedBus.number}
+                    </Text>
+                  </View>
                 </View>
               </View>
             </View>
           )}
 
-          {/* Other Bus Pins */}
+          {/* Other Buses */}
           {otherBuses.slice(0, 2).map((bus, index) => (
             <View 
               key={bus.id}
@@ -809,52 +793,51 @@ const BusTrackingScreen = () => {
               </View>
             </View>
           ))}
+        </View>
 
-          {/* Search Bar */}
-          <View style={[styles.searchBar, { backgroundColor: colors.card }]}>
-            <MaterialIcons name="search" size={20} color={colors.placeholder} style={styles.searchIconMap} />
-            <TextInput
-              style={[styles.searchInputMap, { color: colors.text }]}
-              placeholder="Search Bus ID or Route"
-              placeholderTextColor={colors.placeholder}
-            />
-          </View>
+        {/* Search Bar - OUTSIDE scaled container */}
+        <View style={[styles.searchBarMap, { backgroundColor: colors.card }]}>
+          <MaterialIcons name="search" size={20} color={colors.placeholder} />
+          <TextInput
+            style={[styles.searchInputMap, { color: colors.text }]}
+            placeholder="Search Bus ID or Route"
+            placeholderTextColor={colors.placeholder}
+          />
+        </View>
 
-          {/* Zoom Controls */}
-          <View style={styles.zoomControls}>
-            <View style={styles.zoomButtonGroup}>
-              <TouchableOpacity 
-                style={[styles.zoomButton, styles.zoomButtonTop, { backgroundColor: colors.card }]}
-                onPress={() => console.log('Zoom in')}
-                activeOpacity={0.7}
-              >
-                <MaterialIcons name="add" size={24} color={colors.text} />
-              </TouchableOpacity>
-              <View style={[styles.zoomDivider, { backgroundColor: colors.border }]} />
-              <TouchableOpacity 
-                style={[styles.zoomButton, styles.zoomButtonBottom, { backgroundColor: colors.card }]}
-                onPress={() => console.log('Zoom out')}
-                activeOpacity={0.7}
-              >
-                <MaterialIcons name="remove" size={24} color={colors.text} />
-              </TouchableOpacity>
-            </View>
-            
+        {/* Zoom Controls - OUTSIDE scaled container */}
+        <View style={styles.zoomControls}>
+          <View style={styles.zoomButtonGroup}>
             <TouchableOpacity 
-              style={[styles.navigationButton, { backgroundColor: colors.card }]}
-              onPress={() => console.log('Center location')}
+              style={[styles.zoomButton, styles.zoomButtonTop, { backgroundColor: colors.card }]}
+              onPress={handleZoomIn}
               activeOpacity={0.7}
             >
-              <MaterialIcons name="navigation" size={24} color={colors.primary} />
+              <MaterialIcons name="add" size={24} color={colors.text} />
+            </TouchableOpacity>
+            <View style={[styles.zoomDivider, { backgroundColor: colors.border }]} />
+            <TouchableOpacity 
+              style={[styles.zoomButton, styles.zoomButtonBottom, { backgroundColor: colors.card }]}
+              onPress={handleZoomOut}
+              activeOpacity={0.7}
+            >
+              <MaterialIcons name="remove" size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
+          
+          <TouchableOpacity 
+            style={[styles.navigationButton, { backgroundColor: isMapCentered ? colors.primary : colors.card }]}
+            onPress={handleRecenter}
+            activeOpacity={0.7}
+          >
+            <MaterialIcons name="navigation" size={24} color={isMapCentered ? '#ffffff' : colors.primary} />
+          </TouchableOpacity>
         </View>
       </View>
 
       {/* Bottom Sheet */}
       {selectedBus && (
         <View style={[styles.bottomSheet, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
-          {/* Handle */}
           <View style={styles.bottomSheetHandle}>
             <View style={[styles.handle, { backgroundColor: colors.subText }]} />
           </View>
@@ -863,7 +846,6 @@ const BusTrackingScreen = () => {
             style={styles.bottomSheetContent}
             showsVerticalScrollIndicator={false}
           >
-            {/* Bus Profile Header */}
             <View style={styles.profileHeader}>
               <View style={styles.profileInfo}>
                 <View style={[styles.driverAvatar, { borderColor: colors.primary, backgroundColor: lightMode ? '#e0f2fe' : colors.surface }]}>
@@ -894,9 +876,7 @@ const BusTrackingScreen = () => {
               </View>
             </View>
 
-            {/* Stats Grid */}
             <View style={styles.statsGrid}>
-              {/* Current Speed Card */}
               <View style={[styles.statCardMap, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 <View style={styles.statHeaderMap}>
                   <MaterialIcons name="speed" size={16} color={colors.subText} />
@@ -912,7 +892,6 @@ const BusTrackingScreen = () => {
                 </Text>
               </View>
 
-              {/* Next Stop Card */}
               <View style={[styles.statCardMap, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 <View style={styles.statHeaderMap}>
                   <MaterialIcons name="location-on" size={16} color={colors.subText} />
@@ -929,23 +908,14 @@ const BusTrackingScreen = () => {
               </View>
             </View>
 
-            {/* Action Buttons */}
             <View style={styles.actionButtons}>
               <TouchableOpacity 
                 style={[styles.contactButton, { backgroundColor: colors.primary }]}
-                onPress={() => console.log('Contact driver:', selectedBus.driver)}
+                onPress={handleContactDriver}
                 activeOpacity={0.7}
               >
                 <MaterialIcons name="call" size={20} color="#ffffff" />
                 <Text style={styles.contactButtonText}>Contact Driver</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={[styles.moreButton, { backgroundColor: colors.surface }]}
-                onPress={() => console.log('More options')}
-                activeOpacity={0.7}
-              >
-                <MaterialIcons name="more-horiz" size={24} color={colors.text} />
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -958,7 +928,6 @@ const BusTrackingScreen = () => {
     <>
       {renderListView()}
       
-      {/* Map View Modal */}
       <Modal
         visible={showMapView}
         animationType="slide"
@@ -971,7 +940,6 @@ const BusTrackingScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  // LIST VIEW STYLES
   container: {
     flex: 1,
   },
@@ -1089,10 +1057,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
   },
-  viewMapButton: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
   filterActiveContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1207,8 +1171,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     flex: 1,
   },
-
-  // ALERTS MODAL STYLES
   alertsModalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -1254,14 +1216,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
   },
-  alertsScrollView: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 16,
-  },
   alertsScrollViewContent: {
     paddingHorizontal: 20,
     paddingBottom: 24,
+    paddingTop: 16,
   },
   alertCard: {
     padding: 16,
@@ -1338,8 +1296,6 @@ const styles = StyleSheet.create({
   noAlertsSubtitle: {
     fontSize: 14,
   },
-
-  // MAP VIEW STYLES
   mapContainer: {
     flex: 1,
   },
@@ -1349,7 +1305,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    zIndex: 20,
+    zIndex: 30,
   },
   backButton: {
     width: 48,
@@ -1374,9 +1330,8 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   mapBackground: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: '#d4d4d4',
-    position: 'relative',
   },
   mapOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -1418,9 +1373,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   busMarker: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 4,
@@ -1438,23 +1393,27 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     opacity: 0.7,
   },
-  busMarkerLine: {
-    width: 4,
-    height: 12,
-    backgroundColor: '#ffffff',
+  busLabelWrapper: {
+    marginTop: 8,
+    alignItems: 'center',
   },
   busLabel: {
-    marginTop: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   busLabelText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
+    letterSpacing: 0.5,
   },
-  searchBar: {
+  searchBarMap: {
     position: 'absolute',
     top: 16,
     left: 16,
@@ -1468,28 +1427,29 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 8,
-    elevation: 5,
-  },
-  searchIconMap: {
-    marginRight: 12,
+    elevation: 10,
+    gap: 12,
+    zIndex: 20,
   },
   searchInputMap: {
     flex: 1,
     fontSize: 14,
     padding: 0,
+    margin: 0,
   },
   zoomControls: {
     position: 'absolute',
     right: 16,
     top: 80,
     gap: 12,
+    zIndex: 20,
   },
   zoomButtonGroup: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 8,
-    elevation: 5,
+    elevation: 10,
   },
   zoomButton: {
     width: 44,
@@ -1518,7 +1478,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 8,
-    elevation: 5,
+    elevation: 10,
   },
   bottomSheet: {
     position: 'absolute',
@@ -1532,9 +1492,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.3,
     shadowRadius: 12,
-    elevation: 10,
+    elevation: 15,
     maxHeight: '65%',
     paddingBottom: Platform.OS === 'ios' ? 0 : 16,
+    zIndex: 25,
   },
   bottomSheetHandle: {
     height: 28,
@@ -1648,14 +1609,11 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   actionButtons: {
-    flexDirection: 'row',
-    gap: 12,
     paddingHorizontal: 16,
     marginTop: 16,
     marginBottom: 32,
   },
   contactButton: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1667,12 +1625,6 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '700',
-  },
-  moreButton: {
-    width: 56,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 12,
   },
 });
 
