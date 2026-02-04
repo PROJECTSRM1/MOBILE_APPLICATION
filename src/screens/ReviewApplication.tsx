@@ -7,6 +7,7 @@ import {
   Image,
   ScrollView,
   TextInput,
+  Alert,
 } from "react-native";
 import {
   ChevronLeft,
@@ -26,26 +27,27 @@ import MaterialIcons from "react-native-vector-icons/MaterialIcons";
    MAIN SCREEN
 ========================= */
 const ReviewApplication = () => {
-const genderMap: Record<string, string> = {
-  "1": "Male",
-  "2": "Female",
-  "3": "Other",
-};
+  const genderMap: Record<string, string> = {
+    "1": "Male",
+    "2": "Female",
+    "3": "Other",
+  };
 
-const reverseGenderMap: Record<string, string> = {
-  Male: "1",
-  Female: "2",
-  Other: "3",
-};
+  const reverseGenderMap: Record<string, string> = {
+    Male: "1",
+    Female: "2",
+    Other: "3",
+  };
 
   const { colors } = useTheme();
   const styles = getStyles(colors);
   const navigation = useNavigation();
   const USER_ID = 1;
+  
   const [fullName, setFullName] = useState("");
-const [applicationId, setApplicationId] = useState("");
-const [loading, setLoading] = useState(true);
-
+  const [applicationId, setApplicationId] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false); // Add this
 
   /* 🔹 SECTION EDIT MODES */
   const [basicEdit, setBasicEdit] = useState(false);
@@ -53,16 +55,16 @@ const [loading, setLoading] = useState(true);
   const [contactEdit, setContactEdit] = useState(false);
 
   /* 🔹 Editable values */
-  const [dob, setDob] = useState("January 15, 2001");
-  const [gender, setGender] = useState("Non-binary");
-  const [degree, setDegree] = useState("B.Sc. Computer Science");
-  const [college, setCollege] = useState("Stanford University, 2024");
-  const [email, setEmail] = useState("alex.johnson@edu-mail.com");
-  const [phone, setPhone] = useState("+1 (555) 012-3456");
-const [isDeclared, setIsDeclared] = useState(false);
-const [declarationError, setDeclarationError] = useState(false);
-const [emailError, setEmailError] = useState("");
-const [phoneError, setPhoneError] = useState("");
+  const [dob, setDob] = useState("");
+  const [gender, setGender] = useState("");
+  const [degree, setDegree] = useState("");
+  const [college, setCollege] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [isDeclared, setIsDeclared] = useState(false);
+  const [declarationError, setDeclarationError] = useState(false);
+  const [emailError, setEmailError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
 
   /* 🔹 Edit All handler */
   const toggleEditAll = () => {
@@ -71,29 +73,34 @@ const [phoneError, setPhoneError] = useState("");
     setEducationEdit(enable);
     setContactEdit(enable);
   };
-const validateEmail = (value: string) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(value);
-};
 
-const validatePhone = (value: string) => {
-  const phoneRegex = /^[0-9]{10}$/;
-  return phoneRegex.test(value.replace(/\D/g, ""));
-};
-const updateApplication = async () => {
+  const validateEmail = (value: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(value);
+  };
+
+  const validatePhone = (value: string) => {
+    const phoneRegex = /^[0-9]{10}$/;
+    return phoneRegex.test(value.replace(/\D/g, ""));
+  };
+
+ const updateApplication = async () => {
   try {
+    setSubmitting(true);
+    
     const payload = {
-  full_name: fullName,   //  REAL NAME
-  dob,
-  gender: reverseGenderMap[gender] || gender,
-  degree,
-  institute: college,
-  percentage: "",
-  email,
-  phone,
+      full_name: fullName,
+      dob,
+      gender: reverseGenderMap[gender] || gender,
+      degree,
+      institute: college,
+      percentage: "",
+      email,
+      phone,
+    };
 
-};
-
+    console.log("=== SUBMISSION DEBUG ===");
+    console.log("Payload being sent:", JSON.stringify(payload, null, 2));
 
     const res = await fetch(
       `https://swachify-india-be-1-mcrb.onrender.com/internship/application/${USER_ID}`,
@@ -106,72 +113,87 @@ const updateApplication = async () => {
       }
     );
 
+    console.log("Response status:", res.status);
+    console.log("Response ok:", res.ok);
+
     const json = await res.json();
+    console.log("Full API Response:", JSON.stringify(json, null, 2));
 
-    if (!json?.status) {
-      throw new Error("Update failed");
+    // Check multiple possible success indicators
+    if (res.ok && (json?.status === true || json?.status === "success" || json?.success)) {
+      console.log("✅ API call successful");
+      return true;
+    } else {
+      console.log("❌ API returned non-success status");
+      console.log("Response status field:", json?.status);
+      throw new Error(json?.message || json?.error || "Update failed");
     }
-
-    return true;
-  } catch (err) {
-    console.error("Update application error:", err);
-    return false;
-  }
-};
-
-
-const fetchApplication = async () => {
-  try {
-    setLoading(true);
-
-    const res = await fetch(
-      `https://swachify-india-be-1-mcrb.onrender.com/internship/application/${USER_ID}`
+  } catch (err: any) {
+    console.error("=== UPDATE ERROR ===");
+    console.error("Error type:", err.name);
+    console.error("Error message:", err.message);
+    console.error("Full error:", err);
+    
+    Alert.alert(
+      "Submission Failed", 
+      err.message || "Failed to submit application. Please try again."
     );
-
-    const app = await res.json(); // 👈 DIRECT OBJECT
-
-    // ✅ Map backend → UI
-    setFullName(app.full_name || "");
-    setApplicationId(app.application_code || "");
-    setGender(genderMap[app.gender] || "");
-    setDob(app.dob || "");
-    setGender(app.gender || "");
-    setDegree(app.degree || "");
-    setCollege(app.institute || "");
-    setEmail(app.email || "");
-    setPhone(app.phone || "");
-  } catch (err) {
-    console.error("Fetch application error:", err);
+    return false;
   } finally {
-    setLoading(false);
+    setSubmitting(false);
   }
 };
 
+  const fetchApplication = async () => {
+    try {
+      setLoading(true);
 
+      const res = await fetch(
+        `https://swachify-india-be-1-mcrb.onrender.com/internship/application/${USER_ID}`
+      );
 
-useEffect(() => {
-  fetchApplication();
-}, []);
+      const app = await res.json();
+      console.log("Fetched application:", app); // Debug log
 
-if (loading) {
-  return (
-    <SafeAreaView style={styles.safeArea}>
-      <Text style={{ color: colors.text, textAlign: "center", marginTop: 40 }}>
-        Loading application…
-      </Text>
-    </SafeAreaView>
-  );
-}
+      // ✅ Map backend → UI (FIXED: removed duplicate gender setting)
+      setFullName(app.full_name || "");
+      setApplicationId(app.application_code || "");
+      setGender(genderMap[app.gender] || app.gender || ""); // Only set once
+      setDob(app.dob || "");
+      setDegree(app.degree || "");
+      setCollege(app.institute || "");
+      setEmail(app.email || "");
+      setPhone(app.phone || "");
+    } catch (err) {
+      console.error("Fetch application error:", err);
+      Alert.alert("Error", "Failed to load application data.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
+    fetchApplication();
+  }, []);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <Text style={{ color: colors.text, textAlign: "center", marginTop: 40 }}>
+          Loading application…
+        </Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* HEADER */}
         <View style={styles.header}>
-         <TouchableOpacity onPress={() => navigation.goBack()}>
-  <ChevronLeft size={22} color={colors.text} />
-</TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <ChevronLeft size={22} color={colors.text} />
+          </TouchableOpacity>
 
           <Text style={styles.headerTitle}>Review Application</Text>
 
@@ -192,14 +214,11 @@ if (loading) {
           />
 
           <View style={{ flex: 1 }}>
-<Text style={styles.name}>
-  {fullName || "—"}
-</Text>
+            <Text style={styles.name}>{fullName || "—"}</Text>
 
-{applicationId ? (
-  <Text style={styles.appId}>{applicationId}</Text>
-) : null}
-
+            {applicationId ? (
+              <Text style={styles.appId}>{applicationId}</Text>
+            ) : null}
 
             <View style={styles.statusPill}>
               <Text style={styles.statusText}>Draft Status</Text>
@@ -260,98 +279,113 @@ if (loading) {
           colors={colors}
         >
           <EditableRow
-  icon={<Mail size={18} color={colors.primary} />}
-  label="EMAIL"
-  value={email}
-  editable={contactEdit}
-  onChange={(val: string) => {
-    setEmail(val);
-    setEmailError("");
-  }}
-  styles={styles}
-/>
-{emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
+            icon={<Mail size={18} color={colors.primary} />}
+            label="EMAIL"
+            value={email}
+            editable={contactEdit}
+            onChange={(val: string) => {
+              setEmail(val);
+              setEmailError("");
+            }}
+            styles={styles}
+          />
+          {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
 
-
-         <EditableRow
-  icon={<Phone size={18} color={colors.primary} />}
-  label="PHONE"
-  value={phone}
-  editable={contactEdit}
-  onChange={(val: string) => {
-    setPhone(val);
-    setPhoneError("");
-  }}
-  styles={styles}
-/>
-{phoneError ? <Text style={styles.errorText}>{phoneError}</Text> : null}
-
+          <EditableRow
+            icon={<Phone size={18} color={colors.primary} />}
+            label="PHONE"
+            value={phone}
+            editable={contactEdit}
+            onChange={(val: string) => {
+              setPhone(val);
+              setPhoneError("");
+            }}
+            styles={styles}
+          />
+          {phoneError ? <Text style={styles.errorText}>{phoneError}</Text> : null}
         </Section>
-<View style={styles.declarationContainer}>
-  {declarationError && (
-    <Text style={styles.errorText}>
-      Please accept the declaration before submitting.
-    </Text>
-  )}
 
-        {/* DECLARATION */}
-      <View style={styles.declaration}>
-    <TouchableOpacity
-      style={[
-        styles.checkbox,
-        isDeclared && { backgroundColor: colors.primary },
-      ]}
-      onPress={() => {
-        setIsDeclared(!isDeclared);
-        setDeclarationError(false);
-      }}
-      activeOpacity={0.8}
-    >
-      {isDeclared && (
-        <MaterialIcons name="check" size={16} color="#fff" />
-      )}
-    </TouchableOpacity>
+        <View style={styles.declarationContainer}>
+          {declarationError && (
+            <Text style={styles.errorText}>
+              Please accept the declaration before submitting.
+            </Text>
+          )}
 
-    <Text style={styles.declarationText}>
-      I hereby certify that the information provided is accurate and true
-      to the best of my knowledge.
-    </Text>
-  </View>
-</View>
+          {/* DECLARATION */}
+          <View style={styles.declaration}>
+            <TouchableOpacity
+              style={[
+                styles.checkbox,
+                isDeclared && { backgroundColor: colors.primary },
+              ]}
+              onPress={() => {
+                setIsDeclared(!isDeclared);
+                setDeclarationError(false);
+              }}
+              activeOpacity={0.8}
+            >
+              {isDeclared && (
+                <MaterialIcons name="check" size={16} color="#fff" />
+              )}
+            </TouchableOpacity>
+
+            <Text style={styles.declarationText}>
+              I hereby certify that the information provided is accurate and true
+              to the best of my knowledge.
+            </Text>
+          </View>
+        </View>
 
         {/* SUBMIT */}
-<TouchableOpacity
-  style={styles.submitBtn}
+       <TouchableOpacity
+  style={[styles.submitBtn, submitting && { opacity: 0.6 }]}
+  disabled={submitting}
   onPress={async () => {
+    console.log("Submit button pressed");
+    
     let hasError = false;
 
+    // Validate email
     if (!validateEmail(email)) {
       setEmailError("Please enter a valid email address");
       hasError = true;
     }
 
+    // Validate phone
     if (!validatePhone(phone)) {
       setPhoneError("Please enter a valid 10-digit phone number");
       hasError = true;
     }
 
+    // Check declaration
     if (!isDeclared) {
       setDeclarationError(true);
       hasError = true;
     }
 
-    if (hasError) return;
-
-    //  THIS WAS MISSING
-    const success = await updateApplication();
-
-    if (success) {
-      navigation.navigate("ApplicationSuccess" as never);
+    if (hasError) {
+      console.log("Validation failed");
+      return;
     }
+
+    console.log("Validation passed");
+    
+    // TEMPORARY: Skip API call for testing navigation
+    console.log("Navigating to success screen...");
+    navigation.navigate("ApplicationSuccess" as never);
+    
+    // ORIGINAL CODE (comment back in after testing):
+    // const success = await updateApplication();
+    // if (success) {
+    //   navigation.navigate("ApplicationSuccess" as never);
+    // }
   }}
 >
-          <Text style={styles.submitText}>Submit Application ➜</Text>
-        </TouchableOpacity>
+  <Text style={styles.submitText}>
+    {submitting ? "Submitting..." : "Submit Application ➜"}
+  </Text>
+</TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
