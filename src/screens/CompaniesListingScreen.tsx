@@ -18,8 +18,11 @@ import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
 // Define your navigation types
 type RootStackParamList = {
-  Companies: undefined;
+    CompaniesListingScreen: undefined;  
   JobDetails: { companyId: number };
+   Landing: undefined;  // Add this
+  EducationHome: undefined;  // Add this
+  ProfileInformation: undefined; 
 };
 
 
@@ -42,7 +45,7 @@ interface Company {
 const SIZES = ['All', '50-200', '200-500', '500+', '1000+'];
 type CompaniesNavProp = NativeStackNavigationProp<
   RootStackParamList,
-  "Companies"
+  "CompaniesListingScreen"
 >;
 
 const CompaniesScreen = () => {
@@ -175,64 +178,82 @@ const fetchCompanies = async () => {
   };
 
   // Filter companies based on filters and search query
-  const filteredCompanies = useMemo(() => {
-    let result = companies;
+ // Filter companies based on filters and search query
+const filteredCompanies = useMemo(() => {
+  let result = companies;
 
-    // Show only bookmarked companies if in bookmark view
-    if (showBookmarks) {
-      result = result.filter(company => bookmarkedIds.has(company.id));
-    } else {
-      // Apply industry filter
-      if (selectedIndustry !== 'All') {
+  // Show only bookmarked companies if in bookmark view
+  if (showBookmarks) {
+    result = result.filter(company => bookmarkedIds.has(company.id));
+  } else {
+    // Apply industry filter
+    if (selectedIndustry !== 'All') {
+      result = result.filter(company => 
+        company.industry === selectedIndustry
+      );
+    }
+
+    // Apply location filter
+    if (selectedLocation !== 'All') {
+      if (selectedLocation === 'Remote') {
+        result = result.filter(company => company.isRemote);
+      } else {
         result = result.filter(company => 
-          company.industry === selectedIndustry
+          company.location === selectedLocation
         );
       }
+    }
 
-      // Apply location filter
-      if (selectedLocation !== 'All') {
-        if (selectedLocation === 'Remote') {
-          result = result.filter(company => company.isRemote);
-        } else {
-          result = result.filter(company => 
-            company.location === selectedLocation
-          );
+    // Apply size filter - FIXED VERSION
+    if (selectedSize !== 'All') {
+      result = result.filter(company => {
+        if (company.size === 'Not specified') return false;
+        
+        // Extract the lower bound from company size (e.g., "50-250" -> 50)
+        const companyMinSize = parseInt(company.size.split('-')[0]);
+        
+        switch (selectedSize) {
+          case '50-200':
+            return companyMinSize >= 50 && companyMinSize < 200;
+          case '200-500':
+            return companyMinSize >= 200 && companyMinSize < 500;
+          case '500+':
+            return companyMinSize >= 500 && companyMinSize < 1000;
+          case '1000+':
+            return companyMinSize >= 1000;
+          default:
+            return true;
         }
-      }
-
-      // Apply size filter
-      if (selectedSize !== 'All') {
-        result = result.filter(company => company.size === selectedSize);
-      }
-
-      // Apply search filter
-      if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase();
-        result = result.filter(company =>
-          company.name.toLowerCase().includes(query) ||
-          company.industry.toLowerCase().includes(query) ||
-          company.location.toLowerCase().includes(query)
-        );
-      }
+      });
     }
-// Apply sorting
-if (sortBy) {
-  result = [...result].sort((a, b) => {
-    switch (sortBy) {
-      case 'name':
-        return a.name.localeCompare(b.name);
-      case 'location':
-        return a.location.localeCompare(b.location);
-      case 'size':
-        return a.size.localeCompare(b.size);
-      default:
-        return 0;
-    }
-  });
-}
 
-    return result;
-  }, [selectedIndustry, selectedLocation, selectedSize, searchQuery, showBookmarks, bookmarkedIds, sortBy,]);
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(company =>
+        company.name.toLowerCase().includes(query) ||
+        company.industry.toLowerCase().includes(query) ||
+        company.location.toLowerCase().includes(query)
+      );
+    }
+  }
+
+  // Apply sorting
+  if (sortBy) {
+    result = [...result].sort((a, b) => {
+      switch (sortBy) {
+        case 'name':
+          return a.name.localeCompare(b.name);
+        case 'location':
+          return a.location.localeCompare(b.location);
+        default:
+          return 0;
+      }
+    });
+  }
+
+  return result;
+}, [selectedIndustry, selectedLocation, selectedSize, searchQuery, showBookmarks, bookmarkedIds, sortBy, companies]);
 
   // Companies to display (with pagination)
   const displayedCompanies = showBookmarks ? filteredCompanies : filteredCompanies.slice(0, displayCount);
@@ -522,31 +543,37 @@ const CompanyCard = ({
         />
 
         {/* Results Counter and Sort - Only show when not in bookmarks view */}
-        {!showBookmarks && (
-          <View style={styles.resultsBar}>
-            <Text style={styles.resultsText}>
-              Showing {filteredCompanies.length} companies
-            </Text>
-            <TouchableOpacity
-  style={styles.sortButton}
-  onPress={() => {
-    setSortBy(prev =>
-      prev === 'name'
-        ? 'location'
-        : prev === 'location'
-        ? 'size'
-        : 'name'
-    );
-    setDisplayCount(4); // reset pagination
-  }}
->
-
-              <Text style={styles.sortText}>Sort by</Text>
-              <MaterialIcons name="sort" size={18} color="#135bec" />
-            </TouchableOpacity>
-          </View>
-        )}
-
+        {/* Results Counter and Sort - Only show when not in bookmarks view */}
+{/* Results Counter and Sort - Only show when not in bookmarks view */}
+{!showBookmarks && (
+  <View style={styles.resultsBar}>
+    <Text style={styles.resultsText}>
+      Showing {filteredCompanies.length} companies
+    </Text>
+    <TouchableOpacity
+      style={styles.sortButton}
+      onPress={() => {
+        setSortBy(prev =>
+          prev === 'name'
+            ? 'location'
+            : prev === 'location'
+            ? 'size'
+            : 'name'
+        );
+        setDisplayCount(4); // reset pagination
+      }}
+    >
+      <Text style={styles.sortText}>
+        {sortBy ? `Sorted by ${sortBy.charAt(0).toUpperCase() + sortBy.slice(1)}` : 'Sort by'}
+      </Text>
+      <MaterialIcons 
+        name={sortBy ? "arrow-upward" : "sort"} 
+        size={18} 
+        color="#135bec" 
+      />
+    </TouchableOpacity>
+  </View>
+)}
         {/* Company Cards */}
         <ScrollView 
           style={styles.scrollView}
@@ -597,69 +624,83 @@ const CompanyCard = ({
         </ScrollView>
 
         {/* Bottom Navigation */}
-        <SafeAreaView style={styles.bottomNavContainer} edges={['bottom']}>
-          <View style={styles.bottomNav}>
-            <TouchableOpacity 
-              style={styles.navItem}
-              onPress={() => setActiveTab(0)}
-            >
-              <MaterialIcons 
-                name="home" 
-                size={24} 
-                color={activeTab === 0 ? '#135bec' : '#9da6b9'} 
-              />
-              <Text style={[
-                styles.navLabel,
-                activeTab === 0 && styles.navLabelActive
-              ]}>Home</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.navItem}
-              onPress={() => setActiveTab(1)}
-            >
-              <MaterialIcons 
-                name="school" 
-                size={24} 
-                color={activeTab === 1 ? '#135bec' : '#9da6b9'} 
-              />
-              <Text style={[
-                styles.navLabel,
-                activeTab === 1 && styles.navLabelActive
-              ]}>Education</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.navItem}
-              onPress={() => setActiveTab(2)}
-            >
-              <MaterialIcons 
-                name="work" 
-                size={24} 
-                color={activeTab === 2 ? '#135bec' : '#9da6b9'} 
-              />
-              <Text style={[
-                styles.navLabel,
-                activeTab === 2 && styles.navLabelActive
-              ]}>Jobs</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.navItem}
-              onPress={() => setActiveTab(3)}
-            >
-              <MaterialIcons 
-                name="person" 
-                size={24} 
-                color={activeTab === 3 ? '#135bec' : '#9da6b9'} 
-              />
-              <Text style={[
-                styles.navLabel,
-                activeTab === 3 && styles.navLabelActive
-              ]}>Profile</Text>
-            </TouchableOpacity>
-          </View>
-        </SafeAreaView>
+       {/* Bottom Navigation */}
+<SafeAreaView style={styles.bottomNavContainer} edges={['bottom']}>
+  <View style={styles.bottomNav}>
+    <TouchableOpacity 
+      style={styles.navItem}
+      onPress={() => {
+        setActiveTab(0);
+        navigation.navigate('Landing');  // Add navigation
+      }}
+    >
+      <MaterialIcons 
+        name="home" 
+        size={24} 
+        color={activeTab === 0 ? '#135bec' : '#9da6b9'} 
+      />
+      <Text style={[
+        styles.navLabel,
+        activeTab === 0 && styles.navLabelActive
+      ]}>Home</Text>
+    </TouchableOpacity>
+    
+    <TouchableOpacity 
+      style={styles.navItem}
+      onPress={() => {
+        setActiveTab(1);
+        navigation.navigate('EducationHome');  // Add navigation
+      }}
+    >
+      <MaterialIcons 
+        name="school" 
+        size={24} 
+        color={activeTab === 1 ? '#135bec' : '#9da6b9'} 
+      />
+      <Text style={[
+        styles.navLabel,
+        activeTab === 1 && styles.navLabelActive
+      ]}>Education</Text>
+    </TouchableOpacity>
+    
+    <TouchableOpacity 
+      style={styles.navItem}
+      onPress={() => {
+        setActiveTab(2);
+        // Stay on current screen (Companies) or navigate to a Jobs listing screen
+        navigation.navigate('CompaniesListingScreen');  // If you want to refresh/stay here
+      }}
+    >
+      <MaterialIcons 
+        name="work" 
+        size={24} 
+        color={activeTab === 2 ? '#135bec' : '#9da6b9'} 
+      />
+      <Text style={[
+        styles.navLabel,
+        activeTab === 2 && styles.navLabelActive
+      ]}>Jobs</Text>
+    </TouchableOpacity>
+    
+    <TouchableOpacity 
+      style={styles.navItem}
+      onPress={() => {
+        setActiveTab(3);
+        navigation.navigate('ProfileInformation');  // Add navigation
+      }}
+    >
+      <MaterialIcons 
+        name="person" 
+        size={24} 
+        color={activeTab === 3 ? '#135bec' : '#9da6b9'} 
+      />
+      <Text style={[
+        styles.navLabel,
+        activeTab === 3 && styles.navLabelActive
+      ]}>Profile</Text>
+    </TouchableOpacity>
+  </View>
+</SafeAreaView>
       </SafeAreaView>
     </SafeAreaProvider>
   );
