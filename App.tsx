@@ -195,6 +195,8 @@ export type RootStackParamList = {
   FinalExamSchedule: undefined;
 institutionbranchscreen:undefined
   instututionstudents: undefined
+  TreatmentSummary: undefined;
+
  
 };
 
@@ -296,9 +298,6 @@ function AppNavigator() {
          <Stack.Screen name="MyBookings" component={MyBookingsScreen} />
          <Stack.Screen name="VideoCall" component={VideoCallScreen} />
          <Stack.Screen name="TreatmentSummary" component={TreatmentSummaryScreen} />
-
-
-       
      
         <Stack.Screen name="institutionbranchscreen" component={InstitutionBranch} />
      

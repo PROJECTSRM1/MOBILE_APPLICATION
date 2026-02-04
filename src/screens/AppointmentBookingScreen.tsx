@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
-  SafeAreaView,
   StatusBar,
   Dimensions,
   Modal,
@@ -17,6 +16,8 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width, height } = Dimensions.get('window');
 
@@ -46,6 +47,7 @@ const AppointmentBookingScreen = () => {
   const [dynamicDates, setDynamicDates] = useState<any[]>([]);
   const [selectedMonthIndex, setSelectedMonthIndex] = useState(new Date().getMonth());
   const [isMonthModalVisible, setIsMonthModalVisible] = useState(false);
+  const [userId, setUserId] = useState<number | null>(null);
 
   // API loading flag — drives the spinner + disabled state on the button
   const [isBookingLoading, setIsBookingLoading] = useState(false);
@@ -57,6 +59,61 @@ const AppointmentBookingScreen = () => {
   };
 
   const disabledSlots = ['11:30 AM'];
+
+  // ---------------------------------------------------------------
+  // GET USER ID FROM ASYNCSTORAGE
+  // ---------------------------------------------------------------
+  useEffect(() => {
+    getUserId();
+  }, []);
+
+  const getUserId = async () => {
+    console.log("=== FETCHING USER ID FROM ASYNCSTORAGE ===");
+    
+    try {
+      // Try multiple sources to get user ID
+      const userData = await AsyncStorage.getItem("userData");
+      const userProfile = await AsyncStorage.getItem("userProfile");
+      
+      console.log("📦 User Data from AsyncStorage:", userData);
+      console.log("📦 User Profile from AsyncStorage:", userProfile);
+
+      if (userData) {
+        const parsed = JSON.parse(userData);
+        console.log("👤 Parsed User Data:", parsed);
+        
+        // Handle different response structures
+        if (parsed.user && parsed.user.id) {
+          setUserId(parsed.user.id);
+          console.log("✅ User ID found (user.id):", parsed.user.id);
+        } else if (parsed.id) {
+          setUserId(parsed.id);
+          console.log("✅ User ID found (id):", parsed.id);
+        } else if (parsed.user_id) {
+          setUserId(parsed.user_id);
+          console.log("✅ User ID found (user_id):", parsed.user_id);
+        } else {
+          console.log("⚠️ User ID not found in userData");
+        }
+      } else if (userProfile) {
+        const parsed = JSON.parse(userProfile);
+        console.log("👤 Parsed User Profile:", parsed);
+        
+        if (parsed.id) {
+          setUserId(parsed.id);
+          console.log("✅ User ID found in profile:", parsed.id);
+        } else {
+          console.log("⚠️ User ID not found in userProfile");
+        }
+      } else {
+        console.log("❌ No user data found in AsyncStorage");
+      }
+    } catch (error) {
+      console.error("❌ Error fetching user ID:", error);
+    }
+    
+    console.log("=== USER ID FETCH COMPLETED ===\n");
+  };
 
   // ---------------------------------------------------------------
   // greyed-out past slots — only applies when the user is looking
@@ -138,12 +195,15 @@ const AppointmentBookingScreen = () => {
   };
 
   const buildAppointmentISO = (): string => {
-    const selectedDateObj: Date = dynamicDates[selectedDateId]?.rawDate ?? new Date();
-    const { hours, minutes } = parseTimeSlot(selectedTime);
-    const dt = new Date(selectedDateObj);
-    dt.setHours(hours, minutes, 0, 0);
-    return dt.toISOString();
-  };
+  const selectedDateObj: Date = dynamicDates[selectedDateId]?.rawDate ?? new Date();
+  const { hours, minutes } = parseTimeSlot(selectedTime);
+  const dt = new Date(selectedDateObj);
+  dt.setHours(hours, minutes, 0, 0);
+
+  // 👉 Return LOCAL time string (NO UTC conversion)
+  return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}T${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}:00`;
+};
+
 
   // ---------------------------------------------------------------
   // POST /healthcare/appointments
@@ -152,21 +212,42 @@ const AppointmentBookingScreen = () => {
   //   ❌ failure  →  Alert with the server message
   // ---------------------------------------------------------------
   const createAppointment = async () => {
-    if (!selectedTime) return;
+    console.log("=== CREATE APPOINTMENT CALLED ===");
+    
+    if (!selectedTime) {
+      console.log("❌ No time slot selected");
+      return;
+    }
 
+    // Check if user ID is available
+    if (!userId) {
+      console.log("❌ User ID not available");
+      Alert.alert(
+        'Error',
+        'User information not found. Please login again.',
+        [
+          {
+            text: 'OK',
+            onPress: () => (navigation as any).navigate('AuthScreen')
+          }
+        ]
+      );
+      return;
+    }
+
+    console.log("✅ User ID available:", userId);
     setIsBookingLoading(true);
 
     try {
       const appointmentTime = buildAppointmentISO();
+      console.log("📅 Appointment Time:", appointmentTime);
 
       // only the fields relevant to an online doctor booking are sent;
       // ambulance / assistant / lab / pharmacy keys are intentionally omitted
       const payload: Record<string, any> = {
-        user_id: 1,                                                // swap with real authenticated user id
+        user_id: userId,                                           // ✅ Real user ID from AsyncStorage
         consultation_type_id: 1,                                   // 1 = Online
-        appointment_time: new Date(appointmentTime)
-    .toISOString()
-    .slice(0, 19),
+        appointment_time: appointmentTime,
         doctor_id: doctor.doctor_id ?? Number(doctor.id) ?? null,
         doctor_specialization_id: doctor.specialization_id ?? null,
         description: "General consultation",
@@ -185,6 +266,10 @@ const AppointmentBookingScreen = () => {
         pharmacies_id: null
       };
 
+      console.log("📦 Request Payload:", JSON.stringify(payload, null, 2));
+      console.log("🌐 API URL:", `${API_BASE_URL}/healthcare/appointments`);
+      console.log("🚀 Starting API call...");
+
       const response = await fetch(`${API_BASE_URL}/healthcare/appointments`, {
         method: 'POST',
         headers: {
@@ -193,12 +278,22 @@ const AppointmentBookingScreen = () => {
         body: JSON.stringify(payload),
       });
 
+      console.log("📡 Response Status:", response.status);
+      console.log("📡 Response OK:", response.ok);
+
       if (!response.ok) {
         const errorBody = await response.text();
+        console.log("❌ Error Response:", errorBody);
         throw new Error(errorBody || `Server error (${response.status})`);
       }
 
+      const responseData = await response.json();
+      console.log("📥 Response Data:", JSON.stringify(responseData, null, 2));
+
       // ✅ appointment created — move to payment
+      console.log("✅ Appointment created successfully");
+      console.log("🔄 Navigating to HealthcarePayment");
+      
       (navigation as any).navigate('HealthcarePayment', {
         doctor: doctor,
         date: dynamicDates[selectedDateId]?.fullDate,
@@ -207,7 +302,7 @@ const AppointmentBookingScreen = () => {
         homeServiceId: '26',
       });
     } catch (error: any) {
-      console.error('Appointment creation failed:', error);
+      console.error('❌ Appointment creation failed:', error);
       Alert.alert(
         'Booking Failed',
         error?.message || 'Something went wrong. Please try again.',
@@ -215,6 +310,7 @@ const AppointmentBookingScreen = () => {
       );
     } finally {
       setIsBookingLoading(false);
+      console.log("=== CREATE APPOINTMENT COMPLETED ===\n");
     }
   };
 
