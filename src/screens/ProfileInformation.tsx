@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Switch,
-  SafeAreaView,
+ 
   StatusBar,
   TextInput,
   LayoutAnimation,
@@ -25,6 +25,7 @@ import { Keyboard } from "react-native";
 
 
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 

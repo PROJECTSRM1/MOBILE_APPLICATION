@@ -189,7 +189,10 @@ export type RootStackParamList = {
   MidTermNotifications : undefined;
   FinalExamSchedule: undefined;
 institutionbranchscreen:undefined
-  instututionstudents: undefined
+  instututionstudents: undefined;
+  
+  
+
  
 };
 
@@ -279,6 +282,8 @@ function AppNavigator() {
          <Stack.Screen name="MyBookings" component={MyBookingsScreen} />
          <Stack.Screen name="VideoCall" component={VideoCallScreen} />
          <Stack.Screen name="TreatmentSummary" component={TreatmentSummaryScreen} />
+         
+         
 
 
        

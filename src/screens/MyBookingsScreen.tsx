@@ -5,7 +5,6 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
   Dimensions,
   ActivityIndicator,
@@ -13,6 +12,9 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import HealthcareBottomNav from './HealthcareBottomNav';
+
 
 const { width } = Dimensions.get('window');
 
@@ -68,7 +70,6 @@ const MyBookingsScreen = () => {
       // Transform API → UI model
       const formatted: Booking[] = data.map((item: any) => {
         const dt = new Date(item.appointment_time + "Z");
-
 
         const date = dt.toLocaleDateString('en-IN', {
           day: '2-digit',
@@ -166,7 +167,7 @@ const MyBookingsScreen = () => {
         </View>
 
         {loading ? (
-          <ActivityIndicator size="large" color="#2563eb" />
+          <ActivityIndicator size="large" color="#2d7576" />
         ) : (
           <FlatList
             data={bookings}
@@ -232,13 +233,26 @@ const MyBookingsScreen = () => {
         )}
       </View>
 
-      {/* Bottom Nav */}
-      <View style={styles.bottomNav}>
-        <MaterialIcons name="home" size={24} color="#94a3b8" />
-        <MaterialIcons name="calendar-month" size={24} color="#2563eb" />
-        <MaterialIcons name="chat-bubble" size={24} color="#94a3b8" />
-        <MaterialIcons name="person" size={24} color="#94a3b8" />
-      </View>
+      {/* Bottom Navigation - Updated to match Healthcare.tsx */}
+      <HealthcareBottomNav
+  activeTab="bookings"
+  onNavigate={(tab) => {
+    switch (tab) {
+      case 'home':
+        // Navigation handled by component
+        break;
+      case 'bookings':
+        // Already on bookings
+        break;
+      case 'records':
+        Alert.alert('Coming Soon', 'Records feature coming soon!');
+        break;
+      case 'profile':
+      
+        break;
+    }
+  }}
+/>
     </SafeAreaView>
   );
 };
@@ -248,7 +262,7 @@ export default MyBookingsScreen;
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#fafaf9',
   },
   container: {
     flex: 1,
@@ -261,7 +275,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 32,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#131616',
     letterSpacing: -0.5,
   },
   listContent: {
@@ -275,14 +289,12 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#f1f5f9',
-    // Shadow for iOS
+    borderColor: 'rgba(0,0,0,0.05)',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 12,
-    // Elevation for Android
-    elevation: 2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   completedCard: {
     opacity: 0.9,
@@ -296,11 +308,7 @@ const styles = StyleSheet.create({
   doctorName: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#0F172A',
-  },
-  textStrikethrough: {
-    textDecorationLine: 'line-through',
-    color: '#94a3b8',
+    color: '#131616',
   },
   dateTimeRow: {
     flexDirection: 'row',
@@ -314,13 +322,13 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   completedBadge: {
-    backgroundColor: '#ecfdf5',
+    backgroundColor: '#dcfce7',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
   },
   completedBadgeText: {
-    color: '#059669',
+    color: '#16a34a',
     fontSize: 10,
     fontWeight: '800',
   },
@@ -331,15 +339,15 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   joinBtn: {
-    backgroundColor: '#2563eb',
-    shadowColor: '#2563eb',
+    backgroundColor: '#2d7576',
+    shadowColor: '#2d7576',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
   },
   disabledBtn: {
-    backgroundColor: '#f1f5f9',
+    backgroundColor: '#f3f4f6',
   },
   btnText: {
     color: '#fff',
@@ -358,7 +366,7 @@ const styles = StyleSheet.create({
     left: 20,
     right: 20,
     height: 4,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: '#f3f4f6',
     borderRadius: 2,
   },
   progressLineActive: {
@@ -366,7 +374,7 @@ const styles = StyleSheet.create({
     top: 18,
     left: 20,
     height: 4,
-    backgroundColor: '#2563eb',
+    backgroundColor: '#2d7576',
     borderRadius: 2,
   },
   stepsWrapper: {
@@ -376,7 +384,7 @@ const styles = StyleSheet.create({
   },
   stepItem: {
     alignItems: 'center',
-    width: (width - 80) / 4, // Dynamic width based on screen
+    width: (width - 80) / 4,
   },
   stepCircle: {
     width: 36,
@@ -387,42 +395,25 @@ const styles = StyleSheet.create({
     zIndex: 2,
     borderWidth: 2,
     borderColor: 'transparent',
+    backgroundColor: '#f8fafc',
   },
   stepCircleCompleted: {
-    backgroundColor: '#2563eb',
+    backgroundColor: '#2d7576',
   },
   stepCircleActive: {
     backgroundColor: '#fff',
-    borderColor: '#2563eb',
+    borderColor: '#2d7576',
     borderWidth: 2,
-  },
-  stepCirclePending: {
-    backgroundColor: '#f8fafc',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
   },
   stepLabel: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#94a3b8',
+    color: '#9ca3af',
     marginTop: 8,
     textAlign: 'center',
   },
   stepLabelActive: {
-    color: '#2563eb',
+    color: '#2d7576',
     fontWeight: '700',
   },
-  bottomNav: {
-    position: 'absolute',
-    bottom: 0,
-    flexDirection: 'row',
-    width: '100%',
-    height: 80,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderColor: '#f1f5f9',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingBottom: 20,
-  }
 });
