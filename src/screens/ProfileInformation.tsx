@@ -73,7 +73,9 @@ interface UserProfile {
   availableHoursFrom?: string;
   availableHoursTo?: string;
   resumeImage?: string;
-   role?: string;                 // ✅ ADD
+   role?: string;     
+   profileImage?: string;
+            // ✅ ADD
   selectedServices?: number[]; 
 
 }
@@ -205,6 +207,7 @@ const ProfileInformation: React.FC = () => {
 
   const isDoctor = user?.role === 'doctor';
 const hasHealthService = user?.selectedServices?.includes(7) ?? false;
+const [profileImage, setProfileImage] = useState<string | null>(null);
 
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -340,6 +343,10 @@ const [openWishlist, setOpenWishlist] = useState<boolean>(false);
       if (parsed.resumeImage) {
   setResumeImage(parsed.resumeImage);
 }
+if (parsed.profileImage) {
+  setProfileImage(parsed.profileImage);
+}
+
 
       
       if (parsed.availableHoursFrom) {
@@ -431,6 +438,8 @@ const [openWishlist, setOpenWishlist] = useState<boolean>(false);
         institution: institution,
         percentage: percentage,
         resumeImage: resumeImage ?? undefined,
+        profileImage: profileImage ?? undefined,
+
 
         certificateName: certificateName,
         certificateIssuedBy: certificateIssuedBy,
@@ -592,6 +601,24 @@ const handleResumeImageUpload = () => {
     }
   );
 };
+const handleProfileImageUpload = () => {
+  launchImageLibrary(
+    { mediaType: "photo", quality: 0.8 },
+    (response) => {
+      if (response.didCancel) return;
+
+      if (response.errorCode) {
+        Alert.alert("Error", "Failed to pick image");
+        return;
+      }
+
+      if (response.assets && response.assets.length > 0) {
+        setProfileImage(response.assets[0].uri ?? null);
+      }
+    }
+  );
+};
+
 
 
   const handleLogout = async () => {
@@ -670,10 +697,17 @@ const handleResumeImageUpload = () => {
 >
         {/* PROFILE */}
         <View style={styles.profileRow}>
-          <Image
-            source={{ uri: 'https://i.pravatar.cc/300' }}
-            style={styles.avatar}
-          />
+          <TouchableOpacity onPress={isEditing ? handleProfileImageUpload : undefined}>
+  <Image
+    source={
+      profileImage
+        ? { uri: profileImage }
+        : { uri: `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}` }
+    }
+    style={styles.avatar}
+  />
+</TouchableOpacity>
+
           <View style={styles.flexOne}>
             <Text style={styles.name}>
               {user.firstName} {user.lastName}
@@ -706,7 +740,8 @@ const handleResumeImageUpload = () => {
       <TextInput
         style={styles.input}
         value={phone}
-        onChangeText={setPhone}
+       onChangeText={(text) => setPhone(text.replace(/[^0-9]/g, "").slice(0, 10))}
+
          editable={isEditing}
   selectTextOnFocus={isEditing}
         placeholder="+1 (555) 123-4567"
@@ -719,7 +754,8 @@ const handleResumeImageUpload = () => {
       <TextInput
         style={styles.input}
         value={location}
-        onChangeText={setLocation}
+        onChangeText={(text) => setLocation(text.replace(/[^a-zA-Z\s,]/g, ""))}
+
              editable={isEditing}
   selectTextOnFocus={isEditing}
         placeholder="San Francisco, CA"
@@ -848,7 +884,8 @@ const handleResumeImageUpload = () => {
       <TextInput
         style={styles.input}
         value={percentage}
-        onChangeText={setPercentage}
+       onChangeText={(text) => setPercentage(text.replace(/[^0-9.]/g, ""))}
+
              editable={isEditing}
          selectTextOnFocus={isEditing}
         placeholder="e.g. 85%"
@@ -972,7 +1009,8 @@ const handleResumeImageUpload = () => {
         <TextInput
           style={styles.input}
           value={caseNumber}
-          onChangeText={setCaseNumber}
+        onChangeText={(text) => setCaseNumber(text.replace(/[^a-zA-Z0-9/-]/g, ""))}
+
                editable={isEditing}
            selectTextOnFocus={isEditing}
           placeholder="Enter case number"
@@ -984,7 +1022,8 @@ const handleResumeImageUpload = () => {
         <TextInput
           style={styles.input}
           value={nocCertificateNumber}
-          onChangeText={setNocCertificateNumber}
+          onChangeText={(text) => setNocCertificateNumber(text.replace(/[^a-zA-Z0-9]/g, ""))}
+
                editable={isEditing}
           selectTextOnFocus={isEditing}
           placeholder="Enter certificate number"
@@ -1011,7 +1050,8 @@ const handleResumeImageUpload = () => {
       <TextInput
         style={styles.input}
         value={nocIssueYear}
-        onChangeText={setNocIssueYear}
+        onChangeText={(text) => setNocIssueYear(text.replace(/[^0-9]/g, "").slice(0, 4))}
+
              editable={isEditing}
           selectTextOnFocus={isEditing}
         placeholder="e.g. 2024"

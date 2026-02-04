@@ -18,7 +18,7 @@ import { useNavigation } from "@react-navigation/native";
 const onlyLetters = (text: string) => text.replace(/[^a-zA-Z\s]/g, "");
 const onlyNumbers = (text: string) => text.replace(/[^0-9]/g, "");
 const validateEmail = (email: string) =>
-  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/.test(email);
 
 /* ================= SCREEN ================= */
 
@@ -26,10 +26,10 @@ const AuthScreen = () => {
   const navigation = useNavigation<any>();
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
 
-  // ✅ UPDATED STATES
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [mobile, setMobile] = useState("");
+ 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -40,12 +40,12 @@ const AuthScreen = () => {
   /* ================= REGISTER ================= */
 
   const handleRegister = async () => {
-    if (!firstName || !lastName || !mobile || !email || !password || !confirmPassword) {
+    if (!firstName || !lastName || !mobile || !email || !password || !confirmPassword ) {
       Alert.alert("Error", "All fields are required");
       return;
     }
 
-    if (!validateEmail(email)) {
+    if (!validateEmail(email.trim())) {
       Alert.alert("Error", "Enter a valid email");
       return;
     }
@@ -54,6 +54,8 @@ const AuthScreen = () => {
       Alert.alert("Error", "Enter valid 10-digit mobile number");
       return;
     }
+
+  
 
     if (password.length < 6) {
       Alert.alert("Error", "Password must be at least 6 characters");
@@ -65,7 +67,14 @@ const AuthScreen = () => {
       return;
     }
 
-    const user = { firstName, lastName, mobile, email, password };
+    const user = {
+      firstName: onlyLetters(firstName),
+      lastName: onlyLetters(lastName),
+      mobile,
+      email: email.toLowerCase().trim(),
+      password,
+     
+    };
 
     await AsyncStorage.setItem("userData", JSON.stringify(user));
 
@@ -85,6 +94,7 @@ const AuthScreen = () => {
 
   const handleLogin = async () => {
     const stored = await AsyncStorage.getItem("userData");
+
     if (!stored) {
       Alert.alert("Not Registered", "Please register first");
       return;
@@ -92,12 +102,11 @@ const AuthScreen = () => {
 
     const user = JSON.parse(stored);
 
-    if (email !== user.email || password !== user.password) {
+    if (email.toLowerCase().trim() !== user.email || password !== user.password) {
       Alert.alert("Invalid Credentials", "Email or password incorrect");
       return;
     }
 
-    // ✅ PROFILE FOR ProfileInformation SCREEN
     const userProfile = {
       firstName: user.firstName,
       lastName: user.lastName,
@@ -139,6 +148,7 @@ const AuthScreen = () => {
               <Input label="First Name" value={firstName} onChange={(t: string) => setFirstName(onlyLetters(t))} />
               <Input label="Last Name" value={lastName} onChange={(t: string) => setLastName(onlyLetters(t))} />
               <Input label="Mobile Number" value={mobile} onChange={(t: string) => setMobile(onlyNumbers(t).slice(0, 10))} />
+              
               <Input label="Email" value={email} onChange={setEmail} />
 
               <PasswordInput
@@ -197,6 +207,7 @@ const Input = ({ label, value, onChange }: any) => (
       onChangeText={onChange}
       placeholder={`Enter ${label}`}
       placeholderTextColor="#9ca3af"
+      autoCapitalize="none"
     />
   </>
 );
@@ -212,6 +223,7 @@ const PasswordInput = ({ label, value, onChange, show, toggle }: any) => (
         onChangeText={onChange}
         placeholder={`Enter ${label}`}
         placeholderTextColor="#9ca3af"
+        autoCapitalize="none"
       />
       <TouchableOpacity onPress={toggle}>
         <Icon name={show ? "visibility" : "visibility-off"} size={22} color="#9ca3af" />
@@ -220,7 +232,7 @@ const PasswordInput = ({ label, value, onChange, show, toggle }: any) => (
   </>
 );
 
-/* ================= STYLES ================= */
+/* ================= STYLES (UNCHANGED) ================= */
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
