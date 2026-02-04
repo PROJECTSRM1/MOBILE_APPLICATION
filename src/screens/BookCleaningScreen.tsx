@@ -517,14 +517,14 @@ if (HOME_SERVICE_OPTIONS[selectedServices[0]?.category]) {
 
         <View style={styles.addonHeader}>
           <Text style={styles.sectionTitle}>Services Selected</Text>
-          <TouchableOpacity 
+          {/* <TouchableOpacity 
   style={[styles.addBtn, remainingServices.length === 0 && styles.addBtnDisabled]} 
   onPress={() => setServiceModalVisible(true)}
   disabled={remainingServices.length === 0}
 >
 
             <MaterialIcons name="add" size={18} color="#fff" /><Text style={styles.addBtnText}>Add More</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
 
          {false && (

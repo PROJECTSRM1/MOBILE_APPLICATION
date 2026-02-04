@@ -1,9 +1,14 @@
-import React from "react";
+
+import React, { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { ThemeProvider, useTheme } from "./src/context/ThemeContext";
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+
 /* ================= SCREENS ================= */
+
 import Splash from "./src/screens/Splash";
 import Onboarding from "./src/screens/Onboarding";
 import Landing from "./src/screens/Landing";
@@ -90,8 +95,7 @@ import FinalExamSchedule from "./src/screens/FinalExamSchedule";
 import InstitutionBranch from "./src/screens/institutionbranch";
 import InstitutionStudents from "./src/screens/InstitutionStudents";
 import CleaningDetailScreen from "./src/screens/CleaningDetailScreen";
-
-
+import Swachifycart from "./src/screens/Swachifycart";
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -173,6 +177,8 @@ export type RootStackParamList = {
   bookings: undefined;
   Doctor: undefined;
   DriverDashboard: undefined;
+  // Keep this consistent with what you call in navigation.navigate()
+Swachifycart: undefined;
   Offline:undefined
   DoctorProfile:undefined
   InstitutionRegistrationStep1: undefined;
@@ -189,9 +195,8 @@ export type RootStackParamList = {
   MidTermNotifications : undefined;
   FinalExamSchedule: undefined;
 institutionbranchscreen:undefined
-  instututionstudents: undefined;
-  
-  
+  instututionstudents: undefined
+  TreatmentSummary: undefined;
 
  
 };
@@ -202,10 +207,23 @@ const Stack = createNativeStackNavigator();
 /* ================= NAV WRAPPER ================= */
 function AppNavigator() {
   const { navigationTheme } = useTheme();
+  const [initialRoute, setInitialRoute] = useState<string>("Splash");
+
+
+  useEffect(() => {
+    const checkLogin = async () => {
+      const isLoggedIn = await AsyncStorage.getItem("isLoggedIn");
+      setInitialRoute(isLoggedIn === "true" ? "Landing" : "AuthScreen");
+    };
+    checkLogin();
+  }, []);
 
   return (
     <NavigationContainer theme={navigationTheme}>
-      <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
+      <Stack.Navigator
+  initialRouteName="Splash"
+  screenOptions={{ headerShown: false }}
+>
         <Stack.Screen name="Splash" component={Splash} />
         <Stack.Screen name="Onboarding" component={Onboarding} />
         <Stack.Screen name="Internship" component={InternshipDetailsScreen} />
@@ -282,9 +300,7 @@ function AppNavigator() {
          <Stack.Screen name="MyBookings" component={MyBookingsScreen} />
          <Stack.Screen name="VideoCall" component={VideoCallScreen} />
          <Stack.Screen name="TreatmentSummary" component={TreatmentSummaryScreen} />
-         
-         
-
+        <Stack.Screen name="Swachifycart" component={Swachifycart} />
 
        
      

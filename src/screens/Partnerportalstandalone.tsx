@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   StatusBar,
   Image,
   Dimensions,
+  Modal,
 } from 'react-native';
 import { useTheme } from "../context/ThemeContext";
 import { useNavigation } from "@react-navigation/native";
@@ -19,6 +20,7 @@ const PartnerPortalStandalone = () => {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
   const styles = getStyles(colors);
+  const [showHelpModal, setShowHelpModal] = useState(false);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -30,7 +32,10 @@ const PartnerPortalStandalone = () => {
         
         <Text style={styles.headerTitle}>Partner Portal</Text>
         
-        <TouchableOpacity style={styles.helpButton}>
+        <TouchableOpacity 
+          style={styles.helpButton}
+          onPress={() => setShowHelpModal(true)}
+        >
           <Text style={styles.helpIcon}>?</Text>
         </TouchableOpacity>
       </View>
@@ -195,6 +200,161 @@ const PartnerPortalStandalone = () => {
           </View>
         </View>
       </ScrollView>
+
+      {/* Help Modal */}
+      <Modal
+        visible={showHelpModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowHelpModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            {/* Modal Header */}
+            <View style={styles.modalHeader}>
+              <View style={styles.helpIconLarge}>
+                <Text style={styles.helpIconLargeText}>?</Text>
+              </View>
+              <Text style={styles.modalTitle}>Partner Portal Guide</Text>
+              <Text style={styles.modalSubtitle}>Choose the right access mode for your needs</Text>
+            </View>
+
+            <ScrollView 
+              style={styles.modalScroll}
+              contentContainerStyle={styles.modalScrollContent}
+              showsVerticalScrollIndicator={true}
+            >
+              {/* Student View Help Section */}
+              <View style={styles.helpSection}>
+                <View style={styles.helpSectionHeader}>
+                  <View style={styles.helpIconSmall}>
+                    <View style={styles.graduationCapSmall}>
+                      <View style={styles.capTopSmall} />
+                      <View style={styles.capSquareSmall} />
+                    </View>
+                  </View>
+                  <Text style={styles.helpSectionTitle}>Student View</Text>
+                  <View style={styles.previewBadgeSmall}>
+                    <Text style={styles.previewTextSmall}>PREVIEW</Text>
+                  </View>
+                </View>
+                
+                <Text style={styles.helpDescription}>
+                  Experience the portal exactly as your students see it. Perfect for:
+                </Text>
+                
+                <View style={styles.helpList}>
+                  <View style={styles.helpListItem}>
+                    <View style={styles.bulletPoint} />
+                    <Text style={styles.helpListText}>
+                      Testing course content before publishing
+                    </Text>
+                  </View>
+                  <View style={styles.helpListItem}>
+                    <View style={styles.bulletPoint} />
+                    <Text style={styles.helpListText}>
+                      Verifying assignment submissions and grading
+                    </Text>
+                  </View>
+                  <View style={styles.helpListItem}>
+                    <View style={styles.bulletPoint} />
+                    <Text style={styles.helpListText}>
+                      Checking how materials appear on mobile devices
+                    </Text>
+                  </View>
+                  <View style={styles.helpListItem}>
+                    <View style={styles.bulletPoint} />
+                    <Text style={styles.helpListText}>
+                      Understanding the student learning journey
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Management View Help Section */}
+              <View style={styles.helpSection}>
+                <View style={styles.helpSectionHeader}>
+                  <View style={styles.helpIconSmall}>
+                    <View style={styles.analyticsIconSmall}>
+                      <View style={styles.analyticsLineSmall} />
+                      <View style={styles.analyticsDotSmall} />
+                    </View>
+                  </View>
+                  <Text style={styles.helpSectionTitle}>Management View</Text>
+                  <View style={styles.adminBadgeSmall}>
+                    <Text style={styles.adminTextSmall}>ADMIN</Text>
+                  </View>
+                </View>
+                
+                <Text style={styles.helpDescription}>
+                  Access powerful administrative tools and insights. Use this to:
+                </Text>
+                
+                <View style={styles.helpList}>
+                  <View style={styles.helpListItem}>
+                    <View style={styles.bulletPoint} />
+                    <Text style={styles.helpListText}>
+                      Monitor student progress and performance analytics
+                    </Text>
+                  </View>
+                  <View style={styles.helpListItem}>
+                    <View style={styles.bulletPoint} />
+                    <Text style={styles.helpListText}>
+                      Manage enrollments and user permissions
+                    </Text>
+                  </View>
+                  <View style={styles.helpListItem}>
+                    <View style={styles.bulletPoint} />
+                    <Text style={styles.helpListText}>
+                      Generate comprehensive institutional reports
+                    </Text>
+                  </View>
+                  <View style={styles.helpListItem}>
+                    <View style={styles.bulletPoint} />
+                    <Text style={styles.helpListText}>
+                      Configure portal settings and customization
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Quick Tips Section */}
+              <View style={styles.tipsSection}>
+                <Text style={styles.tipsSectionTitle}>💡 Quick Tips</Text>
+                
+                <View style={styles.tipCard}>
+                  <Text style={styles.tipTitle}>Switching Views</Text>
+                  <Text style={styles.tipText}>
+                    You can easily switch between views anytime by returning to this portal screen.
+                  </Text>
+                </View>
+                
+                <View style={styles.tipCard}>
+                  <Text style={styles.tipTitle}>Data Security</Text>
+                  <Text style={styles.tipText}>
+                    Both views maintain the same security standards. Your actions are logged for accountability.
+                  </Text>
+                </View>
+                
+                <View style={styles.tipCard}>
+                  <Text style={styles.tipTitle}>Need Help?</Text>
+                  <Text style={styles.tipText}>
+                    Contact your system administrator for account issues or additional permissions.
+                  </Text>
+                </View>
+              </View>
+            </ScrollView>
+
+            {/* Modal Footer */}
+            <TouchableOpacity 
+              style={styles.modalCloseButton}
+              onPress={() => setShowHelpModal(false)}
+            >
+              <Text style={styles.modalCloseButtonText}>Got it, thanks!</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -680,6 +840,248 @@ const getStyles = (colors: any) => StyleSheet.create({
   statusText: {
     fontSize: 13,
     color: colors.subText,
+  },
+  
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: colors.card,
+    borderRadius: 20,
+    width: '100%',
+    maxWidth: 480,
+    height: height * 0.85,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  modalHeader: {
+    alignItems: 'center',
+    paddingTop: 32,
+    paddingHorizontal: 24,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  helpIconLarge: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.primary || '#1a73e8',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  helpIconLargeText: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: colors.subText,
+    textAlign: 'center',
+  },
+  modalScroll: {
+    flex: 1,
+  },
+  modalScrollContent: {
+    paddingBottom: 8,
+  },
+  helpSection: {
+    padding: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  helpSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  helpIconSmall: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#f0f4ff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  graduationCapSmall: {
+    width: 16,
+    height: 16,
+    position: 'relative',
+  },
+  capTopSmall: {
+    position: 'absolute',
+    top: 2,
+    left: 0,
+    width: 0,
+    height: 0,
+    backgroundColor: 'transparent',
+    borderStyle: 'solid',
+    borderLeftWidth: 8,
+    borderRightWidth: 8,
+    borderBottomWidth: 6,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderBottomColor: '#1a73e8',
+  },
+  capSquareSmall: {
+    position: 'absolute',
+    bottom: 0,
+    left: 4,
+    width: 8,
+    height: 8,
+    backgroundColor: '#1a73e8',
+    borderRadius: 1,
+  },
+  analyticsIconSmall: {
+    width: 16,
+    height: 16,
+    position: 'relative',
+  },
+  analyticsLineSmall: {
+    position: 'absolute',
+    top: 4,
+    left: 2,
+    width: 12,
+    height: 1.5,
+    backgroundColor: '#1a73e8',
+    transform: [{ rotate: '25deg' }],
+  },
+  analyticsDotSmall: {
+    position: 'absolute',
+    bottom: 4,
+    right: 2,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#1a73e8',
+  },
+  helpSectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+    flex: 1,
+  },
+  previewBadgeSmall: {
+    backgroundColor: colors.surfaceAlt || '#f0f4ff',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  previewTextSmall: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: colors.primary || '#1a73e8',
+    letterSpacing: 0.5,
+  },
+  adminBadgeSmall: {
+    backgroundColor: (colors.success || '#10b981') + '22',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  adminTextSmall: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: colors.success || '#10b981',
+    letterSpacing: 0.5,
+  },
+  helpDescription: {
+    fontSize: 14,
+    color: colors.subText,
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  helpList: {
+    marginLeft: 4,
+  },
+  helpListItem: {
+    flexDirection: 'row',
+    marginBottom: 12,
+    alignItems: 'flex-start',
+  },
+  bulletPoint: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.primary || '#1a73e8',
+    marginTop: 7,
+    marginRight: 12,
+  },
+  helpListText: {
+    flex: 1,
+    fontSize: 14,
+    color: colors.text,
+    lineHeight: 20,
+  },
+  tipsSection: {
+    padding: 24,
+  },
+  tipsSectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 16,
+  },
+  tipCard: {
+    backgroundColor: colors.background,
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: colors.primary || '#1a73e8',
+  },
+  tipTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 6,
+  },
+  tipText: {
+    fontSize: 13,
+    color: colors.subText,
+    lineHeight: 18,
+  },
+  modalCloseButton: {
+    backgroundColor: colors.primary || '#1a73e8',
+    marginHorizontal: 24,
+    marginVertical: 20,
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: colors.primary || '#1a73e8',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  modalCloseButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
   },
 });
 

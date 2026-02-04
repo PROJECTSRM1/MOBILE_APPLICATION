@@ -13,6 +13,7 @@ import {
   Modal,
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import { useNavigation } from "@react-navigation/native";
 
 /* ---------------- DATA ---------------- */
 
@@ -84,6 +85,7 @@ const ENTREPRENEURS = [
 /* ---------------- SCREEN ---------------- */
 
 export default function SwachifyMarketScreen() {
+  const navigation = useNavigation();
   const [activeFilter, setActiveFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [cartCount, setCartCount] = useState(0);
@@ -173,14 +175,14 @@ export default function SwachifyMarketScreen() {
             Swachify <Text style={{ color: "#135bec" }}>Market</Text>
           </Text>
 
-          <View>
+          <TouchableOpacity onPress={() => navigation.navigate("Swachifycart" as never)} style={{ position: "relative" }}>
             <MaterialIcons name="shopping-bag" size={24} color="#fff" />
             {cartCount > 0 && (
               <View style={styles.cartBadge}>
                 <Text style={styles.cartText}>{cartCount}</Text>
               </View>
             )}
-          </View>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
 

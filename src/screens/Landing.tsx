@@ -75,29 +75,23 @@ const Landing = () => {
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
-  // const [userRole, setUserRole] = useState<'customer' | 'employee'>('customer');
   type UserRole = 'customer' | 'employee' | 'partner';
-
-const [userRole, setUserRole] = useState<UserRole>('customer');
-
+  const [userRole, setUserRole] = useState<UserRole>('customer');
   const [showNavigationModal, setShowNavigationModal] = useState(false);
-  // const [navigationTarget, setNavigationTarget] = useState<'customer' | 'employee'>('customer');
-  const [navigationTarget, setNavigationTarget] =
-  useState<UserRole>('customer');
-
+  const [navigationTarget, setNavigationTarget] = useState<UserRole>('customer');
 
   // Placeholder texts array
-const placeholders = [
-  "Housing/Cleaning services...",
-  "Jobs...",
-  "Swachify Products...",
-  "Education & Courses...",
-  "Freelance services...",
-  "Buy/Sell items...",
-  "Health Care services...",
-  "Raw Materials...",
-  "Just Ride services...",
-];
+  const placeholders = [
+    "Housing/Cleaning services...",
+    "Jobs...",
+    "Swachify Products...",
+    "Education & Courses...",
+    "Freelance services...",
+    "Buy/Sell items...",
+    "Health Care services...",
+    "Raw Materials...",
+    "Just Ride services...",
+  ];
 
   /* ================= FREELANCERS DATA ================= */
   const serviceProviders: ServiceProvider[] = [
@@ -259,29 +253,63 @@ const placeholders = [
   );
 
   const checkLoginStatus = async () => {
+    console.log("=== CHECKING LOGIN STATUS ===");
+    
     try {
+      // Check multiple sources to determine login status
+      const loginStatus = await AsyncStorage.getItem("isLoggedIn");
       const storedUser = await AsyncStorage.getItem("userProfile");
+      const userData = await AsyncStorage.getItem("userData");
+      const authToken = await AsyncStorage.getItem("authToken");
 
-      if (storedUser) {
-        const parsed: UserProfile = JSON.parse(storedUser);
+      console.log("📦 Login Status:", loginStatus);
+      console.log("📦 User Profile:", storedUser);
+      console.log("📦 User Data:", userData);
+      console.log("📦 Auth Token:", authToken ? "EXISTS" : "NULL");
+
+      // User is logged in if any of these conditions are true
+      if (loginStatus === "true" || storedUser || userData || authToken) {
+        console.log("✅ User is logged in");
         setIsLoggedIn(true);
 
-        if (parsed.location) {
-          setUserLocation(parsed.location);
-        }
+        // Try to get user profile
+        if (storedUser) {
+          const parsed: UserProfile = JSON.parse(storedUser);
+          console.log("👤 User Profile parsed:", parsed);
+          
+          if (parsed.location) {
+            setUserLocation(parsed.location);
+          }
 
-        if (parsed.firstName) {
-          setUserName(parsed.firstName);
+          if (parsed.firstName) {
+            setUserName(parsed.firstName);
+          }
+        } else if (userData) {
+          // Fallback to userData if userProfile doesn't exist
+          const parsed = JSON.parse(userData);
+          console.log("👤 User Data parsed:", parsed);
+          
+          // Handle both API response formats
+          if (parsed.user) {
+            // Response format: { user: { first_name, last_name, ... } }
+            setUserName(parsed.user.first_name || parsed.user.firstName || "");
+          } else if (parsed.first_name || parsed.firstName) {
+            // Direct format: { first_name, last_name, ... }
+            setUserName(parsed.first_name || parsed.firstName || "");
+          }
         }
       } else {
+        console.log("❌ User is not logged in");
         setIsLoggedIn(false);
         setUserName("");
         setUserLocation("New York, NY");
       }
     } catch (err) {
-      console.log("Error loading user data:", err);
+      console.error("❌ Error loading user data:", err);
       setIsLoggedIn(false);
     }
+    
+    console.log("=== LOGIN STATUS CHECK COMPLETED ===\n");
   };
 
   /* ================= ANIMATED PLACEHOLDER EFFECT - FIXED ================= */
@@ -335,7 +363,8 @@ const placeholders = [
   }, [placeholders.length, fadeAnim, translateYAnim, isSearchFocused, searchQuery]);
 
   /* ================= ROLE SWITCH HANDLER ================= */
-  const handleRoleSwitch = (role: 'customer' | 'employee') => {
+  const handleRoleSwitch = (role: UserRole) => {
+    console.log(`🔄 Switching role to: ${role}`);
     setNavigationTarget(role);
     setShowRoleMenu(false);
     setShowNavigationModal(true);
@@ -344,19 +373,25 @@ const placeholders = [
     setTimeout(() => {
       setUserRole(role);
       setShowNavigationModal(false);
+      console.log(`✅ Role switched to: ${role}`);
     }, 2000);
   };
 
   /* ================= SEARCH HANDLER ================= */
   const handleSearch = () => {
+    console.log("🔍 Search triggered");
+    console.log("📝 Search query:", searchQuery);
+    console.log("🔐 Is logged in:", isLoggedIn);
+    
     if (!isLoggedIn) {
+      console.log("⚠️ User not logged in, navigating to AuthScreen");
       navigation.navigate("AuthScreen");
       return;
     }
 
     if (searchQuery.trim()) {
+      console.log("✅ Performing search for:", searchQuery);
       // You can navigate to a search results screen or perform search logic here
-      console.log("Searching for:", searchQuery);
       // navigation.navigate("SearchResults", { query: searchQuery });
     }
   };
@@ -559,7 +594,7 @@ const placeholders = [
           <View style={styles.modalContent}>
             <ActivityIndicator size="large" color={colors.primary} />
             <Text style={styles.modalText}>
-              You are navigating to {navigationTarget === 'customer' ? 'Customer' : 'Employee'} Dashboard
+              You are navigating to {navigationTarget === 'customer' ? 'Customer' : navigationTarget === 'employee' ? 'Employee' : 'Partner'} Dashboard
             </Text>
           </View>
         </View>
@@ -574,9 +609,12 @@ const placeholders = [
             style={styles.profileWrapper}
             activeOpacity={0.8}
             onPress={() => {
+              console.log("👤 Profile icon clicked, isLoggedIn:", isLoggedIn);
               if (!isLoggedIn) {
+                console.log("⚠️ Not logged in, navigating to AuthScreen");
                 navigation.navigate("AuthScreen");
               } else {
+                console.log("✅ Logged in, navigating to ProfileInformation");
                 navigation.navigate("ProfileInformation");
               }
             }}
@@ -622,24 +660,38 @@ const placeholders = [
                 fontWeight: "500",
               }}
             >
-              {/* {userRole === 'customer' ? 'Customer' : 'Employee'} */}
               {userRole === 'partner'
-  ? 'Partner'
-  : userRole === 'customer'
-  ? 'Customer'
-  : 'Employee'}
-
+                ? 'Partner'
+                : userRole === 'customer'
+                ? 'Customer'
+                : 'Employee'}
             </Text>
             <MaterialIcons name="expand-more" size={26} color={colors.text} />
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate("Cart")}>
+          <TouchableOpacity onPress={() => {
+            console.log("🛒 Cart icon clicked, isLoggedIn:", isLoggedIn);
+            if (!isLoggedIn) {
+              console.log("⚠️ Not logged in, navigating to AuthScreen");
+              navigation.navigate("AuthScreen");
+            } else {
+              navigation.navigate("Cart");
+            }
+          }}>
             <MaterialIcons name="shopping-cart" size={24} color={colors.text} />
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.notificationWrapper}
-            onPress={() => navigation.navigate("Notifications")}
+            onPress={() => {
+              console.log("🔔 Notification icon clicked, isLoggedIn:", isLoggedIn);
+              if (!isLoggedIn) {
+                console.log("⚠️ Not logged in, navigating to AuthScreen");
+                navigation.navigate("AuthScreen");
+              } else {
+                navigation.navigate("Notifications");
+              }
+            }}
             activeOpacity={0.7}
           >
             <MaterialIcons name="notifications" size={24} color={colors.text} />
@@ -647,7 +699,7 @@ const placeholders = [
           </TouchableOpacity>
         </View>
 
-        {/* {showRoleMenu && (
+        {showRoleMenu && (
           <View style={styles.roleMenu}>
             <TouchableOpacity
               style={styles.roleItem}
@@ -662,87 +714,71 @@ const placeholders = [
             >
               <Text style={styles.roleText}>Employee</Text>
             </TouchableOpacity>
+
+            {/* PARTNER OPTION */}
+            <TouchableOpacity
+              style={styles.roleItem}
+              onPress={() => {
+                console.log("🤝 Partner option clicked");
+                setShowRoleMenu(false);
+                navigation.navigate("PartnerAuth");
+              }}
+            >
+              <Text style={styles.roleText}>Partner</Text>
+            </TouchableOpacity>
           </View>
-        )} */}
-
-        {showRoleMenu && (
-  <View style={styles.roleMenu}>
-    <TouchableOpacity
-      style={styles.roleItem}
-      onPress={() => handleRoleSwitch('customer')}
-    >
-      <Text style={styles.roleText}>Customer</Text>
-    </TouchableOpacity>
-
-    <TouchableOpacity
-      style={styles.roleItem}
-      onPress={() => handleRoleSwitch('employee')}
-    >
-      <Text style={styles.roleText}>Employee</Text>
-    </TouchableOpacity>
-
-    {/*  PARTNER OPTION */}
-    <TouchableOpacity
-      style={styles.roleItem}
-      onPress={() => {
-        setShowRoleMenu(false);
-        navigation.navigate("PartnerAuth");
-      }}
-    >
-      <Text style={styles.roleText}>Partner</Text>
-    </TouchableOpacity>
-  </View>
-)}
-
+        )}
       </View>
 
       {/* ================= SEARCH WITH ANIMATED PLACEHOLDER ================= */}
-<View style={styles.searchBox}>
-  <MaterialIcons name="search" size={20} color="#3b82f6" />
-  <View style={{ flex: 1, height: 20, justifyContent: 'center' }}>
-    {/* Show "Find" text and animated placeholder only when input is empty and not focused */}
-    {!searchQuery && !isSearchFocused && (
-      <View style={{ flexDirection: 'row', alignItems: 'center', height: 20 }}>
-        <Text style={styles.searchPlaceholder}>Find </Text>
-        <View style={{ flex: 1, overflow: 'hidden', height: 20, justifyContent: 'center' }}>
-          <Animated.Text
-            style={[
-              styles.searchPlaceholder,
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: translateYAnim }],
-              },
-            ]}
-            pointerEvents="none"
-            numberOfLines={1}
-          >
-            {placeholders[placeholderIndex]}
-          </Animated.Text>
+      <View style={styles.searchBox}>
+        <MaterialIcons name="search" size={20} color="#3b82f6" />
+        <View style={{ flex: 1, height: 20, justifyContent: 'center' }}>
+          {/* Show "Find" text and animated placeholder only when input is empty and not focused */}
+          {!searchQuery && !isSearchFocused && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', height: 20 }}>
+              <Text style={styles.searchPlaceholder}>Find </Text>
+              <View style={{ flex: 1, overflow: 'hidden', height: 20, justifyContent: 'center' }}>
+                <Animated.Text
+                  style={[
+                    styles.searchPlaceholder,
+                    {
+                      opacity: fadeAnim,
+                      transform: [{ translateY: translateYAnim }],
+                    },
+                  ]}
+                  pointerEvents="none"
+                  numberOfLines={1}
+                >
+                  {placeholders[placeholderIndex]}
+                </Animated.Text>
+              </View>
+            </View>
+          )}
+          {/* TextInput for actual search functionality */}
+          <TextInput
+            style={[styles.searchInput, { position: 'absolute', width: '100%', left: 0 }]}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            onFocus={() => {
+              console.log("🔍 Search input focused, isLoggedIn:", isLoggedIn);
+              if (!isLoggedIn) {
+                console.log("⚠️ Not logged in, navigating to AuthScreen");
+                navigation.navigate("AuthScreen");
+              } else {
+                setIsSearchFocused(true);
+              }
+            }}
+            onBlur={() => setIsSearchFocused(false)}
+            onSubmitEditing={handleSearch}
+            returnKeyType="search"
+            placeholderTextColor="#9ca3af"
+          />
         </View>
+        <TouchableOpacity onPress={handleSearch}>
+          <MaterialIcons name="mic" size={20} color="#3b82f6" />
+        </TouchableOpacity>
       </View>
-    )}
-    {/* TextInput for actual search functionality */}
-    <TextInput
-      style={[styles.searchInput, { position: 'absolute', width: '100%', left: 0 }]}
-      value={searchQuery}
-      onChangeText={setSearchQuery}
-      onFocus={() => {
-        if (!isLoggedIn) {
-          navigation.navigate("AuthScreen");
-        } else {
-          setIsSearchFocused(true);
-        }
-      }}
-      onBlur={() => setIsSearchFocused(false)}
-      onSubmitEditing={handleSearch}
-      returnKeyType="search"
-      placeholderTextColor="#9ca3af"
-    />
-  </View>
-  <TouchableOpacity onPress={handleSearch}>
-    <MaterialIcons name="mic" size={20} color="#3b82f6" />
-  </TouchableOpacity>
-</View>
 
       <Animated.ScrollView
         showsVerticalScrollIndicator={false}
@@ -764,10 +800,13 @@ const placeholders = [
               style={styles.banner}
               activeOpacity={0.9}
               onPress={() => {
+                console.log(`🎯 Banner clicked: ${item.title}, isLoggedIn:`, isLoggedIn);
                 if (!isLoggedIn) {
+                  console.log("⚠️ Not logged in, navigating to AuthScreen");
                   navigation.navigate("AuthScreen");
                   return;
                 }
+                console.log(`✅ Navigating to: ${item.route}`);
                 navigation.navigate(item.route);
               }}
             >
@@ -782,10 +821,13 @@ const placeholders = [
                 <TouchableOpacity
                   style={styles.bannerBtn}
                   onPress={() => {
+                    console.log(`🎯 Banner button clicked: ${item.action}, isLoggedIn:`, isLoggedIn);
                     if (!isLoggedIn) {
+                      console.log("⚠️ Not logged in, navigating to AuthScreen");
                       navigation.navigate("AuthScreen");
                       return;
                     }
+                    console.log(`✅ Navigating to: ${item.route}`);
                     navigation.navigate(item.route);
                   }}
                 >
@@ -795,10 +837,6 @@ const placeholders = [
             </TouchableOpacity>
           ))}
         </ScrollView>
-
-        {/* <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Core Services</Text>
-        </View> */}
 
         <View style={styles.grid}>
           {[
@@ -817,41 +855,51 @@ const placeholders = [
                 style={styles.gridItem}
                 activeOpacity={0.8}
                 onPress={() => {
+                  console.log(`📱 Grid item clicked: ${item.name}, isLoggedIn:`, isLoggedIn);
                   if (!isLoggedIn) {
+                    console.log("⚠️ Not logged in, navigating to AuthScreen");
                     navigation.navigate("AuthScreen");
                     return;
                   }
 
                   switch (item.name) {
                     case "Housing / Cleaning":
+                      console.log("✅ Navigating to CleaningCategory");
                       navigation.navigate("CleaningCategory");
                       break;
 
                     case "Education":
+                      console.log("✅ Navigating to EducationHome");
                       navigation.navigate("EducationHome");
                       break;
 
                     case "Freelance":
+                      console.log("✅ Navigating to Freelancer");
                       navigation.navigate("Freelancer");
                       break;
 
                     case "Buy/Sell/Rent":
+                      console.log("✅ Navigating to Marketplace");
                       navigation.navigate("Marketplace");
                       break;
 
                     case "Swachify Products":
+                      console.log("✅ Navigating to ProductScreen");
                       navigation.navigate("ProductScreen");
                       break;
 
                     case "Raw Materials":
+                      console.log("✅ Navigating to RawMaterial");
                       navigation.navigate("RawMaterial");
                       break;
 
                     case "Just Ride":
+                      console.log("✅ Navigating to JustRideMultiStop");
                       navigation.navigate("JustRideMultiStop");
                       break;
 
                     case "Health Care":
+                      console.log("✅ Navigating to Health");
                       navigation.navigate("Health");
                       break;
 
@@ -875,14 +923,18 @@ const placeholders = [
             {userRole === 'customer' ? 'Trending Employees Near You' : 'Trending Near You'}
           </Text>
           <TouchableOpacity onPress={() => {
+            console.log("👀 View All clicked, isLoggedIn:", isLoggedIn);
             if (!isLoggedIn) {
+              console.log("⚠️ Not logged in, navigating to AuthScreen");
               navigation.navigate("AuthScreen");
               return;
             }
             // Navigate based on user role
             if (userRole === 'customer') {
+              console.log("✅ Navigating to Freelancer (all employees)");
               navigation.navigate("Freelancer"); // Show all employees
             } else {
+              console.log("✅ Navigating to Marketplace (all services)");
               navigation.navigate("Marketplace"); // Show all services
             }
           }}>
@@ -905,151 +957,154 @@ const placeholders = [
                   const statusUI = getStatusUI(provider.workStatus);
                   
                   return (
-    <View key={provider.id} style={styles.card}>
-      <Image source={{ uri: provider.image }} style={styles.cardImage} />
-      <View style={{ flex: 1 }}>
-        <View style={styles.employeeCardHeader}>
-          <Text style={styles.cardTitle}>{provider.name}</Text>
-          <View style={[styles.statusBadgeMini, { backgroundColor: statusUI.bg }]}>
-            <View style={[styles.statusDot, { backgroundColor: statusUI.color }]} />
-            <Text style={[styles.statusLabel, { color: statusUI.color }]}>
-              {statusUI.label}
-            </Text>
-          </View>
+                    <View key={provider.id} style={styles.card}>
+                      <Image source={{ uri: provider.image }} style={styles.cardImage} />
+                      <View style={{ flex: 1 }}>
+                        <View style={styles.employeeCardHeader}>
+                          <Text style={styles.cardTitle}>{provider.name}</Text>
+                          <View style={[styles.statusBadgeMini, { backgroundColor: statusUI.bg }]}>
+                            <View style={[styles.statusDot, { backgroundColor: statusUI.color }]} />
+                            <Text style={[styles.statusLabel, { color: statusUI.color }]}>
+                              {statusUI.label}
+                            </Text>
+                          </View>
+                        </View>
+                        <Text style={styles.cardSub}>
+                          {provider.service} • {provider.tasksCompleted} tasks
+                        </Text>
+                        <View style={styles.cardFooter}>
+                          <View style={styles.ratingContainer}>
+                            <MaterialIcons name="star" size={14} color="#facc15" />
+                            <Text style={styles.ratingText}>{provider.rating}</Text>
+                            <Text style={styles.reviewCount}>({provider.reviews})</Text>
+                          </View>
+                          <Text style={styles.price}>₹{provider.hourlyRate}/hr</Text>
+                        </View>
+                      </View>
+                    </View>
+                  );
+                })}
+                {/* Duplicate items for seamless loop */}
+                {serviceProviders.filter(p => p.isEnrolled).map((provider) => {
+                  const statusUI = getStatusUI(provider.workStatus);
+                  return (
+                    <View key={`${provider.id}-duplicate`} style={styles.card}>
+                      <Image source={{ uri: provider.image }} style={styles.cardImage} />
+                      <View style={{ flex: 1 }}>
+                        <View style={styles.employeeCardHeader}>
+                          <Text style={styles.cardTitle}>{provider.name}</Text>
+                          <View style={[styles.statusBadgeMini, { backgroundColor: statusUI.bg }]}>
+                            <View style={[styles.statusDot, { backgroundColor: statusUI.color }]} />
+                            <Text style={[styles.statusLabel, { color: statusUI.color }]}>
+                              {statusUI.label}
+                            </Text>
+                          </View>
+                        </View>
+                        <Text style={styles.cardSub}>
+                          {provider.service} • {provider.tasksCompleted} tasks
+                        </Text>
+                        <View style={styles.cardFooter}>
+                          <View style={styles.ratingContainer}>
+                            <MaterialIcons name="star" size={14} color="#facc15" />
+                            <Text style={styles.ratingText}>{provider.rating}</Text>
+                            <Text style={styles.reviewCount}>({provider.reviews})</Text>
+                          </View>
+                          <Text style={styles.price}>₹{provider.hourlyRate}/hr</Text>
+                        </View>
+                      </View>
+                    </View>
+                  );
+                })}
+              </>
+            ) : (
+              // EMPLOYEE MODE - Show Services (duplicated for continuous scroll)
+              <>
+                {trendingServices.map((item) => (
+                  <View key={item.id} style={styles.card}>
+                    <Image source={{ uri: item.image }} style={styles.cardImage} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.cardTitle}>{item.title}</Text>
+                      <Text style={styles.cardSub}>
+                        {item.category} • {item.distance}
+                      </Text>
+                      <View style={styles.cardFooter}>
+                        <Text style={styles.price}>{item.price}</Text>
+                        <TouchableOpacity style={styles.cardBtn}>
+                          <Text style={styles.cardBtnText}>{item.action}</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </View>
+                ))}
+                {/* Duplicate items for seamless loop */}
+                {trendingServices.map((item) => (
+                  <View key={`${item.id}-duplicate`} style={styles.card}>
+                    <Image source={{ uri: item.image }} style={styles.cardImage} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.cardTitle}>{item.title}</Text>
+                      <Text style={styles.cardSub}>
+                        {item.category} • {item.distance}
+                      </Text>
+                      <View style={styles.cardFooter}>
+                        <Text style={styles.price}>{item.price}</Text>
+                        <TouchableOpacity style={styles.cardBtn}>
+                          <Text style={styles.cardBtnText}>{item.action}</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </View>
+                ))}
+              </>
+            )}
+          </ScrollView>
         </View>
-        <Text style={styles.cardSub}>
-          {provider.service} • {provider.tasksCompleted} tasks
-        </Text>
-        <View style={styles.cardFooter}>
-          <View style={styles.ratingContainer}>
-            <MaterialIcons name="star" size={14} color="#facc15" />
-            <Text style={styles.ratingText}>{provider.rating}</Text>
-            <Text style={styles.reviewCount}>({provider.reviews})</Text>
+
+        {/* ================= REFER & EARN ================= */}
+        <View style={styles.referBox}>
+          <View>
+            <Text style={styles.referTitle}>Refer & Earn</Text>
+            <Text style={styles.referSub}>Invite your friends and earn 49/-</Text>
           </View>
-          <Text style={styles.price}>₹{provider.hourlyRate}/hr</Text>
+          <TouchableOpacity style={styles.inviteBtn}>
+            <Text style={styles.inviteText}>Invite</Text>
+          </TouchableOpacity>
         </View>
+
+        <View style={{ height: 90 }} />
+      </Animated.ScrollView>
+
+      {/* ================= BOTTOM TAB ================= */}
+      <View style={styles.bottomTab}>
+        {["home", "calendar-month", "account-balance-wallet", "chat", "person"].map(
+          (icon, i) => (
+            <TouchableOpacity
+              key={i}
+              onPress={() => {
+                if (i === 4) {
+                  console.log("👤 Profile tab clicked, isLoggedIn:", isLoggedIn);
+                  if (!isLoggedIn) {
+                    console.log("⚠️ Not logged in, navigating to AuthScreen");
+                    navigation.navigate("AuthScreen");
+                  } else {
+                    console.log("✅ Navigating to ProfileInformation");
+                    navigation.navigate("ProfileInformation");
+                  }
+                }
+              }}
+            >
+              <MaterialIcons
+                name={icon}
+                size={26}
+                color={i === 0 ? "#3b82f6" : "#9ca3af"}
+              />
+            </TouchableOpacity>
+          )
+        )}
       </View>
     </View>
   );
-})}
-{/* Duplicate items for seamless loop */}
-{serviceProviders.filter(p => p.isEnrolled).map((provider) => {
-const statusUI = getStatusUI(provider.workStatus);
-return (
-                <View key={`${provider.id}-duplicate`} style={styles.card}>
-                  <Image source={{ uri: provider.image }} style={styles.cardImage} />
-                  <View style={{ flex: 1 }}>
-                    <View style={styles.employeeCardHeader}>
-                      <Text style={styles.cardTitle}>{provider.name}</Text>
-                      <View style={[styles.statusBadgeMini, { backgroundColor: statusUI.bg }]}>
-                        <View style={[styles.statusDot, { backgroundColor: statusUI.color }]} />
-                        <Text style={[styles.statusLabel, { color: statusUI.color }]}>
-                          {statusUI.label}
-                        </Text>
-                      </View>
-                    </View>
-                    <Text style={styles.cardSub}>
-                      {provider.service} • {provider.tasksCompleted} tasks
-                    </Text>
-                    <View style={styles.cardFooter}>
-                      <View style={styles.ratingContainer}>
-                        <MaterialIcons name="star" size={14} color="#facc15" />
-                        <Text style={styles.ratingText}>{provider.rating}</Text>
-                        <Text style={styles.reviewCount}>({provider.reviews})</Text>
-                      </View>
-                      <Text style={styles.price}>₹{provider.hourlyRate}/hr</Text>
-                    </View>
-                  </View>
-                </View>
-              );
-            })}
-          </>
-        ) : (
-          // EMPLOYEE MODE - Show Services (duplicated for continuous scroll)
-          <>
-            {trendingServices.map((item) => (
-              <View key={item.id} style={styles.card}>
-                <Image source={{ uri: item.image }} style={styles.cardImage} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.cardTitle}>{item.title}</Text>
-                  <Text style={styles.cardSub}>
-                    {item.category} • {item.distance}
-                  </Text>
-                  <View style={styles.cardFooter}>
-                    <Text style={styles.price}>{item.price}</Text>
-                    <TouchableOpacity style={styles.cardBtn}>
-                      <Text style={styles.cardBtnText}>{item.action}</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </View>
-            ))}
-            {/* Duplicate items for seamless loop */}
-            {trendingServices.map((item) => (
-              <View key={`${item.id}-duplicate`} style={styles.card}>
-                <Image source={{ uri: item.image }} style={styles.cardImage} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.cardTitle}>{item.title}</Text>
-                  <Text style={styles.cardSub}>
-                    {item.category} • {item.distance}
-                  </Text>
-                  <View style={styles.cardFooter}>
-                    <Text style={styles.price}>{item.price}</Text>
-                    <TouchableOpacity style={styles.cardBtn}>
-                      <Text style={styles.cardBtnText}>{item.action}</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </View>
-            ))}
-          </>
-        )}
-      </ScrollView>
-    </View>
-
-    {/* ================= REFER & EARN ================= */}
-    <View style={styles.referBox}>
-      <View>
-        <Text style={styles.referTitle}>Refer & Earn</Text>
-        <Text style={styles.referSub}>Invite your friends and earn 49/-</Text>
-      </View>
-      <TouchableOpacity style={styles.inviteBtn}>
-        <Text style={styles.inviteText}>Invite</Text>
-      </TouchableOpacity>
-    </View>
-
-    <View style={{ height: 90 }} />
-  </Animated.ScrollView>
-
-  {/* ================= BOTTOM TAB ================= */}
-  <View style={styles.bottomTab}>
-    {["home", "calendar-month", "account-balance-wallet", "chat", "person"].map(
-      (icon, i) => (
-        <TouchableOpacity
-          key={i}
-          onPress={() => {
-            if (i === 4) {
-              if (!isLoggedIn) {
-                navigation.navigate("AuthScreen");
-              } else {
-                navigation.navigate("ProfileInformation");
-              }
-            }
-          }}
-        >
-          <MaterialIcons
-            name={icon}
-            size={26}
-            color={i === 0 ? "#3b82f6" : "#9ca3af"}
-          />
-        </TouchableOpacity>
-      )
-    )}
-  </View>
-</View>
-
-);
 };
+
 export default Landing;
 
 const getStyles = (colors: any) =>
