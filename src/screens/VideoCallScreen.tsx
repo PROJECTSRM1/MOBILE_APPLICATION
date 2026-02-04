@@ -14,6 +14,13 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { RootStackParamList } from "../../App"; 
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+
+type VideoCallNavProp = NativeStackNavigationProp<
+  RootStackParamList,
+  "VideoCall"
+>;
 
 const { width, height } = Dimensions.get('window');
 
@@ -50,7 +57,8 @@ interface VideoCallScreenProps {
 ======================= */
 
 function VideoCallScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<VideoCallNavProp>();
+
   const route = useRoute();
   const params: any = route.params || {};
 
@@ -69,7 +77,7 @@ const user = params.user || {
 const onEndCall =
   params.onEndCall ||
   (() => {
-    navigation.goBack();
+    navigation.navigate("TreatmentSummary");
   });
 
   /* ---------- STATE ---------- */

@@ -1,9 +1,14 @@
-import React from "react";
+
+import React, { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { ThemeProvider, useTheme } from "./src/context/ThemeContext";
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+
 /* ================= SCREENS ================= */
+
 import Splash from "./src/screens/Splash";
 import Onboarding from "./src/screens/Onboarding";
 import Landing from "./src/screens/Landing";
@@ -191,6 +196,8 @@ Swachifycart: undefined;
   FinalExamSchedule: undefined;
 institutionbranchscreen:undefined
   instututionstudents: undefined
+  TreatmentSummary: undefined;
+
  
 };
 
@@ -200,10 +207,22 @@ const Stack = createNativeStackNavigator();
 /* ================= NAV WRAPPER ================= */
 function AppNavigator() {
   const { navigationTheme } = useTheme();
+  const [initialRoute, setInitialRoute] = useState<string | null>(null);
+
+  useEffect(() => {
+    const checkLogin = async () => {
+      const isLoggedIn = await AsyncStorage.getItem("isLoggedIn");
+      setInitialRoute(isLoggedIn === "true" ? "Landing" : "AuthScreen");
+    };
+    checkLogin();
+  }, []);
+
+  if (!initialRoute) return null; // or splash loader
 
   return (
     <NavigationContainer theme={navigationTheme}>
-      <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
+      <Stack.Navigator initialRouteName={initialRoute as any} screenOptions={{ headerShown: false }}>
+
         <Stack.Screen name="Splash" component={Splash} />
         <Stack.Screen name="Onboarding" component={Onboarding} />
         <Stack.Screen name="Internship" component={InternshipDetailsScreen} />
