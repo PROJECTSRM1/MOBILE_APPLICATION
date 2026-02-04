@@ -11,6 +11,7 @@ import {
   Share,
   TextInput,
   ActivityIndicator,
+  BackHandler,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -38,10 +39,14 @@ interface Payslip {
   basicPay: string;
   hra: string;
   medicalAllowance: string;
+  conveyance: string;
   performanceBonus: string;
-  pf: string;
+  pfDeduction: string;
   incomeTax: string;
   professionalTax: string;
+  healthInsurance: string;
+  grossEarnings: string;
+  totalDeductions: string;
 }
 
 interface PayslipDetailsScreenProps {
@@ -64,6 +69,29 @@ const PaySlipsScreen = ({ navigation, route }: PayslipDetailsScreenProps) => {
   useEffect(() => {
     fetchAllStaff();
   }, []);
+
+  // Handle Android back button
+  useEffect(() => {
+    const backAction = () => {
+      if (currentScreen === 'details') {
+        // If on details screen, go back to list
+        setCurrentScreen('list');
+        setSelectedStaff(null);
+        setSelectedPayslips([]);
+        setSelectedPayslip(null);
+        return true; // Prevent default back behavior - we handled it
+      }
+      // If on list screen, return false to allow navigation.goBack() to work normally
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, [currentScreen]); // Re-run when currentScreen changes
 
   const fetchAllStaff = async () => {
     try {
@@ -225,22 +253,42 @@ const PaySlipsScreen = ({ navigation, route }: PayslipDetailsScreenProps) => {
       setPayslipsLoading(true);
       const response = await api.get(`/institution/management/${staffId}/payslips`);
       
+      console.log('=== PAYSLIP API RESPONSE ===');
+      console.log('Full response:', JSON.stringify(response.data, null, 2));
+      console.log('============================');
+      
       if (response.data && Array.isArray(response.data)) {
         // Map backend data to our interface
-        const mappedPayslips = response.data.map((payslip: any) => ({
-          id: payslip.id || payslip._id,
-          staff_id: staffId,
-          payPeriod: payslip.pay_period || payslip.payPeriod || 'N/A',
-          paymentDate: payslip.payment_date || payslip.paymentDate || 'N/A',
-          netSalary: formatCurrency(payslip.net_salary || payslip.netSalary || 0),
-          basicPay: formatCurrency(payslip.basic_pay || payslip.basicPay || 0),
-          hra: formatCurrency(payslip.hra || 0),
-          medicalAllowance: formatCurrency(payslip.medical_allowance || payslip.medicalAllowance || 0),
-          performanceBonus: formatCurrency(payslip.performance_bonus || payslip.performanceBonus || 0),
-          pf: formatCurrency(payslip.pf || 0),
-          incomeTax: formatCurrency(payslip.income_tax || payslip.incomeTax || 0),
-          professionalTax: formatCurrency(payslip.professional_tax || payslip.professionalTax || 0),
-        }));
+        const mappedPayslips = response.data.map((payslip: any) => {
+          console.log('Processing payslip:', payslip);
+          
+          // Handle payroll_month - it comes as "JAN-2026" string format
+          const payPeriod = payslip.payroll_month || payslip.payrollMonth || 'N/A';
+          
+          // Handle payment_date - it comes as "2026-01-31" string format
+          const paymentDate = payslip.payment_date || payslip.paymentDate || 'N/A';
+          
+          return {
+            id: payslip.id || payslip._id,
+            staff_id: staffId,
+            payPeriod: payPeriod,
+            paymentDate: paymentDate,
+            netSalary: formatCurrency(parseFloat(payslip.net_salary || payslip.netSalary || 0)),
+            basicPay: formatCurrency(parseFloat(payslip.basic_pay || payslip.basicPay || 0)),
+            hra: formatCurrency(parseFloat(payslip.hra || 0)),
+            medicalAllowance: formatCurrency(parseFloat(payslip.medical_allowance || payslip.medicalAllowance || 0)),
+            conveyance: formatCurrency(parseFloat(payslip.conveyance || 0)),
+            performanceBonus: formatCurrency(parseFloat(payslip.performance_bonus || payslip.performanceBonus || 0)),
+            pfDeduction: formatCurrency(parseFloat(payslip.pf_deduction || payslip.pfDeduction || 0)),
+            incomeTax: formatCurrency(parseFloat(payslip.income_tax || payslip.incomeTax || 0)),
+            professionalTax: formatCurrency(parseFloat(payslip.professional_tax || payslip.professionalTax || 0)),
+            healthInsurance: formatCurrency(parseFloat(payslip.health_insurance || payslip.healthInsurance || 0)),
+            grossEarnings: formatCurrency(parseFloat(payslip.gross_earnings || payslip.grossEarnings || 0)),
+            totalDeductions: formatCurrency(parseFloat(payslip.total_deductions || payslip.totalDeductions || 0)),
+          };
+        });
+        
+        console.log('Mapped payslips:', mappedPayslips);
         setSelectedPayslips(mappedPayslips);
         
         // Auto-select the most recent payslip if available
@@ -263,7 +311,8 @@ const PaySlipsScreen = ({ navigation, route }: PayslipDetailsScreenProps) => {
 
   const formatCurrency = (amount: number | string): string => {
     const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-    return `$${numAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    // Changed from $ to ₹ for Indian Rupees
+    return `₹${numAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   // Filter staff based on search query
@@ -278,19 +327,6 @@ const PaySlipsScreen = ({ navigation, route }: PayslipDetailsScreenProps) => {
     setSelectedStaff(staff);
     setCurrentScreen('details');
     await fetchStaffPayslips(staff.id);
-  };
-
-  const handleBack = () => {
-    if (currentScreen === 'details') {
-      setCurrentScreen('list');
-      setSelectedStaff(null);
-      setSelectedPayslips([]);
-      setSelectedPayslip(null);
-    } else if (navigation) {
-      navigation.goBack();
-    } else {
-      Alert.alert('Back', 'Navigation not configured');
-    }
   };
 
   const handleDownload = () => {
@@ -326,22 +362,41 @@ const PaySlipsScreen = ({ navigation, route }: PayslipDetailsScreenProps) => {
     );
   };
 
+  const handleBack = () => {
+    if (navigation) {
+      navigation.goBack();
+    }
+  };
+
   // Calculate totals for selected payslip
   const calculateTotals = (payslip: Payslip | null) => {
-    if (!payslip) return { totalEarnings: '$0.00', totalDeductions: '$0.00' };
+    if (!payslip) return { totalEarnings: '₹0.00', totalDeductions: '₹0.00' };
     
-    const earnings = parseFloat(payslip.basicPay.replace('$', '').replace(',', '')) +
-                    parseFloat(payslip.hra.replace('$', '').replace(',', '')) +
-                    parseFloat(payslip.medicalAllowance.replace('$', '').replace(',', '')) +
-                    parseFloat(payslip.performanceBonus.replace('$', '').replace(',', ''));
+    // If backend already provides totals, use them
+    if (payslip.grossEarnings && payslip.totalDeductions) {
+      return {
+        totalEarnings: payslip.grossEarnings,
+        totalDeductions: payslip.totalDeductions
+      };
+    }
     
-    const deductions = parseFloat(payslip.pf.replace('$', '').replace(',', '')) +
-                      parseFloat(payslip.incomeTax.replace('$', '').replace(',', '')) +
-                      parseFloat(payslip.professionalTax.replace('$', '').replace(',', ''));
+    // Otherwise calculate from individual components
+    const parseAmount = (amount: string) => parseFloat(amount.replace('₹', '').replace(/,/g, ''));
+    
+    const earnings = parseAmount(payslip.basicPay) +
+                    parseAmount(payslip.hra) +
+                    parseAmount(payslip.medicalAllowance) +
+                    parseAmount(payslip.conveyance) +
+                    parseAmount(payslip.performanceBonus);
+    
+    const deductions = parseAmount(payslip.pfDeduction) +
+                      parseAmount(payslip.incomeTax) +
+                      parseAmount(payslip.professionalTax) +
+                      parseAmount(payslip.healthInsurance);
     
     return {
-      totalEarnings: `$${earnings.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-      totalDeductions: `$${deductions.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      totalEarnings: `₹${earnings.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      totalDeductions: `₹${deductions.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
     };
   };
 
@@ -367,7 +422,7 @@ const PaySlipsScreen = ({ navigation, route }: PayslipDetailsScreenProps) => {
         <View style={[styles.header, { backgroundColor: colors.background }]}>
           <TouchableOpacity 
             style={[styles.backButton, { backgroundColor: colors.card, borderColor: colors.border }]}
-            onPress={handleBack}
+            onPress={() => navigation?.goBack()}
             activeOpacity={0.7}
           >
             <MaterialIcons name="arrow-back" size={24} color={colors.text} />
@@ -490,7 +545,16 @@ const PaySlipsScreen = ({ navigation, route }: PayslipDetailsScreenProps) => {
       <View style={[styles.header, { backgroundColor: colors.background }]}>
         <TouchableOpacity 
           style={[styles.backButton, { backgroundColor: colors.card, borderColor: colors.border }]}
-          onPress={handleBack}
+          onPress={() => {
+            if (currentScreen === 'details') {
+              setCurrentScreen('list');
+              setSelectedStaff(null);
+              setSelectedPayslips([]);
+              setSelectedPayslip(null);
+            } else if (navigation) {
+              navigation.goBack();
+            }
+          }}
           activeOpacity={0.7}
         >
           <MaterialIcons name="arrow-back" size={24} color={colors.text} />
@@ -587,6 +651,10 @@ const PaySlipsScreen = ({ navigation, route }: PayslipDetailsScreenProps) => {
                   <Text style={[styles.listItemValue, { color: colors.text }]}>{selectedPayslip?.medicalAllowance}</Text>
                 </View>
                 <View style={styles.listItem}>
+                  <Text style={[styles.listItemLabel, { color: colors.subText }]}>Conveyance</Text>
+                  <Text style={[styles.listItemValue, { color: colors.text }]}>{selectedPayslip?.conveyance}</Text>
+                </View>
+                <View style={styles.listItem}>
                   <Text style={[styles.listItemLabel, { color: colors.subText }]}>Performance Bonus</Text>
                   <Text style={[styles.listItemValue, { color: colors.success }]}>+{selectedPayslip?.performanceBonus}</Text>
                 </View>
@@ -610,7 +678,7 @@ const PaySlipsScreen = ({ navigation, route }: PayslipDetailsScreenProps) => {
               <View style={styles.cardContent}>
                 <View style={styles.listItem}>
                   <Text style={[styles.listItemLabel, { color: colors.subText }]}>Provident Fund (PF)</Text>
-                  <Text style={[styles.listItemValue, { color: colors.text }]}>{selectedPayslip?.pf}</Text>
+                  <Text style={[styles.listItemValue, { color: colors.text }]}>{selectedPayslip?.pfDeduction}</Text>
                 </View>
                 <View style={styles.listItem}>
                   <Text style={[styles.listItemLabel, { color: colors.subText }]}>Income Tax (TDS)</Text>
@@ -619,6 +687,10 @@ const PaySlipsScreen = ({ navigation, route }: PayslipDetailsScreenProps) => {
                 <View style={styles.listItem}>
                   <Text style={[styles.listItemLabel, { color: colors.subText }]}>Professional Tax</Text>
                   <Text style={[styles.listItemValue, { color: colors.text }]}>{selectedPayslip?.professionalTax}</Text>
+                </View>
+                <View style={styles.listItem}>
+                  <Text style={[styles.listItemLabel, { color: colors.subText }]}>Health Insurance</Text>
+                  <Text style={[styles.listItemValue, { color: colors.text }]}>{selectedPayslip?.healthInsurance}</Text>
                 </View>
               </View>
 
