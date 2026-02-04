@@ -90,8 +90,7 @@ import FinalExamSchedule from "./src/screens/FinalExamSchedule";
 import InstitutionBranch from "./src/screens/institutionbranch";
 import InstitutionStudents from "./src/screens/InstitutionStudents";
 import CleaningDetailScreen from "./src/screens/CleaningDetailScreen";
-
-
+import Swachifycart from "./src/screens/Swachifycart";
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -173,6 +172,8 @@ export type RootStackParamList = {
   bookings: undefined;
   Doctor: undefined;
   DriverDashboard: undefined;
+  // Keep this consistent with what you call in navigation.navigate()
+Swachifycart: undefined;
   Offline:undefined
   DoctorProfile:undefined
   InstitutionRegistrationStep1: undefined;
@@ -279,7 +280,7 @@ function AppNavigator() {
          <Stack.Screen name="MyBookings" component={MyBookingsScreen} />
          <Stack.Screen name="VideoCall" component={VideoCallScreen} />
          <Stack.Screen name="TreatmentSummary" component={TreatmentSummaryScreen} />
-
+        <Stack.Screen name="Swachifycart" component={Swachifycart} />
 
        
      
