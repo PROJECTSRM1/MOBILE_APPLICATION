@@ -12,12 +12,19 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+
 
 
 // Icon component placeholder - replace with react-native-vector-icons or your icon library
 const Icon = ({ name, size = 24, color = '#64748b' }: { name: string; size?: number; color?: string }) => (
   <Text style={{ fontSize: size, color }}>{name}</Text>
 );
+
+
+
 
 const DoctorProfile = () => {
    const route = useRoute<any>();
@@ -27,6 +34,14 @@ const DoctorProfile = () => {
   const [showAssistantModal, setShowAssistantModal] = useState(false);
 const [selectedAssistant, setSelectedAssistant] = useState<any>(null);
 
+const doctorData = {
+  ...doctor,
+  reviews: doctor.reviews ?? '100+',
+  patients: doctor.patients ?? '1k+',
+  bio:
+    doctor.bio ??
+    'This doctor is a certified specialist with several years of clinical experience in patient care. They are known for a patient-first approach, clear communication, and evidence-based treatment methods. The doctor has successfully treated hundreds of patients and continuously stays updated with the latest medical advancements to provide safe, accurate, and compassionate healthcare services.',
+};
 
 const assistants = [
   {
@@ -68,11 +83,11 @@ const assistants = [
             style={styles.iconButton}
             onPress={() => navigation.goBack()}
           >
-          <Icon name="←" size={20} color="#64748b" />
+          <MaterialIcons name="arrow-back" size={20} color="#64748b" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Doctor Profile</Text>
         <TouchableOpacity style={styles.iconButton}>
-          <Icon name="♡" size={22} color="#64748b" />
+          <Ionicons name="heart-outline" size={22} color="#64748b" />
         </TouchableOpacity>
       </View>
 
@@ -99,22 +114,23 @@ const assistants = [
 
            <Text style={styles.specialty}>{doctor.specialty}</Text>
             
-            <View style={styles.ratingContainer}>
-              <Text style={styles.starIcon}>★</Text>
+           <View style={styles.ratingContainer}>
+              <MaterialIcons name="star" size={14} color="#fbbf24" />
               <Text style={styles.rating}>{doctor.rating}</Text>
-              <Text style={styles.reviews}>
-                    ({doctor.reviews || '100+'} Reviews)
-                  </Text>
+              <Text style={styles.reviews}>({doctorData.reviews} Reviews)</Text>
             </View>
+
             
             <View style={styles.statsContainer}>
               <View style={styles.statBox}>
                 <Text style={styles.statLabel}>Exp.</Text>
-                <Text style={styles.statValue}>8 Yrs</Text>
+                <Text style={styles.statValue}>
+                    {doctor.experience ?? '—'} Yrs
+                  </Text>
               </View>
               <View style={styles.statBox}>
                 <Text style={styles.statLabel}>Patients</Text>
-                <Text style={styles.statValue}>2.5k+</Text>
+                <Text style={styles.statValue}>{doctorData.patients}</Text>
               </View>
             </View>
           </View>
@@ -124,8 +140,7 @@ const assistants = [
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Biography</Text>
           <Text style={styles.biographyText}>
-            Dr. Sarah Jenkins is a board-certified cardiologist with over 8 years of experience in cardiovascular medicine. She specializes in non-invasive diagnostic cardiology and preventive heart health. She is dedicated to providing compassionate care...{' '}
-            <Text style={styles.readMore}>Read More</Text>
+            {doctorData.bio}
           </Text>
         </View>
 
@@ -186,9 +201,10 @@ const assistants = [
 
             <View style={styles.featuresContainer}>
               <View style={styles.feature}>
-                <Text style={styles.checkIcon}>✓</Text>
+                <MaterialIcons name="check-circle" size={14} color="#2D7E7E" />
                 <Text style={styles.featureText}>Queue Management</Text>
               </View>
+
               <View style={styles.feature}>
                 <Text style={styles.checkIcon}>✓</Text>
                 <Text style={styles.featureText}>Lab Report Collection</Text>
@@ -236,10 +252,11 @@ const assistants = [
 
       {/* Fixed Bottom Button */}
       <View style={styles.bottomContainer}>
-        <TouchableOpacity style={styles.bookButton}>
+                <TouchableOpacity style={styles.bookButton}>
           <Text style={styles.bookButtonText}>Book Appointment</Text>
-          <Text style={styles.calendarIcon}>📅</Text>
+          <MaterialIcons name="event" size={18} color="#ffffff" />
         </TouchableOpacity>
+
       </View>
       {/* Personal Assistant Bottom Modal */}
 <Modal visible={showAssistantModal} transparent animationType="slide">
@@ -286,8 +303,8 @@ const assistants = [
             </View>
 
             {isSelected && (
-              <Text style={assistantStyles.check}>✓</Text>
-            )}
+          <MaterialIcons name="check-circle" size={20} color="#2D7E7E" />
+        )}
           </TouchableOpacity>
         );
       })}
