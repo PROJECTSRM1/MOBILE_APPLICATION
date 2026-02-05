@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Switch,
-  SafeAreaView,
+ 
   StatusBar,
   TextInput,
   LayoutAnimation,
@@ -21,6 +21,11 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Keyboard } from "react-native";
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+
+
+
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { launchImageLibrary } from 'react-native-image-picker';

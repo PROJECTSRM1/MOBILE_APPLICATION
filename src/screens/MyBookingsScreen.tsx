@@ -12,8 +12,10 @@ import {
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import HealthcareBottomNav from './HealthcareBottomNav';
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
 
@@ -161,7 +163,7 @@ const MyBookingsScreen = () => {
 
       // Transform API → UI model
       const formatted: Booking[] = data.map((item: any) => {
-        const dt = new Date(item.appointment_time);
+        const dt = new Date(item.appointment_time + "Z");
 
         const date = dt.toLocaleDateString('en-IN', {
           day: '2-digit',
@@ -347,6 +349,7 @@ return {
         </View>
 
         {loading ? (
+          <ActivityIndicator size="large" color="#2d7576" />
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#2563eb" />
             <Text style={styles.loadingText}>Loading bookings...</Text>
@@ -432,6 +435,26 @@ return {
         )}
       </View>
 
+      {/* Bottom Navigation - Updated to match Healthcare.tsx */}
+      <HealthcareBottomNav
+  activeTab="bookings"
+  onNavigate={(tab) => {
+    switch (tab) {
+      case 'home':
+        // Navigation handled by component
+        break;
+      case 'bookings':
+        // Already on bookings
+        break;
+      case 'records':
+        Alert.alert('Coming Soon', 'Records feature coming soon!');
+        break;
+      case 'profile':
+      
+        break;
+    }
+  }}
+/>
       {/* Bottom Nav */}
       <View style={styles.bottomNav}>
         <TouchableOpacity onPress={() => (navigation as any).navigate('Landing')}>
@@ -450,7 +473,7 @@ return {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#fafaf9',
   },
   container: {
     flex: 1,
@@ -472,52 +495,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#0f172a',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 14,
-    color: '#64748b',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 32,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#0f172a',
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: '#64748b',
-    textAlign: 'center',
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#131616',
+    letterSpacing: -0.5,
   },
   listContent: {
     padding: 16,
     paddingBottom: 80,
   },
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
+    backgroundColor: '#ffffff',
+    borderRadius: 28,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.05)',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowRadius: 2,
+    elevation: 1,
   },
   completedCard: {
     opacity: 0.8,
@@ -531,8 +529,7 @@ const styles = StyleSheet.create({
   doctorName: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#0f172a',
-    marginBottom: 6,
+    color: '#131616',
   },
   dateTimeRow: {
     flexDirection: 'row',
@@ -550,9 +547,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   completedBadgeText: {
-    fontSize: 11,
-    fontWeight: '700',
     color: '#16a34a',
+    fontSize: 10,
+    fontWeight: '800',
   },
   actionBtn: {
     borderRadius: 12,
@@ -561,10 +558,15 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   joinBtn: {
-    backgroundColor: '#2563eb',
+    backgroundColor: '#2d7576',
+    shadowColor: '#2d7576',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   disabledBtn: {
-    backgroundColor: '#e2e8f0',
+    backgroundColor: '#f3f4f6',
   },
   btnText: {
     fontSize: 15,
@@ -580,15 +582,17 @@ const styles = StyleSheet.create({
     top: 20,
     left: 20,
     right: 20,
-    height: 2,
-    backgroundColor: '#e2e8f0',
+    height: 4,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 2,
   },
   progressLineActive: {
     position: 'absolute',
     top: 20,
     left: 20,
-    height: 2,
-    backgroundColor: '#2563eb',
+    height: 4,
+    backgroundColor: '#2d7576',
+    borderRadius: 2,
   },
   stepsWrapper: {
     flexDirection: 'row',
@@ -597,7 +601,7 @@ const styles = StyleSheet.create({
   },
   stepItem: {
     alignItems: 'center',
-    width: width / 5,
+    width: (width - 80) / 4,
   },
   stepCircle: {
     width: 40,
@@ -606,21 +610,32 @@ const styles = StyleSheet.create({
     backgroundColor: '#e2e8f0',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    zIndex: 2,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    backgroundColor: '#f8fafc',
   },
   stepCircleCompleted: {
-    backgroundColor: '#2563eb',
+    backgroundColor: '#2d7576',
   },
   stepCircleActive: {
-    backgroundColor: '#2563eb',
+    backgroundColor: '#fff',
+    borderColor: '#2d7576',
+    borderWidth: 2,
   },
   stepLabel: {
-    fontSize: 11,
-    color: '#94a3b8',
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#9ca3af',
+    marginTop: 8,
     textAlign: 'center',
     fontWeight: '500',
   },
   stepLabelActive: {
+    color: '#2d7576',
+    fontWeight: '700',
+  },
+});
     color: '#2563eb',
     fontWeight: '600',
   },

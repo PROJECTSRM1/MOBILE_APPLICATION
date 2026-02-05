@@ -20,6 +20,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { launchCamera, launchImageLibrary, ImagePickerResponse } from 'react-native-image-picker';
 
+import HealthcareBottomNav from './HealthcareBottomNav';
+
 const { width } = Dimensions.get('window');
 
 // API Base URL - Update this with your actual base URL
@@ -1066,19 +1068,7 @@ Ambulance: ${wantsAmbulance === 'yes' ? `Yes (Pickup: ${pickupTime})` : 'No'}`,
           <Text style={styles.sectionTitle}>
             {getSectionTitle()}
           </Text>
-          <TouchableOpacity 
-            onPress={() => setAutoScrollEnabled(!autoScrollEnabled)}
-            style={styles.autoScrollToggle}
-          >
-            <Icon 
-              name={autoScrollEnabled ? "pause" : "play-arrow"} 
-              size={20} 
-              color="#2d7576" 
-            />
-            <Text style={styles.autoScrollText}>
-              {autoScrollEnabled ? 'Pause' : 'Auto'}
-            </Text>
-          </TouchableOpacity>
+        
         </View>
 
         {/* Loading Indicator */}
@@ -1624,26 +1614,25 @@ Ambulance: ${wantsAmbulance === 'yes' ? `Yes (Pickup: ${pickupTime})` : 'No'}`,
         </View>
       </Modal>
 
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItemActive}>
-          <Icon name="home" size={24} color="#2d7576" />
-          <Text style={styles.navTextActive}>Home</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} 
-          onPress={() => navigation.navigate("MyBookings")}
-        >
-          <Icon name="calendar-today" size={24} color="#9ca3af" />
-          <Text style={styles.navText}>Bookings</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Icon name="folder-open" size={24} color="#9ca3af" />
-          <Text style={styles.navText}>Records</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Icon name="person" size={24} color="#9ca3af" />
-          <Text style={styles.navText}>Profile</Text>
-        </TouchableOpacity>
-      </View>
+      <HealthcareBottomNav
+  activeTab="home"
+  onNavigate={(tab) => {
+    switch (tab) {
+      case 'home':
+        // Already on home
+        break;
+      case 'bookings':
+        // Navigation handled by component
+        break;
+      case 'records':
+        Alert.alert('Coming Soon', 'Records feature coming soon!');
+        break;
+      case 'profile':
+        // Alert.alert('Coming Soon', 'Profile feature coming soon!');
+        break;
+    }
+  }}
+/>
 
       <Modal 
         visible={showLabStoreModal} 
@@ -2184,38 +2173,7 @@ const styles = StyleSheet.create({
     color: '#9ca3af',
     marginTop: 12,
   },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    backgroundColor: 'rgba(255,255,255,0.9)',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.05)',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
-  navItem: {
-    alignItems: 'center',
-    gap: 4,
-  },
-  navItemActive: {
-    alignItems: 'center',
-    gap: 4,
-  },
-  navText: {
-    fontSize: 10,
-    fontWeight: '500',
-    color: '#9ca3af',
-  },
-  navTextActive: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#2d7576',
-  },
+  
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
