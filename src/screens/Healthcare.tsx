@@ -20,6 +20,7 @@ import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { launchCamera, launchImageLibrary, ImagePickerResponse } from 'react-native-image-picker';
+import { Hospital } from 'lucide-react-native';
 
 import HealthcareBottomNav from './HealthcareBottomNav';
 
@@ -821,7 +822,10 @@ Ambulance: ${wantsAmbulance === 'yes' ? `Yes (Pickup: ${pickupTime})` : 'No'}`,
           onPress: () => {
             closeForm();
             navigation.navigate("Offline", {
-              hospital: selectedDoctor,
+              hospital: {
+              ...selectedDoctor,
+              hospital_id: selectedDoctor.id, // ✅ Add hospital_id from the id field
+            },
             });
           },
         },
