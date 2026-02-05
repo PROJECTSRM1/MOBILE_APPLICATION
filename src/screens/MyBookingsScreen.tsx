@@ -14,7 +14,6 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import HealthcareBottomNav from './HealthcareBottomNav';
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
@@ -31,8 +30,8 @@ interface Booking {
   time: string;
   status: BookingStatus;
   currentStep: number;
-  appointmentTimestamp: number;   // NEW
-  callJoined: boolean; 
+  appointmentTimestamp: number;
+  callJoined: boolean;
 }
 
 // ---------------- STEPS ----------------
@@ -179,34 +178,26 @@ const MyBookingsScreen = () => {
 
         let step = 0;
 
-if (item.call_booking_status === 'Consulted') {
-  step = 1;
-}
-else if (item.call_booking_status === 'Medications') {
-  step = 2;
-}
-else if (item.call_booking_status === 'Lab Tests') {
-  step = 3;
-}
+        if (item.call_booking_status === 'Consulted') {
+          step = 1;
+        } else if (item.call_booking_status === 'Medications') {
+          step = 2;
+        } else if (item.call_booking_status === 'Lab Tests') {
+          step = 3;
+        }
 
-const appointmentTs = new Date(item.appointment_time).getTime();
+        const appointmentTs = new Date(item.appointment_time).getTime();
 
-return {
-  id: item.id,
-  doctor: item.doctor?.name || 'Doctor',
-  date,
-  time,
-
-  status:
-    appointmentTs < Date.now()
-      ? 'completed'
-      : 'upcoming',
-
-  currentStep: step,
-
-  appointmentTimestamp: appointmentTs,   // NEW
-  callJoined: step > 0,                   // if already consulted, disable
-};
+        return {
+          id: item.id,
+          doctor: item.doctor?.name || 'Doctor',
+          date,
+          time,
+          status: appointmentTs < Date.now() ? 'completed' : 'upcoming',
+          currentStep: step,
+          appointmentTimestamp: appointmentTs,
+          callJoined: step > 0,
+        };
       });
 
       console.log("✅ Bookings formatted:", formatted.length, "items");
@@ -262,23 +253,22 @@ return {
 
   // ---------------- HANDLE JOIN CALL ----------------
   const handleJoinCall = async (appointmentId: number) => {
-  console.log("🎥 Join Call clicked for booking:", appointmentId);
+    console.log("🎥 Join Call clicked for booking:", appointmentId);
 
-  const updated = await updateBookingStatus(appointmentId);
+    const updated = await updateBookingStatus(appointmentId);
 
-  if (updated) {
-    setBookings(prev =>
-      prev.map(b =>
-        b.id === appointmentId
-          ? { ...b, callJoined: true, currentStep: 1 }
-          : b
-      )
-    );
+    if (updated) {
+      setBookings(prev =>
+        prev.map(b =>
+          b.id === appointmentId
+            ? { ...b, callJoined: true, currentStep: 1 }
+            : b
+        )
+      );
 
-    (navigation as any).navigate('VideoCall');
-  }
-};
-
+      (navigation as any).navigate('VideoCall');
+    }
+  };
 
   // ---------------- TRACKER ----------------
   const renderTracker = (currentStep: number) => {
@@ -349,7 +339,6 @@ return {
         </View>
 
         {loading ? (
-          <ActivityIndicator size="large" color="#2d7576" />
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#2563eb" />
             <Text style={styles.loadingText}>Loading bookings...</Text>
@@ -375,6 +364,7 @@ return {
               const isBeforeTime = now < item.appointmentTimestamp;
               const isJoinDisabled =
                 isCompleted || isBeforeTime || item.callJoined;
+              
               return (
                 <View
                   style={[styles.card, isCompleted && styles.completedCard]}
@@ -407,16 +397,19 @@ return {
                   </View>
 
                   <TouchableOpacity
-                      style={[
-                        styles.actionBtn,
-                        isJoinDisabled
-                          ? styles.disabledBtn
-                          : styles.joinBtn,
-                      ]}
-                      disabled={isJoinDisabled}
-                      onPress={() => handleJoinCall(item.id)}
-                    >
-                    <Text style={styles.btnText}>
+                    style={[
+                      styles.actionBtn,
+                      isJoinDisabled
+                        ? styles.disabledBtn
+                        : styles.joinBtn,
+                    ]}
+                    disabled={isJoinDisabled}
+                    onPress={() => handleJoinCall(item.id)}
+                  >
+                    <Text style={[
+                      styles.btnText,
+                      isJoinDisabled && styles.disabledBtnText
+                    ]}>
                       {item.callJoined
                         ? 'Call Joined'
                         : isBeforeTime
@@ -435,37 +428,26 @@ return {
         )}
       </View>
 
-      {/* Bottom Navigation - Updated to match Healthcare.tsx */}
+      {/* Bottom Navigation */}
       <HealthcareBottomNav
-  activeTab="bookings"
-  onNavigate={(tab) => {
-    switch (tab) {
-      case 'home':
-        // Navigation handled by component
-        break;
-      case 'bookings':
-        // Already on bookings
-        break;
-      case 'records':
-        Alert.alert('Coming Soon', 'Records feature coming soon!');
-        break;
-      case 'profile':
-      
-        break;
-    }
-  }}
-/>
-      {/* Bottom Nav */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity onPress={() => (navigation as any).navigate('Landing')}>
-          <MaterialIcons name="home" size={24} color="#94a3b8" />
-        </TouchableOpacity>
-        <MaterialIcons name="calendar-month" size={24} color="#2563eb" />
-        <MaterialIcons name="chat-bubble" size={24} color="#94a3b8" />
-        <TouchableOpacity onPress={() => (navigation as any).navigate('ProfileInformation')}>
-          <MaterialIcons name="person" size={24} color="#94a3b8" />
-        </TouchableOpacity>
-      </View>
+        activeTab="bookings"
+        onNavigate={(tab) => {
+          switch (tab) {
+            case 'home':
+              // Navigation handled by component
+              break;
+            case 'bookings':
+              // Already on bookings
+              break;
+            case 'records':
+              Alert.alert('Coming Soon', 'Records feature coming soon!');
+              break;
+            case 'profile':
+              // Navigation handled by component
+              break;
+          }
+        }}
+      />
     </SafeAreaView>
   );
 };
@@ -499,6 +481,34 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#131616',
     letterSpacing: -0.5,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#64748b',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#131616',
+    marginTop: 16,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: '#64748b',
+    marginTop: 8,
+    textAlign: 'center',
   },
   listContent: {
     padding: 16,
@@ -535,6 +545,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    marginTop: 4,
   },
   dateTimeText: {
     fontSize: 14,
@@ -573,6 +584,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#fff',
   },
+  disabledBtnText: {
+    color: '#9ca3af',
+  },
   trackerContainer: {
     position: 'relative',
     marginTop: 8,
@@ -607,16 +621,16 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#e2e8f0',
+    backgroundColor: '#f8fafc',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 2,
     borderWidth: 2,
     borderColor: 'transparent',
-    backgroundColor: '#f8fafc',
   },
   stepCircleCompleted: {
     backgroundColor: '#2d7576',
+    borderColor: 'transparent',
   },
   stepCircleActive: {
     backgroundColor: '#fff',
@@ -625,37 +639,14 @@ const styles = StyleSheet.create({
   },
   stepLabel: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#9ca3af',
     marginTop: 8,
     textAlign: 'center',
-    fontWeight: '500',
   },
   stepLabelActive: {
     color: '#2d7576',
     fontWeight: '700',
-  },
-});
-    color: '#2563eb',
-    fontWeight: '600',
-  },
-  bottomNav: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 5,
   },
 });
 
