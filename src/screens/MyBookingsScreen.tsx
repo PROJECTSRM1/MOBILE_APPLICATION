@@ -648,6 +648,53 @@ const styles = StyleSheet.create({
     color: '#2d7576',
     fontWeight: '700',
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#2563eb',
+    fontWeight: '600',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#131616',
+    marginTop: 16,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: '#64748b',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  bottomNav: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 5,
+  },
 });
 
 export default MyBookingsScreen;
