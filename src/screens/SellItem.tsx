@@ -41,8 +41,17 @@ const SellItem = ({ navigation }: any) => {
 
   const [hostelType, setHostelType] = useState('Boys');
   const [showHostelTypePicker, setShowHostelTypePicker] = useState(false);
+  const [numberOfFloors, setNumberOfFloors] = useState('');
   const [totalRooms, setTotalRooms] = useState('');
   const [availableRooms, setAvailableRooms] = useState('');
+  const [roomsPerFloor, setRoomsPerFloor] = useState('');
+  const [bedsPerRoom, setBedsPerRoom] = useState('');
+  const [sharingType, setSharingType] = useState('4');
+  const [showSharingPicker, setShowSharingPicker] = useState(false);
+  const [price1Sharing, setPrice1Sharing] = useState('');
+  const [price2Sharing, setPrice2Sharing] = useState('');
+  const [price3Sharing, setPrice3Sharing] = useState('');
+  const [price4Sharing, setPrice4Sharing] = useState('');
   const [foodIncluded, setFoodIncluded] = useState('Yes');
   const [showFoodPicker, setShowFoodPicker] = useState(false);
   const [hasAC, setHasAC] = useState(false);
@@ -79,6 +88,7 @@ const SellItem = ({ navigation }: any) => {
   const conditionOptions = ['New Item', 'Old Item'];
   const hostelTypeOptions = ['Boys', 'Girls', 'Co-living'];
   const foodOptions = ['Yes', 'No'];
+  const sharingOptions = ['1', '2', '3', '4'];
   const starRatingOptions = ['1', '2', '3', '4', '5'];
   const roomTypeOptions = ['Standard', 'Deluxe', 'Premium', 'Suite', 'Executive', 'Luxury', 'Business'];
 
@@ -162,6 +172,12 @@ const SellItem = ({ navigation }: any) => {
     }
   };
 
+  const handleNumberOfFloorsChange = (text: string) => {
+    if (validateNumericInput(text)) {
+      setNumberOfFloors(text);
+    }
+  };
+
   const handleTotalRoomsChange = (text: string) => {
     if (validateNumericInput(text)) {
       setTotalRooms(text);
@@ -171,6 +187,42 @@ const SellItem = ({ navigation }: any) => {
   const handleAvailableRoomsChange = (text: string) => {
     if (validateNumericInput(text)) {
       setAvailableRooms(text);
+    }
+  };
+
+  const handleRoomsPerFloorChange = (text: string) => {
+    if (validateNumericInput(text)) {
+      setRoomsPerFloor(text);
+    }
+  };
+
+  const handleBedsPerRoomChange = (text: string) => {
+    if (validateNumericInput(text)) {
+      setBedsPerRoom(text);
+    }
+  };
+
+  const handlePrice1SharingChange = (text: string) => {
+    if (validateNumericInput(text)) {
+      setPrice1Sharing(text);
+    }
+  };
+
+  const handlePrice2SharingChange = (text: string) => {
+    if (validateNumericInput(text)) {
+      setPrice2Sharing(text);
+    }
+  };
+
+  const handlePrice3SharingChange = (text: string) => {
+    if (validateNumericInput(text)) {
+      setPrice3Sharing(text);
+    }
+  };
+
+  const handlePrice4SharingChange = (text: string) => {
+    if (validateNumericInput(text)) {
+      setPrice4Sharing(text);
     }
   };
 
@@ -230,10 +282,6 @@ const SellItem = ({ navigation }: any) => {
       Alert.alert('Validation Error', 'Please upload at least one photo');
       return false;
     }
-    if (!price || parseFloat(price) <= 0) {
-      Alert.alert('Validation Error', 'Please enter a valid price');
-      return false;
-    }
 
     // Validate rating
     if (!rating || parseFloat(rating) < 1.0 || parseFloat(rating) > 5.0) {
@@ -242,6 +290,10 @@ const SellItem = ({ navigation }: any) => {
     }
 
     if (isHouse) {
+      if (!price || parseFloat(price) <= 0) {
+        Alert.alert('Validation Error', 'Please enter a valid price');
+        return false;
+      }
       if (!sqft || parseFloat(sqft) <= 0) {
         Alert.alert('Validation Error', 'Please enter valid square footage');
         return false;
@@ -257,6 +309,10 @@ const SellItem = ({ navigation }: any) => {
     }
 
     if (isLand) {
+      if (!price || parseFloat(price) <= 0) {
+        Alert.alert('Validation Error', 'Please enter a valid price');
+        return false;
+      }
       if (!sqft || parseFloat(sqft) <= 0) {
         Alert.alert('Validation Error', 'Please enter valid square footage');
         return false;
@@ -294,6 +350,10 @@ const SellItem = ({ navigation }: any) => {
     }
 
     if (isVehicle) {
+      if (!price || parseFloat(price) <= 0) {
+        Alert.alert('Validation Error', 'Please enter a valid price');
+        return false;
+      }
       if (!brand.trim()) {
         Alert.alert('Validation Error', 'Please enter the brand name');
         return false;
@@ -329,6 +389,10 @@ const SellItem = ({ navigation }: any) => {
     }
 
     if (isCommercial) {
+      if (!price || parseFloat(price) <= 0) {
+        Alert.alert('Validation Error', 'Please enter a valid price');
+        return false;
+      }
       if (!sqft || parseFloat(sqft) <= 0) {
         Alert.alert('Validation Error', 'Please enter valid square footage');
         return false;
@@ -344,6 +408,10 @@ const SellItem = ({ navigation }: any) => {
     }
 
     if (isHostel) {
+      if (!numberOfFloors || parseInt(numberOfFloors) <= 0) {
+        Alert.alert('Validation Error', 'Please enter valid number of floors');
+        return false;
+      }
       if (!totalRooms || parseInt(totalRooms) <= 0) {
         Alert.alert('Validation Error', 'Please enter valid total number of rooms');
         return false;
@@ -354,6 +422,30 @@ const SellItem = ({ navigation }: any) => {
       }
       if (parseInt(availableRooms) > parseInt(totalRooms)) {
         Alert.alert('Validation Error', 'Available rooms cannot exceed total rooms');
+        return false;
+      }
+      if (!roomsPerFloor || parseInt(roomsPerFloor) <= 0) {
+        Alert.alert('Validation Error', 'Please enter valid number of rooms per floor');
+        return false;
+      }
+      if (!bedsPerRoom || parseInt(bedsPerRoom) <= 0) {
+        Alert.alert('Validation Error', 'Please enter valid number of beds per room');
+        return false;
+      }
+      if (!price1Sharing || parseFloat(price1Sharing) <= 0) {
+        Alert.alert('Validation Error', 'Please enter valid price for 1-sharing');
+        return false;
+      }
+      if (!price2Sharing || parseFloat(price2Sharing) <= 0) {
+        Alert.alert('Validation Error', 'Please enter valid price for 2-sharing');
+        return false;
+      }
+      if (!price3Sharing || parseFloat(price3Sharing) <= 0) {
+        Alert.alert('Validation Error', 'Please enter valid price for 3-sharing');
+        return false;
+      }
+      if (!price4Sharing || parseFloat(price4Sharing) <= 0) {
+        Alert.alert('Validation Error', 'Please enter valid price for 4-sharing');
         return false;
       }
       if (!location.trim()) {
@@ -367,6 +459,10 @@ const SellItem = ({ navigation }: any) => {
     }
 
     if (isHotel) {
+      if (!price || parseFloat(price) <= 0) {
+        Alert.alert('Validation Error', 'Please enter a valid price');
+        return false;
+      }
       if (!hotelName.trim()) {
         Alert.alert('Validation Error', 'Please enter the hotel name');
         return false;
@@ -430,7 +526,7 @@ const SellItem = ({ navigation }: any) => {
       propertyType,
       images,
       description,
-      price,
+      price: isHostel ? null : price,
       rating: parseFloat(rating),
       sqft: (isHouse || isCommercial || isLand) ? sqft : null,
       bhk: isHouse ? bhk : null,
@@ -449,8 +545,16 @@ const SellItem = ({ navigation }: any) => {
       distance: isVehicle ? distance : null,
       mobileNumber: isVehicle ? mobileNumber : null,
       hostelType: isHostel ? hostelType : null,
+      numberOfFloors: isHostel ? numberOfFloors : null,
       totalRooms: (isHostel || isHotel) ? totalRooms : null,
       availableRooms: (isHostel || isHotel) ? availableRooms : null,
+      roomsPerFloor: isHostel ? roomsPerFloor : null,
+      bedsPerRoom: isHostel ? bedsPerRoom : null,
+      sharingType: isHostel ? sharingType : null,
+      price1Sharing: isHostel ? price1Sharing : null,
+      price2Sharing: isHostel ? price2Sharing : null,
+      price3Sharing: isHostel ? price3Sharing : null,
+      price4Sharing: isHostel ? price4Sharing : null,
       foodIncluded: isHostel ? foodIncluded : null,
       hasAC: (isHostel || isHotel) ? hasAC : null,
       hasWifi: (isHostel || isHotel) ? hasWifi : null,
@@ -725,19 +829,21 @@ const SellItem = ({ navigation }: any) => {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.label}>
-            {isHostel ? 'PRICE PER MONTH (₹)' : isHotel ? 'PRICE PER NIGHT (₹)' : 'PRICE (₹)'}
-          </Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter price (numbers only)"
-            placeholderTextColor="#4b5563"
-            keyboardType="numeric"
-            value={price}
-            onChangeText={handlePriceChange}
-          />
-        </View>
+        {!isHostel && (
+          <View style={styles.section}>
+            <Text style={styles.label}>
+              {isHotel ? 'PRICE PER NIGHT (₹)' : 'PRICE (₹)'}
+            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter price (numbers only)"
+              placeholderTextColor="#4b5563"
+              keyboardType="numeric"
+              value={price}
+              onChangeText={handlePriceChange}
+            />
+          </View>
+        )}
 
         <View style={styles.section}>
           <Text style={styles.label}>RATING (1.0 - 5.0) *</Text>
@@ -1080,12 +1186,24 @@ const SellItem = ({ navigation }: any) => {
               </TouchableOpacity>
             </View>
 
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>NUMBER OF FLOORS *</Text>
+              <TextInput 
+                style={styles.input} 
+                placeholder="e.g., 3" 
+                placeholderTextColor="#4b5563"
+                keyboardType="numeric" 
+                value={numberOfFloors} 
+                onChangeText={handleNumberOfFloorsChange} 
+              />
+            </View>
+
             <View style={styles.row}>
               <View style={styles.halfField}>
                 <Text style={styles.label}>TOTAL ROOMS *</Text>
                 <TextInput 
                   style={styles.input} 
-                  placeholder="20" 
+                  placeholder="60" 
                   placeholderTextColor="#4b5563"
                   keyboardType="numeric" 
                   value={totalRooms} 
@@ -1096,7 +1214,7 @@ const SellItem = ({ navigation }: any) => {
                 <Text style={styles.label}>AVAILABLE ROOMS *</Text>
                 <TextInput 
                   style={styles.input} 
-                  placeholder="5" 
+                  placeholder="15" 
                   placeholderTextColor="#4b5563"
                   keyboardType="numeric" 
                   value={availableRooms} 
@@ -1105,8 +1223,112 @@ const SellItem = ({ navigation }: any) => {
               </View>
             </View>
 
+            <View style={styles.row}>
+              <View style={styles.halfField}>
+                <Text style={styles.label}>ROOMS PER FLOOR *</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="20" 
+                  placeholderTextColor="#4b5563"
+                  keyboardType="numeric" 
+                  value={roomsPerFloor} 
+                  onChangeText={handleRoomsPerFloorChange} 
+                />
+              </View>
+              <View style={styles.halfField}>
+                <Text style={styles.label}>BEDS PER ROOM *</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="4" 
+                  placeholderTextColor="#4b5563"
+                  keyboardType="numeric" 
+                  value={bedsPerRoom} 
+                  onChangeText={handleBedsPerRoomChange} 
+                />
+              </View>
+            </View>
+
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>DEFAULT SHARING TYPE (Display)</Text>
+              <TouchableOpacity onPress={() => setShowSharingPicker(true)}>
+                <View style={styles.pickerContainer} pointerEvents="none">
+                  <TextInput style={styles.picker} value={`${sharingType}-Sharing`} editable={false} />
+                  <MaterialIcons name="expand-more" size={24} color="#94a3b8" style={styles.pickerIcon} />
+                </View>
+              </TouchableOpacity>
+              <Text style={styles.inputHint}>This is the default sharing option shown on cards</Text>
+            </View>
+
+            <View style={styles.pricingSection}>
+              <View style={styles.pricingSectionHeader}>
+                <MaterialIcons name="payments" size={24} color="#135bec" />
+                <Text style={styles.pricingSectionTitle}>Pricing Per Sharing Type</Text>
+              </View>
+              <Text style={styles.pricingSectionSubtitle}>Enter monthly rent for each sharing option</Text>
+
+              <View style={styles.row}>
+                <View style={styles.halfField}>
+                  <Text style={styles.label}>1-SHARING (₹/month) *</Text>
+                  <TextInput 
+                    style={styles.input} 
+                    placeholder="12000" 
+                    placeholderTextColor="#4b5563"
+                    keyboardType="numeric" 
+                    value={price1Sharing} 
+                    onChangeText={handlePrice1SharingChange} 
+                  />
+                </View>
+                <View style={styles.halfField}>
+                  <Text style={styles.label}>2-SHARING (₹/month) *</Text>
+                  <TextInput 
+                    style={styles.input} 
+                    placeholder="8000" 
+                    placeholderTextColor="#4b5563"
+                    keyboardType="numeric" 
+                    value={price2Sharing} 
+                    onChangeText={handlePrice2SharingChange} 
+                  />
+                </View>
+              </View>
+
+              <View style={styles.row}>
+                <View style={styles.halfField}>
+                  <Text style={styles.label}>3-SHARING (₹/month) *</Text>
+                  <TextInput 
+                    style={styles.input} 
+                    placeholder="6000" 
+                    placeholderTextColor="#4b5563"
+                    keyboardType="numeric" 
+                    value={price3Sharing} 
+                    onChangeText={handlePrice3SharingChange} 
+                  />
+                </View>
+                <View style={styles.halfField}>
+                  <Text style={styles.label}>4-SHARING (₹/month) *</Text>
+                  <TextInput 
+                    style={styles.input} 
+                    placeholder="5000" 
+                    placeholderTextColor="#4b5563"
+                    keyboardType="numeric" 
+                    value={price4Sharing} 
+                    onChangeText={handlePrice4SharingChange} 
+                  />
+                </View>
+              </View>
+            </View>
+
             <View style={styles.fieldContainer}>
               <Text style={styles.label}>FOOD INCLUDED</Text>
+              <TouchableOpacity onPress={() => setShowFoodPicker(true)}>
+                <View style={styles.pickerContainer} pointerEvents="none">
+                  <TextInput style={styles.picker} value={foodIncluded} editable={false} />
+                  <MaterialIcons name="expand-more" size={24} color="#94a3b8" style={styles.pickerIcon} />
+                </View>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>CURRENT BILL EXCLUDED</Text>
               <TouchableOpacity onPress={() => setShowFoodPicker(true)}>
                 <View style={styles.pickerContainer} pointerEvents="none">
                   <TextInput style={styles.picker} value={foodIncluded} editable={false} />
@@ -1419,6 +1641,8 @@ const SellItem = ({ navigation }: any) => {
         options={hostelTypeOptions} selectedValue={hostelType} onSelect={setHostelType} title="Select Hostel Type" />
       <PickerModal visible={showFoodPicker} onClose={() => setShowFoodPicker(false)}
         options={foodOptions} selectedValue={foodIncluded} onSelect={setFoodIncluded} title="Food Included?" />
+      <PickerModal visible={showSharingPicker} onClose={() => setShowSharingPicker(false)}
+        options={sharingOptions} selectedValue={sharingType} onSelect={setSharingType} title="Select Default Sharing Type" />
       <PickerModal visible={showStarRatingPicker} onClose={() => setShowStarRatingPicker(false)}
         options={starRatingOptions} selectedValue={hotelStarRating} onSelect={setHotelStarRating} title="Select Star Rating" />
       
@@ -1454,6 +1678,7 @@ const styles = StyleSheet.create({
   picker: { backgroundColor: '#161b26', borderWidth: 1, borderColor: '#232936', borderRadius: 16, paddingHorizontal: 16, paddingVertical: 14, fontSize: 16, fontWeight: '500', color: '#fff' },
   pickerIcon: { position: 'absolute', right: 16, top: 14 },
   input: { backgroundColor: '#161b26', borderWidth: 1, borderColor: '#232936', borderRadius: 16, paddingHorizontal: 16, paddingVertical: 14, fontSize: 16, fontWeight: '500', color: '#fff' },
+  inputHint: { fontSize: 11, color: '#64748b', marginTop: 6, fontStyle: 'italic' },
   ratingInputContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#161b26', borderWidth: 1, borderColor: '#232936', borderRadius: 16, paddingHorizontal: 16, paddingVertical: 14 },
   ratingInput: { flex: 1, fontSize: 16, fontWeight: '500', color: '#fff', marginRight: 8 },
   ratingHelper: { fontSize: 14, fontWeight: '500', color: '#64748b' },
@@ -1466,6 +1691,10 @@ const styles = StyleSheet.create({
   activeFurnishing: { backgroundColor: '#135bec', borderColor: '#135bec' },
   furnishingText: { fontSize: 11, fontWeight: '800', color: '#94a3b8', letterSpacing: 0.5 },
   activeFurnishingText: { color: '#fff' },
+  pricingSection: { backgroundColor: '#161b26', borderRadius: 16, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: '#232936' },
+  pricingSectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 },
+  pricingSectionTitle: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  pricingSectionSubtitle: { fontSize: 13, color: '#94a3b8', marginBottom: 16 },
   textArea: { backgroundColor: '#161b26', borderWidth: 1, borderColor: '#232936', borderRadius: 16, paddingHorizontal: 16, paddingVertical: 14, fontSize: 16, fontWeight: '500', color: '#fff', minHeight: 120, textAlignVertical: 'top' },
   wordCount: { fontSize: 12, color: '#94a3b8', textAlign: 'right', marginTop: 8 },
   warningBanner: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#2d1f0a', borderWidth: 1, borderColor: '#f59e0b', borderRadius: 12, padding: 12, marginBottom: 16 },
