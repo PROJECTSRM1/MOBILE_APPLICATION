@@ -349,7 +349,6 @@ return {
         </View>
 
         {loading ? (
-          <ActivityIndicator size="large" color="#2d7576" />
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#2563eb" />
             <Text style={styles.loadingText}>Loading bookings...</Text>
@@ -607,13 +606,12 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#e2e8f0',
+    backgroundColor: '#f8fafc',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 2,
     borderWidth: 2,
     borderColor: 'transparent',
-    backgroundColor: '#f8fafc',
   },
   stepCircleCompleted: {
     backgroundColor: '#2d7576',
@@ -629,15 +627,39 @@ const styles = StyleSheet.create({
     color: '#9ca3af',
     marginTop: 8,
     textAlign: 'center',
-    fontWeight: '500',
   },
   stepLabelActive: {
     color: '#2d7576',
     fontWeight: '700',
   },
-});
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
     color: '#2563eb',
     fontWeight: '600',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#131616',
+    marginTop: 16,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: '#64748b',
+    marginTop: 8,
+    textAlign: 'center',
   },
   bottomNav: {
     position: 'absolute',

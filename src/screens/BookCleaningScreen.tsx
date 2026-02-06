@@ -369,15 +369,16 @@ if (HOME_SERVICE_OPTIONS[selectedServices[0]?.category]) {
 
   const removeService = (id: string) => setSelectedServices((prev) => prev.filter((s) => s.id !== id));
 
-  const handleAllocationTypeChange = (value: "auto" | "manual") => {
-    setAllocationType(value);
-    navigation.navigate("EmployeeAllocation", { 
-      isAutoAllocation: value === "auto",
-      selectedServices: selectedServices.map(s => s.title || s.name),
-      consultationCharge: consultationCharge,
-      mainCategory: selectedServices[0]?.category,
-    });
-  };
+const handleAllocationTypeChange = (value: "auto" | "manual") => {
+  setAllocationType(value);
+  navigation.navigate("EmployeeAllocation", { 
+    isAutoAllocation: value === "auto",
+    // Pass the whole objects so the next screen has IDs, Titles, and Prices
+    selectedServices: selectedServices, 
+    consultationCharge: consultationCharge,
+    mainCategory: selectedServices[0]?.category,
+  });
+};
 
   const handleTakePhoto = async () => {
     const result = await launchCamera({ mediaType: "photo", quality: 0.7 });
@@ -440,7 +441,7 @@ if (HOME_SERVICE_OPTIONS[selectedServices[0]?.category]) {
           <View>
             <TextInput placeholder="Customer Name" placeholderTextColor="#9CA3AF" style={styles.input} value={customerName} onChangeText={setCustomerName} />
             <TextInput placeholder="Contact Number" keyboardType="phone-pad" placeholderTextColor="#9CA3AF" style={styles.input} value={contactNumber} onChangeText={setContactNumber} />
-            <TextInput placeholder="Location Details" multiline style={[styles.input, styles.textArea]} value={locationDetails} onChangeText={setLocationDetails} />
+            <TextInput placeholder="Location Details" placeholderTextColor="#9CA3AF" multiline style={[styles.input, styles.textArea]} value={locationDetails} onChangeText={setLocationDetails} />
           </View>
         )}
 
