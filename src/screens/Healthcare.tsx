@@ -1138,8 +1138,11 @@ Ambulance: ${wantsAmbulance === 'yes' ? `Yes (Pickup: ${pickupTime})` : 'No'}`,
           >
             <View style={styles.doctorsList}>
               {filteredData.length > 0 ? (
-                filteredData.map((item) => (
-                  <TouchableOpacity key={item.id} style={styles.doctorCard}>
+                filteredData.map((item, index) => (
+  <TouchableOpacity
+    key={`${item.type}-${item.id}-${index}`}
+    style={styles.doctorCard}
+  >
                     <Image
                       source={getImageSource(item.image)}
                       style={styles.doctorImage}
