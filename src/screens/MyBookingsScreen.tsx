@@ -162,19 +162,22 @@ const MyBookingsScreen = () => {
 
       // Transform API → UI model
       const formatted: Booking[] = data.map((item: any) => {
-        const dt = new Date(item.appointment_time + "Z");
+        const dt = new Date(item.appointment_time);
 
-        const date = dt.toLocaleDateString('en-IN', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
-        });
+const date = dt.toLocaleDateString('en-IN', {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+});
 
-        const time = dt.toLocaleTimeString('en-IN', {
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: true,
-        });
+const time = dt.toLocaleTimeString('en-IN', {
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: true,
+});
+
+const appointmentTs = dt.getTime();
+
 
         let step = 0;
 
@@ -186,11 +189,9 @@ const MyBookingsScreen = () => {
           step = 3;
         }
 
-        const appointmentTs = new Date(item.appointment_time).getTime();
-
         return {
           id: item.id,
-          doctor: item.doctor?.name || 'Doctor',
+          doctor: item.doctor_name || 'Doctor',
           date,
           time,
           status: appointmentTs < Date.now() ? 'completed' : 'upcoming',
@@ -647,35 +648,6 @@ const styles = StyleSheet.create({
   stepLabelActive: {
     color: '#2d7576',
     fontWeight: '700',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#2563eb',
-    fontWeight: '600',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#131616',
-    marginTop: 16,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: '#64748b',
-    marginTop: 8,
-    textAlign: 'center',
   },
   bottomNav: {
     position: 'absolute',
