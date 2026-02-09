@@ -454,7 +454,12 @@ const DoctorListScreen = () => {
 
   const searchSuggestions =
     serviceType === 'Doctor'
-      ? ['fever', 'cold', 'cough', 'skin', 'heart']
+      ? [
+          // Symptoms/Conditions
+          'fever', 'cold', 'cough', 'skin', 'heart', 'acne', 'mental', 'stress', 'eye', 'diet', 'vomiting', 'chest',
+          // Doctor Types/Specialties
+          'General Practitioner', 'Cardiologist', 'Dermatologist', 'Psychiatrist', 'Ophthalmologist', 'Nutritionist'
+        ]
       : serviceType === 'Labs'
       ? ['blood test', 'x-ray', 'cbc']
       : serviceType === 'Medical Store'
@@ -532,6 +537,19 @@ const isBookingAllowed = (item: ServiceItem) => {
     diet: ['Nutritionist'],
     vomiting: ['General Practitioner'],
   };
+
+  // Get all symptoms for search suggestions
+  const allSymptoms = Object.keys(symptomToSpecialtyMap);
+
+  // Filter search suggestions as user types (for Doctor service type)
+  const filteredSearchSuggestions = searchQuery.trim() === ''
+    ? []
+    : serviceType === 'Doctor'
+    ? searchSuggestions.filter(suggestion =>
+        suggestion.toLowerCase().startsWith(searchQuery.toLowerCase().trim())
+      )
+    : [];
+
 
   // Filter data based on selected category and filters
   const getFilteredData = () => {
@@ -729,6 +747,13 @@ const isBookingAllowed = (item: ServiceItem) => {
     setTimeout(() => {
       setShowTypeModal(true);
     }, 200);
+  };
+
+  // Handle selection of a symptom suggestion
+  const handleSuggestionSelect = (symptom: string) => {
+    setSearchQuery(symptom);
+    setIsSearchFocused(false);
+    // The symptom will now filter doctors automatically via getFilteredData()
   };
 
   const closeForm = () => {
@@ -1004,12 +1029,6 @@ Ambulance: ${wantsAmbulance === 'yes' ? `Yes (Pickup: ${pickupTime})` : 'No'}`,
               <Text style={styles.cardSubtitle}>
                 Describe your symptoms for a quick recommendation.
               </Text>
-              <TouchableOpacity 
-                style={styles.cardButton} 
-                onPress={() => navigation.navigate("Form")}
-              >
-                <Text style={styles.cardButtonText}>Submit your Health Condition</Text>
-              </TouchableOpacity>
             </View>
             <View style={styles.cardDecoration}>
               <Icon name="medical-services" size={120} color="rgba(255,255,255,0.2)" />
@@ -1053,6 +1072,25 @@ Ambulance: ${wantsAmbulance === 'yes' ? `Yes (Pickup: ${pickupTime})` : 'No'}`,
               </View>
             </TouchableOpacity>
           </View>
+
+          {/* Search Suggestions Dropdown - Like YouTube/Google */}
+          {filteredSearchSuggestions.length > 0 && isSearchFocused && (
+            <View style={styles.suggestionDropdown}>
+              {filteredSearchSuggestions.map((suggestion, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.suggestionItem}
+                  onPress={() => handleSuggestionSelect(suggestion)}
+                >
+                  <Icon name="search" size={16} color="#9ca3af" style={styles.suggestionIcon} />
+                  <Text style={styles.suggestionText}>{suggestion}</Text>
+                  <View style={styles.suggestionArrow}>
+                    <Icon name="arrow-outward" size={14} color="#9ca3af" />
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </View>
 
         {serviceType === 'Doctor' && consultationType === 'Online' && (
@@ -1997,6 +2035,100 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: '#ef4444',
+  },
+  suggestionDropdown: {
+    backgroundColor: '#ffffff',
+    borderRadius: 0,
+    marginTop: 4,
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
+    borderWidth: 1,
+    borderTopWidth: 0,
+    borderColor: '#e5e7eb',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
+    maxHeight: 300,
+  },
+  suggestionItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  suggestionIcon: {
+    marginRight: 12,
+  },
+  suggestionText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#131616',
+    flex: 1,
+  },
+  suggestionArrow: {
+    marginLeft: 8,
+  },
+  searchDropdownContainer: {
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    marginTop: 4,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
+    maxHeight: 300,
+  },
+  searchDropdownItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  searchDropdownItemContent: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  searchDropdownItemName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#131616',
+    marginBottom: 4,
+  },
+  searchDropdownItemSpecialty: {
+    fontSize: 12,
+    color: '#9ca3af',
+    marginBottom: 4,
+  },
+  searchDropdownItemRating: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginHorizontal: 12,
+  },
+  searchDropdownItemRatingText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#1f2937',
+  },
+  searchDropdownItemPrice: {
+    paddingLeft: 12,
+  },
+  searchDropdownItemPriceText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#2d7576',
   },
   categoriesContainer: {
     paddingVertical: 24,

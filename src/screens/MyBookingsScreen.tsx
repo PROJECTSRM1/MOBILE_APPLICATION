@@ -648,35 +648,6 @@ const styles = StyleSheet.create({
     color: '#2d7576',
     fontWeight: '700',
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#2563eb',
-    fontWeight: '600',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#131616',
-    marginTop: 16,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: '#64748b',
-    marginTop: 8,
-    textAlign: 'center',
-  },
   bottomNav: {
     position: 'absolute',
     bottom: 0,
