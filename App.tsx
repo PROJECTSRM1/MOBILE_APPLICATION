@@ -52,8 +52,7 @@ import BuyerPage from "./src/screens/BuyerPage";
 import JustrideMultiStop from "./src/screens/JustRideMultiStop";
 import JustrideApp from "./src/screens/JustrideApp";
 import DoctorListScreen from "./src/screens/Healthcare";
-import ConsultationRequestScreen from "./src/screens/Healthform";
-import TelemedicineConsultation from "./src/screens/TelemedicineConsultation";
+
 import FacilitiesScreen from "./src/screens/FacilitiesScreen";
 import Wishlist from "./src/screens/Wishlist";
 import AmbulanceBookingScreen from "./src/screens/Ambulance";
@@ -164,8 +163,7 @@ export type RootStackParamList = {
   JustRideMultiStop: undefined;
   JustrideApp: undefined;
   Health: undefined;
-  Form: undefined;
-  Telecom: undefined;
+  
   Facility: undefined;
   Wishlist: undefined;
   Ambulance: undefined;
@@ -269,10 +267,10 @@ function AppNavigator() {
         <Stack.Screen name="JustrideApp" component={JustrideApp} />
         <Stack.Screen name="Health" component={DoctorListScreen} />
         <Stack.Screen name="AppointmentBooking" component={AppointmentBookingScreen} />
-        <Stack.Screen name="Form" component={ConsultationRequestScreen} />
+        
         <Stack.Screen name="HealthcarePayment" component={HealthcarePaymentScreen} />
         <Stack.Screen name="HealthcarePaymentSuccess" component={Healthcarepaymentsuccess} />
-        <Stack.Screen name="Telecom" component={TelemedicineConsultation} />
+        
         <Stack.Screen name="Wishlist" component={Wishlist} />
         <Stack.Screen name="ParcelView" component={ParcelView} />
         <Stack.Screen name="MetroView" component={MetroView} />

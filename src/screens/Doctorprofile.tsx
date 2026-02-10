@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Switch,
   StatusBar,
   Modal,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
@@ -16,62 +17,101 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-
+const BASE_URL = 'https://swachify-india-be-1-mcrb.onrender.com';
 
 // Icon component placeholder - replace with react-native-vector-icons or your icon library
 const Icon = ({ name, size = 24, color = '#64748b' }: { name: string; size?: number; color?: string }) => (
   <Text style={{ fontSize: size, color }}>{name}</Text>
 );
 
-
-
-
 const DoctorProfile = () => {
-   const route = useRoute<any>();
+  const route = useRoute<any>();
   const navigation = useNavigation<any>();
-  const { doctor } = route.params;
+  const { doctor} = route.params;
   const [assistantEnabled, setAssistantEnabled] = useState(false);
   const [showAssistantModal, setShowAssistantModal] = useState(false);
-const [selectedAssistant, setSelectedAssistant] = useState<any>(null);
+  const [selectedAssistant, setSelectedAssistant] = useState<any>(null);
+  const [assistants, setAssistants] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [assigningAssistant, setAssigningAssistant] = useState(false);
 
-const doctorData = {
-  ...doctor,
-  reviews: doctor.reviews ?? '100+',
-  patients: doctor.patients ?? '1k+',
-  bio:
-    doctor.bio ??
-    'This doctor is a certified specialist with several years of clinical experience in patient care. They are known for a patient-first approach, clear communication, and evidence-based treatment methods. The doctor has successfully treated hundreds of patients and continuously stays updated with the latest medical advancements to provide safe, accurate, and compassionate healthcare services.',
+  const doctorData = {
+    ...doctor,
+    reviews: doctor.reviews ?? '100+',
+    patients: doctor.patients ?? '1k+',
+    bio:
+      doctor.bio ??
+      'This doctor is a certified specialist with several years of clinical experience in patient care. They are known for a patient-first approach, clear communication, and evidence-based treatment methods. The doctor has successfully treated hundreds of patients and continuously stays updated with the latest medical advancements to provide safe, accurate, and compassionate healthcare services.',
+  };
+
+  // Fetch available assistants from API
+const fetchAssistants = async () => {
+  setLoading(true);
+  try {
+    const response = await fetch(`${BASE_URL}/healthcare/available-assistants`);
+    const data = await response.json();
+
+    if (response.ok && Array.isArray(data)) {
+      const normalized = data.map((assistant: any) => ({
+        id: assistant.id,
+        name: assistant.name,
+        rating: Number(assistant.rating),
+        services: assistant.services,
+        price: assistant.cost_per_visit, // ✅ FIX
+        currency: assistant.currency || 'INR',
+        image: `https://randomuser.me/api/portraits/women/${assistant.id + 30}.jpg`, // ✅ FIX
+      }));
+
+      setAssistants(normalized);
+    }
+  } catch (error) {
+    console.error('Error fetching assistants:', error);
+  } finally {
+    setLoading(false);
+  }
 };
 
-const assistants = [
-  {
-    id: 1,
-    name: 'Emily Watson',
-    image: 'https://randomuser.me/api/portraits/women/44.jpg',
-    rating: 4.8,
-    reviews: 230,
-    price: 1200,
-    works: [
-      'Queue management',
-      'Report collection',
-      'Medicine assistance',
-      'Food assistance',
-    ],
-  },
-  {
-    id: 2,
-    name: 'Sophia Brown',
-    image: 'https://randomuser.me/api/portraits/women/68.jpg',
-    rating: 4.6,
-    reviews: 180,
-    price: 1000,
-    works: [
-      'Basic patient care',
-      'Medicine reminders',
-      'Mobility support',
-    ],
-  },
-];
+
+  // Assign assistant to appointment
+  // const assignAssistant = async (assistantId: string) => {
+  //   if (!appointmentId) {
+  //     console.error('No appointment ID provided');
+  //     return;
+  //   }
+
+  //   setAssigningAssistant(true);
+  //   try {
+  //     const response = await fetch(
+  //       `${BASE_URL}/healthcare/appointments/${appointmentId}/assign-assistant`,
+  //       {
+  //         method: 'PUT',
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //         },
+  //         body: JSON.stringify({
+  //           assistant_id: assistantId,
+  //         }),
+  //       }
+  //     );
+
+  //     const data = await response.json();
+
+  //     if (response.ok) {
+  //       setAssistantEnabled(true);
+  //       setShowAssistantModal(false);
+  //     } else {
+  //       console.error('Failed to assign assistant:', data);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error assigning assistant:', error);
+  //   } finally {
+  //     setAssigningAssistant(false);
+  //   }
+  // };
+
+  useEffect(() => {
+    fetchAssistants();
+  }, []);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -80,9 +120,9 @@ const assistants = [
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
-            style={styles.iconButton}
-            onPress={() => navigation.goBack()}
-          >
+          style={styles.iconButton}
+          onPress={() => navigation.goBack()}
+        >
           <MaterialIcons name="arrow-back" size={20} color="#64748b" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Doctor Profile</Text>
@@ -100,9 +140,9 @@ const assistants = [
         <View style={styles.doctorSection}>
           <View style={styles.doctorImageContainer}>
             <Image
-            source={{ uri: doctor.image }}
-            style={styles.doctorImage}
-          />
+              source={{ uri: doctor.image }}
+              style={styles.doctorImage}
+            />
           </View>
           
           <View style={styles.doctorInfo}>
@@ -112,21 +152,20 @@ const assistants = [
             
             <Text style={styles.doctorName}>{doctor.name}</Text>
 
-           <Text style={styles.specialty}>{doctor.specialty}</Text>
+            <Text style={styles.specialty}>{doctor.specialty}</Text>
             
-           <View style={styles.ratingContainer}>
+            <View style={styles.ratingContainer}>
               <MaterialIcons name="star" size={14} color="#fbbf24" />
               <Text style={styles.rating}>{doctor.rating}</Text>
               <Text style={styles.reviews}>({doctorData.reviews} Reviews)</Text>
             </View>
 
-            
             <View style={styles.statsContainer}>
               <View style={styles.statBox}>
                 <Text style={styles.statLabel}>Exp.</Text>
                 <Text style={styles.statValue}>
-                    {doctor.experience ?? '—'} Yrs
-                  </Text>
+                  {doctor.experience ?? '—'} Yrs
+                </Text>
               </View>
               <View style={styles.statBox}>
                 <Text style={styles.statLabel}>Patients</Text>
@@ -157,7 +196,7 @@ const assistants = [
               </View>
               <View style={styles.priceContainer}>
                 <Text style={styles.price}>
-                  {selectedAssistant ? `₹${selectedAssistant.price}` : '+$25'}
+                  {selectedAssistant ? `₹${selectedAssistant.price || selectedAssistant.rate_per_visit}` : '+$25'}
                 </Text>
                 <Text style={styles.priceLabel}>PER VISIT</Text>
               </View>
@@ -167,7 +206,7 @@ const assistants = [
               <Image
                 source={{
                   uri: selectedAssistant
-                    ? selectedAssistant.image
+                    ? selectedAssistant.image || selectedAssistant.profile_image
                     : 'https://randomuser.me/api/portraits/women/44.jpg',
                 }}
                 style={styles.assistantImage}
@@ -180,23 +219,23 @@ const assistants = [
 
                 <Text style={styles.assistantAvailability}>
                   {selectedAssistant
-                    ? `₹${selectedAssistant.price} per visit`
+                    ? `₹${selectedAssistant.price || selectedAssistant.rate_per_visit} per visit`
                     : 'Available for your session'}
                 </Text>
               </View>
               <Switch
-                    value={assistantEnabled}
-                    onValueChange={(value) => {
-                      if (value) {
-                        setShowAssistantModal(true);
-                      } else {
-                        setAssistantEnabled(false);
-                        setSelectedAssistant(null);
-                      }
-                    }}
-                    trackColor={{ false: '#e2e8f0', true: '#2D7E7E' }}
-                    thumbColor="#ffffff"
-                  />
+                value={assistantEnabled}
+                onValueChange={(value) => {
+                  if (value) {
+                    setShowAssistantModal(true);
+                  } else {
+                    setAssistantEnabled(false);
+                    setSelectedAssistant(null);
+                  }
+                }}
+                trackColor={{ false: '#e2e8f0', true: '#2D7E7E' }}
+                thumbColor="#ffffff"
+              />
             </View>
 
             <View style={styles.featuresContainer}>
@@ -252,97 +291,128 @@ const assistants = [
 
       {/* Fixed Bottom Button */}
       <View style={styles.bottomContainer}>
-                <TouchableOpacity style={styles.bookButton}>
+        <TouchableOpacity style={styles.bookButton}>
           <Text style={styles.bookButtonText}>Book Appointment</Text>
           <MaterialIcons name="event" size={18} color="#ffffff" />
         </TouchableOpacity>
-
       </View>
+
       {/* Personal Assistant Bottom Modal */}
-<Modal visible={showAssistantModal} transparent animationType="slide">
-  <View style={assistantStyles.overlay}>
-    <View style={assistantStyles.modal}>
+      <Modal visible={showAssistantModal} transparent animationType="slide">
+        <View style={assistantStyles.overlay}>
+          <View style={assistantStyles.modal}>
+            <Text style={assistantStyles.title}>
+              Select Personal Care Assistant
+            </Text>
 
-      <Text style={assistantStyles.title}>
-        Select Personal Care Assistant
-      </Text>
-
-      {assistants.map((assistant) => {
-        const isSelected = selectedAssistant?.id === assistant.id;
-
-        return (
-          <TouchableOpacity
-            key={assistant.id}
-            style={[
-              assistantStyles.card,
-              isSelected && assistantStyles.cardActive,
-            ]}
-            onPress={() => setSelectedAssistant(assistant)}
-          >
-            <Image
-              source={{ uri: assistant.image }}
-              style={assistantStyles.image}
-            />
-
-            <View style={{ flex: 1 }}>
-              <Text style={assistantStyles.name}>{assistant.name}</Text>
-
-              <View style={assistantStyles.ratingRow}>
-                <Text style={{ color: '#fbbf24' }}>★</Text>
-                <Text style={assistantStyles.rating}>
-                  {assistant.rating}
-                </Text>
-                <Text style={assistantStyles.reviews}>
-                  ({assistant.reviews})
-                </Text>
+            {loading ? (
+              <View style={{ padding: 40, alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#2D7E7E" />
               </View>
+            ) : (
+              <>
+                {assistants.map((assistant) => {
+                  const isSelected = selectedAssistant?.id === assistant.id;
 
-              <Text style={assistantStyles.price}>
-                ₹{assistant.price} / visit
-              </Text>
+                  return (
+                    <TouchableOpacity
+                      key={assistant.id}
+                      style={[
+                        assistantStyles.card,
+                        isSelected && assistantStyles.cardActive,
+                      ]}
+                      onPress={() => setSelectedAssistant(assistant)}
+                    >
+                      <Image
+                        source={{ uri: assistant.image || assistant.profile_image || 'https://randomuser.me/api/portraits/women/44.jpg' }}
+                        style={assistantStyles.image}
+                      />
+
+                      <View style={{ flex: 1 }}>
+                        <Text style={assistantStyles.name}>{assistant.name}</Text>
+
+                        <View style={assistantStyles.ratingRow}>
+                          <Text style={{ color: '#fbbf24' }}>★</Text>
+                          <Text style={assistantStyles.rating}>
+                            {assistant.rating || '4.5'}
+                          </Text>
+                          <Text style={assistantStyles.reviews}>
+                            ({assistant.reviews || assistant.total_reviews || '0'})
+                          </Text>
+                        </View>
+
+                        <Text style={assistantStyles.price}>
+                          ₹{assistant.price || assistant.rate_per_visit || '0'} / visit
+                        </Text>
+                      </View>
+
+                      {isSelected && (
+                        <MaterialIcons name="check-circle" size={20} color="#2D7E7E" />
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+
+                {selectedAssistant && selectedAssistant.works && (
+                  <View style={assistantStyles.workList}>
+                    {selectedAssistant.works.map((work: string, index: number) => (
+                      <View key={index} style={assistantStyles.workItem}>
+                        <Text style={{ color: '#2D7E7E' }}>✓</Text>
+                        <Text style={assistantStyles.workText}>{work}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+
+                {selectedAssistant && selectedAssistant.services && (
+                  <View style={assistantStyles.workList}>
+                    {selectedAssistant.services.map((service: string, index: number) => (
+                      <View key={index} style={assistantStyles.workItem}>
+                        <Text style={{ color: '#2D7E7E' }}>✓</Text>
+                        <Text style={assistantStyles.workText}>{service}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </>
+            )}
+
+            <View style={assistantStyles.actions}>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowAssistantModal(false);
+                  setSelectedAssistant(null);
+                }}
+                disabled={assigningAssistant}
+              >
+                <Text style={assistantStyles.cancel}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                disabled={!selectedAssistant || assigningAssistant}
+                  onPress={() => {
+    if (!selectedAssistant) return;
+
+    // ✅ LOCAL STATE UPDATE (NO API)
+    setAssistantEnabled(true);
+    setShowAssistantModal(false);
+  }}
+              >
+                {assigningAssistant ? (
+                  <ActivityIndicator size="small" color="#2D7E7E" />
+                ) : (
+                  <Text style={[
+                    assistantStyles.confirm,
+                    (!selectedAssistant || assigningAssistant) && { opacity: 0.5 }
+                  ]}>
+                    Select Assistant
+                  </Text>
+                )}
+              </TouchableOpacity>
             </View>
-
-            {isSelected && (
-          <MaterialIcons name="check-circle" size={20} color="#2D7E7E" />
-        )}
-          </TouchableOpacity>
-        );
-      })}
-
-      {selectedAssistant && (
-        <View style={assistantStyles.workList}>
-          {selectedAssistant.works.map((work: string, index: number) => (
-            <View key={index} style={assistantStyles.workItem}>
-              <Text style={{ color: '#2D7E7E' }}>✓</Text>
-              <Text style={assistantStyles.workText}>{work}</Text>
-            </View>
-          ))}
+          </View>
         </View>
-      )}
-
-      <View style={assistantStyles.actions}>
-        <TouchableOpacity
-          onPress={() => setShowAssistantModal(false)}
-        >
-          <Text style={assistantStyles.cancel}>Cancel</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          disabled={!selectedAssistant}
-          onPress={() => {
-            setAssistantEnabled(true);
-            setShowAssistantModal(false);
-          }}
-        >
-          <Text style={assistantStyles.confirm}>
-            Select Assistant
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-    </View>
-  </View>
-</Modal>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -687,6 +757,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
 });
+
 const assistantStyles = StyleSheet.create({
   overlay: {
     flex: 1,
@@ -774,4 +845,5 @@ const assistantStyles = StyleSheet.create({
     fontWeight: '700',
   },
 });
+
 export default DoctorProfile;
