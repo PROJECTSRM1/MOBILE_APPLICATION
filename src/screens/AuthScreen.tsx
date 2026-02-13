@@ -114,7 +114,16 @@ const AuthScreen = () => {
       const data = await response.json();
 
       if (response.ok) {
-        await AsyncStorage.setItem("userData", JSON.stringify(data));
+        await AsyncStorage.setItem(
+  "registeredUser",
+  JSON.stringify({
+    first_name: data.first_name ?? firstName,
+    last_name: data.last_name ?? lastName,
+    email: data.email ?? email,
+    mobile: data.mobile ?? mobile,
+  })
+);
+
 
         Alert.alert("Success", "Registered successfully. Please login.", [
           {
@@ -214,13 +223,11 @@ const AuthScreen = () => {
 
         // Build user profile for Profile screen
         const userProfile = {
-          firstName: data.email_or_phone?.split("@")[0] || "",
-          lastName: "",
-          email: data.email_or_phone || "",
-          mobile: "",
-          role: data.role || "",
-          selectedServices: data.service_ids || []
-        };
+  email: data.email_or_phone || "",
+  role: data.role || "",
+  selectedServices: data.service_ids || []
+};
+
 
         // Save profile
         await AsyncStorage.setItem("userProfile", JSON.stringify(userProfile));

@@ -8,6 +8,61 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+const API_BASE_URL = 'https://swachify-india-be-1-mcrb.onrender.com';
+
+type PropertyPayload = {
+  module_id: number;
+
+  bhk_type_id?: number | null;
+  furnishing_id?: number | null;
+  locality_area?: string | null;
+  upload_photos?: string | null;
+  property_type_id?: number | null;
+  listing_type_id?: number | null;
+  item_condition_id?: number | null;
+  hostel_type_id?: number | null;
+  land_type_id?: number | null;
+  room_type_id?: number | null;
+  property_type_facilities_id?: number | null;
+  registration_status_id?: number | null;
+  star_rating_id?: number | null;
+
+  expected_price?: number | null;
+  monthly_rent?: number | null;
+  property_sqft?: number | null;
+  rating?: number | null;
+  registration_value?: number | null;
+  distance_km?: number | null;
+  price_per_night?: number | null;
+  total_rooms?: number | null;
+  available_rooms?: number | null;
+  rooms_per_floor?: number | null;
+  beds_per_room?: number | null;
+  sharing_type?: number | null;
+  year?: number | null;
+
+  food_included?: boolean;
+  current_bill_excluded?: boolean;
+
+  location?: number | null;
+
+  owner_name?: string | null;
+  mobile_number?: string | null;
+  band_name?: string | null;
+  model_name?: string | null;
+  hotel_name?: string | null;
+  upload_document?: string | null;
+  property_description?: string | null;
+  check_in_time?: string | null;
+  check_out_time?: string | null;
+
+  user_id?: number;
+  is_active?: boolean;
+  created_by?: number;
+};
+
+
+
 const SellItem = ({ navigation }: any) => {
   const [listingType, setListingType] = useState<'sell' | 'rent'>('sell');
   const [propertyType, setPropertyType] = useState('Apartment');
@@ -33,6 +88,7 @@ const SellItem = ({ navigation }: any) => {
   const [itemCondition, setItemCondition] = useState('New Item');
   const [showConditionPicker, setShowConditionPicker] = useState(false);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [registrationStatus, setRegistrationStatus] = useState<'registered' | 'non-registered'>('registered');
   const [registrationValue, setRegistrationValue] = useState('');
@@ -54,6 +110,8 @@ const SellItem = ({ navigation }: any) => {
   const [price4Sharing, setPrice4Sharing] = useState('');
   const [foodIncluded, setFoodIncluded] = useState('Yes');
   const [showFoodPicker, setShowFoodPicker] = useState(false);
+  const [currentBillExcluded, setCurrentBillExcluded] = useState('Yes');
+  const [showCurrentBillPicker, setShowCurrentBillPicker] = useState(false);
   const [hasAC, setHasAC] = useState(false);
   const [hasWifi, setHasWifi] = useState(false);
   const [hasTV, setHasTV] = useState(false);
@@ -76,7 +134,6 @@ const SellItem = ({ navigation }: any) => {
   const [petFriendly, setPetFriendly] = useState(false);
   const [cancellationPolicy, setCancellationPolicy] = useState('');
 
-  // NEW: Rating field
   const [rating, setRating] = useState('4.0');
 
   const propertyTypes = [
@@ -98,6 +155,274 @@ const SellItem = ({ navigation }: any) => {
   const isCommercial = ['Office', 'Hospital', 'Commercial Space'].includes(propertyType);
   const isHostel = propertyType === 'Hostel';
   const isHotel = propertyType === 'Hotel';
+
+  // Helper function to get property type ID
+  const getPropertyTypeId = (type: string): number => {
+    const mapping: { [key: string]: number } = {
+      'Apartment': 1,
+      'Villa': 2,
+      'Independent House': 3,
+      'Land': 4,
+      'Bike': 5,
+      'Car': 6,
+      'Lorry': 7,
+      'Auto': 8,
+      'Bus': 9,
+      'Office': 10,
+      'Hospital': 11,
+      'Commercial Space': 12,
+      'Hostel': 13,
+      'Hotel': 14
+    };
+    return mapping[type] || 0;
+  };
+
+  // Helper function to get BHK ID
+  const getBhkId = (bhkType: string): number => {
+    const bhkNumber = bhkType.split(' ')[0];
+    return parseInt(bhkNumber) || 0;
+  };
+
+  // Helper function to get furnishing ID
+  const getFurnishingId = (type: string): number => {
+    const mapping: { [key: string]: number } = {
+      'Unfurnished': 1,
+      'Semi': 2,
+      'Full': 3
+    };
+    return mapping[type] || 0;
+  };
+
+  // Helper function to get land type ID
+  const getLandTypeId = (type: string): number => {
+    const mapping: { [key: string]: number } = {
+      'Agriculture': 1,
+      'Commercial': 2
+    };
+    return mapping[type] || 0;
+  };
+
+  // Helper function to get item condition ID
+  const getItemConditionId = (condition: string): number => {
+    const mapping: { [key: string]: number } = {
+      'New Item': 1,
+      'Old Item': 2
+    };
+    return mapping[condition] || 0;
+  };
+
+  // Helper function to get hostel type ID
+  const getHostelTypeId = (type: string): number => {
+    const mapping: { [key: string]: number } = {
+      'Boys': 1,
+      'Girls': 2,
+      'Co-living': 3
+    };
+    return mapping[type] || 0;
+  };
+
+  // Helper function to get registration status ID
+  const getRegistrationStatusId = (status: string): number => {
+    const mapping: { [key: string]: number } = {
+      'registered': 1,
+      'non-registered': 2
+    };
+    return mapping[status] || 0;
+  };
+
+  // Helper function to get listing type ID
+  const getListingTypeId = (type: string): number => {
+    return type === 'sell' ? 1 : 2;
+  };
+
+  // Helper function to get facilities ID based on selected amenities
+  const getFacilitiesId = (): number => {
+    // This is a simplified version - you may need to adjust based on your backend logic
+    // For now, returning 0 if no facilities, 1 if any facility is selected
+    const hasAnyFacility = hasAC || hasWifi || hasTV || hasLaundry || hasParking || hasSecurity || 
+                          hasRestaurant || hasGym || hasPool || hasSpa || hasConferenceRoom || petFriendly;
+    return hasAnyFacility ? 1 : 0;
+  };
+
+  // Helper function to get room type ID
+  const getRoomTypeId = (): number => {
+    // If multiple room types selected, return the first one's ID
+    // Room types: Standard(1), Deluxe(2), Premium(3), Suite(4), Executive(5), Luxury(6), Business(7)
+    if (roomTypes.length === 0) return 0;
+    const roomTypeMapping: { [key: string]: number } = {
+      'Standard': 1,
+      'Deluxe': 2,
+      'Premium': 3,
+      'Suite': 4,
+      'Executive': 5,
+      'Luxury': 6,
+      'Business': 7
+    };
+    return roomTypeMapping[roomTypes[0]] || 0;
+  };
+
+  // Build API payload based on property type
+  const buildApiPayload = async (userId: number = 1): Promise<any> => {
+  //   const photoString = images[0]
+  // ? `data:image/jpeg;base64,${images[0]}`
+  // : null;
+
+
+    const basePayload: PropertyPayload = {
+  module_id: 3,
+
+  bhk_type_id: null,
+  furnishing_id: null,
+  locality_area: null,
+  upload_photos: null,
+  property_type_id: getPropertyTypeId(propertyType) || null,
+  listing_type_id: getListingTypeId(listingType) || null,
+  item_condition_id: getItemConditionId(itemCondition) || null,
+
+  hostel_type_id: null,
+  land_type_id: null,
+  room_type_id: null,
+  property_type_facilities_id: null,
+  registration_status_id: null,
+  star_rating_id: null,
+
+  expected_price: null,
+  monthly_rent: null,
+  property_sqft: null,
+  rating: rating ? parseFloat(rating) : null,
+  registration_value: null,
+  distance_km: null,
+  price_per_night: null,
+  total_rooms: null,
+  available_rooms: null,
+  rooms_per_floor: null,
+  beds_per_room: null,
+  sharing_type: null,
+  year: null,
+
+  food_included: false,
+  current_bill_excluded: false,
+
+  location: null,
+
+  owner_name: null,
+  mobile_number: null,
+  band_name: null,
+  model_name: null,
+  hotel_name: null,
+  upload_document: null,
+  property_description: description || "",
+
+  check_in_time: null,
+  check_out_time: null,
+
+  user_id: userId,
+  is_active: true,
+  created_by: userId,
+};
+
+
+    // Property-specific fields
+    if (isHouse) {
+      basePayload.bhk_type_id = getBhkId(bhk);
+      basePayload.furnishing_id = getFurnishingId(furnishingType);
+      basePayload.locality_area = `${location}, ${area}`;
+      basePayload.property_sqft = parseInt(sqft) || 0;
+      
+      if (listingType === 'sell') {
+        basePayload.expected_price = parseFloat(price) || 0;
+      } else {
+        basePayload.monthly_rent = parseFloat(price) || 0;
+      }
+    }
+
+    if (isLand) {
+      basePayload.land_type_id = getLandTypeId(landType);
+      basePayload.registration_status_id = getRegistrationStatusId(registrationStatus);
+      basePayload.locality_area = `${location}, ${area}`;
+      basePayload.property_sqft = parseInt(sqft) || 0;
+      basePayload.owner_name = ownerName;
+      
+      if (registrationStatus === 'registered') {
+        basePayload.registration_value = parseFloat(registrationValue) || 0;
+      }
+      
+      if (listingType === 'sell') {
+        basePayload.expected_price = parseFloat(marketValue) || 0;
+      } else {
+        basePayload.monthly_rent = parseFloat(price) || 0;
+      }
+    }
+
+    if (isVehicle) {
+      basePayload.band_name = brand;
+      basePayload.model_name = model;
+      basePayload.year = parseInt(year) || 0;
+      basePayload.distance_km = parseFloat(distance) || 0;
+      basePayload.owner_name = ownerName;
+      basePayload.mobile_number = mobileNumber;
+      
+      if (listingType === 'sell') {
+        basePayload.expected_price = parseFloat(price) || 0;
+      } else {
+        basePayload.monthly_rent = parseFloat(price) || 0;
+      }
+    }
+
+    if (isCommercial) {
+      basePayload.locality_area = `${location}, ${area}`;
+      basePayload.property_sqft = parseInt(sqft) || 0;
+      
+      if (listingType === 'sell') {
+        basePayload.expected_price = parseFloat(price) || 0;
+      } else {
+        basePayload.monthly_rent = parseFloat(price) || 0;
+      }
+    }
+
+    if (isHostel) {
+      basePayload.hostel_type_id = getHostelTypeId(hostelType);
+      basePayload.locality_area = `${location}, ${area}`;
+      basePayload.total_rooms = parseInt(totalRooms) || 0;
+      basePayload.available_rooms = parseInt(availableRooms) || 0;
+      basePayload.rooms_per_floor = parseInt(roomsPerFloor) || 0;
+      basePayload.beds_per_room = parseInt(bedsPerRoom) || 0;
+      basePayload.sharing_type = parseInt(sharingType) || 0;
+      basePayload.food_included = foodIncluded === 'Yes';
+      basePayload.current_bill_excluded = currentBillExcluded === 'Yes';
+      basePayload.property_type_facilities_id = getFacilitiesId();
+      
+      // For hostel, use the selected sharing type price
+      const sharingPrices: { [key: string]: string } = {
+        '1': price1Sharing,
+        '2': price2Sharing,
+        '3': price3Sharing,
+        '4': price4Sharing
+      };
+      basePayload.monthly_rent = parseFloat(sharingPrices[sharingType]) || 0;
+    }
+
+    if (isHotel) {
+      basePayload.hotel_name = hotelName;
+      basePayload.star_rating_id = parseInt(hotelStarRating) || 0;
+      basePayload.locality_area = `${location}, ${area}`;
+      basePayload.total_rooms = parseInt(totalRooms) || 0;
+      basePayload.available_rooms = parseInt(availableRooms) || 0;
+      basePayload.room_type_id = getRoomTypeId();
+      basePayload.property_type_facilities_id = getFacilitiesId();
+      basePayload.price_per_night = parseFloat(price) || 0;
+      
+      // Format time as HH:MM:SS
+      if (checkInTime) {
+        basePayload.check_in_time = `${checkInTime}:00`;
+      }
+      if (checkOutTime) {
+        basePayload.check_out_time = `${checkOutTime}:00`;
+      }
+    }
+
+    return basePayload;
+  };
 
   // Validation functions
   const validateName = (text: string): boolean => {
@@ -236,12 +561,22 @@ const SellItem = ({ navigation }: any) => {
   };
 
   const pickImage = () => {
-    launchImageLibrary({ mediaType: 'photo', selectionLimit: 10 - images.length }, (response) => {
-      if (response.assets) {
-        const newImages = response.assets.map(asset => asset.uri || '');
-        setImages([...images, ...newImages]);
-      }
-    });
+    launchImageLibrary(
+  {
+    mediaType: 'photo',
+    selectionLimit: 10 - images.length,
+    includeBase64: false,
+     quality: 0.7,          // compress image (70% quality)
+     maxWidth: 1280,        
+     maxHeight: 1280,
+  },
+  (response) => {
+    if (response.assets) {
+      const newImages = response.assets.map(asset => asset.uri || '');
+      setImages([...images, ...newImages]);
+    }
+  }
+);
   };
 
   const removeImage = (index: number) => {
@@ -249,7 +584,10 @@ const SellItem = ({ navigation }: any) => {
   };
 
   const pickDocumentImage = () => {
-    launchImageLibrary({ mediaType: 'photo', selectionLimit: 10 - documentImages.length }, (response) => {
+    launchImageLibrary({ mediaType: 'photo', selectionLimit: 10 - documentImages.length,includeBase64: false,
+     quality: 0.7,          // compress image (70% quality)
+     maxWidth: 1280,        
+     maxHeight: 1280, }, (response) => {
       if (response.assets) {
         const newImages = response.assets.map(asset => asset.uri || '');
         setDocumentImages([...documentImages, ...newImages]);
@@ -516,96 +854,237 @@ const SellItem = ({ navigation }: any) => {
       return;
     }
 
-    await saveListing(false);
+    await submitListing(false);
   };
 
-  const saveListing = async (isPendingVerification: boolean) => {
-    const listing = {
-      id: Date.now().toString(),
-      type: listingType === 'sell' ? 'buy' : 'rent',
-      propertyType,
-      images,
-      description,
-      price: isHostel ? null : price,
-      rating: parseFloat(rating),
-      sqft: (isHouse || isCommercial || isLand) ? sqft : null,
-      bhk: isHouse ? bhk : null,
-      location,
-      area,
-      landType: isLand ? landType : null,
-      registrationStatus: isLand ? registrationStatus : null,
-      registrationValue: isLand && registrationStatus === 'registered' ? registrationValue : null,
-      marketValue: isLand ? marketValue : null,
-      documentImages: isLand ? documentImages : null,
-      furnishingType: isHouse ? furnishingType : null,
-      ownerName: (isLand || isVehicle) ? ownerName : null,
-      brand: isVehicle ? brand : null,
-      model: isVehicle ? model : null,
-      year: isVehicle ? year : null,
-      distance: isVehicle ? distance : null,
-      mobileNumber: isVehicle ? mobileNumber : null,
-      hostelType: isHostel ? hostelType : null,
-      numberOfFloors: isHostel ? numberOfFloors : null,
-      totalRooms: (isHostel || isHotel) ? totalRooms : null,
-      availableRooms: (isHostel || isHotel) ? availableRooms : null,
-      roomsPerFloor: isHostel ? roomsPerFloor : null,
-      bedsPerRoom: isHostel ? bedsPerRoom : null,
-      sharingType: isHostel ? sharingType : null,
-      price1Sharing: isHostel ? price1Sharing : null,
-      price2Sharing: isHostel ? price2Sharing : null,
-      price3Sharing: isHostel ? price3Sharing : null,
-      price4Sharing: isHostel ? price4Sharing : null,
-      foodIncluded: isHostel ? foodIncluded : null,
-      hasAC: (isHostel || isHotel) ? hasAC : null,
-      hasWifi: (isHostel || isHotel) ? hasWifi : null,
-      hasTV: (isHostel || isHotel) ? hasTV : null,
-      hasLaundry: (isHostel || isHotel) ? hasLaundry : null,
-      hasParking: (isHostel || isHotel) ? hasParking : null,
-      hasSecurity: (isHostel || isHotel) ? hasSecurity : null,
-      hotelName: isHotel ? hotelName : null,
-      hotelStarRating: isHotel ? hotelStarRating : null,
-      checkInTime: isHotel ? checkInTime : null,
-      checkOutTime: isHotel ? checkOutTime : null,
-      roomTypes: isHotel ? roomTypes : null,
-      hasRestaurant: isHotel ? hasRestaurant : null,
-      hasGym: isHotel ? hasGym : null,
-      hasPool: isHotel ? hasPool : null,
-      hasSpa: isHotel ? hasSpa : null,
-      hasConferenceRoom: isHotel ? hasConferenceRoom : null,
-      petFriendly: isHotel ? petFriendly : null,
-      cancellationPolicy: isHotel ? cancellationPolicy : null,
-      itemCondition,
-      createdAt: new Date().toISOString(),
-      isVerified: !isPendingVerification,
-      isPendingVerification: isPendingVerification,
-      verificationStatus: isPendingVerification ? 'pending' : 'approved',
-    };
+  const uploadImageToCloudinary = async (imageUri: string) => {
+  try {
+    console.log("Uploading URI:", imageUri);
+
+    const formData = new FormData();
+
+    formData.append("file", {
+      uri: imageUri,
+      name: `photo_${Date.now()}.jpg`,
+      type: "image/jpeg",
+    } as any);
+
+    formData.append("upload_preset", "swachify_upload");
+
+    const res = await fetch(
+      "https://api.cloudinary.com/v1_1/dcvufqnuu/image/upload",
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    const data = await res.json();
+
+    console.log("CLOUDINARY RESPONSE:", data);
+
+    return data.secure_url || null;
+  } catch (err) {
+    console.log("Upload error:", err);
+    return null;
+  }
+};
+
+
+  const submitListing = async (isPendingVerification: boolean) => {
+    setIsSubmitting(true);
 
     try {
-      const existingListings = await AsyncStorage.getItem('marketplace_listings');
-      const listings = existingListings ? JSON.parse(existingListings) : [];
-      listings.push(listing);
-      await AsyncStorage.setItem('marketplace_listings', JSON.stringify(listings));
-      
-      if (isPendingVerification) {
-        setShowVerificationModal(false);
-        Alert.alert(
-          'Verification Required', 
-          'Your non-registered land listing has been submitted for verification. It will be posted on the dashboard after admin approval.',
-          [{ text: 'OK', onPress: () => navigation.goBack() }]
+      // Get user ID from AsyncStorage (or use a default value)
+      // Get full userData from AsyncStorage (saved during login)
+const userDataString = await AsyncStorage.getItem('userData');
+
+if (!userDataString) {
+  Alert.alert('Error', 'User not logged in');
+  setIsSubmitting(false);
+  return;
+}
+
+const userData = JSON.parse(userDataString);
+
+// 🔥 Extract user_id from login response
+const userId =
+  userData.user_id ||
+  userData.id ||
+  userData.user?.id ||
+  null;
+
+if (!userId) {
+  Alert.alert('Error', 'User ID not found');
+  setIsSubmitting(false);
+  return;
+}
+
+      // Build API payload
+     //  Upload images first and get URL list
+      let uploadedUrls: string[] = [];
+
+      if (images.length > 0) {
+        const uploads = await Promise.all(
+          images.map(uri => uploadImageToCloudinary(uri))
         );
-      } else {
-        Alert.alert('Success', 'Your listing has been posted successfully!', [
-          { text: 'OK', onPress: () => navigation.goBack() }
-        ]);
+
+        uploadedUrls = uploads.filter(Boolean) as string[];
       }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to post listing. Please try again.');
+
+      // ⭐ Upload DOCUMENT images also
+let uploadedDocUrls: string[] = [];
+
+if (documentImages.length > 0) {
+  const docUploads = await Promise.all(
+    documentImages.map(uri => uploadImageToCloudinary(uri))
+  );
+
+  uploadedDocUrls = docUploads.filter(Boolean) as string[];
+}
+
+
+      // ⭐ Build payload
+      const payload = await buildApiPayload(userId);
+
+      // ⭐ Inject uploaded URL into payload
+      if (uploadedUrls.length > 0) {
+        payload.upload_photos = uploadedUrls[0];
+      }
+
+      // ⭐ Inject document URL into payload
+      if (uploadedDocUrls.length > 0) {
+        payload.upload_document = uploadedDocUrls[0];
+      }
+
+
+      console.log('Submitting payload:', JSON.stringify(payload, null, 2));
+
+      // Make API call
+      // ⭐ Get token from AsyncStorage (saved during login)
+      const token = await AsyncStorage.getItem("authToken");
+
+      const response = await fetch(`${API_BASE_URL}/property/sell-listing`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,   // ⭐ VERY IMPORTANT
+        },
+        body: JSON.stringify(payload),
+      });
+      const rawResponse = await response.text();
+
+      let responseData;
+
+      try {
+        responseData = JSON.parse(rawResponse);
+      } catch {
+        console.log("RAW SERVER RESPONSE:", rawResponse);
+        throw new Error(rawResponse || "Server returned invalid response");
+      }
+      console.log("API STATUS:", response.status);
+      console.log("API RESPONSE:", JSON.stringify(responseData, null, 2));
+
+
+      if (response.ok) {
+        // Save to local storage for offline access
+        const listing = {
+          id: responseData.id || Date.now().toString(),
+          type: listingType === 'sell' ? 'buy' : 'rent',
+          propertyType,
+          images,
+          description,
+          price: isHostel ? null : price,
+          rating: parseFloat(rating),
+          sqft: (isHouse || isCommercial || isLand) ? sqft : null,
+          bhk: isHouse ? bhk : null,
+          location,
+          area,
+          landType: isLand ? landType : null,
+          registrationStatus: isLand ? registrationStatus : null,
+          registrationValue: isLand && registrationStatus === 'registered' ? registrationValue : null,
+          marketValue: isLand ? marketValue : null,
+          documentImages: isLand ? documentImages : null,
+          furnishingType: isHouse ? furnishingType : null,
+          ownerName: (isLand || isVehicle) ? ownerName : null,
+          brand: isVehicle ? brand : null,
+          model: isVehicle ? model : null,
+          year: isVehicle ? year : null,
+          distance: isVehicle ? distance : null,
+          mobileNumber: isVehicle ? mobileNumber : null,
+          hostelType: isHostel ? hostelType : null,
+          numberOfFloors: isHostel ? numberOfFloors : null,
+          totalRooms: (isHostel || isHotel) ? totalRooms : null,
+          availableRooms: (isHostel || isHotel) ? availableRooms : null,
+          roomsPerFloor: isHostel ? roomsPerFloor : null,
+          bedsPerRoom: isHostel ? bedsPerRoom : null,
+          sharingType: isHostel ? sharingType : null,
+          price1Sharing: isHostel ? price1Sharing : null,
+          price2Sharing: isHostel ? price2Sharing : null,
+          price3Sharing: isHostel ? price3Sharing : null,
+          price4Sharing: isHostel ? price4Sharing : null,
+          foodIncluded: isHostel ? foodIncluded : null,
+          currentBillExcluded: isHostel ? currentBillExcluded : null,
+          hasAC: (isHostel || isHotel) ? hasAC : null,
+          hasWifi: (isHostel || isHotel) ? hasWifi : null,
+          hasTV: (isHostel || isHotel) ? hasTV : null,
+          hasLaundry: (isHostel || isHotel) ? hasLaundry : null,
+          hasParking: (isHostel || isHotel) ? hasParking : null,
+          hasSecurity: (isHostel || isHotel) ? hasSecurity : null,
+          hotelName: isHotel ? hotelName : null,
+          hotelStarRating: isHotel ? hotelStarRating : null,
+          checkInTime: isHotel ? checkInTime : null,
+          checkOutTime: isHotel ? checkOutTime : null,
+          roomTypes: isHotel ? roomTypes : null,
+          hasRestaurant: isHotel ? hasRestaurant : null,
+          hasGym: isHotel ? hasGym : null,
+          hasPool: isHotel ? hasPool : null,
+          hasSpa: isHotel ? hasSpa : null,
+          hasConferenceRoom: isHotel ? hasConferenceRoom : null,
+          petFriendly: isHotel ? petFriendly : null,
+          cancellationPolicy: isHotel ? cancellationPolicy : null,
+          itemCondition,
+          createdAt: new Date().toISOString(),
+          isVerified: !isPendingVerification,
+          isPendingVerification: isPendingVerification,
+          verificationStatus: isPendingVerification ? 'pending' : 'approved',
+        };
+
+        const existingListings = await AsyncStorage.getItem('marketplace_listings');
+        const listings = existingListings ? JSON.parse(existingListings) : [];
+        listings.push(listing);
+        await AsyncStorage.setItem('marketplace_listings', JSON.stringify(listings));
+
+        if (isPendingVerification) {
+          setShowVerificationModal(false);
+          Alert.alert(
+            'Verification Required',
+            'Your non-registered land listing has been submitted for verification. It will be posted on the dashboard after admin approval.',
+            [{ text: 'OK', onPress: () => navigation.goBack() }]
+          );
+        } else {
+          Alert.alert(
+            'Success',
+            'Your listing has been posted successfully!',
+            [{ text: 'OK', onPress: () => navigation.goBack() }]
+          );
+        }
+      } else {
+        throw new Error(responseData.message || 'Failed to post listing');
+      }
+    } catch (error: any) {
+      console.error('Error posting listing:', error);
+      Alert.alert(
+        'Error',
+        error.message || 'Failed to post listing. Please try again.'
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleVerificationConfirm = async () => {
-    await saveListing(true);
+    await submitListing(true);
   };
 
   const PickerModal = ({ visible, onClose, options, selectedValue, onSelect, title }: any) => (
@@ -705,15 +1184,19 @@ const SellItem = ({ navigation }: any) => {
             <TouchableOpacity 
               style={styles.verificationCancelButton}
               onPress={() => setShowVerificationModal(false)}
+              disabled={isSubmitting}
             >
               <Text style={styles.verificationCancelText}>Cancel</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
-              style={styles.verificationConfirmButton}
+              style={[styles.verificationConfirmButton, isSubmitting && styles.disabledButton]}
               onPress={handleVerificationConfirm}
+              disabled={isSubmitting}
             >
-              <Text style={styles.verificationConfirmText}>Submit for Verification</Text>
+              <Text style={styles.verificationConfirmText}>
+                {isSubmitting ? 'Submitting...' : 'Submit for Verification'}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -1054,7 +1537,7 @@ const SellItem = ({ navigation }: any) => {
                 </TouchableOpacity>
                 {documentImages.map((image, index) => (
                   <View key={index} style={styles.imageContainer}>
-                    <Image source={{ uri: image }} style={styles.uploadedImage} />
+                    <Image source={{ uri:image }} style={styles.uploadedImage} />
                     <TouchableOpacity style={styles.removeButton} onPress={() => removeDocumentImage(index)}>
                       <MaterialIcons name="close" size={14} color="#fff" />
                     </TouchableOpacity>
@@ -1301,7 +1784,7 @@ const SellItem = ({ navigation }: any) => {
                     keyboardType="numeric" 
                     value={price3Sharing} 
                     onChangeText={handlePrice3SharingChange} 
-                  />
+                />
                 </View>
                 <View style={styles.halfField}>
                   <Text style={styles.label}>4-SHARING (₹/month) *</Text>
@@ -1329,9 +1812,9 @@ const SellItem = ({ navigation }: any) => {
 
             <View style={styles.fieldContainer}>
               <Text style={styles.label}>CURRENT BILL EXCLUDED</Text>
-              <TouchableOpacity onPress={() => setShowFoodPicker(true)}>
+              <TouchableOpacity onPress={() => setShowCurrentBillPicker(true)}>
                 <View style={styles.pickerContainer} pointerEvents="none">
-                  <TextInput style={styles.picker} value={foodIncluded} editable={false} />
+                  <TextInput style={styles.picker} value={currentBillExcluded} editable={false} />
                   <MaterialIcons name="expand-more" size={24} color="#94a3b8" style={styles.pickerIcon} />
                 </View>
               </TouchableOpacity>
@@ -1456,7 +1939,7 @@ const SellItem = ({ navigation }: any) => {
                 <Text style={styles.label}>CHECK-IN TIME *</Text>
                 <TextInput 
                   style={styles.input} 
-                  placeholder="2:00 PM" 
+                  placeholder="14:00" 
                   placeholderTextColor="#4b5563"
                   value={checkInTime} 
                   onChangeText={setCheckInTime} 
@@ -1466,7 +1949,7 @@ const SellItem = ({ navigation }: any) => {
                 <Text style={styles.label}>CHECK-OUT TIME *</Text>
                 <TextInput 
                   style={styles.input} 
-                  placeholder="12:00 PM" 
+                  placeholder="12:00" 
                   placeholderTextColor="#4b5563"
                   value={checkOutTime} 
                   onChangeText={setCheckOutTime} 
@@ -1601,11 +2084,17 @@ const SellItem = ({ navigation }: any) => {
       </ScrollView>
 
       <View style={styles.bottomSection}>
-        <TouchableOpacity style={styles.postButton} onPress={handlePost}>
+        <TouchableOpacity 
+          style={[styles.postButton, isSubmitting && styles.disabledButton]} 
+          onPress={handlePost}
+          disabled={isSubmitting}
+        >
           <Text style={styles.postButtonText}>
-            {isLand && registrationStatus === 'non-registered' 
-              ? 'Submit for Verification' 
-              : `Post for ${listingType === 'sell' ? 'Sale' : 'Rent'}`}
+            {isSubmitting 
+              ? 'Posting...' 
+              : (isLand && registrationStatus === 'non-registered' 
+                  ? 'Submit for Verification' 
+                  : `Post for ${listingType === 'sell' ? 'Sale' : 'Rent'}`)}
           </Text>
         </TouchableOpacity>
 
@@ -1641,6 +2130,8 @@ const SellItem = ({ navigation }: any) => {
         options={hostelTypeOptions} selectedValue={hostelType} onSelect={setHostelType} title="Select Hostel Type" />
       <PickerModal visible={showFoodPicker} onClose={() => setShowFoodPicker(false)}
         options={foodOptions} selectedValue={foodIncluded} onSelect={setFoodIncluded} title="Food Included?" />
+      <PickerModal visible={showCurrentBillPicker} onClose={() => setShowCurrentBillPicker(false)}
+        options={foodOptions} selectedValue={currentBillExcluded} onSelect={setCurrentBillExcluded} title="Current Bill Excluded?" />
       <PickerModal visible={showSharingPicker} onClose={() => setShowSharingPicker(false)}
         options={sharingOptions} selectedValue={sharingType} onSelect={setSharingType} title="Select Default Sharing Type" />
       <PickerModal visible={showStarRatingPicker} onClose={() => setShowStarRatingPicker(false)}
@@ -1707,6 +2198,7 @@ const styles = StyleSheet.create({
   serviceCheckmark: { position: 'absolute', top: 8, right: 8 },
   bottomSection: { backgroundColor: '#0a0c10', paddingTop: 12, borderTopWidth: 1, borderTopColor: '#232936' },
   postButton: { backgroundColor: '#135bec', paddingVertical: 16, marginHorizontal: 16, borderRadius: 16, alignItems: 'center', marginBottom: 12 },
+  disabledButton: { backgroundColor: '#64748b', opacity: 0.6 },
   postButtonText: { fontSize: 16, fontWeight: '700', color: '#fff', letterSpacing: 0.5 },
   bottomNav: { flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 12, backgroundColor: '#0f1419', borderTopWidth: 1, borderTopColor: '#232936' },
   navItem: { alignItems: 'center', paddingVertical: 4 },
