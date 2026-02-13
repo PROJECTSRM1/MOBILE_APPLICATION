@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Image,
-  Dimensions, StatusBar, Platform, RefreshControl, Modal, Alert,
+  Dimensions, StatusBar, Platform, RefreshControl, Modal, Alert, ActivityIndicator,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Geolocation from 'react-native-geolocation-service';
@@ -11,6 +11,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from "../context/ThemeContext";
 
 const { width } = Dimensions.get('window');
+
+const API_BASE_URL = 'https://swachify-india-be-1-mcrb.onrender.com';
 
 interface Property {
   id: string;
@@ -66,47 +68,14 @@ interface Property {
   petFriendly?: boolean;
   cancellationPolicy?: string;
   isUserListing?: boolean;
+  monthlyRent?: string;
+  pricePerNight?: string;
+  distanceKm?: string;
+  sharingType?: string;
+  bedsPerRoom?: string;
+  userId?: string;
+  createdBy?: string;
 }
-
-const getDummyData = (): Property[] => [
-  { id: 'dummy_1', title: '3 BHK Apartment in Gachibowli', price: '₹85,00,000', image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=500', images: ['https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=500'], rating: 4.8, distance: '1.2 km away', propertyType: 'Apartment', listingType: 'buy', sqft: '1450', bhk: '3 BHK', location: '123 Park Avenue, Gachibowli, Hyderabad', area: 'Gachibowli', furnishingType: 'Full', itemCondition: 'New Item', createdAt: new Date(Date.now() - 2 * 86400000).toISOString() },
-  { id: 'dummy_2', title: '2 BHK Apartment in Madhapur', price: '₹18,000', image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=500', images: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=500'], rating: 4.5, distance: '2.8 km away', propertyType: 'Apartment', listingType: 'rent', sqft: '1100', bhk: '2 BHK', location: '45 Green Valley, Madhapur, Hyderabad', area: 'Madhapur', furnishingType: 'Semi', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 5 * 86400000).toISOString() },
-  { id: 'dummy_3', title: 'Honda City 2022', price: '₹12,50,000', image: 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=500', images: ['https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=500'], rating: 4.7, distance: '3.5 km away', propertyType: 'Car', listingType: 'buy', brand: 'Honda', model: 'City', year: '2022', ownerName: 'Rajesh Kumar', mobileNumber: '+91 98765 43210', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 86400000).toISOString(), location: 'Kondapur, Hyderabad', area: 'Kondapur' },
-  { id: 'dummy_4', title: 'Villa in Jubilee Hills', price: '₹1,85,00,000', image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500', images: ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500'], rating: 4.9, distance: '4.2 km away', propertyType: 'Villa', listingType: 'buy', sqft: '3200', bhk: '4 BHK', location: 'Plot 12, Road No 45, Jubilee Hills, Hyderabad', area: 'Jubilee Hills', furnishingType: 'Full', itemCondition: 'New Item', createdAt: new Date(Date.now() - 3 * 86400000).toISOString() },
-  { id: 'dummy_5', title: 'Commercial Land in Patancheru', price: '₹2,50,00,000', image: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=500', images: ['https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=500'], rating: 4.6, distance: '8.1 km away', propertyType: 'Land', listingType: 'buy', sqft: '10000', landType: 'Commercial', location: 'Sector 5, IDA Patancheru, Hyderabad', area: 'Patancheru', ownerName: 'Suresh Enterprises', marketValue: '2,50,00,000', registrationStatus: 'registered', itemCondition: 'New Item', createdAt: new Date(Date.now() - 10 * 86400000).toISOString() },
-  { id: 'dummy_6', title: 'Royal Enfield Classic 350', price: '₹1,45,000', image: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500', images: ['https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=500'], rating: 4.4, distance: '1.9 km away', propertyType: 'Bike', listingType: 'buy', brand: 'Royal Enfield', model: 'Classic 350', year: '2021', ownerName: 'Amit Sharma', mobileNumber: '+91 98123 45678', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 7 * 86400000).toISOString(), location: 'Hitech City, Hyderabad', area: 'Hitech City' },
-  { id: 'dummy_7', title: 'Independent House in Banjara Hills', price: '₹45,000', image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=500', images: ['https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=500'], rating: 4.7, distance: '5.3 km away', propertyType: 'Independent House', listingType: 'rent', sqft: '2200', bhk: '3 BHK', location: '78 Road No 12, Banjara Hills, Hyderabad', area: 'Banjara Hills', furnishingType: 'Unfurnished', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 4 * 86400000).toISOString() },
-  { id: 'dummy_8', title: 'Office Space in Financial District', price: '₹75,000', image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=500', images: ['https://images.unsplash.com/photo-1497366216548-37526070297c?w=500'], rating: 4.8, distance: '6.7 km away', propertyType: 'Office', listingType: 'rent', sqft: '1800', location: 'Tower B, Nanakramguda, Financial District, Hyderabad', area: 'Financial District', itemCondition: 'New Item', createdAt: new Date(Date.now() - 2 * 86400000).toISOString() },
-  { id: 'dummy_9', title: 'Maruti Suzuki Swift 2023', price: '₹7,85,000', image: 'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=500', images: ['https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=500'], rating: 4.9, distance: '2.4 km away', propertyType: 'Car', listingType: 'buy', brand: 'Maruti Suzuki', model: 'Swift', year: '2023', ownerName: 'Priya Singh', mobileNumber: '+91 99876 54321', itemCondition: 'New Item', createdAt: new Date(Date.now() - 86400000).toISOString(), location: 'Kukatpally, Hyderabad', area: 'Kukatpally' },
-  { id: 'dummy_10', title: 'Agriculture Land in Shamshabad', price: '₹45,00,000', image: 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=500', images: ['https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=500'], rating: 4.3, distance: '15.2 km away', propertyType: 'Land', listingType: 'buy', sqft: '43560', landType: 'Agriculture', location: 'Survey No 234, Shamshabad, Hyderabad', area: 'Shamshabad', ownerName: 'Ramesh Patel', marketValue: '45,00,000', registrationStatus: 'registered', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 15 * 86400000).toISOString() },
-  { id: 'dummy_11', title: '1 BHK Apartment in Ameerpet', price: '₹12,000', image: 'https://images.unsplash.com/photo-1502672260066-6bc35f0a1f80?w=500', images: ['https://images.unsplash.com/photo-1502672260066-6bc35f0a1f80?w=500'], rating: 4.5, distance: '0.8 km away', propertyType: 'Apartment', listingType: 'rent', sqft: '650', bhk: '1 BHK', location: '12 SR Nagar Main Road, Ameerpet, Hyderabad', area: 'Ameerpet', furnishingType: 'Semi', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 6 * 86400000).toISOString() },
-  { id: 'dummy_12', title: 'Tata Ace Lorry 2020', price: '₹4,25,000', image: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=500', images: ['https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=500'], rating: 4.2, distance: '7.6 km away', propertyType: 'Lorry', listingType: 'buy', brand: 'Tata', model: 'Ace', year: '2020', ownerName: 'Vijay Transport', mobileNumber: '+91 97654 32109', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 12 * 86400000).toISOString(), location: 'LB Nagar, Hyderabad', area: 'LB Nagar' },
-  { id: 'dummy_13', title: '4 BHK Villa in Kokapet', price: '₹95,000', image: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=500', images: ['https://images.unsplash.com/photo-1613977257363-707ba9348227?w=500'], rating: 4.9, distance: '9.4 km away', propertyType: 'Villa', listingType: 'rent', sqft: '3800', bhk: '4 BHK', location: 'Villa 7, Aparna Zenon, Kokapet, Hyderabad', area: 'Kokapet', furnishingType: 'Full', itemCondition: 'New Item', createdAt: new Date(Date.now() - 3 * 86400000).toISOString() },
-  { id: 'dummy_14', title: 'Bajaj Pulsar NS200', price: '₹95,000', image: 'https://images.unsplash.com/photo-1609630875171-b1321377ee65?w=500', images: ['https://images.unsplash.com/photo-1609630875171-b1321377ee65?w=500'], rating: 4.6, distance: '3.1 km away', propertyType: 'Bike', listingType: 'buy', brand: 'Bajaj', model: 'Pulsar NS200', year: '2022', ownerName: 'Rohan Verma', mobileNumber: '+91 98234 56789', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 8 * 86400000).toISOString(), location: 'Dilsukhnagar, Hyderabad', area: 'Dilsukhnagar' },
-  { id: 'dummy_15', title: 'Commercial Space in Begumpet', price: '₹1,25,00,000', image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500', images: ['https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500'], rating: 4.7, distance: '5.9 km away', propertyType: 'Commercial Space', listingType: 'buy', sqft: '2500', location: 'Shop 23, Paradise Circle, Begumpet, Hyderabad', area: 'Begumpet', itemCondition: 'New Item', createdAt: new Date(Date.now() - 5 * 86400000).toISOString() },
-  { id: 'dummy_16', title: 'Hyundai Creta 2021', price: '₹14,50,000', image: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=500', images: ['https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=500'], rating: 4.8, distance: '4.3 km away', propertyType: 'Car', listingType: 'buy', brand: 'Hyundai', model: 'Creta', year: '2021', ownerName: 'Anjali Mehta', mobileNumber: '+91 96543 21098', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 9 * 86400000).toISOString(), location: 'Miyapur, Hyderabad', area: 'Miyapur' },
-  { id: 'dummy_17', title: '2 BHK Independent House in Uppal', price: '₹62,00,000', image: 'https://images.unsplash.com/photo-1592595896551-12b371d546d5?w=500', images: ['https://images.unsplash.com/photo-1592595896551-12b371d546d5?w=500'], rating: 4.4, distance: '6.8 km away', propertyType: 'Independent House', listingType: 'buy', sqft: '1600', bhk: '2 BHK', location: '34 Garden Lane, Uppal, Hyderabad', area: 'Uppal', furnishingType: 'Unfurnished', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 20 * 86400000).toISOString() },
-  { id: 'dummy_18', title: 'Hospital Building in Secunderabad', price: '₹2,50,000', image: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=500', images: ['https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=500'], rating: 4.6, distance: '11.2 km away', propertyType: 'Hospital', listingType: 'rent', sqft: '8500', location: 'MG Road, Secunderabad, Hyderabad', area: 'Secunderabad', itemCondition: 'New Item', createdAt: new Date(Date.now() - 4 * 86400000).toISOString() },
-  { id: 'dummy_19', title: 'TVS Jupiter Scooter', price: '₹52,000', image: 'https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=500', images: ['https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=500'], rating: 4.3, distance: '2.7 km away', propertyType: 'Bike', listingType: 'buy', brand: 'TVS', model: 'Jupiter', year: '2020', ownerName: 'Sneha Reddy', mobileNumber: '+91 95432 10987', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 11 * 86400000).toISOString(), location: 'Kompally, Hyderabad', area: 'Kompally' },
-  { id: 'dummy_20', title: '3 BHK Apartment in Manikonda', price: '₹35,000', image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=500', images: ['https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=500'], rating: 4.7, distance: '3.9 km away', propertyType: 'Apartment', listingType: 'rent', sqft: '1550', bhk: '3 BHK', location: 'Apartment 305, My Home Bhooja, Manikonda, Hyderabad', area: 'Manikonda', furnishingType: 'Full', itemCondition: 'New Item', createdAt: new Date(Date.now() - 2 * 86400000).toISOString() },
-  
-  // HOSTEL DUMMY DATA
-  { id: 'hostel_1', title: 'Boys Hostel in Kukatpally', price: '₹8,500', image: 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=500', images: ['https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=500'], rating: 4.5, distance: '1.5 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '25', availableRooms: '8', hostelType: 'Boys', foodIncluded: 'Yes', hasAC: true, hasWifi: true, hasTV: false, hasLaundry: true, hasParking: true, hasSecurity: true, location: '45 KPHB Colony, Kukatpally, Hyderabad', area: 'Kukatpally', itemCondition: 'New Item', createdAt: new Date(Date.now() - 3 * 86400000).toISOString() },
-  { id: 'hostel_2', title: 'Girls Hostel in Gachibowli', price: '₹10,000', image: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=500', images: ['https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=500'], rating: 4.8, distance: '0.8 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '30', availableRooms: '12', hostelType: 'Girls', foodIncluded: 'Yes', hasAC: true, hasWifi: true, hasTV: true, hasLaundry: true, hasParking: true, hasSecurity: true, location: '12 Vinayak Nagar, Gachibowli, Hyderabad', area: 'Gachibowli', itemCondition: 'New Item', createdAt: new Date(Date.now() - 1 * 86400000).toISOString() },
-  { id: 'hostel_3', title: 'Co-living Hostel in Madhapur', price: '₹9,000', image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=500', images: ['https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=500'], rating: 4.6, distance: '2.1 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '40', availableRooms: '15', hostelType: 'Co-living', foodIncluded: 'No', hasAC: false, hasWifi: true, hasTV: false, hasLaundry: false, hasParking: true, hasSecurity: true, location: '23 Kavuri Hills, Madhapur, Hyderabad', area: 'Madhapur', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 5 * 86400000).toISOString() },
-  { id: 'hostel_4', title: 'Boys PG in Ameerpet', price: '₹7,500', image: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=500', images: ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=500'], rating: 4.3, distance: '1.2 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '20', availableRooms: '6', hostelType: 'Boys', foodIncluded: 'Yes', hasAC: false, hasWifi: true, hasTV: false, hasLaundry: true, hasParking: false, hasSecurity: true, location: '56 Punjagutta Main Road, Ameerpet, Hyderabad', area: 'Ameerpet', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 7 * 86400000).toISOString() },
-  { id: 'hostel_5', title: 'Girls PG in Hitech City', price: '₹11,000', image: 'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=500', images: ['https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=500'], rating: 4.9, distance: '0.5 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '18', availableRooms: '4', hostelType: 'Girls', foodIncluded: 'Yes', hasAC: true, hasWifi: true, hasTV: true, hasLaundry: true, hasParking: true, hasSecurity: true, location: '78 Cyber Towers Road, Hitech City, Hyderabad', area: 'Hitech City', itemCondition: 'New Item', createdAt: new Date(Date.now() - 2 * 86400000).toISOString() },
-  { id: 'hostel_6', title: 'Student Hostel in Dilsukhnagar', price: '₹6,500', image: 'https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=500', images: ['https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=500'], rating: 4.2, distance: '3.5 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '35', availableRooms: '10', hostelType: 'Co-living', foodIncluded: 'No', hasAC: false, hasWifi: true, hasTV: false, hasLaundry: false, hasParking: false, hasSecurity: true, location: '90 Moosarambagh, Dilsukhnagar, Hyderabad', area: 'Dilsukhnagar', itemCondition: 'Old Item', createdAt: new Date(Date.now() - 10 * 86400000).toISOString() },
-  { id: 'hostel_7', title: 'Premium Boys Hostel in Kondapur', price: '₹12,000', image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=500', images: ['https://images.unsplash.com/photo-1566073771259-6a8506099945?w=500'], rating: 4.7, distance: '2.8 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '22', availableRooms: '5', hostelType: 'Boys', foodIncluded: 'Yes', hasAC: true, hasWifi: true, hasTV: true, hasLaundry: true, hasParking: true, hasSecurity: true, location: '34 Botanical Garden Road, Kondapur, Hyderabad', area: 'Kondapur', itemCondition: 'New Item', createdAt: new Date(Date.now() - 4 * 86400000).toISOString() },
-  { id: 'hostel_8', title: 'Working Women Hostel in Banjara Hills', price: '₹13,500', image: 'https://images.unsplash.com/photo-1502672260066-6bc35f0a1f80?w=500', images: ['https://images.unsplash.com/photo-1502672260066-6bc35f0a1f80?w=500'], rating: 4.8, distance: '4.2 km away', propertyType: 'Hostel', listingType: 'rent', totalRooms: '15', availableRooms: '3', hostelType: 'Girls', foodIncluded: 'Yes', hasAC: true, hasWifi: true, hasTV: true, hasLaundry: true, hasParking: true, hasSecurity: true, location: 'Road No 3, Banjara Hills, Hyderabad', area: 'Banjara Hills', itemCondition: 'New Item', createdAt: new Date(Date.now() - 3 * 86400000).toISOString() },
-  
-  // HOTEL DUMMY DATA
-  { id: 'hotel_1', title: 'Taj Krishna Hotel', price: '₹8,500', image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=500', images: ['https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=500'], rating: 4.9, distance: '5.2 km away', propertyType: 'Hotel', listingType: 'rent', hotelName: 'Taj Krishna', hotelStarRating: '5', totalRooms: '260', availableRooms: '45', checkInTime: '2:00 PM', checkOutTime: '12:00 PM', roomTypes: ['Deluxe', 'Premium', 'Suite'], hasRestaurant: true, hasGym: true, hasPool: true, hasSpa: true, hasConferenceRoom: true, hasWifi: true, hasParking: true, petFriendly: false, cancellationPolicy: 'Free cancellation up to 24 hours before check-in', location: 'Road No 1, Banjara Hills, Hyderabad', area: 'Banjara Hills', itemCondition: 'New Item', createdAt: new Date(Date.now() - 2 * 86400000).toISOString() },
-  { id: 'hotel_2', title: 'Novotel Hyderabad Convention Centre', price: '₹6,000', image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=500', images: ['https://images.unsplash.com/photo-1566073771259-6a8506099945?w=500'], rating: 4.7, distance: '3.8 km away', propertyType: 'Hotel', listingType: 'rent', hotelName: 'Novotel', hotelStarRating: '5', totalRooms: '287', availableRooms: '62', checkInTime: '3:00 PM', checkOutTime: '11:00 AM', roomTypes: ['Standard', 'Executive', 'Suite'], hasRestaurant: true, hasGym: true, hasPool: true, hasSpa: true, hasConferenceRoom: true, hasWifi: true, hasParking: true, petFriendly: false, cancellationPolicy: 'Free cancellation up to 48 hours before check-in', location: 'Hitech City, Hyderabad', area: 'Hitech City', itemCondition: 'New Item', createdAt: new Date(Date.now() - 1 * 86400000).toISOString() },
-  { id: 'hotel_3', title: 'Lemon Tree Hotel', price: '₹3,500', image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=500', images: ['https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=500'], rating: 4.4, distance: '2.1 km away', propertyType: 'Hotel', listingType: 'rent', hotelName: 'Lemon Tree Hotel', hotelStarRating: '4', totalRooms: '102', availableRooms: '28', checkInTime: '2:00 PM', checkOutTime: '12:00 PM', roomTypes: ['Standard', 'Superior'], hasRestaurant: true, hasGym: true, hasPool: false, hasSpa: false, hasConferenceRoom: true, hasWifi: true, hasParking: true, petFriendly: false, cancellationPolicy: 'Non-refundable', location: 'Gachibowli, Hyderabad', area: 'Gachibowli', itemCondition: 'New Item', createdAt: new Date(Date.now() - 4 * 86400000).toISOString() },
-  { id: 'hotel_4', title: 'The Park Hotel', price: '₹7,200', image: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=500', images: ['https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=500'], rating: 4.8, distance: '6.5 km away', propertyType: 'Hotel', listingType: 'rent', hotelName: 'The Park', hotelStarRating: '5', totalRooms: '132', availableRooms: '19', checkInTime: '3:00 PM', checkOutTime: '11:00 AM', roomTypes: ['Luxury', 'Premium', 'Executive'], hasRestaurant: true, hasGym: true, hasPool: true, hasSpa: true, hasConferenceRoom: true, hasWifi: true, hasParking: true, petFriendly: true, cancellationPolicy: 'Free cancellation up to 72 hours before check-in', location: 'Somajiguda, Hyderabad', area: 'Somajiguda', itemCondition: 'New Item', createdAt: new Date(Date.now() - 3 * 86400000).toISOString() },
-  { id: 'hotel_5', title: 'Radisson Blu Plaza', price: '₹5,800', image: 'https://images.unsplash.com/photo-1455587734955-081b22074882?w=500', images: ['https://images.unsplash.com/photo-1455587734955-081b22074882?w=500'], rating: 4.6, distance: '4.7 km away', propertyType: 'Hotel', listingType: 'rent', hotelName: 'Radisson Blu Plaza', hotelStarRating: '5', totalRooms: '211', availableRooms: '38', checkInTime: '2:00 PM', checkOutTime: '12:00 PM', roomTypes: ['Business', 'Premium', 'Suite'], hasRestaurant: true, hasGym: true, hasPool: true, hasSpa: true, hasConferenceRoom: true, hasWifi: true, hasParking: true, petFriendly: false, cancellationPolicy: 'Free cancellation up to 24 hours before check-in', location: 'Banjara Hills, Hyderabad', area: 'Banjara Hills', itemCondition: 'New Item', createdAt: new Date(Date.now() - 5 * 86400000).toISOString() },
-];
 
 const Marketplace = ({ navigation }: any) => {
   const [activeTab, setActiveTab] = useState<'buy' | 'rent'>('buy');
@@ -127,6 +96,8 @@ const Marketplace = ({ navigation }: any) => {
   const [wishlistIds, setWishlistIds] = useState<string[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [propertyToDelete, setPropertyToDelete] = useState<Property | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { colors } = useTheme();
   const styles = getStyles(colors) as any;
@@ -185,101 +156,267 @@ const Marketplace = ({ navigation }: any) => {
     }
   };
 
-  const loadListings = async () => {
-    try {
-      const storedListings = await AsyncStorage.getItem('marketplace_listings');
-      let userListings: Property[] = [];
-      
-      if (storedListings) {
-        const parsedListings = JSON.parse(storedListings);
-        const verifiedListings = parsedListings.filter((listing: any) => listing.isVerified === true);
-        
-        userListings = verifiedListings.map((listing: any) => {
-          const isNew = listing.createdAt && 
-            (new Date().getTime() - new Date(listing.createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000;
-          
-          let title = '';
-          if (['Apartment', 'Villa', 'Independent House'].includes(listing.propertyType)) {
-            title = `${listing.bhk || ''} ${listing.propertyType} in ${listing.area || 'Unknown'}`;
-          } else if (listing.propertyType === 'Land') {
-            title = `${listing.landType || ''} Land in ${listing.area || 'Unknown'}`;
-          } else if (['Bike', 'Car', 'Lorry', 'Auto', 'Bus'].includes(listing.propertyType)) {
-            title = `${listing.brand || ''} ${listing.model || ''} ${listing.year || ''}`.trim();
-          } else if (listing.propertyType === 'Hostel') {
-            title = `${listing.hostelType || ''} Hostel in ${listing.area || 'Unknown'}`;
-          } else if (listing.propertyType === 'Hotel') {
-            title = listing.hotelName || `Hotel in ${listing.area || 'Unknown'}`;
-          } else {
-            title = `${listing.propertyType} in ${listing.area || 'Unknown'}`;
-          }
+  const getPropertyTypeFromId = (propertyTypeId: number): string => {
+    const propertyTypeMap: { [key: number]: string } = {
+      1: 'Apartment',
+      2: 'Villa',
+      3: 'Independent House',
+      4: 'Land',
+      5: 'Bike',
+      6: 'Car',
+      7: 'Lorry',
+      8: 'Auto',
+      9: 'Bus',
+      10: 'Office',
+      11: 'Hospital',
+      12: 'Commercial Space',
+      13: 'Hostel',
+      14: 'Hotel',
+    };
+    return propertyTypeMap[propertyTypeId] || 'Unknown';
+  };
 
-          const imagesArray = listing.images && Array.isArray(listing.images) && listing.images.length > 0 
-            ? listing.images 
-            : ['https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=500'];
-          
-          return {
-            id: listing.id, 
-            title: title || listing.propertyType,
-            price: `₹${parseFloat(listing.price).toLocaleString('en-IN')}`,
-            image: imagesArray[0],
-            images: imagesArray, 
-            rating: listing.rating || (4.0 + Math.random() * 1.0),
-            distance: `${(Math.random() * 5).toFixed(1)} km away`,
-            type: listing.propertyType, 
-            propertyType: listing.propertyType,
-            listingType: listing.type, 
-            isNew, 
-            isFavorite: false,
-            description: listing.description, 
-            sqft: listing.sqft, 
-            bhk: listing.bhk,
-            location: listing.location, 
-            area: listing.area, 
-            furnishingType: listing.furnishingType,
-            landType: listing.landType, 
-            ownerName: listing.ownerName, 
-            brand: listing.brand,
-            model: listing.model, 
-            year: listing.year, 
-            mobileNumber: listing.mobileNumber,
-            createdAt: listing.createdAt, 
-            itemCondition: listing.itemCondition,
-            registrationStatus: listing.registrationStatus, 
-            marketValue: listing.marketValue,
-            registrationValue: listing.registrationValue,
-            documentImages: listing.documentImages,
-            hostelType: listing.hostelType,
-            totalRooms: listing.totalRooms,
-            availableRooms: listing.availableRooms,
-            foodIncluded: listing.foodIncluded,
-            hasAC: listing.hasAC,
-            hasWifi: listing.hasWifi,
-            hasTV: listing.hasTV,
-            hasLaundry: listing.hasLaundry,
-            hasParking: listing.hasParking,
-            hasSecurity: listing.hasSecurity,
-            hotelName: listing.hotelName,
-            hotelStarRating: listing.hotelStarRating,
-            checkInTime: listing.checkInTime,
-            checkOutTime: listing.checkOutTime,
-            roomTypes: listing.roomTypes,
-            hasRestaurant: listing.hasRestaurant,
-            hasGym: listing.hasGym,
-            hasPool: listing.hasPool,
-            hasSpa: listing.hasSpa,
-            hasConferenceRoom: listing.hasConferenceRoom,
-            petFriendly: listing.petFriendly,
-            cancellationPolicy: listing.cancellationPolicy,
-            isUserListing: true,
-          };
-        });
+  const getBhkTypeFromId = (bhkTypeId: number): string => {
+    const bhkMap: { [key: number]: string } = {
+      1: '1 BHK',
+      2: '2 BHK',
+      3: '3 BHK',
+      4: '4 BHK',
+      5: '5+ BHK',
+    };
+    return bhkMap[bhkTypeId] || '';
+  };
+
+  const getFurnishingTypeFromId = (furnishingId: number): string => {
+    const furnishingMap: { [key: number]: string } = {
+      1: 'Full',
+      2: 'Semi',
+      3: 'Unfurnished',
+    };
+    return furnishingMap[furnishingId] || '';
+  };
+
+  const getListingTypeFromId = (listingTypeId: number): 'buy' | 'rent' => {
+    return listingTypeId === 1 ? 'buy' : 'rent';
+  };
+
+  const getItemConditionFromId = (itemConditionId: number): string => {
+    const conditionMap: { [key: number]: string } = {
+      1: 'New Item',
+      2: 'Used Item',
+    };
+    return conditionMap[itemConditionId] || '';
+  };
+
+  const getHostelTypeFromId = (hostelTypeId: number): string => {
+    const hostelMap: { [key: number]: string } = {
+      1: 'Boys',
+      2: 'Girls',
+      3: 'Co-living',
+    };
+    return hostelMap[hostelTypeId] || '';
+  };
+
+  const getLandTypeFromId = (landTypeId: number): string => {
+    const landMap: { [key: number]: string } = {
+      1: 'Residential',
+      2: 'Commercial',
+      3: 'Agricultural',
+    };
+    return landMap[landTypeId] || '';
+  };
+
+  const getStarRatingFromId = (starRatingId: number): string => {
+    const ratingMap: { [key: number]: string } = {
+      1: '1',
+      2: '2',
+      3: '3',
+      4: '4',
+      5: '5',
+    };
+    return ratingMap[starRatingId] || '';
+  };
+
+  const transformBackendDataToProperty = (backendData: any): Property => {
+    const propertyType = getPropertyTypeFromId(backendData.property_type_id);
+    const bhk = getBhkTypeFromId(backendData.bhk_type_id);
+    const furnishingType = getFurnishingTypeFromId(backendData.furnishing_id);
+    const listingType = getListingTypeFromId(backendData.listing_type_id);
+    const itemCondition = getItemConditionFromId(backendData.item_condition_id);
+    const hostelType = getHostelTypeFromId(backendData.hostel_type_id);
+    const landType = getLandTypeFromId(backendData.land_type_id);
+    const hotelStarRating = getStarRatingFromId(backendData.star_rating_id);
+    
+    // Parse images from upload_photos field
+    let images: string[] = [];
+
+    try {
+      const rawPhotos = backendData.upload_photos;
+
+      if (rawPhotos) {
+        if (Array.isArray(rawPhotos)) {
+          images = rawPhotos;
+        } else if (typeof rawPhotos === 'string' && rawPhotos.startsWith('http')) {
+          images = [rawPhotos];
+        } else if (typeof rawPhotos === 'string' && rawPhotos.includes(',')) {
+          images = rawPhotos.split(',').map((img: string) => img.trim()).filter(Boolean);
+        } else if (typeof rawPhotos === 'string' && rawPhotos.length > 100) {
+          images = [`data:image/jpeg;base64,${rawPhotos}`];
+        } else if (typeof rawPhotos === 'string') {
+          images = [rawPhotos.trim()];
+        }
+      }
+    } catch (error) {
+      console.log('Image parse fallback:', backendData.upload_photos);
+    }
+
+    images = images.map((img: string) => {
+      if (!img) return '';
+      if (img.startsWith('http') || img.startsWith('data:image')) return img;
+      return `${API_BASE_URL}/${img}`;
+    }).filter(Boolean);
+
+    if (images.length === 0) {
+      images = ['https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=500'];
+    }
+
+    const area = backendData.locality_area && backendData.locality_area.trim() !== '' 
+      ? backendData.locality_area.trim() 
+      : 'Hyderabad';
+    
+    const cleanLocation = area;
+    
+    let title = '';
+    if (['Apartment', 'Villa', 'Independent House'].includes(propertyType)) {
+      title = `${bhk || ''} ${propertyType}${area !== 'Hyderabad' ? ` in ${area}` : ''}`;
+    } else if (propertyType === 'Land') {
+      title = `${landType || ''} Land${area !== 'Hyderabad' ? ` in ${area}` : ''}`;
+    } else if (['Bike', 'Car', 'Lorry', 'Auto', 'Bus'].includes(propertyType)) {
+      const brandName = backendData.band_name || backendData.brand_name || '';
+      const modelName = backendData.model_name || '';
+      const yearValue = backendData.year || '';
+      title = `${brandName} ${modelName} ${yearValue}`.trim() || `${propertyType}${area !== 'Hyderabad' ? ` in ${area}` : ''}`;
+    } else if (propertyType === 'Hostel') {
+      title = `${hostelType || ''} Hostel${area !== 'Hyderabad' ? ` in ${area}` : ''}`;
+    } else if (propertyType === 'Hotel') {
+      title = backendData.hotel_name || `Hotel${area !== 'Hyderabad' ? ` in ${area}` : ''}`;
+    } else {
+      title = `${propertyType}${area !== 'Hyderabad' ? ` in ${area}` : ''}`;
+    }
+
+    const isNew = backendData.created_date && 
+      (new Date().getTime() - new Date(backendData.created_date).getTime()) < 7 * 24 * 60 * 60 * 1000;
+
+    let priceDisplay = '';
+    if (listingType === 'rent') {
+      if (propertyType === 'Hotel') {
+        priceDisplay = `₹${parseFloat(backendData.price_per_night || 0).toLocaleString('en-IN')}`;
+      } else {
+        priceDisplay = `₹${parseFloat(backendData.monthly_rent || 0).toLocaleString('en-IN')}`;
+      }
+    } else {
+      priceDisplay = `₹${parseFloat(backendData.expected_price || 0).toLocaleString('en-IN')}`;
+    }
+
+    return {
+      id: backendData.id?.toString() || Math.random().toString(),
+      title: title.trim() || propertyType,
+      price: priceDisplay,
+      image: images[0],
+      images: images,
+      rating: backendData.rating ? parseFloat(backendData.rating) : undefined,
+      distance: backendData.distance_km ? `${parseFloat(backendData.distance_km).toFixed(1)} km` : undefined,
+      type: propertyType,
+      propertyType: propertyType,
+      listingType: listingType,
+      isNew: isNew,
+      isFavorite: false,
+      description: backendData.property_description,
+      sqft: backendData.property_sqft?.toString(),
+      bhk: bhk,
+      location: cleanLocation,
+      area: area,
+      furnishingType: furnishingType,
+      landType: landType,
+      ownerName: backendData.owner_name,
+      brand: backendData.band_name || backendData.brand_name,
+      model: backendData.model_name,
+      year: backendData.year?.toString(),
+      mobileNumber: backendData.mobile_number,
+      createdAt: backendData.created_date,
+      itemCondition: itemCondition,
+      registrationStatus: backendData.registration_status_id?.toString(),
+      marketValue: backendData.expected_price?.toString(),
+      registrationValue: backendData.registration_value?.toString(),
+      documentImages: backendData.upload_document ? [backendData.upload_document] : undefined,
+      hostelType: hostelType,
+      totalRooms: backendData.total_rooms?.toString(),
+      availableRooms: backendData.available_rooms?.toString(),
+      foodIncluded: backendData.food_included ? 'Yes' : 'No',
+      hasAC: backendData.has_ac,
+      hasWifi: backendData.has_wifi,
+      hasTV: backendData.has_tv,
+      hasLaundry: backendData.has_laundry,
+      hasParking: backendData.has_parking,
+      hasSecurity: backendData.has_security,
+      hotelName: backendData.hotel_name,
+      hotelStarRating: hotelStarRating,
+      checkInTime: backendData.check_in_time,
+      checkOutTime: backendData.check_out_time,
+      roomTypes: backendData.room_types,
+      hasRestaurant: backendData.has_restaurant,
+      hasGym: backendData.has_gym,
+      hasPool: backendData.has_pool,
+      hasSpa: backendData.has_spa,
+      hasConferenceRoom: backendData.has_conference_room,
+      petFriendly: backendData.pet_friendly,
+      cancellationPolicy: backendData.cancellation_policy,
+      isUserListing: true,
+      monthlyRent: backendData.monthly_rent?.toString(),
+      pricePerNight: backendData.price_per_night?.toString(),
+      distanceKm: backendData.distance_km?.toString(),
+      sharingType: backendData.sharing_type?.toString(),
+      bedsPerRoom: backendData.beds_per_room?.toString(),
+      userId: backendData.user_id?.toString() || backendData.created_by?.toString(),
+      createdBy: backendData.created_by?.toString() || backendData.user_id?.toString(),
+    };
+  };
+
+  const fetchListingsFromBackend = async (): Promise<Property[]> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/property/sell-listing/all`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const allListings = [...getDummyData(), ...userListings];
-      setProperties(allListings);
+      const data = await response.json();
+      const listingsArray = Array.isArray(data) ? data : (data.listings || data.data || []);
+      
+      return listingsArray.map((item: any) => transformBackendDataToProperty(item));
+    } catch (error) {
+      console.error('Error fetching listings from backend:', error);
+      Alert.alert('Error', 'Failed to load listings from server. Please try again.');
+      return [];
+    }
+  };
+
+  const loadListings = async () => {
+    try {
+      setIsLoading(true);
+      const backendListings = await fetchListingsFromBackend();
+      setProperties(backendListings);
     } catch (error) {
       console.error('Error loading listings:', error);
-      setProperties(getDummyData());
+      Alert.alert('Error', 'Failed to load listings');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -287,20 +424,42 @@ const Marketplace = ({ navigation }: any) => {
     if (!propertyToDelete) return;
 
     try {
-      const storedListings = await AsyncStorage.getItem('marketplace_listings');
-      if (storedListings) {
-        const listings = JSON.parse(storedListings);
-        const updatedListings = listings.filter((listing: any) => listing.id !== propertyToDelete.id);
-        await AsyncStorage.setItem('marketplace_listings', JSON.stringify(updatedListings));
-        
-        setShowDeleteModal(false);
-        setPropertyToDelete(null);
-        await loadListings();
-        
-        Alert.alert('Success', 'Listing deleted successfully');
+      setIsDeleting(true);
+      const modifiedBy = propertyToDelete.userId || propertyToDelete.createdBy || '25';
+
+      console.log('Deleting listing:', {
+        listing_id: propertyToDelete.id,
+        modified_by: modifiedBy
+      });
+
+      const response = await fetch(
+        `${API_BASE_URL}/property/delete/sell/${propertyToDelete.id}?modified_by=${modifiedBy}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      const responseData = await response.json();
+      console.log('Delete response:', responseData);
+
+      if (!response.ok) {
+        throw new Error(responseData.message || 'Failed to delete listing');
       }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to delete listing');
+      
+      setShowDeleteModal(false);
+      setPropertyToDelete(null);
+      await loadListings();
+      
+      Alert.alert('Success', 'Listing deleted successfully');
+    } catch (error: any) {
+      console.error('Delete error:', error);
+      Alert.alert('Error', error.message || 'Failed to delete listing. Please try again.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -350,14 +509,11 @@ const Marketplace = ({ navigation }: any) => {
 
   const smartSearch = (property: Property, query: string): boolean => {
     const lowerQuery = query.toLowerCase().trim();
-    
     if (!lowerQuery) return true;
 
-    // Direct property type matches
     const propertyTypeLower = property.propertyType?.toLowerCase() || '';
     if (propertyTypeLower.includes(lowerQuery)) return true;
 
-    // Category-based search
     const vehicleTypes = ['bike', 'car', 'lorry', 'auto', 'bus'];
     const houseTypes = ['villa', 'independent house'];
     const commercialTypes = ['office', 'hospital', 'commercial space'];
@@ -365,26 +521,16 @@ const Marketplace = ({ navigation }: any) => {
     if (lowerQuery === 'vehicle' || lowerQuery === 'vehicles') {
       return vehicleTypes.includes(propertyTypeLower);
     }
-    
     if (lowerQuery === 'house' || lowerQuery === 'houses' || lowerQuery === 'home' || lowerQuery === 'homes') {
       return houseTypes.includes(propertyTypeLower);
     }
-    
     if (lowerQuery === 'commercial') {
       return commercialTypes.includes(propertyTypeLower);
     }
 
-    // Search in title, area, location, brand, model, hotel name
     const searchableFields = [
-      property.title,
-      property.area,
-      property.location,
-      property.brand,
-      property.model,
-      property.hotelName,
-      property.hostelType,
-      property.bhk,
-      property.landType
+      property.title, property.area, property.location, property.brand,
+      property.model, property.hotelName, property.hostelType, property.bhk, property.landType
     ].filter(Boolean).map(field => field?.toLowerCase());
 
     return searchableFields.some(field => field?.includes(lowerQuery));
@@ -395,39 +541,17 @@ const Marketplace = ({ navigation }: any) => {
 
     switch (selectedSortOption) {
       case 'Newest First':
-        return sorted.sort((a, b) => {
-          const dateA = new Date(a.createdAt || 0).getTime();
-          const dateB = new Date(b.createdAt || 0).getTime();
-          return dateB - dateA;
-        });
-      
+        return sorted.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
       case 'Oldest First':
-        return sorted.sort((a, b) => {
-          const dateA = new Date(a.createdAt || 0).getTime();
-          const dateB = new Date(b.createdAt || 0).getTime();
-          return dateA - dateB;
-        });
-      
+        return sorted.sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime());
       case 'Price: Low to High':
-        return sorted.sort((a, b) => {
-          const priceA = parseFloat(a.price.replace(/[₹,]/g, ''));
-          const priceB = parseFloat(b.price.replace(/[₹,]/g, ''));
-          return priceA - priceB;
-        });
-      
+        return sorted.sort((a, b) => parseFloat(a.price.replace(/[₹,]/g, '')) - parseFloat(b.price.replace(/[₹,]/g, '')));
       case 'Price: High to Low':
-        return sorted.sort((a, b) => {
-          const priceA = parseFloat(a.price.replace(/[₹,]/g, ''));
-          const priceB = parseFloat(b.price.replace(/[₹,]/g, ''));
-          return priceB - priceA;
-        });
-      
+        return sorted.sort((a, b) => parseFloat(b.price.replace(/[₹,]/g, '')) - parseFloat(a.price.replace(/[₹,]/g, '')));
       case 'Rating: High to Low':
         return sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-      
       case 'Rating: Low to High':
         return sorted.sort((a, b) => (a.rating || 0) - (b.rating || 0));
-      
       default:
         return sorted;
     }
@@ -452,8 +576,7 @@ const Marketplace = ({ navigation }: any) => {
     if (property.createdAt && selectedDateFilter !== 'All Time') {
       const propertyDate = new Date(property.createdAt);
       const now = new Date();
-      const diffTime = Math.abs(now.getTime() - propertyDate.getTime());
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const diffDays = Math.ceil(Math.abs(now.getTime() - propertyDate.getTime()) / (1000 * 60 * 60 * 24));
       if (selectedDateFilter === 'Today') matchesDate = diffDays <= 1;
       else if (selectedDateFilter === 'Last 7 Days') matchesDate = diffDays <= 7;
       else if (selectedDateFilter === 'Last 30 Days') matchesDate = diffDays <= 30;
@@ -468,27 +591,16 @@ const Marketplace = ({ navigation }: any) => {
     return matchesTab && matchesCategory && matchesPropertyType && matchesDate && matchesRating && matchesSearch;
   }));
 
-  // Auto-highlight category icon based on search
   useEffect(() => {
     const lowerQuery = searchQuery.toLowerCase().trim();
     
-    if (lowerQuery === 'vehicle' || lowerQuery === 'vehicles') {
-      setSelectedCategory('Vehicle');
-    } else if (lowerQuery === 'house' || lowerQuery === 'houses' || lowerQuery === 'home' || lowerQuery === 'homes') {
-      setSelectedCategory('House');
-    } else if (lowerQuery === 'apartment' || lowerQuery === 'apartments') {
-      setSelectedCategory('Apartment');
-    } else if (lowerQuery === 'land') {
-      setSelectedCategory('Land');
-    } else if (lowerQuery === 'commercial') {
-      setSelectedCategory('Commercial');
-    } else if (lowerQuery === 'hostel' || lowerQuery === 'hostels') {
-      setSelectedCategory('Hostel');
-    } else if (lowerQuery === 'hotel' || lowerQuery === 'hotels') {
-      setSelectedCategory('Hotel');
-    } else if (!lowerQuery) {
-      // Don't auto-change if search is cleared
-    }
+    if (lowerQuery === 'vehicle' || lowerQuery === 'vehicles') setSelectedCategory('Vehicle');
+    else if (lowerQuery === 'house' || lowerQuery === 'houses' || lowerQuery === 'home' || lowerQuery === 'homes') setSelectedCategory('House');
+    else if (lowerQuery === 'apartment' || lowerQuery === 'apartments') setSelectedCategory('Apartment');
+    else if (lowerQuery === 'land') setSelectedCategory('Land');
+    else if (lowerQuery === 'commercial') setSelectedCategory('Commercial');
+    else if (lowerQuery === 'hostel' || lowerQuery === 'hostels') setSelectedCategory('Hostel');
+    else if (lowerQuery === 'hotel' || lowerQuery === 'hotels') setSelectedCategory('Hotel');
   }, [searchQuery]);
 
   const handlePropertyTypeSelect = (propertyType: string) => {
@@ -497,6 +609,34 @@ const Marketplace = ({ navigation }: any) => {
       const category = getCategoryFromPropertyType(propertyType);
       setSelectedCategory(category);
     }
+  };
+
+  const getCardDetails = (property: Property) => {
+    const details = [];
+
+    if (['Apartment', 'Villa', 'Independent House'].includes(property.propertyType || '')) {
+      if (property.sqft) details.push({ icon: 'square-foot', text: `${property.sqft} sqft` });
+      if (property.bhk) details.push({ icon: 'bed', text: property.bhk });
+      if (property.furnishingType) details.push({ icon: 'weekend', text: property.furnishingType });
+    } else if (['Bike', 'Car', 'Lorry', 'Auto', 'Bus'].includes(property.propertyType || '')) {
+      if (property.year) details.push({ icon: 'calendar-today', text: property.year });
+      if (property.distanceKm) details.push({ icon: 'speed', text: `${property.distanceKm} km` });
+      if (property.itemCondition) details.push({ icon: 'verified', text: property.itemCondition === 'New Item' ? 'New' : 'Used' });
+    } else if (property.propertyType === 'Land') {
+      if (property.sqft) details.push({ icon: 'square-foot', text: `${property.sqft} sqft` });
+      if (property.landType) details.push({ icon: 'landscape', text: property.landType });
+    } else if (property.propertyType === 'Hostel') {
+      if (property.totalRooms) details.push({ icon: 'meeting-room', text: `${property.totalRooms} rooms` });
+      if (property.availableRooms) details.push({ icon: 'door-front', text: `${property.availableRooms} available` });
+      if (property.foodIncluded === 'Yes') details.push({ icon: 'restaurant', text: 'Food incl.' });
+    } else if (property.propertyType === 'Hotel') {
+      if (property.hotelStarRating) details.push({ icon: 'star', text: `${property.hotelStarRating} Star` });
+      if (property.totalRooms) details.push({ icon: 'meeting-room', text: `${property.totalRooms} rooms` });
+    } else if (['Office', 'Hospital', 'Commercial Space'].includes(property.propertyType || '')) {
+      if (property.sqft) details.push({ icon: 'square-foot', text: `${property.sqft} sqft` });
+    }
+
+    return details;
   };
 
   const FilterModal = ({ visible, onClose, options, selectedValue, onSelect, title }: any) => (
@@ -524,7 +664,7 @@ const Marketplace = ({ navigation }: any) => {
   );
 
   const DeleteConfirmationModal = () => (
-    <Modal visible={showDeleteModal} transparent animationType="fade" onRequestClose={() => setShowDeleteModal(false)}>
+    <Modal visible={showDeleteModal} transparent animationType="fade" onRequestClose={() => !isDeleting && setShowDeleteModal(false)}>
       <View style={styles.deleteOverlay}>
         <View style={styles.deleteModal}>
           <View style={styles.deleteIconContainer}>
@@ -549,26 +689,55 @@ const Marketplace = ({ navigation }: any) => {
 
           <View style={styles.deleteActions}>
             <TouchableOpacity 
-              style={styles.deleteCancelButton}
+              style={[styles.deleteCancelButton, isDeleting && styles.disabledButton]}
               onPress={() => {
-                setShowDeleteModal(false);
-                setPropertyToDelete(null);
+                if (!isDeleting) {
+                  setShowDeleteModal(false);
+                  setPropertyToDelete(null);
+                }
               }}
+              disabled={isDeleting}
             >
               <Text style={styles.deleteCancelText}>Cancel</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
-              style={styles.deleteConfirmButton}
+              style={[styles.deleteConfirmButton, isDeleting && styles.disabledButton]}
               onPress={handleDeleteListing}
+              disabled={isDeleting}
             >
-              <Text style={styles.deleteConfirmText}>Delete</Text>
+              {isDeleting ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.deleteConfirmText}>Delete</Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>
       </View>
     </Modal>
   );
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <StatusBar barStyle="light-content" backgroundColor="#0a0c10" />
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.headerTitle}>Marketplace</Text>
+          </View>
+          <TouchableOpacity style={styles.sellButton} onPress={() => navigation.navigate('SellItem')}>
+            <MaterialIcons name="add" size={16} color="#fff" />
+            <Text style={styles.sellButtonText}>Sell/Rent</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Loading listings...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -686,79 +855,95 @@ const Marketplace = ({ navigation }: any) => {
           </View>
         ) : (
           <View style={styles.grid}>
-            {filteredProperties.map((property) => (
-              <TouchableOpacity key={property.id} style={styles.card} activeOpacity={0.85}
-                onPress={() => navigation.navigate('BuyerPage', { property })}
-              >
-                <View style={styles.cardImage}>
-                  <Image source={{ uri: property.image }} style={styles.image} />
-                  <TouchableOpacity 
-                    style={styles.favoriteButton}
-                    onPress={(e) => toggleWishlist(property, e)}
-                  >
-                    <MaterialIcons 
-                      name={wishlistIds.includes(property.id) ? "favorite" : "favorite-border"} 
-                      size={18} 
-                      color={wishlistIds.includes(property.id) ? "#ef4444" : "#fff"} 
-                    />
-                  </TouchableOpacity>
-                  {property.isUserListing && (
+            {filteredProperties.map((property) => {
+              const cardDetails = getCardDetails(property);
+              
+              return (
+                <TouchableOpacity key={property.id} style={styles.card} activeOpacity={0.85}
+                  onPress={() => navigation.navigate('BuyerPage', { property })}
+                >
+                  <View style={styles.cardImage}>
+                    <Image source={{ uri: property.image }} style={styles.image} />
                     <TouchableOpacity 
-                      style={styles.deleteButton}
-                      onPress={(e) => {
-                        e.stopPropagation();
-                        setPropertyToDelete(property);
-                        setShowDeleteModal(true);
-                      }}
+                      style={styles.favoriteButton}
+                      onPress={(e) => toggleWishlist(property, e)}
                     >
-                      <MaterialIcons name="delete" size={16} color="#fff" />
+                      <MaterialIcons 
+                        name={wishlistIds.includes(property.id) ? "favorite" : "favorite-border"} 
+                        size={18} 
+                        color={wishlistIds.includes(property.id) ? "#ef4444" : "#fff"} 
+                      />
                     </TouchableOpacity>
-                  )}
-                  <View style={styles.topBadgesContainer}>
-                    {property.listingType === 'buy' ? (
-                      <View style={styles.saleBadge}><Text style={styles.saleBadgeText}>FOR SALE</Text></View>
-                    ) : (
-                      <View style={styles.rentBadge}>
-                        <Text style={styles.rentBadgeText}>FOR RENT</Text>
-                      </View>
+                    {property.isUserListing && (
+                      <TouchableOpacity 
+                        style={styles.deleteButton}
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          setPropertyToDelete(property);
+                          setShowDeleteModal(true);
+                        }}
+                      >
+                        <MaterialIcons name="delete" size={16} color="#fff" />
+                      </TouchableOpacity>
                     )}
-                    {property.images && property.images.length > 1 && (
-                      <View style={styles.imageCountBadge}>
-                        <MaterialIcons name="photo-library" size={12} color="#fff" />
-                        <Text style={styles.imageCountText}>{property.images.length}</Text>
-                      </View>
-                    )}
-                  </View>
-                  {property.itemCondition && (
-                    <View style={styles.conditionBadgeContainer}>
-                      <View style={[styles.conditionBadge,
-                        property.itemCondition === 'New Item' ? styles.newConditionBadge : styles.oldConditionBadge
-                      ]}>
-                        <Text style={styles.conditionBadgeText}>
-                          {property.itemCondition === 'New Item' ? 'NEW' : 'USED'}
-                        </Text>
-                      </View>
+                    <View style={styles.topBadgesContainer}>
+                      {property.listingType === 'buy' ? (
+                        <View style={styles.saleBadge}><Text style={styles.saleBadgeText}>FOR SALE</Text></View>
+                      ) : (
+                        <View style={styles.rentBadge}>
+                          <Text style={styles.rentBadgeText}>FOR RENT</Text>
+                        </View>
+                      )}
+                      {property.images && property.images.length > 1 && (
+                        <View style={styles.imageCountBadge}>
+                          <MaterialIcons name="photo-library" size={12} color="#fff" />
+                          <Text style={styles.imageCountText}>{property.images.length}</Text>
+                        </View>
+                      )}
                     </View>
-                  )}
-                  <View style={styles.ratingBadge}><MaterialIcons name="star" size={12} color="#fbbf24" /><Text style={styles.ratingText}>{property.rating?.toFixed(1)}</Text></View>
-                </View>
-                <View style={styles.cardContent}>
-                  <Text style={styles.cardTitle} numberOfLines={1}>{property.title}</Text>
-                  <Text style={styles.cardPrice}>
-                    {property.price}
-                    {property.listingType === 'rent' && <Text style={styles.perMonthText}>/night</Text>}
-                  </Text>
-                  <View style={styles.locationRow}><MaterialIcons name="location-on" size={12} color="#64748b" /><Text style={styles.locationDetailText} numberOfLines={1}>{property.location}</Text></View>
-                  <View style={styles.areaRow}><MaterialIcons name="place" size={12} color="#64748b" /><Text style={styles.areaDetailText} numberOfLines={1}>{property.area}</Text></View>
-                  <View style={styles.cardDetails}>
-                    {property.sqft && <View style={styles.detailItem}><MaterialIcons name="square-foot" size={12} color="#64748b" /><Text style={styles.detailText}>{property.sqft} sqft</Text></View>}
-                    {property.bhk && <View style={styles.detailItem}><MaterialIcons name="bed" size={12} color="#64748b" /><Text style={styles.detailText}>{property.bhk}</Text></View>}
-                    {property.totalRooms && <View style={styles.detailItem}><MaterialIcons name="meeting-room" size={12} color="#64748b" /><Text style={styles.detailText}>{property.totalRooms} rooms</Text></View>}
-                    {property.hotelStarRating && <View style={styles.detailItem}><MaterialIcons name="star" size={12} color="#fbbf24" /><Text style={styles.detailText}>{property.hotelStarRating} Star</Text></View>}
+                    {property.itemCondition && (
+                      <View style={styles.conditionBadgeContainer}>
+                        <View style={[styles.conditionBadge,
+                          property.itemCondition === 'New Item' ? styles.newConditionBadge : styles.oldConditionBadge
+                        ]}>
+                          <Text style={styles.conditionBadgeText}>
+                            {property.itemCondition === 'New Item' ? 'NEW' : 'USED'}
+                          </Text>
+                        </View>
+                      </View>
+                    )}
+                    {property.rating && (
+                      <View style={styles.ratingBadge}>
+                        <MaterialIcons name="star" size={12} color="#fbbf24" />
+                        <Text style={styles.ratingText}>{property.rating.toFixed(1)}</Text>
+                      </View>
+                    )}
                   </View>
-                </View>
-              </TouchableOpacity>
-            ))}
+                  <View style={styles.cardContent}>
+                    <Text style={styles.cardTitle} numberOfLines={1}>{property.title}</Text>
+                    <Text style={styles.cardPrice}>
+                      {property.price}
+                      {property.listingType === 'rent' && property.propertyType === 'Hotel' && <Text style={styles.perMonthText}>/night</Text>}
+                      {property.listingType === 'rent' && property.propertyType !== 'Hotel' && <Text style={styles.perMonthText}>/month</Text>}
+                    </Text>
+                    <View style={styles.locationRow}>
+                      <MaterialIcons name="location-on" size={12} color="#64748b" />
+                      <Text style={styles.locationDetailText} numberOfLines={1}>{property.location}</Text>
+                    </View>
+                    {cardDetails.length > 0 && (
+                      <View style={styles.cardDetails}>
+                        {cardDetails.slice(0, 3).map((detail, index) => (
+                          <View key={index} style={styles.detailItem}>
+                            <MaterialIcons name={detail.icon as any} size={12} color="#64748b" />
+                            <Text style={styles.detailText}>{detail.text}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         )}
       </ScrollView>
@@ -853,13 +1038,11 @@ const getStyles = (colors: any) =>
     cardContent: { paddingHorizontal: 4 },
     cardTitle: { fontSize: 14, fontWeight: '700', color: '#fff', marginBottom: 4 },
     cardPrice: { fontSize: 16, fontWeight: '800', color: '#135bec', marginBottom: 4 },
-    cardDetails: { flexDirection: 'row', gap: 12, marginBottom: 4 },
+    cardDetails: { flexDirection: 'row', gap: 12, marginBottom: 4, flexWrap: 'wrap' },
     detailItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
     detailText: { fontSize: 10, fontWeight: '500', color: '#64748b' },
-    locationRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 3 },
+    locationRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 6 },
     locationDetailText: { fontSize: 10, fontWeight: '500', color: '#64748b', flex: 1 },
-    areaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 6 },
-    areaDetailText: { fontSize: 10, fontWeight: '500', color: '#64748b', flex: 1 },
     topBadgesContainer: { position: 'absolute', top: 8, left: 8, flexDirection: 'row', gap: 6 },
     conditionBadgeContainer: { position: 'absolute', top: 42, left: 8 },
     saleBadge: { backgroundColor: '#135bec', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
@@ -886,4 +1069,7 @@ const getStyles = (colors: any) =>
     deleteCancelText: { fontSize: 15, fontWeight: '700', color: '#cbd5e1', letterSpacing: 0.3 },
     deleteConfirmButton: { flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: '#ef4444', alignItems: 'center' },
     deleteConfirmText: { fontSize: 15, fontWeight: '700', color: '#fff', letterSpacing: 0.3 },
+    disabledButton: { opacity: 0.5 },
+    loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16 },
+    loadingText: { fontSize: 16, fontWeight: '600', color: colors.text, marginTop: 12 },
   });

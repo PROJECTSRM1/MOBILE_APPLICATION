@@ -287,115 +287,62 @@ const ProfileInformation: React.FC = () => {
   );
 
   const loadUserFromStorage = async () => {
-    console.log("=== LOADING USER PROFILE ===");
-    
-    try {
-      // Try multiple sources
-      const storedUser = await AsyncStorage.getItem('userProfile');
-      const userData = await AsyncStorage.getItem('userData');
-      const loginStatus = await AsyncStorage.getItem('isLoggedIn');
+  try {
+    const registeredUser = await AsyncStorage.getItem('registeredUser');
+    const userProfile = await AsyncStorage.getItem('userProfile');
+    const userData = await AsyncStorage.getItem('userData');
 
-      console.log("📦 Stored User Profile:", storedUser);
-      console.log("📦 User Data:", userData);
-      console.log("📦 Login Status:", loginStatus);
-
-      let parsedUser: UserProfile | null = null;
-
-      // Priority 1: Check userProfile
-      if (storedUser) {
-        parsedUser = JSON.parse(storedUser);
-        console.log("✅ User loaded from userProfile:", parsedUser);
-      } 
-      // Priority 2: Check userData and extract user info
-      else if (userData) {
-        const parsed = JSON.parse(userData);
-        console.log("📥 Raw userData:", parsed);
-
-        // Handle different API response formats
-        if (parsed.user) {
-          // Format: { user: { first_name, last_name, ... }, token: ... }
-          parsedUser = {
-            firstName: parsed.user.first_name || parsed.user.firstName || '',
-            lastName: parsed.user.last_name || parsed.user.lastName || '',
-            email: parsed.user.email || '',
-            mobile: parsed.user.mobile || parsed.user.phone || '',
-            location: parsed.user.location || '',
-            role: parsed.user.role || '',
-            selectedServices: parsed.user.selected_services || parsed.user.selectedServices || [],
-          };
-          console.log("✅ User created from userData.user:", parsedUser);
-        } else if (parsed.first_name || parsed.firstName) {
-          // Format: { first_name, last_name, ... }
-          parsedUser = {
-            firstName: parsed.first_name || parsed.firstName || '',
-            lastName: parsed.last_name || parsed.lastName || '',
-            email: parsed.email || '',
-            mobile: parsed.mobile || parsed.phone || '',
-            location: parsed.location || '',
-            role: parsed.role || '',
-            selectedServices: parsed.selected_services || parsed.selectedServices || [],
-          };
-          console.log("✅ User created from direct userData:", parsedUser);
-        }
-
-        // Save to userProfile for next time
-        if (parsedUser) {
-          await AsyncStorage.setItem('userProfile', JSON.stringify(parsedUser));
-          console.log("💾 Saved user to userProfile for future use");
-        }
-      }
-
-      if (!parsedUser) {
-        console.log("❌ No user data found in any source");
-        setLoading(false);
-        return;
-      }
-
-      setUser(parsedUser);
-
-      // Populate form fields with stored data
-      setPhone(parsedUser.mobile ?? '');
-      setLocation(parsedUser.location ?? '');
-      setDegree(parsedUser.degree ?? '');
-      setInstitution(parsedUser.institution ?? '');
-      setPercentage(parsedUser.percentage ?? '');
-      setCertificateName(parsedUser.certificateName ?? '');
-      setCertificateIssuedBy(parsedUser.certificateIssuedBy ?? '');
-      setCertificateYear(parsedUser.certificateYear ?? '');
-      setNocCertificateNumber(parsedUser.nocCertificateNumber ?? '');
-      setNocPoliceStation(parsedUser.nocPoliceStation ?? '');
-      setNocIssueYear(parsedUser.nocIssueYear ?? '');
-      setExpertiseServices(parsedUser.expertiseServices ?? ['UI Design', 'Web Dev']);
-      setYearsOfExperience(parsedUser.yearsOfExperience ?? '');
-      setAdditionalSkills(parsedUser.additionalSkills ?? '');
-      setDrivingLicense(parsedUser.drivingLicense ?? true);
-      
-      if (parsedUser.resumeImage) {
-        setResumeImage(parsedUser.resumeImage);
-      }
-      
-      if (parsedUser.availableHoursFrom) {
-        const [hours, minutes] = parsedUser.availableHoursFrom.split(':');
-        const fromDate = new Date();
-        fromDate.setHours(parseInt(hours, 10), parseInt(minutes, 10));
-        setAvailableHoursFrom(fromDate);
-      }
-      
-      if (parsedUser.availableHoursTo) {
-        const [hours, minutes] = parsedUser.availableHoursTo.split(':');
-        const toDate = new Date();
-        toDate.setHours(parseInt(hours, 10), parseInt(minutes, 10));
-        setAvailableHoursTo(toDate);
-      }
-
-      console.log("✅ User profile loaded successfully");
-    } catch (err) {
-      console.error('❌ Profile load error:', err);
-    } finally {
-      setLoading(false);
-      console.log("=== USER PROFILE LOAD COMPLETED ===\n");
+    let registerInfo = null;
+    if (registeredUser) {
+      registerInfo = JSON.parse(registeredUser);
     }
-  };
+
+    let parsedUser: UserProfile | null = null;
+
+    if (userProfile) {
+      const profile = JSON.parse(userProfile);
+
+      parsedUser = {
+        ...profile,
+        firstName: registerInfo?.first_name || '',
+        lastName: registerInfo?.last_name || '',
+        email: registerInfo?.email || profile.email || '',
+      };
+    } 
+    else if (userData) {
+      const login = JSON.parse(userData);
+
+      parsedUser = {
+        firstName: registerInfo?.first_name || '',
+        lastName: registerInfo?.last_name || '',
+        email: registerInfo?.email || '',
+        mobile: registerInfo?.mobile || '',
+        role: login.role,
+        selectedServices: login.selected_services || [],
+      };
+    }
+
+    if (!parsedUser) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+
+    setUser(parsedUser);
+
+    setPhone(parsedUser.mobile ?? '');
+    setLocation(parsedUser.location ?? '');
+    setDegree(parsedUser.degree ?? '');
+    setInstitution(parsedUser.institution ?? '');
+    setPercentage(parsedUser.percentage ?? '');
+
+  } catch (err) {
+    console.error('❌ Profile load error:', err);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const loadMarketplaceListings = async () => {
     try {
@@ -643,7 +590,14 @@ const ProfileInformation: React.FC = () => {
           onPress: async () => {
             try {
               console.log("🚪 Logging out...");
-              await AsyncStorage.clear();
+              await AsyncStorage.multiRemove([
+  "isLoggedIn",
+  "authToken",
+  "userProfile",
+  "userData"
+]);
+// DO NOT REMOVE registeredUser
+
               console.log("✅ AsyncStorage cleared");
               navigation.reset({
                 index: 0,

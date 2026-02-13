@@ -254,6 +254,8 @@ const Landing = () => {
 
   const checkLoginStatus = async () => {
     console.log("=== CHECKING LOGIN STATUS ===");
+
+    const registeredUser = await AsyncStorage.getItem("registeredUser");
     
     try {
       // Check multiple sources to determine login status
@@ -271,6 +273,10 @@ const Landing = () => {
       if (loginStatus === "true" || storedUser || userData || authToken) {
         console.log("✅ User is logged in");
         setIsLoggedIn(true);
+        if (registeredUser) {
+    const reg = JSON.parse(registeredUser);
+    setUserName(reg.first_name || "");
+  }
 
         // Try to get user profile
         if (storedUser) {
