@@ -38,7 +38,6 @@ const InstitutionStudents = () => {
   const { colors, lightMode } = useTheme();
   const styles = getStyles(colors);
 
-  // Branch ID from previous screen
   const branchId = route?.params?.branchId;
   const branchName = route?.params?.branchName;
 
@@ -46,10 +45,50 @@ const InstitutionStudents = () => {
   const [sortBy, setSortBy] = useState<'name' | 'year' | 'id'>('name');
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
-  const [visibleStudents, setVisibleStudents] = useState(20); // Initial load: 20 students
+  const [visibleStudents, setVisibleStudents] = useState(20);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
 
-  // Fetch students from backend
+  const generateInitials = (name: string): string => {
+    if (!name || name.trim() === '' || name.toLowerCase() === 'unknown') {
+      return 'NA';
+    }
+
+    const trimmedName = name.trim();
+    const nameParts = trimmedName.split(/\s+/).filter(part => part.length > 0);
+    
+    if (nameParts.length === 0) {
+      return 'NA';
+    } else if (nameParts.length === 1) {
+      const singleName = nameParts[0];
+      if (singleName.length >= 2) {
+        return singleName.substring(0, 2).toUpperCase();
+      } else {
+        return (singleName + 'A').substring(0, 2).toUpperCase();
+      }
+    } else {
+      return (nameParts[0][0] + nameParts[1][0]).toUpperCase();
+    }
+  };
+
+  const generateColor = (name: string, index: number): string => {
+    const colorPalette = [
+      '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
+      '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B88B', '#AED6F1',
+      '#F06292', '#FFB74D', '#81C784', '#64B5F6', '#9575CD',
+      '#4DB6AC', '#FFD54F', '#E57373', '#7986CB', '#A1887F',
+    ];
+    
+    if (name && name.length > 0) {
+      let hash = 0;
+      for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      return colorPalette[Math.abs(hash) % colorPalette.length];
+    }
+    
+    return colorPalette[index % colorPalette.length];
+  };
+
   useEffect(() => {
     if (!branchId) {
       console.log('❌ branchId not received in InstitutionStudents screen');
@@ -73,7 +112,6 @@ const InstitutionStudents = () => {
         const data = await response.json();
         console.log('🎯 RAW Students API Response:', data);
 
-        // Handle both array and object response formats
         const studentList = Array.isArray(data) ? data : data.students || [];
 
         if (studentList.length === 0) {
@@ -81,19 +119,11 @@ const InstitutionStudents = () => {
         }
 
         const formatted: Student[] = studentList.map((item: any, index: number) => {
-          // Extract first name for initials
-          const fullName = item.student_name || 'Unknown';
-          const nameParts = fullName.trim().split(' ');
-          
-          // Get first two initials from name parts
-          let initials = '';
-          if (nameParts.length >= 2) {
-            initials = (nameParts[0][0] + nameParts[1][0]).toUpperCase();
-          } else if (nameParts.length === 1) {
-            initials = nameParts[0].substring(0, 2).toUpperCase();
-          } else {
-            initials = 'NA';
-          }
+          const fullName = item.student_name?.trim() || item.name?.trim() || 'Unknown Student';
+          const initials = generateInitials(fullName);
+          const color = generateColor(fullName, index);
+
+          console.log(`📝 ${index + 1}. "${fullName}" -> "${initials}" (${color})`);
 
           return {
             id: item.student_id?.toString() || index.toString(),
@@ -105,13 +135,13 @@ const InstitutionStudents = () => {
             currentSgpa: item.current_sgpa || '—',
             attendance: item.attendance || '—',
             backlogs: item.backlogs?.toString() || '0',
-            avatar: item.profile_image_url || undefined,
+            avatar: undefined, // No profile images - always show initials
             initials: initials,
-            color: ['#64748b', '#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'][index % 6],
+            color: color,
           };
         });
 
-        console.log('✅ Formatted Students:', formatted.length);
+        console.log('✅ Total students formatted:', formatted.length);
         setStudents(formatted);
       } catch (error: any) {
         console.error('❌ Error fetching students:', error);
@@ -124,27 +154,23 @@ const InstitutionStudents = () => {
     fetchStudents();
   }, [branchId]);
 
-  // Filter students based on search query
   const filteredStudents = students.filter(
     (student) =>
       student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.studentId.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Sort students
   const sortedStudents = [...filteredStudents].sort((a, b) => {
     if (sortBy === 'name') return a.name.localeCompare(b.name);
     if (sortBy === 'year') return a.year - b.year;
     return a.studentId.localeCompare(b.studentId);
   });
 
-  // Display limited students
   const displayedStudents = sortedStudents.slice(0, visibleStudents);
   const remainingStudents = sortedStudents.length - visibleStudents;
   const hasMoreStudents = remainingStudents > 0;
 
   const loadMoreStudents = () => {
-    // Load 20 more students at a time
     setVisibleStudents((prev) => Math.min(prev + 20, sortedStudents.length));
   };
 
@@ -160,8 +186,8 @@ const InstitutionStudents = () => {
     return 'Sort by: ID';
   };
 
-  // Handle student card click
   const handleStudentClick = (student: Student) => {
+    console.log('👤 Navigating to:', student.name);
     navigation.navigate('StudentOverviewScreen', { 
       student: {
         ...student,
@@ -171,20 +197,16 @@ const InstitutionStudents = () => {
     });
   };
 
-  // Handle filter button click
   const handleFilterPress = () => {
     setShowFilterMenu(true);
   };
 
-  // Apply filter
   const applyFilter = (filterType: 'name' | 'year' | 'id') => {
     setSortBy(filterType);
     setShowFilterMenu(false);
-    // Reset visible students when filter changes
     setVisibleStudents(20);
   };
 
-  // Reset visible students when search changes
   useEffect(() => {
     setVisibleStudents(20);
   }, [searchQuery]);
@@ -196,7 +218,6 @@ const InstitutionStudents = () => {
         backgroundColor={colors.card}
       />
 
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.backButton} 
@@ -209,7 +230,6 @@ const InstitutionStudents = () => {
           {branchName || `Branch ${branchId}`}
         </Text>
 
-        {/* Filter button */}
         <TouchableOpacity 
           style={styles.filterButton}
           onPress={handleFilterPress}
@@ -218,7 +238,6 @@ const InstitutionStudents = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Search Bar */}
       <View style={styles.searchContainer}>
         <Icon name="search" size={20} color={colors.subText} style={styles.searchIcon} />
         <TextInput
@@ -235,7 +254,6 @@ const InstitutionStudents = () => {
         )}
       </View>
 
-      {/* Students Header */}
       <View style={styles.studentsHeader}>
         <Text style={styles.studentCount}>
           STUDENTS ({filteredStudents.length})
@@ -250,7 +268,6 @@ const InstitutionStudents = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Students List */}
       <ScrollView
         style={styles.studentsList}
         showsVerticalScrollIndicator={false}
@@ -280,24 +297,17 @@ const InstitutionStudents = () => {
                 activeOpacity={0.7}
                 onPress={() => handleStudentClick(student)}
               >
-                {/* Avatar with proper initials display */}
-                {student.avatar ? (
-                  <Image 
-                    source={{ uri: student.avatar }} 
-                    style={styles.studentAvatar} 
-                  />
-                ) : (
-                  <View
-                    style={[
-                      styles.studentAvatarPlaceholder,
-                      { backgroundColor: student.color },
-                    ]}
-                  >
-                    <Text style={styles.studentInitials}>
-                      {student.initials}
-                    </Text>
-                  </View>
-                )}
+                {/* AVATAR - Always show colorful initials */}
+                <View
+                  style={[
+                    styles.studentAvatarPlaceholder,
+                    { backgroundColor: student.color },
+                  ]}
+                >
+                  <Text style={styles.studentInitials}>
+                    {student.initials}
+                  </Text>
+                </View>
 
                 <View style={styles.studentInfo}>
                   <Text style={styles.studentName}>{student.name}</Text>
@@ -312,7 +322,6 @@ const InstitutionStudents = () => {
               </TouchableOpacity>
             ))}
 
-            {/* Load More Button - Optimized for large lists */}
             {hasMoreStudents && (
               <TouchableOpacity
                 style={styles.loadMoreButton}
@@ -331,7 +340,6 @@ const InstitutionStudents = () => {
               </TouchableOpacity>
             )}
 
-            {/* All Loaded Message */}
             {!hasMoreStudents && sortedStudents.length > 20 && (
               <View style={styles.allLoadedContainer}>
                 <Icon name="check-circle" size={20} color={colors.primary} />
@@ -344,7 +352,6 @@ const InstitutionStudents = () => {
         )}
       </ScrollView>
 
-      {/* Filter Menu Modal */}
       <Modal
         visible={showFilterMenu}
         transparent={true}
@@ -571,6 +578,7 @@ const getStyles = (colors: any) =>
       height: 48,
       borderRadius: 24,
       marginRight: 12,
+      backgroundColor: '#E0E0E0',
     },
     studentAvatarPlaceholder: {
       width: 48,
@@ -579,11 +587,16 @@ const getStyles = (colors: any) =>
       marginRight: 12,
       justifyContent: 'center',
       alignItems: 'center',
+      borderWidth: 2,
+      borderColor: 'rgba(255, 255, 255, 0.3)',
     },
     studentInitials: {
-      fontSize: 16,
-      fontWeight: '700',
+      fontSize: 18,
+      fontWeight: '900',
       color: '#FFFFFF',
+      letterSpacing: 1.5,
+      includeFontPadding: false,
+      textAlign: 'center',
     },
     studentInfo: {
       flex: 1,
